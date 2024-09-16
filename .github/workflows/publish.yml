@@ -1,0 +1,23 @@
+name: Publish NPM package
+on:
+  push:
+    branches:
+      - main
+    paths-ignore:
+      - '.github/**'
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - uses: actions/setup-node@v3
+        with:
+          node-version: 'lts/*'
+          scope: '@nice-devone'
+          registry-url: https://registry.npmjs.org
+      - run: |
+          npm publish --access public
+        working-directory: dist/shared-apps-lib
+        env:
+          NODE_AUTH_TOKEN: ${{secrets.NPM_TOKEN}}
