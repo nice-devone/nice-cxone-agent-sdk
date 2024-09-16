@@ -1,0 +1,17 @@
+{
+  "name": "@nice-devone/shared-apps-lib",
+  "version": "0.0.1",
+  "sideEffects": false,
+  "module": "./index.js",
+  "main": "./index.js",
+  "type": "module",
+  "types": "./src\\index.d.ts",
+  "dependencies": {
+    "react": "17.0.2",
+    "@reduxjs/toolkit": "1.9.1",
+    "react-toastify": "9.1.1",
+    "@nice-devone/i18n": "1.0.0",
+    "@testrtc/watchrtc-sdk": "1.38.3"
+  },
+  "peerDependencies": {}
+}
