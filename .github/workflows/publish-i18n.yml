@@ -16,7 +16,7 @@ jobs:
       - uses: actions/setup-node@v3
         with:
           node-version: 'lts/*'
-          scope: '@nice-devone'
+          scope: '@nice-ccf'
           registry-url: https://registry.npmjs.org
       - run: |
           npm publish --access public
