@@ -1,10 +1,10 @@
-name: Publish NPM package: i18n
+name: Publish NPM package i18n
 on:
   # push:
-   # branches:
-   #   - main
-   # paths-ignore:
-   #  - '.github/**'
+  #  branches:
+  #    - main
+  #  paths-ignore:
+  #   - '.github/**'
    # Allows you to run this workflow manually from the Actions tab
   workflow_dispatch:
 
