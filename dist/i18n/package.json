@@ -1,6 +1,6 @@
 {
-  "name": "@nice-ccf/i18n",
-  "version": "1.0.1",
+  "name": "@nice-devone/i18n",
+  "version": "1.0.0",
   "module": "./index.js",
   "main": "./index.js",
   "type": "module",
