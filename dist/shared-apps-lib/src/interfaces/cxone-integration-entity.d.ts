@@ -32,4 +32,8 @@ export interface CXoneScreenPopEntity extends CXoneIntegrationEntity {
      * CRM Entity/Record url
      */
     url?: string;
+    /**
+     * Custom CRM data for screenpop
+     */
+    data?: string;
 }

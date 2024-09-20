@@ -4985,13 +4985,15 @@ class CcfIntegrationTransformer {
    * @example - NA -
    */
   static toScreenPopEntityData(source) {
+    var _a;
     const target = {
       type: "PopEntity",
       params: {
         entity: source.activityRecord.type,
         entityId: source.activityRecord.id,
         entityLabel: source.activityRecord.label,
-        url: source.activityRecord.url
+        url: source.activityRecord.url,
+        data: ((_a = source.activityRecord) === null || _a === void 0 ? void 0 : _a.data) || ''
       },
       contactId: source.contactId,
       actionType: source.actionType
