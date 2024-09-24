@@ -198,9 +198,9 @@ var engineUserAgent = getBuiltIn$7('navigator', 'userAgent') || '';
 var global$l = global$n;
 var userAgent$3 = engineUserAgent;
 
-var process$3 = global$l.process;
+var process$4 = global$l.process;
 var Deno$1 = global$l.Deno;
-var versions = process$3 && process$3.versions || Deno$1 && Deno$1.version;
+var versions = process$4 && process$4.versions || Deno$1 && Deno$1.version;
 var v8 = versions && versions.v8;
 var match, version;
 
@@ -1917,7 +1917,7 @@ var IS_NODE$4 = engineIsNode;
 
 var set = global$b.setImmediate;
 var clear = global$b.clearImmediate;
-var process$2 = global$b.process;
+var process$3 = global$b.process;
 var Dispatch = global$b.Dispatch;
 var Function$1 = global$b.Function;
 var MessageChannel = global$b.MessageChannel;
@@ -1973,7 +1973,7 @@ if (!set || !clear) {
   // Node.js 0.8-
   if (IS_NODE$4) {
     defer = function (id) {
-      process$2.nextTick(runner(id));
+      process$3.nextTick(runner(id));
     };
   // Sphere (JS game engine) Dispatch API
   } else if (Dispatch && Dispatch.now) {
@@ -2039,7 +2039,7 @@ var IS_NODE$3 = engineIsNode;
 
 var MutationObserver = global$9.MutationObserver || global$9.WebKitMutationObserver;
 var document$2 = global$9.document;
-var process$1 = global$9.process;
+var process$2 = global$9.process;
 var Promise$1 = global$9.Promise;
 // Node.js 11 shows ExperimentalWarning on getting `queueMicrotask`
 var queueMicrotaskDescriptor = getOwnPropertyDescriptor$1(global$9, 'queueMicrotask');
@@ -2051,7 +2051,7 @@ var flush, head, last, notify$1, toggle, node, promise, then;
 if (!queueMicrotask) {
   flush = function () {
     var parent, fn;
-    if (IS_NODE$3 && (parent = process$1.domain)) parent.exit();
+    if (IS_NODE$3 && (parent = process$2.domain)) parent.exit();
     while (head) {
       fn = head.fn;
       head = head.next;
@@ -2088,7 +2088,7 @@ if (!queueMicrotask) {
   // Node.js without promises
   } else if (IS_NODE$3) {
     notify$1 = function () {
-      process$1.nextTick(flush);
+      process$2.nextTick(flush);
     };
   // for other environments - macrotask based on:
   // - setImmediate
@@ -2272,7 +2272,7 @@ var PromiseConstructor = NativePromiseConstructor$2;
 var PromisePrototype = NativePromisePrototype$1;
 var TypeError$2 = global$5.TypeError;
 var document$1 = global$5.document;
-var process = global$5.process;
+var process$1 = global$5.process;
 var newPromiseCapability$1 = newPromiseCapabilityModule$3.f;
 var newGenericPromiseCapability = newPromiseCapability$1;
 
@@ -2364,7 +2364,7 @@ var onUnhandled = function (state) {
     if (IS_UNHANDLED) {
       result = perform$2(function () {
         if (IS_NODE$1) {
-          process.emit('unhandledRejection', value, promise);
+          process$1.emit('unhandledRejection', value, promise);
         } else dispatchEvent(UNHANDLED_REJECTION, promise, value);
       });
       // Browsers should not trigger `rejectionHandled` event if it was handled here, NodeJS - should
@@ -2382,7 +2382,7 @@ var onHandleUnhandled = function (state) {
   call$c(task, global$5, function () {
     var promise = state.facade;
     if (IS_NODE$1) {
-      process.emit('rejectionHandled', promise);
+      process$1.emit('rejectionHandled', promise);
     } else dispatchEvent(REJECTION_HANDLED, promise, state.value);
   });
 };
@@ -2470,7 +2470,7 @@ if (FORCED_PROMISE_CONSTRUCTOR$4) {
     state.parent = true;
     reaction.ok = isCallable$4(onFulfilled) ? onFulfilled : true;
     reaction.fail = isCallable$4(onRejected) && onRejected;
-    reaction.domain = IS_NODE$1 ? process.domain : undefined;
+    reaction.domain = IS_NODE$1 ? process$1.domain : undefined;
     if (state.state == PENDING) state.reactions.add(reaction);
     else microtask(function () {
       callReaction(reaction, state);
@@ -4182,14 +4182,44 @@ $$1({ target: 'String', proto: true, forced: !correctIsRegExpLogic('includes') }
  * const appParams = CcfAppParamHelper(appConfig)
  */
 function CcfAppParamHelper(appConfig) {
+  var _a, _b, _c;
   const searchParams = new URLSearchParams(window.location.search);
   const app = searchParams.get('app') || searchParams.get('state');
   // in case appType is not provided, use default 'cxa'
   const appType = app && Object.values(CcfAppType).includes(app) ? app : 'cxa';
   const appParams = appConfig[appType];
+  const env = (_a = getEnvironment(appConfig.cxoneSystemIssuer)) === null || _a === void 0 ? void 0 : _a.toLowerCase();
+  const envCxoneClientId = (_c = (_b = appConfig[appType]) === null || _b === void 0 ? void 0 : _b.environment[env]) === null || _c === void 0 ? void 0 : _c.cxoneClientId;
+  // override the environment specific clientid if provided in the app-configuration.json file
+  envCxoneClientId && (appParams.cxoneClientId = envCxoneClientId);
   appParams.queryString = window.location.search;
   return appParams;
 }
+/**
+ * identify the environment based on the hostname
+ * @param cxoneHostname - system host name
+ * @returns
+ * @example
+ * ```
+ * const env = getEnvironment('https://cxone.dev.niceincontact.com');
+ * ```
+ */
+const getEnvironment = cxoneHostname => {
+  const defaultEnv = 'production';
+  const environments = {
+    'https://cxone.dev.niceincontact.com': 'dev',
+    'https://cxone.test.niceincontact.com': 'test',
+    'https://cxone.staging.niceincontact.com': 'staging'
+  };
+  // get the environment from the NODE_ENV variable otherwise fallback to production
+  let currentEnvironment = process.env['NODE_ENV'] || defaultEnv;
+  const browserUrl = window.location.origin;
+  // calculate the environment based on the hostname for localhost case
+  if (browserUrl.indexOf('//localhost') !== -1) {
+    currentEnvironment = environments[cxoneHostname] || currentEnvironment;
+  }
+  return currentEnvironment;
+};
 
 /**
  * Main adapter class for CXone Browser Extension
