@@ -14,4 +14,5 @@ export declare class AdminApis {
     static signalScriptUri: string;
     static getAllIndicatorsUri: string;
     static resizeEventQueueUri: string;
+    static getTenantDataUri: string;
 }

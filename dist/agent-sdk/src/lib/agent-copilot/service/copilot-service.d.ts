@@ -22,6 +22,7 @@ export declare class CopilotService {
     private AGENT_COPILOT_ENABLEMENT_FOR_CONTACT;
     private AGENT_COPILOT_AGENT_ASSIST_HUB_CONFIG;
     private AGENT_COPILOT_EMAIL_APIS;
+    private AGENT_COPILOT_FEEDBACK_GUIDANCE;
     private aahConfigStore;
     /**
      * Create instance of CXoneAuth
@@ -238,5 +239,32 @@ export declare class CopilotService {
         topicId: string;
         content: string;
     }[]) => Promise<string>;
+    /**
+     * Used to store the feedback guidance
+     * @param feedback - feedback given by the agent
+     * @param utteranceId - utteranceId
+     * @param kbAnswerUid - unique id of the kbAnswer
+     * @example -
+     * ```
+     * copilotService.sendGuidanceFeedback("Like", "1234", "1234");
+     * ```
+     */
+    sendGuidanceFeedback: (feedbackData: {
+        feedback: string;
+        utteranceId: string;
+        kbAnswerUid: string;
+    }) => Promise<unknown>;
+    /**
+    * Use to process an editor command to get the Simplified/Rephrased/Expanded text in reponse
+    * @param action - email action
+    * @param context - editor text
+    * @param selectedText - selected text from editor
+    * @param contactId - contactId/caseId
+    * @example -
+    * ```
+    * copilotService.processEditorCommand("Simplify",'this is test','test','1234');
+    * ```
+    */
+    processEditorCommand(action: string, context: string, selectedText: string, contactId: string): Promise<string>;
 }
 export {};

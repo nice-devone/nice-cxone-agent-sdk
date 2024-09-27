@@ -4,6 +4,7 @@ import { CentralBrandingProfile } from '../lib/admin/model/central-branding-prof
 import { BrandingProfile } from '../lib/admin/model/branding-profile';
 import { HttpResponse } from '@nice-devone/common-sdk';
 import { AgentSettings } from '../lib/admin/model/agent-settings';
+import { Tenant } from '../lib/admin/model/tenant';
 /**
  * This class to parse api response
  */
@@ -63,4 +64,15 @@ export declare class ApiParser {
      * ```
      */
     parseBrandingProfile(brandingProfileResponse: HttpResponse): BrandingProfile;
+    /**
+     * Method to parse Tenant Data response
+     *
+     * @param tenantDataRepsonse  - Tenant Data response
+     * @returns - parsed Tenant Data
+     * @example -
+     * ```
+     * parseTeneantData(tenantDataRepsonse)
+     * ```
+     */
+    parseTenantData(tenantDataRepsonse: HttpResponse): Tenant;
 }

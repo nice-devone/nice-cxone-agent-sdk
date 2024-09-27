@@ -7,6 +7,7 @@ import { BrandingProfile } from './model/branding-profile';
 import { CXoneIndicator, CXoneSdkError, HttpResponse, UserInfo, CXoneConfiguration, UserLocation } from '@nice-devone/common-sdk';
 import { AgentSettings } from './model/agent-settings';
 import { CXoneUserDetails } from './model/cxone-user-details';
+import { Tenant } from './model/tenant';
 /**
  * Class to perform get admin api
  */
@@ -83,6 +84,14 @@ export declare class AdminService {
      * ```
      */
     getBusinessUnit(): Promise<BusinessUnit | CXoneSdkError>;
+    /**
+     *  Method to return all tenant data
+     * @example
+     * ```
+     * getTenantManagementData()
+     * ```
+     */
+    getTenantData(): Promise<Tenant | CXoneSdkError>;
     /**
      * Method to return client data
      * @returns - returns the client data

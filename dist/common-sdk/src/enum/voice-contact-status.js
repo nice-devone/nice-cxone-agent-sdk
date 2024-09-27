@@ -17,5 +17,8 @@ var VoiceContactStatus;
     VoiceContactStatus["CONFERENCE"] = "conference";
     VoiceContactStatus["PREVIEW"] = "preview";
     VoiceContactStatus["CALL_BACK_DISCONNECTED"] = "callbackdisconnected";
+    VoiceContactStatus["NATURAL_CALL_DIALING"] = "naturalcalldialing";
+    VoiceContactStatus["NATURAL_CALL_AMD"] = "naturalcallamd";
+    VoiceContactStatus["NATURAL_CALL_RINGING"] = "naturalcallringing";
 })(VoiceContactStatus = exports.VoiceContactStatus || (exports.VoiceContactStatus = {}));
 //# sourceMappingURL=voice-contact-status.js.map

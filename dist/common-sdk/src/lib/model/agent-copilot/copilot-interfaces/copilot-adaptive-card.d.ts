@@ -35,3 +35,36 @@ export interface CopilotEmailCardData {
     description: string;
     icon: string;
 }
+/**
+ * model interface for KbCombo data
+ */
+export interface CopilotKbAnswerCardData {
+    kbAnswers: PublicKbAnswerData;
+    kbInternalUse: PrivateKbAnswerData;
+    utteranceId: string;
+}
+/**
+ * model interface for kbAnswer CardContent
+ */
+export interface CardContent {
+    kbAnswers: PublicKbAnswerData;
+    kbInternalUse: PrivateKbAnswerData;
+}
+/**
+ * model interface for Public KB Answer data
+ */
+export interface PublicKbAnswerData {
+    title: string;
+    description: string;
+    kbAnswerUid: string;
+    publicFeedback?: boolean;
+}
+/**
+ * model interface for Private KB Answer data
+ */
+export interface PrivateKbAnswerData {
+    title: string;
+    description: string;
+    kbAnswerUid: string;
+    privateFeedback?: boolean;
+}

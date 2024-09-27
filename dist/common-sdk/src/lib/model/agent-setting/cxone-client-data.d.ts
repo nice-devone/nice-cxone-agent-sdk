@@ -59,13 +59,12 @@ export declare class CXoneClientData {
         SecondaryDeviceDelay: any;
         AudioAgentMessage: any;
         AudioEndContact: any;
-        AudioNewContactReply: any;
+        AudioNewChat: any;
         AudioNewContact: any;
         VisualAgentMessage: any;
         VisualEndContact: any;
-        VisualNewContactReply: any;
-        VisualNewContact: any;
         VisualNewChat: any;
+        VisualNewContact: any;
         AudioAgentMessageTone: any;
         AudioEndContactTone: any;
         AudioNewContactReplyTone: any;

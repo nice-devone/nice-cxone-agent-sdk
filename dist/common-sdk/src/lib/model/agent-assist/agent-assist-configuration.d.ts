@@ -18,6 +18,8 @@ export interface AgentAssistConfig {
          * Id of event provider like agentCopilot
          */
         providerId: string;
+        publicFeedback?: boolean;
+        privateFeedback?: boolean;
     };
 }
 /**
@@ -62,5 +64,7 @@ export declare enum AgentAssistConfigACPParamsKeys {
     REAL_TIME_SUMMARY_RESPONSE_LENGTH = "realTimeSummaryResponseLength",
     SCRIPT_PARAMS = "scriptParams",
     SENTIMENT_RESPONSE_LENGTH = "sentimentResponseLength",
-    TRANSCRIPTION_PROFILE_NAME = "transcriptionProfileName"
+    TRANSCRIPTION_PROFILE_NAME = "transcriptionProfileName",
+    PUBLIC_FEEDBACK = "publicFeedback",
+    PRIVATE_FEEDBACK = "privateFeedback"
 }

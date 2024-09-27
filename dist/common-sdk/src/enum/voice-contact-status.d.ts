@@ -12,5 +12,8 @@ export declare enum VoiceContactStatus {
     TRANSFER = "transfer",
     CONFERENCE = "conference",
     PREVIEW = "preview",
-    CALL_BACK_DISCONNECTED = "callbackdisconnected"
+    CALL_BACK_DISCONNECTED = "callbackdisconnected",
+    NATURAL_CALL_DIALING = "naturalcalldialing",
+    NATURAL_CALL_AMD = "naturalcallamd",
+    NATURAL_CALL_RINGING = "naturalcallringing"
 }

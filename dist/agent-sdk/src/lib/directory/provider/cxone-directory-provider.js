@@ -1084,7 +1084,9 @@ export class CXoneDirectoryProvider {
                     const matchedAddressBookIndex = currentAddressBookList.findIndex((currentAddressBook) => currentAddressBook.addressBookId == addressBook.addressBookId);
                     if (matchedAddressBookIndex >= 0) {
                         if (addressBookEntries.length) {
-                            const currentAddressBookEntries = ((_a = currentAddressBookList[matchedAddressBookIndex]) === null || _a === void 0 ? void 0 : _a.addressBooksEntries) || [];
+                            let currentAddressBookEntries = ((_a = currentAddressBookList[matchedAddressBookIndex]) === null || _a === void 0 ? void 0 : _a.addressBooksEntries) || [];
+                            // Remove entries present in currentAddressBookEntries but not in addressBookEntries
+                            currentAddressBookEntries = currentAddressBookEntries.filter((currentAddressBookEntry) => addressBookEntries.some((addressBookEntry) => addressBookEntry.addressBookEntryId === currentAddressBookEntry.addressBookEntryId));
                             if (currentAddressBookList === null || currentAddressBookList === void 0 ? void 0 : currentAddressBookList.length) {
                                 addressBookEntries.forEach((addressBookEntry, index) => {
                                     addressBookEntry.addressBookName = addressBook.addressBookName;

@@ -64,6 +64,10 @@ export class ACDSessionManager {
         this._onAgentAssistWebSocketUnsubscribe = new Subject();
         this._onAgentAssistGetNextEvent = new Subject();
         this._customScreenpopSubject = new Subject();
+        this._onGetNextEventSubject = new Subject();
+        this._answerEvent = new Subject();
+        this._rejectEvent = new Subject();
+        this._callControlEvent = new Subject();
         /**
          * Posts custom form data
          * @param contactId - sendor contact id
@@ -96,6 +100,42 @@ export class ACDSessionManager {
             });
         };
         this.adminService = AdminService.instance;
+    }
+    /**
+     * @example -
+     * ```
+     * const onGetNextEvent = acdSession.onGetNextEvent
+     * ```
+     */
+    get onGetNextEvent() {
+        return this._onGetNextEventSubject;
+    }
+    /**
+     * @example -
+     * ```
+     * const answerEvent = acdSession.answerEvent
+     * ```
+     */
+    get answerEvent() {
+        return this._answerEvent;
+    }
+    /**
+     * @example -
+     * ```
+     * const rejectEvent = acdSession.rejectEvent
+     * ```
+     */
+    get rejectEvent() {
+        return this._rejectEvent;
+    }
+    /**
+     * @example -
+     * ```
+     * const callControlEvent = acdSession.callControlEvent
+     * ```
+     */
+    get callControlEvent() {
+        return this._callControlEvent;
     }
     /**
      * @example -

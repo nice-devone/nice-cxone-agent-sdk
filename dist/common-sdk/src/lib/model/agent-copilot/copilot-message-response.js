@@ -30,6 +30,7 @@ class CopilotMessageResponse extends agent_assist_base_response_1.AgentAssistBas
             isNBROpen: false,
             isResponseInserted: false,
             isFinalSummaryGenerated: false,
+            feedbackData: [],
         };
         acpAppElements === null || acpAppElements === void 0 ? void 0 : acpAppElements.forEach((element) => {
             const elemObj = CopilotMessageResponse.formatCopilotElement(element);

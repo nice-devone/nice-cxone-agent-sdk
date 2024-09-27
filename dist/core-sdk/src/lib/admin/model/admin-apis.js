@@ -15,4 +15,5 @@ AdminApis.spawnScriptUri = '/InContactAPI/services/v23.0/scripts/{scriptId}/star
 AdminApis.signalScriptUri = '/InContactAPI/services/v23.0/interactions/{contactId}/signal';
 AdminApis.getAllIndicatorsUri = '/InContactAPI/services/v23.0/agents/{agentId}/indicators';
 AdminApis.resizeEventQueueUri = '/InContactAPI/services/v31.0/agent-sessions/{sessionId}/event-queue-resize';
+AdminApis.getTenantDataUri = '/tenants/v2/current';
 //# sourceMappingURL=admin-apis.js.map

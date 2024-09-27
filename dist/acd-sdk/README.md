@@ -3,15 +3,15 @@
 *  [NPM package](https://www.npmjs.com/package/@nice-devone/acd-sdk)
 *  [Sample Web App](https://github.com/nice-cxone/webapp-acd-cxagent-sdk-consumer)
 
-## Requirements
+### Requirements
+
 *  TypeScript **4.7**
 *  Runtime: **ES2022** (`WebSocket`, `Intl`, `Promise`, `EventTarget`, `CustomEvent`, `JSON`, `Date`, etc.)
 *  Custom application bundler (webpack, create-react-app, etc.)
 
-
 This README file provides an overview of the `@nice-devone/acd-sdk` library. It is a typescript library that empowers developers to interact with Automatic Call Distribution (ACD) functionalities within their applications built for the NICE CXone platform.
 
-## Features
+### Features
 
 * **ACD Engagement:** Manage features that impact contact routing, like starting and ending ACD sessions, changing an agent's state (available/unavailable, on break, etc.), and so forth. 
 * **Contact Management:** Manage interactions with customers throughout their journey, including routing contacts to agents, call level operations like mute, hold, etc. transferring calls, playing audio prompts and updating contact metadata.  
@@ -21,13 +21,13 @@ This README file provides an overview of the `@nice-devone/acd-sdk` library. It 
 * **Notifications:** Receive ACD notifications based on the dependency on @nice-devone/agent-sdk.
 * **Agent Details:** Retrieve agent details based on the presence of the agent-details service.
 
-## Installation
+### Installation
 
 ```
 npm install @nice-devone/acd-sdk
 ```
 
-## Usage
+### Usage
 
 1. **Import necessary modules:**
 
@@ -50,19 +50,15 @@ Documentation
 
 For comprehensive API reference and usage examples, refer to the official documentation provided by NICE CXone (link to be retrieved).
 
-## Compatibility
+### Compatibility
 
 This SDK is likely compatible with specific ACD platform versions supported by its peer dependencies (e.g., @nice-devone/agent-sdk, @nice-devone/common-sdk). Refer to the official documentation (if available) for supported versions.
 
-## License
+### License
 
 Check the license file (LICENSE) for specific terms regarding the use of this SDK.
 
-## Additional Notes
+### Additional Notes
 
 The SDK likely interacts with other NICE CXone products based on the peer dependencies (@nice-devone/core-sdk, @nice-devone/common-sdk).
-Consider exploring the codebase (src/lib/acd) for a more comprehensive understanding of the functionalities offered.
-
-## Keywords
-
-none
+Consider exploring the codebase (src/lib/) for a more comprehensive understanding of the functionalities offered.

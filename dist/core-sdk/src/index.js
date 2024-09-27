@@ -38,4 +38,5 @@ export * from './logger/model/log-appender';
 export * from './lib/datadog/datadog';
 export * from './constants/websocket-status-code';
 export * from './util/common-util';
+export * from './lib/admin/model/tenant';
 //# sourceMappingURL=index.js.map

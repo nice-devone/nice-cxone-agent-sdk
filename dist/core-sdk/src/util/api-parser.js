@@ -175,5 +175,67 @@ export class ApiParser {
         };
         return brandingProfile;
     }
+    /**
+     * Method to parse Tenant Data response
+     *
+     * @param tenantDataRepsonse  - Tenant Data response
+     * @returns - parsed Tenant Data
+     * @example -
+     * ```
+     * parseTeneantData(tenantDataRepsonse)
+     * ```
+     */
+    parseTenantData(tenantDataRepsonse) {
+        const data = tenantDataRepsonse.data.tenant;
+        const tenantData = {
+            tenantId: data.tenantId,
+            tenantName: data.tenantName,
+            schemaName: data.schemaName,
+            parentId: data.parentId,
+            partnerId: data.partnerId,
+            source: data.source,
+            creationDate: data.creationDate,
+            expirationDate: data.expirationDate,
+            status: data.status,
+            type: data.type,
+            timezone: data.timezone,
+            customerType: data.customertype,
+            clusterId: data.clusterId,
+            billingId: data.billingId,
+            billingCycle: data.billingCycle,
+            billingTelephoneNumber: data.billingTelephoneNumber,
+            metaData: data.metadata,
+            licenses: data.licenses,
+            userSoftLimit: data.userSoftLimit,
+            brandingProfileId: data.brandingProfileId,
+            presenceSyncEnabled: data.presenceSyncEnabled,
+            directorySyncEnabled: data.directorySyncEnabled,
+            platformVersion: data.platformVersion,
+            presenceSyncVersionDetails: data.presenceSyncVersionDetails,
+            presenceSyncSettingDetails: data.presenceSyncSettingDetails,
+            availableForDeletion: data.availableForDeletion,
+            tenantDeletionInfo: data.tenantDeletionInfo,
+            errorCode: data.errorCode,
+            tenantFlowCheck: data.tenantFlowCheck,
+            markedForDeletion: data.markedForDeletion,
+            applicationUserDetails: data.applicationUserDetails,
+            hasProcessRights: data.hasProcessRights,
+            processingStartDate: data.processingStartDate,
+            systemType: data.systemType,
+            partnerName: data.partnerName,
+            templateId: data.templateId,
+            templateVersion: data.templateVersion,
+            disableImpersonateAndSupport: data.disableImpersonateAndSupport,
+            disableImpersonateAndConfigure: data.disableImpersonateAndConfigure,
+            converted: data.converted,
+            modificationDate: data.modificationDate,
+            tenantBusinessOwner: data.tenantBusinessOwner,
+            lineOfBusiness: data.lineOfBusiness,
+            owner: data.owner,
+            segmentationEnabled: data.segmentationEnabled,
+            adjustViewsLimitEnabled: data.adjustViewsLimitEnabled,
+        };
+        return tenantData;
+    }
 }
 //# sourceMappingURL=api-parser.js.map

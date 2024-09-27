@@ -3,12 +3,14 @@ import { CcfInteractionSearchFilterValues } from './ccf-interaction-search-filte
 export interface CXoneDigitalContactSearchRequest {
     /**
      * @remarks - requested channel name for contact result.
+     *CcfInteractionSearchFilterValues[] contains id and name of the channel to display in dropdown list
      */
-    channel?: string;
+    channel?: CcfInteractionSearchFilterValues[];
     /**
      * @remarks - string value which represents contact status.
+     *CcfInteractionSearchFilterValues[] contains id and name of the status to display in dropdown list
      */
-    status?: string;
+    status?: CcfInteractionSearchFilterValues[];
     /**
      * @remarks -  List of skill ids
     */
@@ -22,9 +24,13 @@ export interface CXoneDigitalContactSearchRequest {
     */
     ownerAssigneeAgentId?: CcfInteractionSearchFilterValues[];
     /**
-     * @remarks - date value on which contacts are created.
+     * @remarks - start date value on which contacts are created.
     */
-    createdDateRange?: Date;
+    from?: string;
+    /**
+      * @remarks - end date value on which contacts are created.
+     */
+    to?: string;
     /**
      * @remarks - scroll token reveived in previous response for next pagination.
     */
@@ -43,6 +49,7 @@ export interface CXoneDigitalContactSearchRequest {
     sortingType?: SortingType;
     /**
      * @remarks - requested tag for contact result.
+     *CcfInteractionSearchFilterValues[] contains id and name of the tag to display in dropdown list
      */
-    tag?: string;
+    tag?: CcfInteractionSearchFilterValues[];
 }

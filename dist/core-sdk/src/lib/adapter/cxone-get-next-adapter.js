@@ -23,6 +23,7 @@ export class CXoneGetNextAdapter {
      * @example
      */
     handleGetNextResponse(events) {
+        this.agentSession.onGetNextEvent.next(events);
         const sessionStartEventIndex = events.findIndex(event => event.Type === GetNextEventType.AGENT_SESSION_START_EVENT);
         if (sessionStartEventIndex !== -1 && sessionStartEventIndex !== 0) {
             const sessionStartEventObj = Object.assign({}, events[sessionStartEventIndex]);

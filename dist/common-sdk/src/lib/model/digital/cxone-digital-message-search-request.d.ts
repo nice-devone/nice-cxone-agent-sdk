@@ -9,9 +9,13 @@ export interface CXoneDigitalMessageSearchRequest {
      */
     channel?: CcfInteractionSearchFilterValues[];
     /**
-     * @remarks - date value on which messages are created.
+     * @remarks - start date value on which messages are created.
      */
-    createdDateRange?: Date;
+    from?: string;
+    /**
+     * @remarks - end date value on which messages are created.
+     */
+    to?: string;
     /**
      * @remarks - scroll token received in previous response for next pagination.
      */

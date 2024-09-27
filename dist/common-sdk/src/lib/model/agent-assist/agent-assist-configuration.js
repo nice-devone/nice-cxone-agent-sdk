@@ -46,5 +46,7 @@ var AgentAssistConfigACPParamsKeys;
     AgentAssistConfigACPParamsKeys["SCRIPT_PARAMS"] = "scriptParams";
     AgentAssistConfigACPParamsKeys["SENTIMENT_RESPONSE_LENGTH"] = "sentimentResponseLength";
     AgentAssistConfigACPParamsKeys["TRANSCRIPTION_PROFILE_NAME"] = "transcriptionProfileName";
+    AgentAssistConfigACPParamsKeys["PUBLIC_FEEDBACK"] = "publicFeedback";
+    AgentAssistConfigACPParamsKeys["PRIVATE_FEEDBACK"] = "privateFeedback";
 })(AgentAssistConfigACPParamsKeys = exports.AgentAssistConfigACPParamsKeys || (exports.AgentAssistConfigACPParamsKeys = {}));
 //# sourceMappingURL=agent-assist-configuration.js.map

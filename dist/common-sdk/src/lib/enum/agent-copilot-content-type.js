@@ -39,10 +39,6 @@ var AgentCopilotContentType;
      */
     AgentCopilotContentType["KB_COMBO"] = "kbCombo";
     /**
-     * Represents the knowledge base combo for voice conten type.
-     */
-    AgentCopilotContentType["KB_COMBO_VOICE"] = "kbCombo_Voice";
-    /**
      * Represents the Transfer Summary contenttype.
      */
     AgentCopilotContentType["TRANSFER_SUMMARY"] = "transferSummary";
@@ -54,5 +50,9 @@ var AgentCopilotContentType;
      * Represents the Email content type for email response.
      */
     AgentCopilotContentType["EMAIL_RESPONSE_CARD"] = "emailResponseCard";
+    /**
+     * Represents comprehensive feedback guidance content type
+     */
+    AgentCopilotContentType["COMP_FEEDBACK_GUIDANCE"] = "comprehensiveFeedback";
 })(AgentCopilotContentType = exports.AgentCopilotContentType || (exports.AgentCopilotContentType = {}));
 //# sourceMappingURL=agent-copilot-content-type.js.map

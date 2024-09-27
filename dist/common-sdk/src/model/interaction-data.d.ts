@@ -118,4 +118,5 @@ export interface Tabs {
     caseId: string | undefined;
     contactId: string | undefined;
     createdAt: string;
+    isPreviewCase: boolean;
 }

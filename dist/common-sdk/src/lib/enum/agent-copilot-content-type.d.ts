@@ -35,10 +35,6 @@ export declare enum AgentCopilotContentType {
      */
     KB_COMBO = "kbCombo",
     /**
-     * Represents the knowledge base combo for voice conten type.
-     */
-    KB_COMBO_VOICE = "kbCombo_Voice",
-    /**
      * Represents the Transfer Summary contenttype.
      */
     TRANSFER_SUMMARY = "transferSummary",
@@ -49,5 +45,9 @@ export declare enum AgentCopilotContentType {
     /**
      * Represents the Email content type for email response.
      */
-    EMAIL_RESPONSE_CARD = "emailResponseCard"
+    EMAIL_RESPONSE_CARD = "emailResponseCard",
+    /**
+     * Represents comprehensive feedback guidance content type
+     */
+    COMP_FEEDBACK_GUIDANCE = "comprehensiveFeedback"
 }

@@ -69,6 +69,7 @@ export const StorageKeys = {
     CC_RELATESTO_ACTIVITIES: 'cc_related_activities',
     FINGERPRINT_SHOW: 'fingerPrintShow',
     VOICE_PREFERENCE: 'voice_preference',
+    TENANT_DATA: 'tenant_data',
     /**
      * This key is used to store the ACS email id used during session initiation
      */

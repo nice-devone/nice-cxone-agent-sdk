@@ -51,6 +51,10 @@ export declare class ACDSessionManager {
     private _onAgentAssistWebSocketUnsubscribe;
     private _onAgentAssistGetNextEvent;
     private _customScreenpopSubject;
+    private _onGetNextEventSubject;
+    private _answerEvent;
+    private _rejectEvent;
+    private _callControlEvent;
     /**
      * @example
      * ```
@@ -58,6 +62,36 @@ export declare class ACDSessionManager {
      * ```
      */
     constructor();
+    /**
+     * @example -
+     * ```
+     * const onGetNextEvent = acdSession.onGetNextEvent
+     * ```
+     */
+    get onGetNextEvent(): Subject<{
+        [key: string]: string;
+    }[]>;
+    /**
+     * @example -
+     * ```
+     * const answerEvent = acdSession.answerEvent
+     * ```
+     */
+    get answerEvent(): Subject<MessageEvent<any>>;
+    /**
+     * @example -
+     * ```
+     * const rejectEvent = acdSession.rejectEvent
+     * ```
+     */
+    get rejectEvent(): Subject<MessageEvent<any>>;
+    /**
+     * @example -
+     * ```
+     * const callControlEvent = acdSession.callControlEvent
+     * ```
+     */
+    get callControlEvent(): Subject<string>;
     /**
      * @example -
      * ```
@@ -96,7 +130,7 @@ export declare class ACDSessionManager {
         complianceRecord: import("yup/lib/boolean").RequiredBooleanSchema<boolean, import("yup/lib/types").AnyObject>; /**
          * @example -
          * ```
-         * const conferenceCallEvent = acdSession.conferenceCallEvent
+         * const updateSkillsEvent = agentSession.updateSkillsEvent
          * ```
          */
         confirmationRequired: import("yup/lib/boolean").RequiredBooleanSchema<boolean, import("yup/lib/types").AnyObject>;

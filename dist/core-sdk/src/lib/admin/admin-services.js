@@ -167,6 +167,29 @@ export class AdminService {
         });
     }
     /**
+     *  Method to return all tenant data
+     * @example
+     * ```
+     * getTenantManagementData()
+     * ```
+     */
+    getTenantData() {
+        return new Promise((resolve, reject) => {
+            const reqInit = this.utilService.initHeader(this.accessToken, 'application/json');
+            const url = this.cxOneConfig.userHubBaseUrl + AdminApis.getTenantDataUri;
+            HttpClient.get(url, reqInit).then((response) => {
+                this.logger.info('getTenantManagementData', 'Get Tenant Management Data Success');
+                const data = this.apiParser.parseTenantData(response);
+                LocalStorageHelper.setItem(StorageKeys.TENANT_DATA, data);
+                resolve(data);
+            }, (error) => {
+                var _a;
+                this.logger.error('getTenantManagementData', 'Get Tenant Management Data failed ' + JSON.stringify(error));
+                reject(new CXoneSdkError(CXoneSdkErrorType.CXONE_API_ERROR, (_a = error === null || error === void 0 ? void 0 : error.data) === null || _a === void 0 ? void 0 : _a.message, error === null || error === void 0 ? void 0 : error.data));
+            });
+        });
+    }
+    /**
      * Method to return client data
      * @returns - returns the client data
      * ```

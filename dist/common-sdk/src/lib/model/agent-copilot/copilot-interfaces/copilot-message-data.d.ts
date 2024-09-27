@@ -1,3 +1,4 @@
+import { CopilotFeedbackData } from './copilot-feedback-data';
 import { CopilotElement } from './index';
 /**
  * model interface for agent assist payload data
@@ -47,4 +48,8 @@ export interface CopilotMessageData {
     * array of email adaptive cards
     */
     emailCards?: CopilotElement[];
+    /**
+     * field for storing feedback data
+    */
+    feedbackData: CopilotFeedbackData[];
 }

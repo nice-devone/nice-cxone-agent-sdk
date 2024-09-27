@@ -1056,5 +1056,17 @@ export declare const localeTranslationMap: Map<"en-US" | "es" | "he" | "ja" | "p
         noChannels: string;
         adjustLocation: string;
         locationTooltip: string;
+        customerId: string;
+        optOutReason: string;
+        optOut: string;
+        voiceBioHubError: string;
+        adp_addTopic: string;
+        adp_responseLength: string;
+        adp_responseLengthLong: string;
+        adp_responseLengthShort: string;
+        adp_enterNewTopic: string;
+        adp_responseTopics: string;
+        whatsAppMessageDeliveryFailedBanner: string;
+        whatsAppMessageUndelivered: string;
     };
 }>;

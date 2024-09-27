@@ -1,7 +1,8 @@
 import { __awaiter } from "tslib";
 import { CXoneAuth, CXoneUser } from '@nice-devone/auth-sdk';
-import { MediaType, AgentCopilotContentType } from '@nice-devone/common-sdk';
+import { CXoneSdkError, MediaType, AgentCopilotContentType, CXoneSdkErrorType } from '@nice-devone/common-sdk';
 import { Logger, HttpUtilService, StorageKeys, HttpClient, LocalStorageHelper, dbInstance, IndexDBStoreNames, IndexDBKeyNames, clearIndexDbKey, ValidationUtils } from '@nice-devone/core-sdk';
+import { Feedback } from '../../enum/feedback';
 /**
  * Class for copilot base service
  */
@@ -30,7 +31,9 @@ export class CopilotService {
             GET_LAST_GENERATED_TOPICS: this.AGENT_COPILOT_BASE_URI + 'email/topics?contactId={contactId}',
             GET_DRAFT_EMAIL: this.AGENT_COPILOT_BASE_URI + 'email/draft?contactId={contactId}&uniqueEmailId={uniqueEmailId}',
             GENERATE_EMAIL: this.AGENT_COPILOT_BASE_URI + 'email/draft',
+            EMAIL_ACTION: this.AGENT_COPILOT_BASE_URI + 'email/action',
         };
+        this.AGENT_COPILOT_FEEDBACK_GUIDANCE = this.AGENT_COPILOT_BASE_URI_V2 + 'interaction-feedback/kbAnswer';
         this.aahConfigStore = {};
         /**
          * @returns base url for ACP backend
@@ -90,8 +93,9 @@ export class CopilotService {
                         LocalStorageHelper.setItem(StorageKeys.AGENT_COPILOT_ADAPTIVE_CARD_SCHEMAS, response.data);
                         resolve(response);
                     }, (error) => {
-                        this.logger.error('fetchCopilotAllAdaptiveCardSchemas', `${JSON.stringify(error)}`);
-                        reject(error);
+                        const errorResponse = new CXoneSdkError(CXoneSdkErrorType.CXONE_API_ERROR, 'Failed to fetch all copilot adaptive card schemas', error);
+                        this.logger.error('fetchCopilotAllAdaptiveCardSchemas', errorResponse.toString());
+                        reject(errorResponse);
                     });
                 }
             });
@@ -122,8 +126,9 @@ export class CopilotService {
                         LocalStorageHelper.setItem(StorageKeys.AGENT_COPILOT_ADAPTIVE_CARD_SCHEMAS, schemaToAdd);
                         resolve(response);
                     }, (error) => {
-                        this.logger.error('fetchCopilotAdaptiveCardSchema', `${JSON.stringify(error)}`);
-                        reject(error);
+                        const errorResponse = new CXoneSdkError(CXoneSdkErrorType.CXONE_API_ERROR, 'Failed to fetch adaptive card schema', error);
+                        this.logger.error('fetchCopilotAdaptiveCardSchema', errorResponse.toString());
+                        reject(errorResponse);
                     });
                 }
             });
@@ -203,8 +208,9 @@ export class CopilotService {
                     const resp = response === null || response === void 0 ? void 0 : response.data;
                     resolve(resp);
                 }, (error) => {
-                    this.logger.error('healthCheck', `${JSON.stringify(error)}`);
-                    reject(error);
+                    const errorResponse = new CXoneSdkError(CXoneSdkErrorType.CXONE_API_ERROR, 'Failed to invoke health check', error);
+                    this.logger.error('healthCheck', errorResponse.toString());
+                    reject(errorResponse);
                 });
             });
         };
@@ -278,8 +284,9 @@ export class CopilotService {
                     }
                     resolve(contactIdMap);
                 }, (error) => {
-                    this.logger.error('fetchAgentAssistConfigFromCache', `${JSON.stringify(error)}`);
-                    reject(error);
+                    const errorResponse = new CXoneSdkError(CXoneSdkErrorType.CXONE_API_ERROR, 'Failed to fetch agent assist config from cache', error);
+                    this.logger.error('fetchAgentAssistConfigFromCache', errorResponse.toString());
+                    reject(errorResponse);
                 });
             });
         };
@@ -300,7 +307,8 @@ export class CopilotService {
                 const baseUrl = this.getBaseUrlForAcp();
                 const apiUrl = baseUrl + this.AGENT_COPILOT_AGENT_ASSIST_HUB_CONFIG;
                 HttpClient === null || HttpClient === void 0 ? void 0 : HttpClient.post(apiUrl, reqInit).then((response) => {
-                    if (response.status === 200 && !this.aahConfigStore[contactId]) {
+                    var _a;
+                    if (response.status === 200 && ((_a = response === null || response === void 0 ? void 0 : response.data) === null || _a === void 0 ? void 0 : _a.success) !== false && !this.aahConfigStore[contactId]) {
                         const aahConfig = {
                             AppTitle: 'Enlighten Agent Copilot',
                             ContactId: contactId,
@@ -310,8 +318,9 @@ export class CopilotService {
                     }
                     resolve(response === null || response === void 0 ? void 0 : response.data);
                 }, (error) => {
-                    this.logger.error('retriveAgentAssistConfig', `${JSON.stringify(error)}`);
-                    reject(error);
+                    const errorResponse = new CXoneSdkError(CXoneSdkErrorType.CXONE_API_ERROR, 'Failed to retrieve agent assist config', error);
+                    this.logger.error('retriveAgentAssistConfig', errorResponse.toString());
+                    reject(errorResponse);
                 });
             });
         };
@@ -346,8 +355,9 @@ export class CopilotService {
                 HttpClient === null || HttpClient === void 0 ? void 0 : HttpClient.get(adaptiveCardUrl, reqInit).then((response) => {
                     resolve(response);
                 }, (error) => {
-                    this.logger.error('getLastGeneratedTopics', `${JSON.stringify(error)}`);
-                    reject(error);
+                    const errorResponse = new CXoneSdkError(CXoneSdkErrorType.CXONE_API_ERROR, 'Failed to get last generated topics', error);
+                    this.logger.error('getLastGeneratedTopics', errorResponse.toString());
+                    reject(errorResponse);
                 });
             });
         };
@@ -368,8 +378,9 @@ export class CopilotService {
                 HttpClient === null || HttpClient === void 0 ? void 0 : HttpClient.get(draftEmailUrl, reqInit).then((response) => {
                     resolve(response.data);
                 }, (error) => {
-                    this.logger.error('getDraftEmail', `${JSON.stringify(error)}`);
-                    reject(error);
+                    const errorResponse = new CXoneSdkError(CXoneSdkErrorType.CXONE_API_ERROR, 'Failed to get draft email', error);
+                    this.logger.error('getDraftEmail', errorResponse.toString());
+                    reject(errorResponse);
                 });
             });
         };
@@ -396,9 +407,44 @@ export class CopilotService {
                 HttpClient === null || HttpClient === void 0 ? void 0 : HttpClient.post(apiUrl, reqInit).then((response) => {
                     resolve(response.data);
                 }, (error) => {
-                    this.logger.error('generateEmail', `${JSON.stringify(error)}`);
-                    reject(error);
+                    const errorResponse = new CXoneSdkError(CXoneSdkErrorType.CXONE_API_ERROR, 'Failed to generate email', error);
+                    this.logger.error('generateEmail', errorResponse.toString());
+                    reject(errorResponse);
                 });
+            });
+        };
+        /**
+         * Used to store the feedback guidance
+         * @param feedback - feedback given by the agent
+         * @param utteranceId - utteranceId
+         * @param kbAnswerUid - unique id of the kbAnswer
+         * @example -
+         * ```
+         * copilotService.sendGuidanceFeedback("Like", "1234", "1234");
+         * ```
+         */
+        this.sendGuidanceFeedback = (feedbackData) => {
+            return new Promise((resolve, reject) => {
+                {
+                    const { feedback, utteranceId, kbAnswerUid } = feedbackData;
+                    const feedbacks = [
+                        {
+                            'utteranceId': utteranceId,
+                            'kbAnswerUid': kbAnswerUid,
+                            'valueEnum': (feedback === Feedback.LIKE_ARTICLE || feedback === Feedback.LIKE_PRIVATE_ARTICLE) ? 1 : 2,
+                        }
+                    ];
+                    const reqInit = this.getBaseHttpRequest({ feedbacks });
+                    const baseUrl = this.getBaseUrlForAcp();
+                    const copilotUrl = baseUrl + this.AGENT_COPILOT_FEEDBACK_GUIDANCE;
+                    HttpClient === null || HttpClient === void 0 ? void 0 : HttpClient.post(copilotUrl, reqInit).then((response) => {
+                        resolve(response);
+                    }, (error) => {
+                        const errorResponse = new CXoneSdkError(CXoneSdkErrorType.CXONE_API_ERROR, 'Failed to send feedback data', error);
+                        this.logger.error('sendGuidanceFeedback', errorResponse.toString());
+                        reject(errorResponse);
+                    });
+                }
             });
         };
         this.auth = CXoneAuth.instance;
@@ -425,8 +471,9 @@ export class CopilotService {
                 HttpClient === null || HttpClient === void 0 ? void 0 : HttpClient.post(copilotUrl, reqInit).then((response) => {
                     resolve(response);
                 }, (error) => {
-                    this.logger.error('generateFinalSummary', `${JSON.stringify(error)}`);
-                    reject(error);
+                    const errorResponse = new CXoneSdkError(CXoneSdkErrorType.CXONE_API_ERROR, 'Failed to generate final summary', error);
+                    this.logger.error('generateFinalSummary', errorResponse.toString());
+                    reject(errorResponse);
                 });
             }
         });
@@ -456,8 +503,9 @@ export class CopilotService {
                     const resp = response === null || response === void 0 ? void 0 : response.data;
                     resolve(resp);
                 }, (error) => {
-                    this.logger.error('agent-search', `${JSON.stringify(error)}`);
-                    reject(error);
+                    const errorResponse = new CXoneSdkError(CXoneSdkErrorType.CXONE_API_ERROR, 'Failed to invoke agent-search', error);
+                    this.logger.error('search', errorResponse.toString());
+                    reject(errorResponse);
                 });
             }
         });
@@ -490,5 +538,37 @@ export class CopilotService {
         const key = `${agentId}_ccfCopilotData`;
         return JSON.parse(localStorage.getItem(key) || '{}');
     }
+    /**
+    * Use to process an editor command to get the Simplified/Rephrased/Expanded text in reponse
+    * @param action - email action
+    * @param context - editor text
+    * @param selectedText - selected text from editor
+    * @param contactId - contactId/caseId
+    * @example -
+    * ```
+    * copilotService.processEditorCommand("Simplify",'this is test','test','1234');
+    * ```
+    */
+    processEditorCommand(action, context, selectedText, contactId) {
+        return new Promise((resolve, reject) => {
+            const reqInit = this.getBaseHttpRequest({
+                contactId,
+                context,
+                selectedText,
+                action,
+            });
+            const baseUrl = this.getBaseUrlForAcp();
+            const emailActionUrl = baseUrl + this.AGENT_COPILOT_EMAIL_APIS.EMAIL_ACTION;
+            HttpClient === null || HttpClient === void 0 ? void 0 : HttpClient.post(emailActionUrl, reqInit).then((response) => {
+                const resp = response === null || response === void 0 ? void 0 : response.data.Response;
+                resolve(resp);
+            }, (error) => {
+                const errorResponse = new CXoneSdkError(CXoneSdkErrorType.CXONE_API_ERROR, 'Editor command processing failed', error);
+                this.logger.error('processEditorCommand', errorResponse.toString());
+                reject(errorResponse);
+            });
+        });
+    }
+    ;
 }
 //# sourceMappingURL=copilot-service.js.map

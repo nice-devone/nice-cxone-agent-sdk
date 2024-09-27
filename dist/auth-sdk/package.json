@@ -1,16 +1,23 @@
 {
   "name": "@nice-devone/auth-sdk",
-  "version": "0.0.1",
+  "version": "0.0.2",
   "sideEffects": false,
+  "description": "NICE CXone Auth SDK",
+  "author": "NICE Ltd.",
+  "license": "UNLICENSED",
+  "homepage": "https://github.com/nice-devone/nice-cxone-agent-sdk/tree/main/dist/auth-sdk",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/nice-devone/nice-cxone-agent-sdk"
+  },
   "main": "./src/index.js",
   "types": "./src/index.d.ts",
   "dependencies": {
     "@nice-devone/core-sdk": "0.0.1",
     "@nice-devone/common-sdk": "0.0.1",
     "broadcast-channel": "4.19.1",
-    "rxjs": "7.8.0",
     "uuid": "8.3.2",
-    "@nice-devone/shared-apps-lib": "0.0.3",
+    "@nice-devone/shared-apps-lib": "0.0.1",
     "react": "17.0.2",
     "@reduxjs/toolkit": "1.9.1",
     "react-toastify": "9.1.1",
