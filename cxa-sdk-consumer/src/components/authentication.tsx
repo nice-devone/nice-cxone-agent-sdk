@@ -457,7 +457,7 @@ const Authentication = () => {
                 variant="outlined"
                 InputLabelProps={{ shrink: true }}
                 inputRef={clientId}
-                defaultValue="Salesforce Agent Console@inContact Inc."
+                defaultValue=""
                 required
               />
               <TextField
