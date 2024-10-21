@@ -67,6 +67,7 @@ export const StorageKeys = {
     LOGGING_LEVEL: 'loggingLevel',
     DIGITAL_ATTACHMENTS: 'digital_attachments_',
     CC_RELATESTO_ACTIVITIES: 'cc_related_activities',
+    CC_RELATESTO_ACTIVITIES_V2: 'cc_related_activities_v2',
     FINGERPRINT_SHOW: 'fingerPrintShow',
     VOICE_PREFERENCE: 'voice_preference',
     TENANT_DATA: 'tenant_data',

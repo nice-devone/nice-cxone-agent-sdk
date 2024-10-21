@@ -65,6 +65,7 @@ export class ACDSessionManager {
         this._onAgentAssistGetNextEvent = new Subject();
         this._customScreenpopSubject = new Subject();
         this._onGetNextEventSubject = new Subject();
+        this._contactEventSubject = new Subject();
         this._answerEvent = new Subject();
         this._rejectEvent = new Subject();
         this._callControlEvent = new Subject();
@@ -109,6 +110,15 @@ export class ACDSessionManager {
      */
     get onGetNextEvent() {
         return this._onGetNextEventSubject;
+    }
+    /**
+     * @example -
+     * ```
+     * const onContactEvent = acdSession.onContactEvent
+     * ```
+     */
+    get onContactEvent() {
+        return this._contactEventSubject;
     }
     /**
      * @example -

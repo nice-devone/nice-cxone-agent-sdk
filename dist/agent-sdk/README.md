@@ -1,7 +1,8 @@
 # NICE CXone Agent SDK
 
+*  [Official SDK Documentation](https://help.nice-incontact.com/content/agent/agentapplicationadministration/cxoneagent/cxasdk.htm?tocpath=Agent%20Application%20Administration%7CAgent%20Application%20Administration%7CCXone%20Agent%7C_____8)
 *  [NPM package](https://www.npmjs.com/package/@nice-devone/agent-sdk)
-*  [Sample Web App](https://github.com/nice-cxone/webapp-acd-cxagent-sdk-consumer)
+*  [Sample Web App](https://github.com/nice-devone/nice-cxone-agent-sdk/tree/main/cxa-sdk-consumer)
 
 ### Requirements
 
@@ -75,7 +76,6 @@ Explore the available classes and methods within the library to interact with CX
 **For comprehensive API documentation, consult the following resources:**
 
 * **Official Developer Portal:** The NICE CXone Developer Portal provides detailed API documentation for the Agent SDK: [link to official API documentation](https://developer.niceincontact.com/API/AgentAPI).
-* **Sample Web App:** Refer to the provided sample web application ([link to sample web app](https://github.com/nice-cxone/webapp-acd-cxagent-sdk-consumer)) for code examples demonstrating how to use the SDK functionalities.
 
 ### Compatibility
 

@@ -1,6 +1,7 @@
 import { ACDSessionManager, GetNextEventType, Logger } from '@nice-devone/core-sdk';
 import { contactButtons } from '@nice-devone/common-sdk';
 import { EventMessageType, EventSubscriptionType } from './enum/post-message-event-type';
+import { CXoneAcdClient } from '../cxone-acd-client';
 /**
  * This class is used to send events from the CXone Agent application.
  */
@@ -127,19 +128,69 @@ export class CXoneEventMessenger {
         const response = this.validateSubscriptionEvent(event);
         const subscriberObject = this.cleanSubscriptionEvent(event);
         const ackEvent = { messageType: 'ClientEventSubscriptionAcknowledge', contactId: (subscriberObject === null || subscriberObject === void 0 ? void 0 : subscriberObject.contactId) || null };
-        const events = [];
+        let events = [];
         if (this.validateWindowObjectIsNew(event.source)) {
             if (response.status === 'OK' && subscriberObject) {
                 this.windowEventSubscribers.push(subscriberObject);
             }
             ackEvent.status = response.status;
             ackEvent.reason = response.reason;
-            events.push({ data: ackEvent });
+            const agentCurrentState = CXoneAcdClient.instance.agentStateService.getAgentState();
+            if (agentCurrentState && subscriberObject) {
+                events = this.getEventsFromState(subscriberObject);
+            }
+            events.push(ackEvent);
             subscriberObject && this.sendEventsToWindow(subscriberObject, events);
         }
         else {
             this.logger.warn('onWindowSubscribe', 'Error processing Client Event Subscription. Issuer has already subscribed.');
         }
+    }
+    /**
+       * Method to get events from state
+       * @param subscriberObject - subscriberObject
+       * @returns - events
+       * @example
+       * ```
+       * getEventsFromState(subscriberObject);
+       * ```
+       */
+    getEventsFromState(subscriber) {
+        var _a;
+        const contactEvents = [];
+        let sendAgent = false;
+        let sendAll = false;
+        let sendContacts = false;
+        let sendSession = false;
+        const agentState = (_a = CXoneAcdClient.instance.agentStateService.getAgentState()) === null || _a === void 0 ? void 0 : _a.agentStateData;
+        const isCallContactAvailable = CXoneAcdClient.instance.contactManager.checkAcdContactsAvailable();
+        if (subscriber) {
+            if (!subscriber.subscriptionTypes) {
+                subscriber.subscriptionTypes = [];
+            }
+            sendAgent = this.checkForSubscriptionType(subscriber, EventSubscriptionType.AGENT) || false;
+            sendAll = (subscriber.subscriptionTypes.length === 0 && !subscriber.contactId) || this.checkForSubscriptionType(subscriber, EventSubscriptionType.ALL) || false;
+            sendContacts = this.checkForSubscriptionType(subscriber, EventSubscriptionType.ALL_CONTACTS) || false;
+            sendSession = this.canSendSessionInfo(subscriber) || false;
+            if (agentState && (sendAll || sendAgent)) {
+                contactEvents.push(agentState);
+            }
+            if (isCallContactAvailable && (sendAll || sendContacts)) {
+                // send all contacts
+                const allContacts = CXoneAcdClient.instance.contactManager.getAllContacts();
+                for (const contact of Object.values(allContacts)) {
+                    contactEvents.push(contact);
+                }
+            }
+            if (sendSession && this.agentSession.hasSessionId) {
+                const sessionEvent = {
+                    messageType: 'SessionInfo',
+                    sessionToken: this.agentSession.getSessionId(),
+                };
+                contactEvents.push(sessionEvent);
+            }
+        }
+        return contactEvents;
     }
     /**
        * Method to get next event received

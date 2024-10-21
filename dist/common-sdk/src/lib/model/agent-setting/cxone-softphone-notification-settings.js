@@ -14,10 +14,11 @@ class CXoneSoftphoneNotificationSettings {
      * ```
      */
     parse(data) {
-        this.softPhoneVolume = data === null || data === void 0 ? void 0 : data.softPhoneVolume;
-        this.secondaryDevice = data === null || data === void 0 ? void 0 : data.CXASecondaryDevice;
-        this.ringtone = data === null || data === void 0 ? void 0 : data.CXARingtone;
-        this.secondaryDeviceDelay = data === null || data === void 0 ? void 0 : data.SecondaryDeviceDelay;
+        var _a, _b, _c, _d;
+        this.softPhoneVolume = (_a = data === null || data === void 0 ? void 0 : data.softPhoneVolume) !== null && _a !== void 0 ? _a : 80;
+        this.secondaryDevice = (_b = data === null || data === void 0 ? void 0 : data.CXASecondaryDevice) !== null && _b !== void 0 ? _b : 0;
+        this.ringtone = (_c = data === null || data === void 0 ? void 0 : data.CXARingtone) !== null && _c !== void 0 ? _c : 1;
+        this.secondaryDeviceDelay = (_d = data === null || data === void 0 ? void 0 : data.SecondaryDeviceDelay) !== null && _d !== void 0 ? _d : 0;
     }
     /**
      * This method is to map CXoneSoftphoneNotificationSettings to client Data that is sent in payload

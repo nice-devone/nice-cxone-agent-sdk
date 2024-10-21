@@ -1077,5 +1077,8 @@ export declare const translationsEnIn: {
         adp_responseTopics: string;
         adp_likeArticle: string;
         adp_dislikeArticle: string;
+        relatesToNoRelatableEntitiesSearch: string;
+        relatesToNotConfiguredWithDataMemorialization: string;
+        relatesToUnableToRelate: string;
     };
 };

@@ -29,6 +29,7 @@ class AgentStateEvent extends cxone_event_1.CXoneEvent {
      * ```
      */
     parse(data) {
+        this.agentStateData = data;
         this.currentState.state = data.CurrentState;
         this.currentState.cxoneState = data.CurrentState;
         this.currentState.reason = data.CurrentOutReason;

@@ -44,6 +44,7 @@ export declare class ContactManager {
     private dispositionsData;
     private tagsData;
     private viewOnlyCases;
+    private allContacts;
     /**
      * @example
      * ```
@@ -83,13 +84,21 @@ export declare class ContactManager {
     private updateAgentPreference;
     /**
      * Method to check if any voice contact is available in VoiceContactMap
-     * @example getVoiceContactMap
+     * @example checkAcdContactsAvailable
      */
     checkAcdContactsAvailable(): boolean;
     /**
     * @example
     */
     checkForExistingContact(contactEvent: ContactEventTypeAlias, contactMap: Map<string, CXoneContactType>, contactConstructor: any): any;
+    /**
+     * Method to subscribe the contact event from the agentSession.
+     * @example
+     * ```
+     * contactEventHandler()
+     * ```
+     */
+    private contactEventHandler;
     /**
      * Method to subscribe the call contact event from the agentSession.
      */
@@ -201,5 +210,15 @@ export declare class ContactManager {
      * @example getInboundAgentDetails
     */
     getInboundAgentDetails(ani: string): Promise<{}>;
+    /**
+     * Method to get all contacts
+     * @example
+     * ```
+     * getAllContacts()
+     * ```
+     */
+    getAllContacts(): {
+        [key: string]: any;
+    };
 }
 export {};

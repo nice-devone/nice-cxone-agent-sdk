@@ -70,6 +70,16 @@ export declare class CXoneEventMessenger {
        */
     onWindowSubscribe(event: MessageEvent<PostMessageEventData>): void;
     /**
+       * Method to get events from state
+       * @param subscriberObject - subscriberObject
+       * @returns - events
+       * @example
+       * ```
+       * getEventsFromState(subscriberObject);
+       * ```
+       */
+    getEventsFromState(subscriber: PostMessageEvent): any[];
+    /**
        * Method to get next event received
        * @example
        * ```
@@ -86,9 +96,7 @@ export declare class CXoneEventMessenger {
      * sendEventsToWindow(subscriberObject, events);
      * ```
      */
-    sendEventsToWindow(subscriber: PostMessageEvent, events: MessageEvent<PostMessageEventData>[] | Array<{
-        [key: string]: string;
-    }>): void;
+    sendEventsToWindow(subscriber: PostMessageEvent, events: any): void;
     /**
          * Returns true if the window object is not one we already have a reference to
          * This will help avoid sending double messages to a window if they call subscribe twice

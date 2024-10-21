@@ -4211,8 +4211,8 @@ const getEnvironment = cxoneHostname => {
     'https://cxone.test.niceincontact.com': 'test',
     'https://cxone.staging.niceincontact.com': 'staging'
   };
-  // get the environment from the NODE_ENV variable otherwise fallback to production
-  let currentEnvironment = process.env['NODE_ENV'] || defaultEnv;
+  // get the environment from the NX_DEST_ENV variable otherwise fallback to production
+  let currentEnvironment = process.env.NX_DEST_ENV || defaultEnv;
   const browserUrl = window.location.origin;
   // calculate the environment based on the hostname for localhost case
   if (browserUrl.indexOf('//localhost') !== -1) {

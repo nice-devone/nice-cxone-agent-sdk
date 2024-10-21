@@ -66,5 +66,9 @@ export declare enum AgentAssistConfigACPParamsKeys {
     SENTIMENT_RESPONSE_LENGTH = "sentimentResponseLength",
     TRANSCRIPTION_PROFILE_NAME = "transcriptionProfileName",
     PUBLIC_FEEDBACK = "publicFeedback",
-    PRIVATE_FEEDBACK = "privateFeedback"
+    PRIVATE_FEEDBACK = "privateFeedback",
+    EMAIL_CHANNEL = "emailChannel",
+    EMAIL_CHANNEL_SIMPLIFY = "emailChannelSimplify",
+    EMAIL_CHANNEL_EXPAND = "emailChannelExpand",
+    EMAIL_CHANNEL_REPHRASE = "emailChannelRephrase"
 }

@@ -4,6 +4,9 @@ import { CXoneEvent } from './cxone-event';
  * Class to capture agent state event
  */
 export declare class AgentStateEvent extends CXoneEvent {
+    agentStateData: {
+        [key: string]: string | any;
+    };
     currentState: AgentCurrentState;
     nextState: AgentState;
     nNextState: AgentState;

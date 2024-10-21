@@ -21,6 +21,50 @@ export class CustomerCardService {
         this.EXECUTE_WORKFLOW_URI = '/InContactAPI/services/v27.0/agent-integration/configuration/{configurationId}/workflow/{workflowId}';
         this.DELETE_CUSTOMER_CUSTOM_FIELD = '/dfo/3.0/customers/{customerId}/custom-fields/{customFieldIdent}';
         this.GET_CRM_DATA_FOR_TRANSFERED_CONTACT = '/InContactAPI/services/v30.0/agent-integration/workflow-execution/interaction/{cacheKey}';
+        this.generatePayloadForExecuteWorkFlow = (request) => {
+            var _a;
+            switch (((_a = request === null || request === void 0 ? void 0 : request.action) !== null && _a !== void 0 ? _a : '').toLowerCase()) {
+                case 'search': {
+                    return {
+                        action: request === null || request === void 0 ? void 0 : request.action,
+                        interactionID: request === null || request === void 0 ? void 0 : request.interactionID,
+                        contactID: request === null || request === void 0 ? void 0 : request.contactID,
+                        workflowInput: request === null || request === void 0 ? void 0 : request.workflowInput,
+                        cacheKey: request === null || request === void 0 ? void 0 : request.cacheKey,
+                        dynamicDataMappingId: request === null || request === void 0 ? void 0 : request.dynamicDataMappingId,
+                    };
+                }
+                case 'timeline': {
+                    return {
+                        action: request === null || request === void 0 ? void 0 : request.action,
+                        cxoneContact: request === null || request === void 0 ? void 0 : request.cxoneContact,
+                        integration: request === null || request === void 0 ? void 0 : request.integration,
+                    };
+                }
+                case 'datamemorialization': {
+                    return {
+                        action: request === null || request === void 0 ? void 0 : request.action,
+                        interactionID: request === null || request === void 0 ? void 0 : request.interactionID,
+                        contactID: request === null || request === void 0 ? void 0 : request.contactID,
+                        dataMappingId: request === null || request === void 0 ? void 0 : request.dataMappingId,
+                        cxoneContact: request === null || request === void 0 ? void 0 : request.cxoneContact,
+                        integration: request === null || request === void 0 ? void 0 : request.integration,
+                        workflowInput: request === null || request === void 0 ? void 0 : request.workflowInput,
+                    };
+                }
+                case 'relatesto':
+                    return {
+                        action: request === null || request === void 0 ? void 0 : request.action,
+                        entity: request === null || request === void 0 ? void 0 : request.entity,
+                        entityId: request === null || request === void 0 ? void 0 : request.entityId,
+                        relatedObject: request === null || request === void 0 ? void 0 : request.relatedObject,
+                    };
+                default: {
+                    return {};
+                }
+            }
+            ;
+        };
         this.auth = CXoneAuth.instance;
     }
     /**
@@ -263,28 +307,7 @@ export class CustomerCardService {
         const authToken = this.auth.getAuthToken().accessToken;
         const workflowId = (crmRequest === null || crmRequest === void 0 ? void 0 : crmRequest.workflowId) ? crmRequest === null || crmRequest === void 0 ? void 0 : crmRequest.workflowId.trim() : '';
         const configurationId = (crmRequest === null || crmRequest === void 0 ? void 0 : crmRequest.configurationId) ? crmRequest === null || crmRequest === void 0 ? void 0 : crmRequest.configurationId.trim() : '';
-        let payload = {};
-        switch (crmRequest.action) {
-            case 'Search':
-                payload = { action: crmRequest.action, interactionID: crmRequest.interactionID, contactID: crmRequest.contactID, workflowInput: crmRequest.workflowInput, cacheKey: crmRequest.cacheKey, dynamicDataMappingId: crmRequest.dynamicDataMappingId };
-                break;
-            case 'Timeline':
-                payload = { action: crmRequest.action, cxoneContact: crmRequest.cxoneContact, integration: crmRequest.integration };
-                break;
-            case 'DataMemorialization':
-                payload = {
-                    action: crmRequest.action,
-                    interactionID: crmRequest.interactionID,
-                    contactID: crmRequest.contactID,
-                    dataMappingId: crmRequest.dataMappingId,
-                    cxoneContact: crmRequest.cxoneContact,
-                    integration: crmRequest.integration,
-                    workflowInput: crmRequest.workflowInput,
-                };
-                break;
-            default:
-                break;
-        }
+        const payload = this.generatePayloadForExecuteWorkFlow(crmRequest);
         const url = baseUrl +
             this.EXECUTE_WORKFLOW_URI.replace('{workflowId}', workflowId.trim()).replace('{configurationId}', configurationId);
         const reqInit = {
@@ -339,6 +362,7 @@ export class CustomerCardService {
                         });
                         item.fields = newFields;
                     });
+                    //#region NOTE : Pinned Records - Local Storage
                     const agentWorkflowPinRecordsDetails = LocalStorageHelper.getItem(StorageKeys.CRM_PIN_RECORDS, true) || [];
                     if (agentWorkflowPinRecordsDetails.length >= 0) {
                         const ifDataAvailable = agentWorkflowPinRecordsDetails.some((item) => {
@@ -347,7 +371,9 @@ export class CustomerCardService {
                         !ifDataAvailable && agentWorkflowPinRecordsDetails.push({ contactId: crmRequest === null || crmRequest === void 0 ? void 0 : crmRequest.contactID, pinRecords: (_l = resp === null || resp === void 0 ? void 0 : resp.result[0]) === null || _l === void 0 ? void 0 : _l.pinRecords });
                     }
                     LocalStorageHelper.setItem(StorageKeys.CRM_PIN_RECORDS, agentWorkflowPinRecordsDetails);
+                    //#endregion
                 }
+                ;
                 resolve(resp);
             }), (error) => {
                 const errorResponse = new CXoneSdkError(CXoneSdkErrorType.CXONE_API_ERROR, 'CRM search execute workflow response failed', error);

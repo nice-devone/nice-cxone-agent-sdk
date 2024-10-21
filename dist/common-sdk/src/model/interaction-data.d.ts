@@ -113,7 +113,8 @@ export interface AssignmentPanelMetadata {
     incommingDfoInteractionId?: string;
 }
 export interface Tabs {
-    id: number;
+    id: any;
+    value: string;
     interactionId: string | undefined;
     caseId: string | undefined;
     contactId: string | undefined;

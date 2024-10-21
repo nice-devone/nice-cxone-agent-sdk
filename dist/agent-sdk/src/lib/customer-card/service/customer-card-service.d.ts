@@ -66,6 +66,7 @@ export declare class CustomerCardService {
      * contact history for particular days span.
      */
     getAgentVoiceContactHistory(contactHistoryRequest: CXoneAgentVoiceContactHistoryRequest): Promise<Array<agentCompletedContactsResponse>>;
+    private generatePayloadForExecuteWorkFlow;
     /**
      * Method to get in CRM workflow response
      * @returns - API Returns CRM data for payload

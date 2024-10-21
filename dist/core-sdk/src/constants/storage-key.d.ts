@@ -67,6 +67,7 @@ export declare const StorageKeys: {
     LOGGING_LEVEL: string;
     DIGITAL_ATTACHMENTS: string;
     CC_RELATESTO_ACTIVITIES: string;
+    CC_RELATESTO_ACTIVITIES_V2: string;
     FINGERPRINT_SHOW: string;
     VOICE_PREFERENCE: string;
     TENANT_DATA: string;

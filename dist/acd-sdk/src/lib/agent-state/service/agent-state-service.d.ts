@@ -37,6 +37,15 @@ export declare class AgentStateService {
      */
     getAgentStateDetails(): AgentCurrentState;
     /**
+     * Service method to get agent state
+     * @returns - response from the getAgentState api
+     * @example
+     * ```
+     * getAgentState()
+     * ```
+     */
+    getAgentState(): AgentStateEvent;
+    /**
      * Service method to set agent state
      * @param agentState - Updated agent state along with reason
      * @returns - response from the setAgentState api

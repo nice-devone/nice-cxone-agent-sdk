@@ -1076,7 +1076,10 @@ const translations = {
     copilotSearch: 'Copilot Search',
     adp_responseTopics: 'Response Topics Identified',
     adp_likeArticle: 'Like',
-    adp_dislikeArticle: 'Dislike'
+    adp_dislikeArticle: 'Dislike',
+    relatesToNoRelatableEntitiesSearch: 'No relatable entities found in search.',
+    relatesToNotConfiguredWithDataMemorialization: 'Feature is not configured with data-memorialization.',
+    relatesToUnableToRelate: 'Unable to relate records'
   }
 };
 
@@ -2158,7 +2161,10 @@ const hebrewTranslations = {
     copilotSearch: 'Copilot Search',
     adp_responseTopics: 'Response Topics Identified',
     adp_likeArticle: 'Like',
-    adp_dislikeArticle: 'Dislike'
+    adp_dislikeArticle: 'Dislike',
+    relatesToNoRelatableEntitiesSearch: 'No relatable entities found in search.',
+    relatesToNotConfiguredWithDataMemorialization: 'Feature is not configured with data-memorialization.',
+    relatesToUnableToRelate: 'Unable to relate records'
   }
 };
 
@@ -3240,7 +3246,10 @@ const japaneseTranslations = {
     copilotSearch: 'Copilot Search',
     adp_responseTopics: 'Response Topics Identified',
     adp_likeArticle: 'Like',
-    adp_dislikeArticle: 'Dislike'
+    adp_dislikeArticle: 'Dislike',
+    relatesToNoRelatableEntitiesSearch: 'No relatable entities found in search.',
+    relatesToNotConfiguredWithDataMemorialization: 'Feature is not configured with data-memorialization.',
+    relatesToUnableToRelate: 'Unable to relate records'
   }
 };
 
@@ -4322,7 +4331,10 @@ const portugueseTranslations = {
     copilotSearch: 'Copilot Search',
     adp_responseTopics: 'Response Topics Identified',
     adp_likeArticle: 'Like',
-    adp_dislikeArticle: 'Dislike'
+    adp_dislikeArticle: 'Dislike',
+    relatesToNoRelatableEntitiesSearch: 'No relatable entities found in search.',
+    relatesToNotConfiguredWithDataMemorialization: 'Feature is not configured with data-memorialization.',
+    relatesToUnableToRelate: 'Unable to relate records'
   }
 };
 
@@ -5404,7 +5416,10 @@ const portugueseTranslationsPtBR = {
     copilotSearch: 'Copilot Search',
     adp_responseTopics: 'Response Topics Identified',
     adp_likeArticle: 'Like',
-    adp_dislikeArticle: 'Dislike'
+    adp_dislikeArticle: 'Dislike',
+    relatesToNoRelatableEntitiesSearch: 'No relatable entities found in search.',
+    relatesToNotConfiguredWithDataMemorialization: 'Feature is not configured with data-memorialization.',
+    relatesToUnableToRelate: 'Unable to relate records'
   }
 };
 
@@ -6486,7 +6501,10 @@ const spanishEUTranslations = {
     copilotSearch: 'Copilot Search',
     adp_responseTopics: 'Response Topics Identified',
     adp_likeArticle: 'Like',
-    adp_dislikeArticle: 'Dislike'
+    adp_dislikeArticle: 'Dislike',
+    relatesToNoRelatableEntitiesSearch: 'No relatable entities found in search.',
+    relatesToNotConfiguredWithDataMemorialization: 'Feature is not configured with data-memorialization.',
+    relatesToUnableToRelate: 'Unable to relate records'
   }
 };
 
@@ -7568,7 +7586,10 @@ const chineseTranslations = {
     copilotSearch: 'Copilot Search',
     adp_responseTopics: 'Response Topics Identified',
     adp_likeArticle: 'Like',
-    adp_dislikeArticle: 'Dislike'
+    adp_dislikeArticle: 'Dislike',
+    relatesToNoRelatableEntitiesSearch: 'No relatable entities found in search.',
+    relatesToNotConfiguredWithDataMemorialization: 'Feature is not configured with data-memorialization.',
+    relatesToUnableToRelate: 'Unable to relate records'
   }
 };
 
@@ -8650,7 +8671,10 @@ const dutchTranslations = {
     copilotSearch: 'Copilot Search',
     adp_responseTopics: 'Response Topics Identified',
     adp_likeArticle: 'Like',
-    adp_dislikeArticle: 'Dislike'
+    adp_dislikeArticle: 'Dislike',
+    relatesToNoRelatableEntitiesSearch: 'No relatable entities found in search.',
+    relatesToNotConfiguredWithDataMemorialization: 'Feature is not configured with data-memorialization.',
+    relatesToUnableToRelate: 'Unable to relate records'
   }
 };
 
@@ -9732,7 +9756,10 @@ const frenchTranslations = {
     copilotSearch: 'Copilot Search',
     adp_responseTopics: 'Response Topics Identified',
     adp_likeArticle: 'Like',
-    adp_dislikeArticle: 'Dislike'
+    adp_dislikeArticle: 'Dislike',
+    relatesToNoRelatableEntitiesSearch: 'No relatable entities found in search.',
+    relatesToNotConfiguredWithDataMemorialization: 'Feature is not configured with data-memorialization.',
+    relatesToUnableToRelate: 'Unable to relate records'
   }
 };
 
@@ -10814,7 +10841,10 @@ const frenchTranslationsFrCa = {
     copilotSearch: 'Copilot Search',
     adp_responseTopics: 'Response Topics Identified',
     adp_likeArticle: 'Like',
-    adp_dislikeArticle: 'Dislike'
+    adp_dislikeArticle: 'Dislike',
+    relatesToNoRelatableEntitiesSearch: 'No relatable entities found in search.',
+    relatesToNotConfiguredWithDataMemorialization: 'Feature is not configured with data-memorialization.',
+    relatesToUnableToRelate: 'Unable to relate records'
   }
 };
 
@@ -11896,7 +11926,10 @@ const germanTranslations = {
     copilotSearch: 'Copilot Search',
     adp_responseTopics: 'Response Topics Identified',
     adp_likeArticle: 'Like',
-    adp_dislikeArticle: 'Dislike'
+    adp_dislikeArticle: 'Dislike',
+    relatesToNoRelatableEntitiesSearch: 'No relatable entities found in search.',
+    relatesToNotConfiguredWithDataMemorialization: 'Feature is not configured with data-memorialization.',
+    relatesToUnableToRelate: 'Unable to relate records'
   }
 };
 
@@ -12978,7 +13011,10 @@ const italianTranslations = {
     copilotSearch: 'Copilot Search',
     adp_responseTopics: 'Response Topics Identified',
     adp_likeArticle: 'Like',
-    adp_dislikeArticle: 'Dislike'
+    adp_dislikeArticle: 'Dislike',
+    relatesToNoRelatableEntitiesSearch: 'No relatable entities found in search.',
+    relatesToNotConfiguredWithDataMemorialization: 'Feature is not configured with data-memorialization.',
+    relatesToUnableToRelate: 'Unable to relate records'
   }
 };
 
@@ -14060,7 +14096,10 @@ const koreanTranslations = {
     copilotSearch: 'Copilot Search',
     adp_responseTopics: 'Response Topics Identified',
     adp_likeArticle: 'Like',
-    adp_dislikeArticle: 'Dislike'
+    adp_dislikeArticle: 'Dislike',
+    relatesToNoRelatableEntitiesSearch: 'No relatable entities found in search.',
+    relatesToNotConfiguredWithDataMemorialization: 'Feature is not configured with data-memorialization.',
+    relatesToUnableToRelate: 'Unable to relate records'
   }
 };
 
@@ -15142,7 +15181,10 @@ const russianTranslations = {
     copilotSearch: 'Copilot Search',
     adp_responseTopics: 'Response Topics Identified',
     adp_likeArticle: 'Like',
-    adp_dislikeArticle: 'Dislike'
+    adp_dislikeArticle: 'Dislike',
+    relatesToNoRelatableEntitiesSearch: 'No relatable entities found in search.',
+    relatesToNotConfiguredWithDataMemorialization: 'Feature is not configured with data-memorialization.',
+    relatesToUnableToRelate: 'Unable to relate records'
   }
 };
 

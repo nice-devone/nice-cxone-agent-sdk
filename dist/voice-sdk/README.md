@@ -1,7 +1,8 @@
 # NICE CXone Voice SDK
 
+*  [Official SDK Documentation](https://help.nice-incontact.com/content/agent/agentapplicationadministration/cxoneagent/cxasdk.htm?tocpath=Agent%20Application%20Administration%7CAgent%20Application%20Administration%7CCXone%20Agent%7C_____8)
 *  [NPM package](https://www.npmjs.com/package/@nice-devone/voice-sdk)
-*  [Sample Web App](https://github.com/nice-cxone/webapp-acd-cxagent-sdk-consumer)
+*  [Sample Web App](https://github.com/nice-devone/nice-cxone-agent-sdk/tree/main/cxa-sdk-consumer)
 
 ### Requirements
 
@@ -59,7 +60,7 @@ await cxoneVoiceClient.connectServer('acdAgentId', 'options', 'audioElement', 'a
 ```
 3. Leverage SDK functionalities:
 
-Refer to the official documentation (link to be provided) for detailed usage examples on specific features like CXoneVoiceClient, CXoneVoiceMessageType etc. 
+Refer to the official documentation for detailed usage examples on specific features like CXoneVoiceClient, CXoneVoiceMessageType etc. 
 
 Explore the available classes and methods within the library to interact with CXone voice-sdk functionalities.
 

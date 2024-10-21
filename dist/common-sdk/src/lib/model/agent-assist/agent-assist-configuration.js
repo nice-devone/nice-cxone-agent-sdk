@@ -48,5 +48,9 @@ var AgentAssistConfigACPParamsKeys;
     AgentAssistConfigACPParamsKeys["TRANSCRIPTION_PROFILE_NAME"] = "transcriptionProfileName";
     AgentAssistConfigACPParamsKeys["PUBLIC_FEEDBACK"] = "publicFeedback";
     AgentAssistConfigACPParamsKeys["PRIVATE_FEEDBACK"] = "privateFeedback";
+    AgentAssistConfigACPParamsKeys["EMAIL_CHANNEL"] = "emailChannel";
+    AgentAssistConfigACPParamsKeys["EMAIL_CHANNEL_SIMPLIFY"] = "emailChannelSimplify";
+    AgentAssistConfigACPParamsKeys["EMAIL_CHANNEL_EXPAND"] = "emailChannelExpand";
+    AgentAssistConfigACPParamsKeys["EMAIL_CHANNEL_REPHRASE"] = "emailChannelRephrase";
 })(AgentAssistConfigACPParamsKeys = exports.AgentAssistConfigACPParamsKeys || (exports.AgentAssistConfigACPParamsKeys = {}));
 //# sourceMappingURL=agent-assist-configuration.js.map

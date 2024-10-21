@@ -33,7 +33,7 @@ export class CopilotService {
             GENERATE_EMAIL: this.AGENT_COPILOT_BASE_URI + 'email/draft',
             EMAIL_ACTION: this.AGENT_COPILOT_BASE_URI + 'email/action',
         };
-        this.AGENT_COPILOT_FEEDBACK_GUIDANCE = this.AGENT_COPILOT_BASE_URI_V2 + 'interaction-feedback/kbAnswer';
+        this.AGENT_COPILOT_FEEDBACK_GUIDANCE = this.AGENT_COPILOT_BASE_URI + 'guidance-feedback';
         this.aahConfigStore = {};
         /**
          * @returns base url for ACP backend
@@ -560,7 +560,7 @@ export class CopilotService {
             const baseUrl = this.getBaseUrlForAcp();
             const emailActionUrl = baseUrl + this.AGENT_COPILOT_EMAIL_APIS.EMAIL_ACTION;
             HttpClient === null || HttpClient === void 0 ? void 0 : HttpClient.post(emailActionUrl, reqInit).then((response) => {
-                const resp = response === null || response === void 0 ? void 0 : response.data.Response;
+                const resp = response === null || response === void 0 ? void 0 : response.data.result;
                 resolve(resp);
             }, (error) => {
                 const errorResponse = new CXoneSdkError(CXoneSdkErrorType.CXONE_API_ERROR, 'Editor command processing failed', error);

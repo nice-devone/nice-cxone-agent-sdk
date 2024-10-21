@@ -68,4 +68,25 @@ export interface CXoneWorkflowRequest {
     * @remarks - custom Search Payload
      * */
     customSearch?: any;
+    /**
+     * @remarks - relatable entity  system name
+    * */
+    entity?: string;
+    /**
+     * @remarks - relatable entity id
+    * */
+    entityId?: string;
+    /**
+     * @remarks - related entity object payload
+    * */
+    relatedObject?: {
+        /**
+         * @remarks - related entity name
+        * */
+        name: string;
+        /**
+         * @remarks - related entity value
+        * */
+        value: string;
+    };
 }

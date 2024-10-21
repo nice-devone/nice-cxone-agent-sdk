@@ -39,16 +39,19 @@ export class CXoneGetNextAdapter {
                         this.agentSession.agentAssistWebSocketUnsubsribeSubject.next(callContactEvent.contactId.toString());
                     }
                     this.agentSession.callContactEventSubject.next(callContactEvent);
+                    this.agentSession.onContactEvent.next(event);
                     break;
                 }
                 case GetNextEventType.VOICEMAIL_CONTACT_EVENT: {
                     const voiceMailContactEvent = VoiceMailContactEventYup.cast(event);
                     this.agentSession.voiceMailContactEventSubject.next(voiceMailContactEvent);
+                    this.agentSession.onContactEvent.next(event);
                     break;
                 }
                 case GetNextEventType.WORKITEM_CONTACT_EVENT: {
                     const WorkItemContactEvent = WorkItemContactEventYup.cast(event);
                     this.agentSession.workItemContactEventSubject.next(WorkItemContactEvent);
+                    this.agentSession.onContactEvent.next(event);
                     break;
                 }
                 case GetNextEventType.MUTE_EVENT: {

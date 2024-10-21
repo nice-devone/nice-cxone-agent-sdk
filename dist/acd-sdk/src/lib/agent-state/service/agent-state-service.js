@@ -55,6 +55,17 @@ export class AgentStateService {
         return (_a = this.agentStateDetails) === null || _a === void 0 ? void 0 : _a.currentState;
     }
     /**
+     * Service method to get agent state
+     * @returns - response from the getAgentState api
+     * @example
+     * ```
+     * getAgentState()
+     * ```
+     */
+    getAgentState() {
+        return this.agentStateDetails;
+    }
+    /**
      * Service method to set agent state
      * @param agentState - Updated agent state along with reason
      * @returns - response from the setAgentState api

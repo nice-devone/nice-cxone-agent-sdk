@@ -47,6 +47,7 @@ export class ContactManager {
         this.dispositionsData = {};
         this.tagsData = {};
         this.viewOnlyCases = [];
+        this.allContacts = {};
         /**
          * Method used to get the CXoneContact
          */
@@ -79,6 +80,7 @@ export class ContactManager {
         this.contactService = new ContactService();
         this.updatePermissionsEventHandler();
         this.updateAutoSummaryEventHandler();
+        this.contactEventHandler();
         this.callContactEventHandler();
         this.voicemailContactEventHandler();
         this.workItemContactEventHandler();
@@ -187,7 +189,7 @@ export class ContactManager {
     }
     /**
      * Method to check if any voice contact is available in VoiceContactMap
-     * @example getVoiceContactMap
+     * @example checkAcdContactsAvailable
      */
     checkAcdContactsAvailable() {
         if (this.voiceContactMap.size > 0 || this.voiceMailContactMap.size > 0)
@@ -216,6 +218,23 @@ export class ContactManager {
             cxoneContact = existingContact;
         }
         return cxoneContact;
+    }
+    /**
+     * Method to subscribe the contact event from the agentSession.
+     * @example
+     * ```
+     * contactEventHandler()
+     * ```
+     */
+    contactEventHandler() {
+        this.acdSession.onContactEvent.subscribe((contactEvent) => {
+            if (this.allContacts && (contactEvent === null || contactEvent === void 0 ? void 0 : contactEvent.ContactID)) {
+                this.allContacts[contactEvent.ContactID] = contactEvent;
+                if ((contactEvent === null || contactEvent === void 0 ? void 0 : contactEvent.Status) === CallContactEventStatus.DISCONNECTED && (contactEvent === null || contactEvent === void 0 ? void 0 : contactEvent.FinalState)) {
+                    delete this.allContacts[contactEvent.ContactID];
+                }
+            }
+        });
     }
     /**
      * Method to subscribe the call contact event from the agentSession.
@@ -612,6 +631,16 @@ export class ContactManager {
                 }
             }
         });
+    }
+    /**
+     * Method to get all contacts
+     * @example
+     * ```
+     * getAllContacts()
+     * ```
+     */
+    getAllContacts() {
+        return this.allContacts;
     }
 }
 //# sourceMappingURL=contact-manager.js.map

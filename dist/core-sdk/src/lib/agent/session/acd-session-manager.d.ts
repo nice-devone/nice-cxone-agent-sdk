@@ -52,6 +52,7 @@ export declare class ACDSessionManager {
     private _onAgentAssistGetNextEvent;
     private _customScreenpopSubject;
     private _onGetNextEventSubject;
+    private _contactEventSubject;
     private _answerEvent;
     private _rejectEvent;
     private _callControlEvent;
@@ -71,6 +72,15 @@ export declare class ACDSessionManager {
     get onGetNextEvent(): Subject<{
         [key: string]: string;
     }[]>;
+    /**
+     * @example -
+     * ```
+     * const onContactEvent = acdSession.onContactEvent
+     * ```
+     */
+    get onContactEvent(): Subject<{
+        [key: string]: any;
+    }>;
     /**
      * @example -
      * ```
@@ -117,7 +127,12 @@ export declare class ACDSessionManager {
         disconnectCode: import("yup/lib/string").RequiredStringSchema<string, import("yup/lib/types").AnyObject>;
         isLogging: import("yup/lib/boolean").RequiredBooleanSchema<boolean, import("yup/lib/types").AnyObject>;
         timeout: import("yup/lib/number").RequiredNumberSchema<number, import("yup/lib/types").AnyObject>;
-        allowDispositions: import("yup/lib/boolean").RequiredBooleanSchema<boolean, import("yup/lib/types").AnyObject>;
+        allowDispositions: import("yup/lib/boolean").RequiredBooleanSchema<boolean, import("yup/lib/types").AnyObject>; /**
+         * @example -
+         * ```
+         * const rejectEvent = acdSession.rejectEvent
+         * ```
+         */
         label: import("yup/lib/string").RequiredStringSchema<string, import("yup/lib/types").AnyObject>;
         isLinked: import("yup/lib/boolean").RequiredBooleanSchema<boolean, import("yup/lib/types").AnyObject>;
         timeZones: import("yup/lib/string").RequiredStringSchema<string, import("yup/lib/types").AnyObject>;
@@ -127,12 +142,7 @@ export declare class ACDSessionManager {
         blendingToSkillName: import("yup/lib/string").RequiredStringSchema<string, import("yup/lib/types").AnyObject>;
         deliveryType: import("yup/lib/string").RequiredStringSchema<string, import("yup/lib/types").AnyObject>;
         customData: import("yup/lib/string").RequiredStringSchema<string, import("yup/lib/types").AnyObject>;
-        complianceRecord: import("yup/lib/boolean").RequiredBooleanSchema<boolean, import("yup/lib/types").AnyObject>; /**
-         * @example -
-         * ```
-         * const updateSkillsEvent = agentSession.updateSkillsEvent
-         * ```
-         */
+        complianceRecord: import("yup/lib/boolean").RequiredBooleanSchema<boolean, import("yup/lib/types").AnyObject>;
         confirmationRequired: import("yup/lib/boolean").RequiredBooleanSchema<boolean, import("yup/lib/types").AnyObject>;
         parentContactId: import("yup/lib/string").RequiredStringSchema<string, import("yup/lib/types").AnyObject>;
         omniGroupId: import("yup/lib/string").RequiredStringSchema<string, import("yup/lib/types").AnyObject>;

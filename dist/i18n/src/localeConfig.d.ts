@@ -1066,7 +1066,5 @@ export declare const localeTranslationMap: Map<"en-US" | "es" | "he" | "ja" | "p
         adp_responseLengthShort: string;
         adp_enterNewTopic: string;
         adp_responseTopics: string;
-        whatsAppMessageDeliveryFailedBanner: string;
-        whatsAppMessageUndelivered: string;
     };
 }>;
