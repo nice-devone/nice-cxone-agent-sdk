@@ -1,6 +1,6 @@
 {
   "name": "@nice-devone/shared-apps-lib",
-  "version": "24.4.0_Beta",
+  "version": "24.4.0-Beta",
   "sideEffects": false,
   "description": "NICE CXone shared-apps-lib SDK",
   "author": "NICE Ltd.",
@@ -18,7 +18,7 @@
     "react": "17.0.2",
     "@reduxjs/toolkit": "1.9.1",
     "react-toastify": "9.1.1",
-    "@nice-devone/i18n": "24.4.0_Beta",
+    "@nice-devone/i18n": "24.4.0-Beta",
     "@testrtc/watchrtc-sdk": "1.38.3"
   },
   "peerDependencies": {}
