@@ -2,7 +2,7 @@
   "name": "@nice-devone/common-sdk",
   "version": "24.4.0",
   "sideEffects": false,
-  "description": "NICE CXone Auth SDK",
+  "description": "NICE CXone Common SDK",
   "author": "NICE Ltd.",
   "license": "UNLICENSED",
   "homepage": "https://github.com/nice-devone/nice-cxone-agent-sdk/tree/main/dist/common-sdk",
