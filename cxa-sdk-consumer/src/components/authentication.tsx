@@ -331,7 +331,7 @@ const Authentication = () => {
           // Launch CXone Agent in iframe
           cxoneAuth.launchCXoneAgent(
             "launchCXA",
-            "https://cxagent.nicecxone-staging.com?src=sdk",
+            "https://cxagent.nicecxone.com?src=sdk",
             { width: "400px", height: "500px" }
           );
 
