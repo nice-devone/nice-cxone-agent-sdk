@@ -448,7 +448,7 @@ const Authentication = () => {
                 variant="outlined"
                 InputLabelProps={{ shrink: true }}
                 inputRef={hostName}
-                defaultValue={"https://cxone.staging.niceincontact.com"}
+                defaultValue={"https://cxone.niceincontact.com"}
                 required
               />
               <TextField
@@ -540,7 +540,7 @@ const Authentication = () => {
                 variant="outlined"
                 InputLabelProps={{ shrink: true }}
                 inputRef={hostName}
-                defaultValue={"https://cxone.staging.niceincontact.com"}
+                defaultValue={"https://cxone.niceincontact.com"}
                 required
               />
               <TextField
