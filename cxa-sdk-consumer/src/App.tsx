@@ -1,10 +1,11 @@
 import './App.css';
-import Authentication from './components/authentication';
+
+import Navbar from './components/top-navbar/NavBar';
 
 function App() {
   return (
     <div className="App">
-      <Authentication/>
+     <Navbar/>
     </div>
   );
 }

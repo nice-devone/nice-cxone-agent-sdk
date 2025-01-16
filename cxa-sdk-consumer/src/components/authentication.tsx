@@ -37,7 +37,7 @@ import { CXoneClient } from "@nice-devone/agent-sdk";
 import { CXoneVoiceClient } from "@nice-devone/voice-sdk";
 import { uuid } from "uuidv4";
 
-const ccfGaAccessTokenFlowStyles = (theme: Theme) => {
+export const ccfGaAccessTokenFlowStyles = (theme: Theme) => {
   const styles = {
     root: {
       "& .MuiTextField-root": {
@@ -88,7 +88,7 @@ const ccfGaAccessTokenFlowStyles = (theme: Theme) => {
   return styles;
 };
 
-const ccfAccessTokenFlowStyles = (theme: Theme) => {
+export const ccfAccessTokenFlowStyles = (theme: Theme) => {
   const styles = {
     root: {
       "& .MuiTextField-root": {
