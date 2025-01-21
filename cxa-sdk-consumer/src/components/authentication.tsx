@@ -37,7 +37,7 @@ import { CXoneClient } from "@nice-devone/agent-sdk";
 import { CXoneVoiceClient } from "@nice-devone/voice-sdk";
 import { uuid } from "uuidv4";
 
-export const ccfGaAccessTokenFlowStyles = (theme: Theme) => {
+ const ccfGaAccessTokenFlowStyles = (theme: Theme) => {
   const styles = {
     root: {
       "& .MuiTextField-root": {
@@ -88,7 +88,7 @@ export const ccfGaAccessTokenFlowStyles = (theme: Theme) => {
   return styles;
 };
 
-export const ccfAccessTokenFlowStyles = (theme: Theme) => {
+ const ccfAccessTokenFlowStyles = (theme: Theme) => {
   const styles = {
     root: {
       "& .MuiTextField-root": {
@@ -225,11 +225,13 @@ const Authentication = () => {
   const authenticateClickHandler = () => {
     initAuth();
     localStorage.setItem("display_mode", authMode);
+ 
     cxoneAuth
       .getAuthorizeUrl(authMode, codeChallenge)
       .then((authUrl: string) => {
         if (authMode === "page") {
           window.location.href = authUrl;
+          console.log("authMode", authMode,"codechallage", codeChallenge,"URL", authUrl);
         } else if (authMode === "popup") {
           const popupOptions =
             "width=500,height=500,scrollbars=yes,toolbar=no,left=50,top=50";
@@ -448,6 +450,7 @@ const Authentication = () => {
                 variant="outlined"
                 InputLabelProps={{ shrink: true }}
                 inputRef={hostName}
+           
                 defaultValue={"https://cxone.niceincontact.com"}
                 required
               />
@@ -457,7 +460,7 @@ const Authentication = () => {
                 variant="outlined"
                 InputLabelProps={{ shrink: true }}
                 inputRef={clientId}
-                defaultValue=""
+                defaultValue="Salesforce Agent Console@inContact Inc."
                 required
               />
               <TextField
@@ -466,7 +469,7 @@ const Authentication = () => {
                 variant="outlined"
                 InputLabelProps={{ shrink: true }}
                 inputRef={redirectUri}
-                defaultValue="http://localhost:3000/"
+                defaultValue="http://localhost:3000/authentication"
                 required
               />
               <FormControl

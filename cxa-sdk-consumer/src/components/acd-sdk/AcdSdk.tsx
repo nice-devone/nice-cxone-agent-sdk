@@ -1,16 +1,16 @@
 import { Box, Button, Card, CardContent, CardHeader, TextField, useTheme } from '@mui/material';
 import React, { useState } from 'react'
-import { ccfAccessTokenFlowStyles, ccfGaAccessTokenFlowStyles } from '../authentication';
+import { ccfAccessTokenFlowStyles, ccfGaAccessTokenFlowStyles } from '../side-navbar/NavBar';
 import { CXoneAcdClient } from '@nice-devone/acd-sdk';
 import { AgentSessionStatus, EndSessionRequest } from '@nice-devone/common-sdk';
 
 
 
-const AcdSdk = ({ agentStatus,dialCallButtonClick,setSessionEndMessage }: { agentStatus: any, dialCallButtonClick: () => void,setSessionEndMessage:(e:any)=>void }) => {
+const AcdSdk = ({ agentStatus,dialCallButtonClick,setSessionEndMessage,dialNumber,setDialNumber }: { agentStatus: any, dialCallButtonClick: () => void,setSessionEndMessage:(e:any)=>void, dialNumber:string,setDialNumber:any}) => {
       const theme = useTheme();
       const gaAccessTokenFlowStyles = ccfGaAccessTokenFlowStyles(theme);
       const accessTokenFlowStyles = ccfAccessTokenFlowStyles(theme);
-      const [dialNumber, setDialNumber] = useState("");
+ 
         const endSessionRequest: EndSessionRequest = {
           forceLogoff: false,
           endContacts: true,
