@@ -15,14 +15,7 @@ import CxaPlaceholder from "../cxa-placeholder/CxaPlaceholder";
 import AcdSdk from "../acd-sdk/AcdSdk";
 import DigitalSdk from "../digital-sdk/DigitalSdk";
 import Auth from "../auth/Auth";
-import { AuthSettings, AuthStatus, AuthWithCodeReq, AuthWithTokenReq, CXoneAuth } from "@nice-devone/auth-sdk";
-import { CXoneDigitalClient, CXoneDigitalContact } from "@nice-devone/digital-sdk";
-import { AuthToken, CXoneDigitalReplyRequest, EndSessionRequest } from "@nice-devone/common-sdk";
-import { CXoneClient } from "@nice-devone/agent-sdk";
-import { CXoneAcdClient } from "@nice-devone/acd-sdk";
-import { CXoneVoiceClient } from "@nice-devone/voice-sdk";
-import { StorageKeys } from "@nice-devone/core-sdk";
-import { uuid } from "uuidv4";
+
 
 const drawerWidth = 240;
 export const ccfGaAccessTokenFlowStyles = (theme: Theme) => {
@@ -157,279 +150,8 @@ const DrawerHeader = styled("div")(({ theme }) => ({
 
 export default function NavBar() {
   const theme = useTheme();
-  const [open, setOpen] = React.useState(true);
   const [selectedIndex, setSelectedIndex] = React.useState<number | null>(null);
- 
-  const gaAccessTokenFlowStyles = ccfGaAccessTokenFlowStyles(theme);
-  const accessTokenFlowStyles = ccfAccessTokenFlowStyles(theme);
-  const hostName: React.RefObject<HTMLInputElement> = useRef(null);
-    const clientId: React.RefObject<HTMLInputElement> = useRef(null);
-    const redirectUri: React.RefObject<HTMLInputElement> = useRef(null);
-    const accessToken: React.RefObject<HTMLInputElement> = useRef(null);
-    const [authMode, updateAuthMode] = useState("page");
-    const [codeChallenge, updateCodeChallenge] = useState("S256");
-    const [sessionEndMessage, setSessionEndMessage] = useState("");
-    const [dialNumber, setDialNumber] = useState("");
-    const cxoneAuth = CXoneAuth.instance;
-    const [authState, setAuth] = useState("");
-    const [authToken, setAuthToken] = useState("");
-    const [inputValue, setInputValue] = useState("");
-    let digitalContactInstance: CXoneDigitalContact;
-    const [digitalContact, setDigitalContact] = useState({} as any);
-    const [agentStatus, setAgentStatus] = useState({} as any);
-    const [skillDetails, setSkillDetails] = useState({} as any);
-  
-    const endSessionRequest: EndSessionRequest = {
-      forceLogoff: false,
-      endContacts: true,
-      ignorePersonalQueue: true,
-    };
-  
   const navigate = useNavigate();
-
-    //Auth callback will be captured here
-    useEffect(() => {
-      subscribeToAuth();
-      cxoneAuth.restoreData();
-      const searchParams = new URLSearchParams(window.location.search);
-      const code = searchParams.get("code") || "";
-      if (!code) return;
-      const display = localStorage.getItem("display_mode") || "";
-      if (display) {
-        if (display === "popup") {
-          const message = { messageType: "Authenticated", code: code };
-          window.opener?.postMessage({ message }, "*");
-        } else {
-          const authSetting = JSON.parse(
-            localStorage.getItem("auth_consumer") || ""
-          );
-          cxoneAuth.init(authSetting);
-          getAccessToken(code);
-        }
-      }
-    }, []);
-
-    const initAuth = function () {
-      if (
-        !hostName?.current?.value ||
-        !clientId?.current?.value ||
-        !redirectUri?.current?.value ||
-        !authMode ||
-        !codeChallenge
-      )
-        return;
-  
-      const authSetting: AuthSettings = {
-        cxoneHostname: hostName?.current.value,
-        clientId: clientId.current.value,
-        redirectUri: redirectUri.current.value,
-      };
-      localStorage.setItem("auth_consumer", JSON.stringify(authSetting));
-      cxoneAuth.init(authSetting);
-    };
-  
-    /**
-     * dial OB call
-     * @example
-     * ```
-     * DialCallButtonClick()
-     * ```
-     */
-    const dialCallButtonClick = () => {
-      const contactDetails = {
-        skillId:
-          skillDetails?.skillId /*Before using skillID agent Application must be linked with acd  */,
-        phoneNumber: dialNumber,
-      };
-      CXoneAcdClient.instance.contactManager.voiceService.dialPhone(
-        contactDetails
-      );
-      console.log("Dialled Given number and dial phone api successfully called");
-    };
-  
-    const authenticateClickHandler = () => {
-      initAuth();
-      localStorage.setItem("display_mode", authMode);
-      cxoneAuth
-        .getAuthorizeUrl(authMode, codeChallenge)
-        .then((authUrl: string) => {
-          console.log(authMode,codeChallenge,authUrl)
-          if (authMode === "page") {
-            window.location.href = authUrl;
-          } else if (authMode === "popup") {
-            const popupOptions =
-              "width=500,height=500,scrollbars=yes,toolbar=no,left=50,top=50";
-            const popupWindow = window.open(authUrl, "authWindow", popupOptions);
-  
-            window.addEventListener(
-              "message",
-              (event) => {
-                const message = event.data.message;
-                if (message && message["messageType"] === "Authenticated") {
-                  getAccessToken(message.code);
-                  popupWindow?.close();
-                }
-              },
-              false
-            );
-          }
-        });
-    };
-  
-    function getAccessToken(code: string) {
-      const authObject: AuthWithCodeReq = {
-        clientId: clientId?.current?.value || "",
-        code: code,
-      };
-      cxoneAuth.getAccessTokenByCode(authObject);
-    }
-  
-    function subscribeToAuth() {
-      cxoneAuth.onAuthStatusChange.subscribe((data) => {
-        const getLastLoggedInAgentId = localStorage.getItem(
-          StorageKeys.LAST_LOGGED_IN_AGENT_ID
-        );
-        const agentId = getLastLoggedInAgentId?.toString();
-        switch (data.status) {
-          case AuthStatus.AUTHENTICATING:
-            setAuth("AUTHENTICATING");
-            break;
-          case AuthStatus.AUTHENTICATED:
-            setAuth("AUTHENTICATED");
-            setAuthToken((data.response as AuthToken).accessToken);
-  
-            // Digital SDK consumption
-            CXoneDigitalClient.instance.initDigitalEngagement();
-            CXoneDigitalClient.instance.digitalContactManager.onDigitalContactNewMessageEvent?.subscribe(
-              (eventData) => {
-                console.log("eventData", eventData);
-              }
-            );
-            CXoneDigitalClient.instance.digitalContactManager.onDigitalContactEvent?.subscribe(
-              (digitalContact: any) => {
-                console.log("digitalContact", digitalContact);
-                setDigitalContact(digitalContact);
-              }
-            );
-  
-            // ACD SDK consumption
-            CXoneAcdClient.instance.initAcdEngagement();
-            CXoneAcdClient.instance.session
-              .joinSession()
-              .then((response: any) => {
-                console.log("Joined Session successfully");
-              })
-              .catch(() => {
-                console.log("Join unsuccessfully");
-              });
-            CXoneAcdClient.instance.session.agentStateService.agentStateSubject.subscribe(
-              (agentState: any) => {
-                setAgentStatus(agentState);
-              }
-            );
-            CXoneAcdClient.instance.getAgentSkills(agentId).then((data: any) => {
-              setSkillDetails(data[0]);
-            });
-            CXoneAcdClient.instance.contactManager.voiceContactUpdateEvent.subscribe(
-              (data: any) => {
-                console.log("voicedata", data);
-              }
-            );
-  
-            CXoneAcdClient.instance.session.agentLegEvent.subscribe(
-              (data: any) => {
-                if (data.status === "Dialing") {
-                  CXoneVoiceClient.instance.triggerAutoAccept(data.agentLegId);
-                }
-              }
-            );
-  
-            CXoneClient.instance.skillActivityQueue.agentQueueSubject.subscribe(
-              (queues: any) => {
-                console.log("queues", queues);
-              }
-            );
-            CXoneClient.instance.skillActivityQueue.agentQueuesDetailSubject.subscribe(
-              (queues: any) => {
-                console.log("queues details", queues);
-              }
-            );
-            // Launch CXone Agent in iframe
-            cxoneAuth.launchCXoneAgent(
-              "launchCXA",
-              "https://cxagent.nicecxone.com?src=sdk",
-              { width: "400px", height: "500px" }
-            );
-  
-            break;
-          case AuthStatus.NOT_AUTHENTICATED:
-            setAuth("NOT_AUTHENTICATED");
-            break;
-          case AuthStatus.AUTHENTICATION_FAILED:
-            setAuth("AUTHENTICATION_FAILED");
-            break;
-          default:
-            break;
-        }
-      });
-    }
-  
-    /**
-     * Use to handle the button click to test the new acces token flow
-     * @example -
-     */
-    const handleButtonClick = () => {
-      if (!accessToken?.current?.value || !hostName?.current?.value) return;
-      const authByToken: AuthWithTokenReq = {
-        accessToken: accessToken?.current?.value,
-      };
-      cxoneAuth.getAccessTokenByToken(authByToken);
-    };
-  
-    const replyObject: CXoneDigitalReplyRequest = {
-      thread: {
-        idOnExternalPlatform: digitalContact?.case?.threadId,
-      },
-      messageContent: {
-        type: "TEXT",
-        payload: {
-          text: inputValue,
-        },
-      },
-      recipients: [
-        {
-          idOnExternalPlatform: digitalContact?.channel?.idOnExternalPlatform,
-          name: digitalContact?.channel?.name,
-          isPrimary: true,
-          isPrivate: digitalContact?.channel?.isPrivate,
-        },
-      ],
-    };
-    const handleChange = (
-      e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
-    ) => {
-      setInputValue(e.target.value);
-    };
-  
-    const sendReply = (e: { preventDefault: () => void }) => {
-      e.preventDefault();
-      digitalContactInstance = new CXoneDigitalContact();
-      digitalContactInstance
-        .reply(replyObject, digitalContact?.channel?.id, uuid())
-        .then(() => {
-          console.log("Reply Sent Successfully!");
-          setDigitalContact((digitalContactDetails: any) => {
-            return {
-              ...digitalContactDetails,
-              digitalContact,
-            };
-          });
-        })
-        .catch((err) => {
-          console.log("Reply Unsuccessful", JSON.stringify(err));
-        });
-      setInputValue("");
-    };
 
   const handleListItemClick = (index: number) => {
     setSelectedIndex(index);
@@ -455,7 +177,7 @@ export default function NavBar() {
         }}
         variant="persistent"
         anchor="left"
-        open={open}
+        open={true}
       >
         <DrawerHeader>
           <IconButton>
@@ -489,50 +211,26 @@ export default function NavBar() {
           ))}
         </List>
       </Drawer>
-      <Main open={open}>
+      <Main open={true}>
         <DrawerHeader />
         <Routes>
           <Route path="/authentication" element={<Authentication />} />
-       
-        
           <Route
             path="/"
             element={
-              <Auth
-                setSessionEndMessage={(e:string) => {setSessionEndMessage(e)}}
-                hostName={hostName}
-                clientId={clientId}
-                redirectUri={redirectUri}
-                authMode={authMode}
-                updateAuthMode={updateAuthMode}
-                codeChallenge={codeChallenge}
-                updateCodeChallenge={updateCodeChallenge}
-                authenticateClickHandler={()=>authenticateClickHandler()}
-                authState={authState}
-                authToken={authToken}
-                accessToken={accessToken}
-                handleButtonClick={()=>handleButtonClick()}
-              />
+              <Auth/>
             }
           />
            <Route
             path="/acd-sdk"
             element={
-              <AcdSdk
-                agentStatus={agentStatus}
-                dialCallButtonClick={() => { dialCallButtonClick(); } }
-                setSessionEndMessage={(e: string) => setSessionEndMessage(e)} dialNumber={dialNumber} setDialNumber={setDialNumber}              />
+              <AcdSdk />
             }
           />
             <Route
             path="/digital-sdk"
             element={
-              <DigitalSdk
-                inputValue={inputValue}
-                digitalContact={digitalContact}
-                sendReply={sendReply}
-                handleChange={handleChange}
-              />
+              <DigitalSdk/>
             }
           />
           <Route path="/cxa-placeholder" element={<CxaPlaceholder />} />

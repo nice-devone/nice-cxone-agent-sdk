@@ -11,13 +11,14 @@ import {
   TextField,
   useTheme,
 } from "@mui/material";
-import React from "react";
+import React, { useEffect, useRef, useState } from "react";
 import {
   ccfAccessTokenFlowStyles,
   ccfGaAccessTokenFlowStyles,
 } from "../side-navbar/NavBar";
 import { CXoneAcdClient } from "@nice-devone/acd-sdk";
-import { AgentSessionStatus, EndSessionRequest } from "@nice-devone/common-sdk";
+import { AgentSessionStatus, AuthToken, EndSessionRequest } from "@nice-devone/common-sdk";
+import { AuthSettings, AuthStatus, AuthWithCodeReq, AuthWithTokenReq, CXoneAuth } from "@nice-devone/auth-sdk";
 
 interface AuthProps {
   setSessionEndMessage: (e: any) => void;
@@ -35,21 +36,7 @@ interface AuthProps {
   handleButtonClick: () => void;
 }
 
-const Auth = ({
-  setSessionEndMessage,
-  hostName,
-  clientId,
-  redirectUri,
-  authMode,
-  updateAuthMode,
-  codeChallenge,
-  updateCodeChallenge,
-  authenticateClickHandler,
-  authState,
-  authToken,
-  accessToken,
-  handleButtonClick,
-}: AuthProps) => {
+const Auth = () => {
   const theme = useTheme();
   const gaAccessTokenFlowStyles = ccfGaAccessTokenFlowStyles(theme);
   const accessTokenFlowStyles = ccfAccessTokenFlowStyles(theme);
@@ -59,6 +46,139 @@ const Auth = ({
     endContacts: true,
     ignorePersonalQueue: true,
   };
+  const hostName: React.RefObject<HTMLInputElement> = useRef(null);
+  const clientId: React.RefObject<HTMLInputElement> = useRef(null);
+  const redirectUri: React.RefObject<HTMLInputElement> = useRef(null);
+  const accessToken: React.RefObject<HTMLInputElement> = useRef(null);
+  const [authMode, updateAuthMode] = useState("page");
+  const [codeChallenge, updateCodeChallenge] = useState("S256");
+  const [sessionEndMessage, setSessionEndMessage] = useState("");
+
+  const cxoneAuth = CXoneAuth.instance;
+  const [authState, setAuth] = useState("");
+  const [authToken, setAuthToken] = useState("");
+
+
+
+
+  //Auth callback will be captured here
+  useEffect(() => {
+    subscribeToAuth();
+    cxoneAuth.restoreData();
+    const searchParams = new URLSearchParams(window.location.search);
+    const code = searchParams.get("code") || "";
+    if (!code) return;
+    const display = localStorage.getItem("display_mode") || "";
+    if (display) {
+      if (display === "popup") {
+        const message = { messageType: "Authenticated", code: code };
+        window.opener?.postMessage({ message }, "*");
+      } else {
+        const authSetting = JSON.parse(
+          localStorage.getItem("auth_consumer") || ""
+        );
+        cxoneAuth.init(authSetting);
+        getAccessToken(code);
+      }
+    }
+  }, []);
+
+  const initAuth = function () {
+    if (
+      !hostName?.current?.value ||
+      !clientId?.current?.value ||
+      !redirectUri?.current?.value ||
+      !authMode ||
+      !codeChallenge
+    )
+      return;
+
+    const authSetting: AuthSettings = {
+      cxoneHostname: hostName?.current.value,
+      clientId: clientId.current.value,
+      redirectUri: redirectUri.current.value,
+    };
+    localStorage.setItem("auth_consumer", JSON.stringify(authSetting));
+    cxoneAuth.init(authSetting);
+  };
+
+
+
+  const authenticateClickHandler = () => {
+    initAuth();
+    localStorage.setItem("display_mode", authMode);
+    cxoneAuth
+      .getAuthorizeUrl(authMode, codeChallenge)
+      .then((authUrl: string) => {
+        console.log(authMode,codeChallenge,authUrl)
+        if (authMode === "page") {
+          window.location.href = authUrl;
+        } else if (authMode === "popup") {
+          const popupOptions =
+            "width=500,height=500,scrollbars=yes,toolbar=no,left=50,top=50";
+          const popupWindow = window.open(authUrl, "authWindow", popupOptions);
+
+          window.addEventListener(
+            "message",
+            (event) => {
+              const message = event.data.message;
+              if (message && message["messageType"] === "Authenticated") {
+                getAccessToken(message.code);
+                popupWindow?.close();
+              }
+            },
+            false
+          );
+        }
+      });
+  };
+
+  function getAccessToken(code: string) {
+    const authObject: AuthWithCodeReq = {
+      clientId: clientId?.current?.value || "",
+      code: code,
+    };
+    cxoneAuth.getAccessTokenByCode(authObject);
+  }
+
+  function subscribeToAuth() {
+    cxoneAuth.onAuthStatusChange.subscribe((data) => {
+      switch (data.status) {
+        case AuthStatus.AUTHENTICATING:
+          setAuth("AUTHENTICATING");
+          break;
+        case AuthStatus.AUTHENTICATED:
+          setAuth("AUTHENTICATED");
+          setAuthToken((data.response as AuthToken).accessToken);
+          break;
+        case AuthStatus.NOT_AUTHENTICATED:
+          setAuth("NOT_AUTHENTICATED");
+          break;
+        case AuthStatus.AUTHENTICATION_FAILED:
+          setAuth("AUTHENTICATION_FAILED");
+          break;
+        default:
+          break;
+      }
+    });
+  }
+
+  /**
+   * Use to handle the button click to test the new acces token flow
+   * @example -
+   */
+  const handleButtonClick = () => {
+    if (!accessToken?.current?.value || !hostName?.current?.value) return;
+    const authByToken: AuthWithTokenReq = {
+      accessToken: accessToken?.current?.value,
+    };
+    cxoneAuth.getAccessTokenByToken(authByToken);
+  };
+
+
+
+
+
 
   return (
     <Box>
@@ -103,7 +223,7 @@ const Auth = ({
                 variant="outlined"
                 InputLabelProps={{ shrink: true }}
                 inputRef={hostName}
-                defaultValue={"https://cxone.niceincontact.com"}
+                defaultValue={"https://cxone.staging.niceincontact.com"}
                 required
               />
               <TextField
@@ -195,7 +315,7 @@ const Auth = ({
                 variant="outlined"
                 InputLabelProps={{ shrink: true }}
                 inputRef={hostName}
-                defaultValue={"https://cxone.niceincontact.com"}
+                defaultValue={"https://cxone.staging.niceincontact.com"}
                 required
               />
               <TextField

@@ -296,6 +296,7 @@ const Authentication = () => {
               console.log("Joined Session successfully");
             })
             .catch(() => {
+              //START
               console.log("Join unsuccessfully");
             });
           CXoneAcdClient.instance.session.agentStateService.agentStateSubject.subscribe(
