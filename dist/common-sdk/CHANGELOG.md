@@ -1,3 +1,3 @@
+## 25.1 - 13-02-2025 ##
 
-## 25.1 ##
-- [Updated]: Updated core Index DB logic to have versioning to avoid Index DB cache issue
+- `[Updated]`: Updated index db model to manage contact history data
