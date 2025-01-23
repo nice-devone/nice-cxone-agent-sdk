@@ -1,3 +1,21 @@
+/**
+ * DigitalSdk component initializes the CXoneDigitalClient and manages digital contact messages.
+ * It allows users to view and reply to digital messages.
+ *
+ * @component
+ * @example
+ * return (
+ *   <DigitalSdk />
+ * )
+ *
+ * @returns {JSX.Element} The rendered DigitalSdk component.
+ *
+ * @remarks
+ * This component uses the CXoneDigitalClient to initialize digital engagement and subscribe to digital contact events.
+ * It maintains the state of digital messages and handles user input for replying to messages.
+ *
+ */
+
 import {
   Box,
   Button,
@@ -20,8 +38,8 @@ import {
 } from "../side-navbar/NavBar";
 import { uuid } from "uuidv4";
 
+
 const DigitalSdk = () => {
-  
   const theme = useTheme();
   const gaAccessTokenFlowStyles = ccfGaAccessTokenFlowStyles(theme);
   const accessTokenFlowStyles = ccfAccessTokenFlowStyles(theme);

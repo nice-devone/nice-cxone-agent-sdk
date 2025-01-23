@@ -1,3 +1,28 @@
+/**
+ * AcdSdk component initializes and manages the ACD (Automatic Call Distribution) SDK.
+ * It handles agent session management, skill details retrieval, and dialing outbound calls.
+ *
+ * @component
+ * @example
+ * ```tsx
+ * <AcdSdk />
+ * ```
+ *
+ * @returns {JSX.Element} The rendered AcdSdk component.
+ *
+ * @remarks
+ * This component uses the @nice-devone/acd-sdk, @nice-devone/voice-sdk, and @nice-devone/agent-sdk
+ * to manage agent sessions and interactions.
+ *
+ * @function
+ * @name AcdSdk
+ *
+ * @description
+ * The AcdSdk component initializes the ACD SDK, joins an agent session, subscribes to various
+ * agent state and contact events, and provides UI elements for ending the session and dialing
+ * outbound calls.
+ *
+ */
 import {
   Box,
   Button,
@@ -17,6 +42,7 @@ import { AgentSessionStatus, EndSessionRequest } from "@nice-devone/common-sdk";
 import { CXoneVoiceClient } from "@nice-devone/voice-sdk";
 import { CXoneClient } from "@nice-devone/agent-sdk";
 import { StorageKeys } from "@nice-devone/core-sdk";
+
 
 const AcdSdk = () => {
   const theme = useTheme();

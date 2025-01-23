@@ -1,4 +1,23 @@
-import  React,{useEffect, useRef, useState} from "react";
+/**
+ * NavBar component renders a side navigation bar with various tabs and routes.
+ * 
+ * @component
+ * 
+ * @returns {JSX.Element} The rendered NavBar component.
+ * 
+ * @remarks
+ * - From here routes got handled
+ * - Authentication component call first.
+ * - Side allow us navigate between features in SDK.
+ * - The selected tab index is stored in localStorage and retrieved on component mount.
+ * - The component listens for changes to the `auth_token` in localStorage to enable/disable tabs.
+ * 
+ * @example
+ * ```tsx
+ * <NavBar />
+ * ```
+ */
+import  React,{useEffect,  useState} from "react";
 import { styled, Theme, useTheme } from "@mui/material/styles";
 import Box from "@mui/material/Box";
 import Drawer from "@mui/material/Drawer";
@@ -148,20 +167,49 @@ const DrawerHeader = styled("div")(({ theme }) => ({
   justifyContent: "flex-end",
 }));
 
+
 export default function NavBar() {
   const theme = useTheme();
-  const [selectedIndex, setSelectedIndex] = React.useState<number | null>(null);
+  const [selectedIndex, setSelectedIndex] = React.useState<number | null>(localStorage.getItem("selectedIndex") ? parseInt(localStorage.getItem("selectedIndex")!) : 0);
+  const [disableTab, setDisableTab] = useState(true);
   const navigate = useNavigate();
 
-  const handleListItemClick = (index: number) => {
+  const handleListItemClick = async(index: number) => {
     setSelectedIndex(index);
+    await localStorage.setItem("selectedIndex", index.toString());
     if (index === 0) navigate("/");
     if (index === 1) navigate("/acd-sdk");
     if (index === 2) navigate("/digital-sdk");
     if (index === 3) navigate("/cxa-placeholder");
   };
 
-  const tabNames = ["Auth", "ACD", "Digital", "Custom"];
+  let tabNamesArray = ["Auth","ACD ","Digital ","Custom"];
+ 
+
+  useEffect(() => {
+   
+    const handleStorageChange = (event: StorageEvent) => {
+      if (event.key === "auth_token") {
+        setDisableTab(false)
+      }
+    };
+
+  
+    const originalSetItem = localStorage.setItem;
+    localStorage.setItem = function (key, value) {
+      if (key === "auth_token") {
+        setDisableTab(false)
+      }
+      originalSetItem.apply(this, [key, value]);
+    };
+
+    window.addEventListener("storage", handleStorageChange);
+
+    return () => {
+      window.removeEventListener("storage", handleStorageChange);
+      localStorage.setItem = originalSetItem; // Restore original setItem
+    };
+  }, []);
 
   return (
     <Box sx={{ display: "flex" }}>
@@ -190,18 +238,19 @@ export default function NavBar() {
         </DrawerHeader>
         <Divider />
         <List>
-          {tabNames.map((text, index) => (
+          {tabNamesArray.map((text, index) => (
             <ListItem key={text} disablePadding>
               <ListItemButton
-                selected={selectedIndex === index} // Highlight selected item
-                onClick={() => handleListItemClick(index)} // Set selected item
+                disabled={disableTab && index !== 0}
+                selected={selectedIndex === index} 
+                onClick={() => handleListItemClick(index)} 
                 sx={{
                   "&.Mui-selected": {
-                    backgroundColor: "#1976d2", // Apply blue background when selected
+                    backgroundColor: "#1976d2", 
                     "&:hover": {
-                      backgroundColor: "#1976d2", // Maintain blue background on hover
+                      backgroundColor: "#1976d2", 
                     },
-                    color: "white", // Set text color to white when selected
+                    color: "white",
                   },
                 }}
               >
@@ -215,26 +264,10 @@ export default function NavBar() {
         <DrawerHeader />
         <Routes>
           <Route path="/authentication" element={<Authentication />} />
-          <Route
-            path="/"
-            element={
-              <Auth/>
-            }
-          />
-           <Route
-            path="/acd-sdk"
-            element={
-              <AcdSdk />
-            }
-          />
-            <Route
-            path="/digital-sdk"
-            element={
-              <DigitalSdk/>
-            }
-          />
+          <Route path="/" element={ <Auth/> }/>
+          <Route path="/acd-sdk"  element={<AcdSdk />}/>
+          <Route path="/digital-sdk" element={ <DigitalSdk/>}/>
           <Route path="/cxa-placeholder" element={<CxaPlaceholder />} />
-         
         </Routes>
       </Main>
     </Box>

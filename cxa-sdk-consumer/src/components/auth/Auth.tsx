@@ -1,3 +1,14 @@
+/**
+ * Auth component handles the authentication flow for the application.
+ * It provides UI elements for user input and buttons to initiate authentication
+ * and end session actions. It also manages the authentication state and token.
+ *
+ * @component
+ * @example
+ * return (
+ *   <Auth />
+ * )
+ */
 import {
   Box,
   Button,
@@ -20,21 +31,7 @@ import { CXoneAcdClient } from "@nice-devone/acd-sdk";
 import { AgentSessionStatus, AuthToken, EndSessionRequest } from "@nice-devone/common-sdk";
 import { AuthSettings, AuthStatus, AuthWithCodeReq, AuthWithTokenReq, CXoneAuth } from "@nice-devone/auth-sdk";
 
-interface AuthProps {
-  setSessionEndMessage: (e: any) => void;
-  hostName: any;
-  clientId: any;
-  redirectUri: any;
-  authMode: any;
-  updateAuthMode: any;
-  codeChallenge: any;
-  updateCodeChallenge: any;
-  authenticateClickHandler: () => void;
-  authState: any;
-  authToken: any;
-  accessToken: any;
-  handleButtonClick: () => void;
-}
+
 
 const Auth = () => {
   const theme = useTheme();
