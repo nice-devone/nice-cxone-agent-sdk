@@ -187,6 +187,9 @@ export default function NavBar() {
  
 
   useEffect(() => {
+    if(localStorage.getItem("auth_token")) {
+      setDisableTab(false)
+    }
    
     const handleStorageChange = (event: StorageEvent) => {
       if (event.key === "auth_token") {

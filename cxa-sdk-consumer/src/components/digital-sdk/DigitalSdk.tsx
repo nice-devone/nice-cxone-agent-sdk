@@ -43,11 +43,14 @@ const DigitalSdk = () => {
   const theme = useTheme();
   const gaAccessTokenFlowStyles = ccfGaAccessTokenFlowStyles(theme);
   const accessTokenFlowStyles = ccfAccessTokenFlowStyles(theme);
-  const [digitalMessages, setDigitalMessages] = React.useState<any>({});
   const [inputValue, setInputValue] = useState("");
   
   let digitalContactInstance: CXoneDigitalContact;
   const [digitalContact, setDigitalContact] = useState({} as any);
+  const [messages, setMessages] = useState([] as any);
+  useEffect(() => {
+    setMessages(digitalContact.messages);
+  }, [digitalContact]);
 
     useEffect(() => {
         CXoneDigitalClient.instance.initDigitalEngagement();
@@ -56,21 +59,22 @@ const DigitalSdk = () => {
                     console.log("eventData", eventData);
                   }
                 );
+                let excuteOne = 0 
                 CXoneDigitalClient.instance.digitalContactManager.onDigitalContactEvent?.subscribe(
-                  (digitalContact: any) => {
-                    console.log("digitalContact", digitalContact);
-                    setDigitalContact(digitalContact);
+                  (digitalConct: any) => {
+                    
+                   if(excuteOne == 0){
+                    excuteOne=excuteOne+1;
+                    setDigitalContact(digitalConct);
+                   }
                   }
                 );
     },[])
 
-  useEffect(()=>{
-
-      setDigitalMessages(digitalContact)
-    
-  },[digitalContact.messages])
+  
 
    const replyObject: CXoneDigitalReplyRequest = {
+   
       thread: {
         idOnExternalPlatform: digitalContact?.case?.threadId,
       },
@@ -95,14 +99,23 @@ const DigitalSdk = () => {
       digitalContactInstance = new CXoneDigitalContact();
       digitalContactInstance
         .reply(replyObject, digitalContact?.channel?.id, uuid())
-        .then(() => {
-          console.log("Reply Sent Successfully!");
-          setDigitalContact((digitalContactDetails: any) => {
-            return {
-              ...digitalContactDetails,
-              digitalContact,
-            };
-          });
+        .then((res) => {
+          const updatedMessages = [
+            ...messages, // Copy the existing messages
+            {
+              ...replyObject,
+              direction: "outbound",
+              messageContent: {
+                ...replyObject.messageContent,
+                text: inputValue, // Update the text field with inputValue
+              },
+            },
+          ];
+        
+          console.log("Reply Sent Successfully!", updatedMessages);
+        
+          // Update the state with the new array
+          setMessages(updatedMessages);
         })
         .catch((err) => {
           console.log("Reply Unsuccessful", JSON.stringify(err));
@@ -128,12 +141,12 @@ const DigitalSdk = () => {
             ]}
           >
             <CardContent sx={accessTokenFlowStyles.case_alignment}>
-              <InputLabel>caseId:</InputLabel> {digitalMessages?.caseId}
+              <InputLabel>caseId:</InputLabel> {digitalContact?.caseId}
             </CardContent>
             <CardContent sx={gaAccessTokenFlowStyles.msg_box}>
               Messages :
                <div style={{ display: "flex", flexDirection: "column" }}>
-                {(digitalMessages.messages||[]).map((item: any) => {
+                {(messages||[]).map((item: any) => {
                   if (item?.direction == "inbound") {
                     return <div>{item.messageContent.text}</div>;
                   } else {

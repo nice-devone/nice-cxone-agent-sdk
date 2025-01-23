@@ -38,7 +38,7 @@ import {
   ccfGaAccessTokenFlowStyles,
 } from "../side-navbar/NavBar";
 import { CXoneAcdClient } from "@nice-devone/acd-sdk";
-import { AgentSessionStatus, EndSessionRequest } from "@nice-devone/common-sdk";
+import { AgentSessionStatus, CXoneSdkError, EndSessionRequest } from "@nice-devone/common-sdk";
 import { CXoneVoiceClient } from "@nice-devone/voice-sdk";
 import { CXoneClient } from "@nice-devone/agent-sdk";
 import { StorageKeys } from "@nice-devone/core-sdk";
@@ -58,6 +58,11 @@ const AcdSdk = () => {
     endContacts: true,
     ignorePersonalQueue: true,
   };
+
+   useEffect(() => {
+      console.log("ACD mounted",agentStatus);
+    }, [agentStatus]);
+
   useEffect(() => {
      const getLastLoggedInAgentId = localStorage.getItem(
               StorageKeys.LAST_LOGGED_IN_AGENT_ID
@@ -69,9 +74,13 @@ const AcdSdk = () => {
       .then((response: any) => {
         console.log("Joined Session successfully");
       })
-      .catch(() => {
+      .catch(async() => {
         //START
-        console.log("Join unsuccessfully");
+        // await CXoneAcdClient.instance.session
+        // .startSession(startSessionObj)
+        // .catch((error: CXoneSdkError) => {
+        //   console.log("error", error);
+        // });
       });
     CXoneAcdClient.instance.session.agentStateService.agentStateSubject.subscribe(
       (agentState: any) => {
