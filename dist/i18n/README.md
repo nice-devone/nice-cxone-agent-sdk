@@ -52,4 +52,4 @@ For any issues or questions, please refer to the (mention support channel/link h
 
 ### Additional Notes
 
-Consider exploring the codebase (src/lib/) for a more comprehensive understanding of the functionalities offered.
+Consider exploring the codebase (src/lib/) for a more comprehensive understanding of the functionalities offered. 
