@@ -1,4 +1,4 @@
-## 25.1 - 13-02-2025 ##
+## 25.1 - 2025-01-31 ##
 
 - `[Added]:` Added method to handle Copilot filter updates
 - `[Added]`: Added service to capture copilot guidance feedback
