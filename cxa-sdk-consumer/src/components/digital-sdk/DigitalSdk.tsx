@@ -49,7 +49,9 @@ const DigitalSdk = () => {
   const [digitalContact, setDigitalContact] = useState({} as any);
   const [messages, setMessages] = useState([] as any);
   useEffect(() => {
-    setMessages(digitalContact.messages);
+    setMessages(Array.from(
+      new Map(digitalContact.messages?.map((msg: { id: any; }) => [msg.id, msg])).values()
+    ));
   }, [digitalContact]);
 
     useEffect(() => {
@@ -59,14 +61,14 @@ const DigitalSdk = () => {
                     console.log("eventData", eventData);
                   }
                 );
-                let excuteOne = 0 
+               
                 CXoneDigitalClient.instance.digitalContactManager.onDigitalContactEvent?.subscribe(
                   (digitalConct: any) => {
-                    
-                   if(excuteOne == 0){
-                    excuteOne=excuteOne+1;
-                    setDigitalContact(digitalConct);
-                   }
+                    if(digitalConct.case.caseId===digitalContact?.case?.caseId){
+                      console.log("digitalConct", digitalConct);
+                      setDigitalContact(digitalConct);
+                    }
+                 
                   }
                 );
     },[])
@@ -74,19 +76,20 @@ const DigitalSdk = () => {
   
 
    const replyObject: CXoneDigitalReplyRequest = {
+    messageContent: {
+      type: "TEXT",
+      payload: {
+        text: inputValue,
+      },
+    },
    
       thread: {
-        idOnExternalPlatform: digitalContact?.case?.threadId,
+        idOnExternalPlatform: digitalContact?.case?.threadIdOnExternalPlatform,
       },
-      messageContent: {
-        type: "TEXT",
-        payload: {
-          text: inputValue,
-        },
-      },
+     
       recipients: [
         {
-          idOnExternalPlatform: digitalContact?.channel?.idOnExternalPlatform,
+          idOnExternalPlatform: digitalContact?.case?.threadIdOnExternalPlatform,
           name: digitalContact?.channel?.name,
           isPrimary: true,
           isPrivate: digitalContact?.channel?.isPrivate,
@@ -94,7 +97,10 @@ const DigitalSdk = () => {
       ],
     };
 
+
+
     const sendReply = (e: { preventDefault: () => void }) => {
+      
       e.preventDefault();
       digitalContactInstance = new CXoneDigitalContact();
       digitalContactInstance
@@ -111,11 +117,11 @@ const DigitalSdk = () => {
               },
             },
           ];
-        
-          console.log("Reply Sent Successfully!", updatedMessages);
-        
-          // Update the state with the new array
           setMessages(updatedMessages);
+         
+          console.log("Reply Sent Successfully!", res);
+        
+        
         })
         .catch((err) => {
           console.log("Reply Unsuccessful", JSON.stringify(err));

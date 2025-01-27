@@ -38,7 +38,7 @@ import {
   ccfGaAccessTokenFlowStyles,
 } from "../side-navbar/NavBar";
 import { CXoneAcdClient } from "@nice-devone/acd-sdk";
-import { AgentSessionStatus, CXoneSdkError, EndSessionRequest } from "@nice-devone/common-sdk";
+import { AgentSessionStatus,  EndSessionRequest } from "@nice-devone/common-sdk";
 import { CXoneVoiceClient } from "@nice-devone/voice-sdk";
 import { CXoneClient } from "@nice-devone/agent-sdk";
 import { StorageKeys } from "@nice-devone/core-sdk";
@@ -49,7 +49,7 @@ const AcdSdk = () => {
   const [skillDetails, setSkillDetails] = useState({} as any);
   const [agentStatus, setAgentStatus] = useState({} as any);
   const [dialNumber, setDialNumber] = useState("");
-
+  const [startSessionButton, setStartSessionButton] = useState(true);
   const gaAccessTokenFlowStyles = ccfGaAccessTokenFlowStyles(theme);
   const accessTokenFlowStyles = ccfAccessTokenFlowStyles(theme);
 
@@ -67,51 +67,54 @@ const AcdSdk = () => {
      const getLastLoggedInAgentId = localStorage.getItem(
               StorageKeys.LAST_LOGGED_IN_AGENT_ID
             );
+
     const agentId = getLastLoggedInAgentId?.toString();
-    CXoneAcdClient.instance.initAcdEngagement();
-    CXoneAcdClient.instance.session
-      .joinSession()
-      .then((response: any) => {
-        console.log("Joined Session successfully");
-      })
-      .catch(async() => {
-        //START
-        // await CXoneAcdClient.instance.session
-        // .startSession(startSessionObj)
-        // .catch((error: CXoneSdkError) => {
-        //   console.log("error", error);
-        // });
+    
+    if(agentId){
+      CXoneAcdClient.instance.initAcdEngagement();
+      CXoneAcdClient.instance.session
+        .joinSession()
+        .then((response: any) => {
+          console.log("Joined Session successfully");
+        })
+        .catch(() => {
+          //START
+          setStartSessionButton(false);
+        });
+      CXoneAcdClient.instance.session.agentStateService.agentStateSubject.subscribe(
+        (agentState: any) => {
+          setAgentStatus(agentState);
+        }
+      );
+      CXoneAcdClient.instance.getAgentSkills(agentId).then((data: any) => {
+        setSkillDetails(data[0]);
       });
-    CXoneAcdClient.instance.session.agentStateService.agentStateSubject.subscribe(
-      (agentState: any) => {
-        setAgentStatus(agentState);
-      }
-    );
-    CXoneAcdClient.instance.getAgentSkills(agentId).then((data: any) => {
-      setSkillDetails(data[0]);
-    });
-    CXoneAcdClient.instance.contactManager.voiceContactUpdateEvent.subscribe(
-      (data: any) => {
-        console.log("voicedata", data);
-      }
-    );
-
-    CXoneAcdClient.instance.session.agentLegEvent.subscribe((data: any) => {
-      if (data.status === "Dialing") {
-        CXoneVoiceClient.instance.triggerAutoAccept(data.agentLegId);
-      }
-    });
-
-    CXoneClient.instance.skillActivityQueue.agentQueueSubject.subscribe(
-      (queues: any) => {
-        console.log("queues", queues);
-      }
-    );
-    CXoneClient.instance.skillActivityQueue.agentQueuesDetailSubject.subscribe(
-      (queues: any) => {
-        console.log("queues details", queues);
-      }
-    );
+      CXoneAcdClient.instance.contactManager.voiceContactUpdateEvent.subscribe(
+        (data: any) => {
+          console.log("voicedata", data);
+        }
+      );
+  
+      CXoneAcdClient.instance.session.agentLegEvent.subscribe((data: any) => {
+        if (data.status === "Dialing") {
+          CXoneVoiceClient.instance.triggerAutoAccept(data.agentLegId);
+        }
+      });
+  
+      CXoneClient.instance.skillActivityQueue.agentQueueSubject.subscribe(
+        (queues: any) => {
+          console.log("queues", queues);
+        }
+      );
+      CXoneClient.instance.skillActivityQueue.agentQueuesDetailSubject.subscribe(
+        (queues: any) => {
+          console.log("queues details", queues);
+        }
+      );
+    }else{
+      alert("Please logout and login Again !!");
+    }
+  
   }, []);
 
   /**
@@ -139,6 +142,32 @@ const AcdSdk = () => {
         <CardContent>
           <form className="root">
             <Box sx={accessTokenFlowStyles.inputs_alignment}>
+            <Button
+                onClick={() => {
+                  CXoneAcdClient.instance.session
+                    .startSession({
+                      "stationId": "",
+                      "stationPhoneNumber": "WebRTC"
+                  })
+                    .then((response: any) => {
+                      console.log("Session start successfully");
+                      setStartSessionButton(true);
+                    })
+                    .catch((err: any) => {
+                      console.log(err.message ?? "An error occured");
+                    });
+                  CXoneAcdClient.instance.session.onAgentSessionChange.next({
+                    status: AgentSessionStatus.SESSION_END,
+                  });
+                }}
+                color="primary"
+                variant="contained"
+                size="large"
+                sx={accessTokenFlowStyles.margin}
+                disabled={startSessionButton}
+              >
+                Start Session
+              </Button>
               <Button
                 onClick={() => {
                   CXoneAcdClient.instance.session
