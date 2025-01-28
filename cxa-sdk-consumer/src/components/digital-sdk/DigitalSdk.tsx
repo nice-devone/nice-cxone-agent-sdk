@@ -55,24 +55,33 @@ const DigitalSdk = () => {
   }, [digitalContact]);
 
     useEffect(() => {
-        CXoneDigitalClient.instance.initDigitalEngagement();
-                CXoneDigitalClient.instance.digitalContactManager.onDigitalContactNewMessageEvent?.subscribe(
-                  (eventData) => {
-                    console.log("eventData", eventData);
-                  }
-                );
-               
-                CXoneDigitalClient.instance.digitalContactManager.onDigitalContactEvent?.subscribe(
-                  (digitalConct: any) => {
-                    if(digitalConct.case.caseId===digitalContact?.case?.caseId){
-                      console.log("digitalConct", digitalConct);
-                      setDigitalContact(digitalConct);
-                    }
-                 
-                  }
-                );
-    },[])
+      const pollInterval = 3000;
+      const intervalId = setInterval(digitalSdkwebsoket, pollInterval);
 
+      // Cleanup function to clear the interval when the component unmounts
+      return () => {
+        clearInterval(intervalId);
+      };
+    },[])
+    
+    const digitalSdkwebsoket=()=>{
+      CXoneDigitalClient.instance.initDigitalEngagement();
+      CXoneDigitalClient.instance.digitalContactManager.onDigitalContactNewMessageEvent?.subscribe(
+        (eventData) => {
+          console.log("eventData", eventData);
+        }
+      );
+     
+      CXoneDigitalClient.instance.digitalContactManager.onDigitalContactEvent?.subscribe(
+        (digitalConct: any) => {
+          if(digitalConct.case.caseId===digitalContact?.case?.caseId){
+            console.log("digitalConct", digitalConct);
+            setDigitalContact(digitalConct);
+          }
+       
+        }
+      );
+    }
   
 
    const replyObject: CXoneDigitalReplyRequest = {
@@ -106,22 +115,7 @@ const DigitalSdk = () => {
       digitalContactInstance
         .reply(replyObject, digitalContact?.channel?.id, uuid())
         .then((res) => {
-          const updatedMessages = [
-            ...messages, // Copy the existing messages
-            {
-              ...replyObject,
-              direction: "outbound",
-              messageContent: {
-                ...replyObject.messageContent,
-                text: inputValue, // Update the text field with inputValue
-              },
-            },
-          ];
-          setMessages(updatedMessages);
-         
           console.log("Reply Sent Successfully!", res);
-        
-        
         })
         .catch((err) => {
           console.log("Reply Unsuccessful", JSON.stringify(err));
