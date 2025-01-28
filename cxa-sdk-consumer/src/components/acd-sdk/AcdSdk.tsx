@@ -112,7 +112,11 @@ const AcdSdk = () => {
         }
       );
     }else{
-      alert("Please logout and login Again !!");
+      
+      alert("please authenticate");
+      localStorage.clear();
+      window.location.href = "/";
+      window.location.reload();
     }
   
   }, []);

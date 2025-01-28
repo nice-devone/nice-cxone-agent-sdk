@@ -65,6 +65,7 @@ const DigitalSdk = () => {
     },[])
     
     const digitalSdkwebsoket=()=>{
+     try{
       CXoneDigitalClient.instance.initDigitalEngagement();
       CXoneDigitalClient.instance.digitalContactManager.onDigitalContactNewMessageEvent?.subscribe(
         (eventData) => {
@@ -81,6 +82,9 @@ const DigitalSdk = () => {
        
         }
       );
+     }catch(e){
+      console.log(e)
+     }
     }
   
 
