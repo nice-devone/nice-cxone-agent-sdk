@@ -27,9 +27,11 @@ import {
   ccfAccessTokenFlowStyles,
   ccfGaAccessTokenFlowStyles,
 } from "../side-navbar/NavBar";
-import { CXoneAcdClient } from "@nice-devone/acd-sdk";
-import { AgentSessionStatus, AuthToken, EndSessionRequest } from "@nice-devone/common-sdk";
-import { AuthSettings, AuthStatus, AuthWithCodeReq, AuthWithTokenReq, CXoneAuth } from "@nice-devone/auth-sdk";
+
+import {  AuthToken } from "@nice-devone/common-sdk";
+import { AuthSettings, AuthStatus,  AuthWithTokenReq, CXoneAuth } from "@nice-devone/auth-sdk";
+import { CXoneDigitalClient } from "@nice-devone/digital-sdk";
+
 
 
 
@@ -38,46 +40,25 @@ const Auth = () => {
   const gaAccessTokenFlowStyles = ccfGaAccessTokenFlowStyles(theme);
   const accessTokenFlowStyles = ccfAccessTokenFlowStyles(theme);
 
-  const endSessionRequest: EndSessionRequest = {
-    forceLogoff: false,
-    endContacts: true,
-    ignorePersonalQueue: true,
-  };
   const hostName: React.RefObject<HTMLInputElement> = useRef(null);
   const clientId: React.RefObject<HTMLInputElement> = useRef(null);
   const redirectUri: React.RefObject<HTMLInputElement> = useRef(null);
   const accessToken: React.RefObject<HTMLInputElement> = useRef(null);
   const [authMode, updateAuthMode] = useState("page");
   const [codeChallenge, updateCodeChallenge] = useState("S256");
-  const [sessionEndMessage, setSessionEndMessage] = useState("");
-
+ 
   const cxoneAuth = CXoneAuth.instance;
   const [authState, setAuth] = useState("");
   const [authToken, setAuthToken] = useState("");
 
 
-
-
   //Auth callback will be captured here
   useEffect(() => {
+    
+    
     subscribeToAuth();
     cxoneAuth.restoreData();
-    const searchParams = new URLSearchParams(window.location.search);
-    const code = searchParams.get("code") || "";
-    if (!code) return;
-    const display = localStorage.getItem("display_mode") || "";
-    if (display) {
-      if (display === "popup") {
-        const message = { messageType: "Authenticated", code: code };
-        window.opener?.postMessage({ message }, "*");
-      } else {
-        const authSetting = JSON.parse(
-          localStorage.getItem("auth_consumer") || ""
-        );
-        cxoneAuth.init(authSetting);
-        getAccessToken(code);
-      }
-    }
+  
   }, []);
 
   const initAuth = function () {
@@ -120,23 +101,17 @@ const Auth = () => {
             (event) => {
               const message = event.data.message;
               if (message && message["messageType"] === "Authenticated") {
-                getAccessToken(message.code);
                 popupWindow?.close();
               }
             },
             false
           );
         }
+       
       });
   };
 
-  function getAccessToken(code: string) {
-    const authObject: AuthWithCodeReq = {
-      clientId: clientId?.current?.value || "",
-      code: code,
-    };
-    cxoneAuth.getAccessTokenByCode(authObject);
-  }
+
 
   function subscribeToAuth() {
     cxoneAuth.onAuthStatusChange.subscribe((data) => {
@@ -173,42 +148,8 @@ const Auth = () => {
   };
 
 
-
-
-
-
   return (
     <Box>
-      <Card sx={{ display: "flex", justifyContent: "end" }}>
-        
-        <CardContent>
-          <form className="root">
-            <Box sx={accessTokenFlowStyles.inputs_alignment}>
-              <Button
-                onClick={() => {
-                  CXoneAcdClient.instance.session
-                    .endSession(endSessionRequest)
-                    .then((response: any) => {
-                      setSessionEndMessage("Session ended successfully");
-                    })
-                    .catch((err: any) => {
-                      setSessionEndMessage(err.message ?? "An error occured");
-                    });
-                  CXoneAcdClient.instance.session.onAgentSessionChange.next({
-                    status: AgentSessionStatus.SESSION_END,
-                  });
-                }}
-                color="primary"
-                variant="contained"
-                size="large"
-                sx={accessTokenFlowStyles.margin}
-              >
-                End Session
-              </Button>
-            </Box>
-          </form>
-        </CardContent>
-      </Card>
       <Card>
         <CardHeader title={`GA Access Token Flow`} />
         <CardContent>
@@ -238,7 +179,7 @@ const Auth = () => {
                 variant="outlined"
                 InputLabelProps={{ shrink: true }}
                 inputRef={redirectUri}
-                defaultValue="http://localhost:3000/"
+                defaultValue="http://localhost:3000/auth-callback"
                 required
               />
               <FormControl

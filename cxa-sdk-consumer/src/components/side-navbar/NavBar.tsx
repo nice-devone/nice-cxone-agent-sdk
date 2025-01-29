@@ -34,6 +34,7 @@ import CxaPlaceholder from "../cxa-placeholder/CxaPlaceholder";
 import AcdSdk from "../acd-sdk/AcdSdk";
 import DigitalSdk from "../digital-sdk/DigitalSdk";
 import Auth from "../auth/Auth";
+import AuthCallBack from "../auth/AuthCallback";
 
 
 const drawerWidth = 240;
@@ -267,6 +268,7 @@ export default function NavBar() {
         <DrawerHeader />
         <Routes>
           <Route path="/authentication" element={<Authentication />} />
+          <Route path="/auth-callback" element={<AuthCallBack />} />
           <Route path="/" element={ <Auth/> }/>
           <Route path="/acd-sdk"  element={<AcdSdk />}/>
           <Route path="/digital-sdk" element={ <DigitalSdk/>}/>

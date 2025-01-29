@@ -55,7 +55,7 @@ const DigitalSdk = () => {
   }, [digitalContact]);
 
     useEffect(() => {
-      const pollInterval = 3000;
+      const pollInterval = 4000;
       const intervalId = setInterval(digitalSdkwebsoket, pollInterval);
 
       // Cleanup function to clear the interval when the component unmounts
@@ -67,21 +67,24 @@ const DigitalSdk = () => {
     const digitalSdkwebsoket=()=>{
      try{
       CXoneDigitalClient.instance.initDigitalEngagement();
-      CXoneDigitalClient.instance.digitalContactManager.onDigitalContactNewMessageEvent?.subscribe(
+     const subscribe1 =  CXoneDigitalClient.instance.digitalContactManager.onDigitalContactNewMessageEvent?.subscribe(
         (eventData) => {
           console.log("eventData", eventData);
         }
       );
      
-      CXoneDigitalClient.instance.digitalContactManager.onDigitalContactEvent?.subscribe(
+      const subscribe2 =CXoneDigitalClient.instance.digitalContactManager.onDigitalContactEvent?.subscribe(
         (digitalConct: any) => {
           if(digitalConct.case.caseId===digitalContact?.case?.caseId){
             console.log("digitalConct", digitalConct);
             setDigitalContact(digitalConct);
+            subscribe1?.unsubscribe();
+            subscribe2?.unsubscribe();
           }
        
         }
       );
+      
      }catch(e){
       console.log(e)
      }

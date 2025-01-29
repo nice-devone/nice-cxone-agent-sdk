@@ -42,6 +42,7 @@ import { AgentSessionStatus,  EndSessionRequest } from "@nice-devone/common-sdk"
 import { CXoneVoiceClient } from "@nice-devone/voice-sdk";
 import { CXoneClient } from "@nice-devone/agent-sdk";
 import { StorageKeys } from "@nice-devone/core-sdk";
+import { CXoneDigitalClient } from "@nice-devone/digital-sdk";
 
 
 const AcdSdk = () => {
@@ -59,11 +60,11 @@ const AcdSdk = () => {
     ignorePersonalQueue: true,
   };
 
-   useEffect(() => {
-      console.log("ACD mounted",agentStatus);
-    }, [agentStatus]);
+   
 
   useEffect(() => {
+     CXoneDigitalClient.instance.initDigitalEngagement();
+    
      const getLastLoggedInAgentId = localStorage.getItem(
               StorageKeys.LAST_LOGGED_IN_AGENT_ID
             );
@@ -112,11 +113,8 @@ const AcdSdk = () => {
         }
       );
     }else{
+      console.log("Agent Id not found",agentId);
       
-      alert("please authenticate");
-      localStorage.clear();
-      window.location.href = "/";
-      window.location.reload();
     }
   
   }, []);
