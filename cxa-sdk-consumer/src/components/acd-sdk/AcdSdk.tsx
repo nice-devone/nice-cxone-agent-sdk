@@ -99,6 +99,7 @@ const AcdSdk = () => {
       CXoneAcdClient.instance.session.agentLegEvent.subscribe((data: any) => {
         if (data.status === "Dialing") {
           CXoneVoiceClient.instance.triggerAutoAccept(data.agentLegId);
+          // CXoneVoiceClient.instance.connectServer("1926802",cxoneVoiceConnectionOptions,new Audio("<audio ref={audio_tag} id=\"audio\" controls autoPlay/>"),"CCS NiceCXone CTI Toolbar")
         }
       });
   
@@ -116,8 +117,15 @@ const AcdSdk = () => {
       console.log("Agent Id not found",agentId);
       
     }
+    getAgetSetting()
+    
   
   }, []);
+
+  const getAgetSetting = async() => {
+    const resp = await CXoneClient.instance.agentSetting.getAgentClientDataSettings();
+      console.log("agentSetting",resp);
+  }
 
   /**
    * dial OB call
@@ -137,7 +145,9 @@ const AcdSdk = () => {
     );
     console.log("Dialled Given number and dial phone api successfully called");
   };
-
+  const rejectContactButtonClick = () => {
+    // CXoneAcdClient.instance.contactManager.contactService.rejectContact(contactId);
+  };
   return (
     <Box>
       <Card sx={{ display: "flex", justifyContent: "end" }}>
@@ -239,6 +249,17 @@ const AcdSdk = () => {
                         sx={accessTokenFlowStyles.margin}
                       >
                         Dial Number
+                      </Button>
+                      <Button
+                        onClick={() => {
+                          rejectContactButtonClick();
+                        }}
+                        color="primary"
+                        variant="contained"
+                        size="large"
+                        sx={accessTokenFlowStyles.margin}
+                      >
+                        Reject Contact
                       </Button>
                     </Box>
                   </form>

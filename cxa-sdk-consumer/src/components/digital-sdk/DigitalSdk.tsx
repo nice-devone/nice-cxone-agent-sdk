@@ -48,43 +48,58 @@ const DigitalSdk = () => {
   let digitalContactInstance: CXoneDigitalContact;
   const [digitalContact, setDigitalContact] = useState({} as any);
   const [messages, setMessages] = useState([] as any);
-  useEffect(() => {
-    setMessages(Array.from(
-      new Map(digitalContact.messages?.map((msg: { id: any; }) => [msg.id, msg])).values()
-    ));
-  }, [digitalContact]);
+
 
     useEffect(() => {
-      const pollInterval = 4000;
-      const intervalId = setInterval(digitalSdkwebsoket, pollInterval);
-
-      // Cleanup function to clear the interval when the component unmounts
-      return () => {
-        clearInterval(intervalId);
-      };
+     
+      digitalSdkwebsoket();
     },[])
+ 
     
     const digitalSdkwebsoket=()=>{
      try{
+      
       CXoneDigitalClient.instance.initDigitalEngagement();
-     const subscribe1 =  CXoneDigitalClient.instance.digitalContactManager.onDigitalContactNewMessageEvent?.subscribe(
+      CXoneDigitalClient.instance.digitalContactManager.onDigitalContactNewMessageEvent?.subscribe(
         (eventData) => {
           console.log("eventData", eventData);
         }
       );
      
-      const subscribe2 =CXoneDigitalClient.instance.digitalContactManager.onDigitalContactEvent?.subscribe(
-        (digitalConct: any) => {
-          if(digitalConct.case.caseId===digitalContact?.case?.caseId){
-            console.log("digitalConct", digitalConct);
-            setDigitalContact(digitalConct);
-            subscribe1?.unsubscribe();
-            subscribe2?.unsubscribe();
-          }
-       
+      CXoneDigitalClient.instance.digitalContactManager.onDigitalContactEvent?.subscribe(
+       async (digitalConct: any) => {
+        
+
+          if(!digitalContact.messages){
+          setDigitalContact(digitalConct);
+          setMessages(digitalConct.messages.map((item: any) => ({
+            direction:item.direction,
+            text: item.messageContent?.text, // Extract only the text from messageContent
+          })));
+        }else{
+          setDigitalContact((prevState: any) =>{
+            if(prevState.caseId === digitalConct.caseId){
+              
+              return digitalConct;
+            }
+            return prevState;
+          })
+
+          setMessages((prevState: any) =>{
+            if(digitalContact.caseId==digitalConct.caseId){
+              return digitalConct.messages.map((item: any) => ({
+                direction:item.direction,
+                text: item.messageContent?.text, // Extract only the text from messageContent
+              }));
+            }
+            return prevState;
+          });
+        }
+         
         }
       );
-      
+      // console.log(CXoneDigitalClient.instance.digitalContactManager.socket.readyState);
+
      }catch(e){
       console.log(e)
      }
@@ -153,13 +168,13 @@ const DigitalSdk = () => {
             <CardContent sx={gaAccessTokenFlowStyles.msg_box}>
               Messages :
                <div style={{ display: "flex", flexDirection: "column" }}>
-                {(messages||[]).map((item: any) => {
+                {(messages||[]).map((item: any,index:any) => {
                   if (item?.direction == "inbound") {
-                    return <div>{item.messageContent.text}</div>;
+                    return <div  key={index}>{item.text}</div>;
                   } else {
                     return (
-                      <div style={{ alignSelf: "end" }}>
-                        {item.messageContent.text}
+                      <div  key={index} style={{ alignSelf: "end" }}>
+                        {item.text}
                       </div>
                     );
                   } 
