@@ -69,7 +69,7 @@ const DigitalSdk = () => {
       CXoneDigitalClient.instance.digitalContactManager.onDigitalContactEvent?.subscribe(
        async (digitalConct: any) => {
         
-
+        console.log("digitalConct", digitalConct);
           if(!digitalContact.messages){
           setDigitalContact(digitalConct);
           setMessages(digitalConct.messages.map((item: any) => ({
