@@ -151,14 +151,14 @@ const AcdSdk = () => {
       webRTCWssUrls: agentSettingService.webRTCWssUrls,
       webRTCServerDomain: agentSettingService.webRTCServerDomain,
       webRTCDnis: agentSettingService.webRTCDnis,
-      webRTCIceUrls: agentSettingService.webRTCIceUrls,
+      webRTCIceUrls: agentSettingService.webRTCWssUrls,
     }
-   
+   console.log("cxoneVoiceConnectionOptions",cxoneVoiceConnectionOptions);	
     try{
       CXoneVoiceClient.instance.connectServer(localStorage.getItem(
         StorageKeys.LAST_LOGGED_IN_AGENT_ID
       )?.toString() || "",cxoneVoiceConnectionOptions,new Audio("<audio ref={audio_tag} id=\"audio\" controls autoPlay/>"),"CCS NiceCXone CTI Toolbar")
-    
+      console.log("Connected to WebRTC")
     }catch(e){
       console.log(e)
     }
