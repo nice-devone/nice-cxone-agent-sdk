@@ -124,9 +124,11 @@ const Auth = () => {
           setAuthToken((data.response as AuthToken).accessToken);
           break;
         case AuthStatus.NOT_AUTHENTICATED:
+          localStorage.clear();
           setAuth("NOT_AUTHENTICATED");
           break;
         case AuthStatus.AUTHENTICATION_FAILED:
+          localStorage.clear();
           setAuth("AUTHENTICATION_FAILED");
           break;
         default:

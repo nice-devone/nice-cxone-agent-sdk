@@ -246,18 +246,19 @@ const AcdSdk = () => {
   const onAgentLegClick=async()=>{
     try {
       await CXoneAcdClient.instance.agentLegService.dialAgentLeg()
+      CXoneAcdClient.instance.session.agentLegEvent.subscribe(
+        (data: any) => {
+          console.log("agent leg data", data);
+          if (data.status === "Dialing") {
+            CXoneVoiceClient.instance.connectAgentLeg(data.agentLegId);
+           
+          }
+        }
+      );
     } catch (error) {
       console.log("agent leg error",error);
     }
-    CXoneAcdClient.instance.session.agentLegEvent.subscribe(
-      (data: any) => {
-        console.log("agent leg data", data);
-        if (data.status === "Dialing") {
-          CXoneVoiceClient.instance.connectAgentLeg(data.agentLegId);
-         
-        }
-      }
-    );
+  
     
   }
 

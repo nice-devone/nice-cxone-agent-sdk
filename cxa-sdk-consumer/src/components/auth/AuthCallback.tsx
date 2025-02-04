@@ -28,6 +28,7 @@ import {
   } from "../side-navbar/NavBar";
   import {  AuthToken, EndSessionRequest } from "@nice-devone/common-sdk";
   import { AuthStatus, AuthWithCodeReq, CXoneAuth } from "@nice-devone/auth-sdk";
+import { useNavigate } from "react-router-dom";
   
   
   
@@ -48,7 +49,7 @@ import {
     const cxoneAuth = CXoneAuth.instance;
     const [authState, setAuth] = useState("");
     const [authToken, setAuthToken] = useState("");
-  
+    const navigate = useNavigate();
   
   
   
@@ -89,7 +90,13 @@ import {
       cxoneAuth.getAccessTokenByCode(authObject);
       
     }
+  useEffect(() => {
+    if(authToken!=="" && authToken!==undefined){
   
+      navigate("/");
+      
+    }
+  },[authToken]);
     function subscribeToAuth() {
       cxoneAuth.onAuthStatusChange.subscribe((data) => {
         switch (data.status) {
