@@ -15,7 +15,7 @@
  * It maintains the state of digital messages and handles user input for replying to messages.
  *
  */
-
+import React, { useEffect, useState } from "react";
 import {
   Box,
   Button,
@@ -26,7 +26,7 @@ import {
   TextField,
   useTheme,
 } from "@mui/material";
-import React, { useEffect, useState } from "react";
+
 import {
   CXoneDigitalClient,
   CXoneDigitalContact,
@@ -37,6 +37,8 @@ import {
   ccfGaAccessTokenFlowStyles,
 } from "../side-navbar/NavBar";
 import { uuid } from "uuidv4";
+import HorizontalCards from "./horizontal-cards-caseIds/HorizontalCards";
+
 
 
 const DigitalSdk = () => {
@@ -46,16 +48,27 @@ const DigitalSdk = () => {
   const [inputValue, setInputValue] = useState("");
   
   let digitalContactInstance: CXoneDigitalContact;
-  const [digitalContact, setDigitalContact] = useState({} as any);
+  const [UpdatedigitalContactCaseId, setUpdatedigitalContactCaseId] = useState({} as any);
+
+  const [digitalContacts, setDigitalContacts] = useState([] as any);
+  const [selectedDigitalContact, setSelectedDigitalContact] = useState({} as any);
+
+
   const [messages, setMessages] = useState([] as any);
 
 
     useEffect(() => {
-     
       digitalSdkwebsoket();
     },[])
- 
-    
+  
+    useEffect(() => {
+      if (Object.keys(UpdatedigitalContactCaseId).length > 0) {
+        setMessages(UpdatedigitalContactCaseId.messages.map((item: any) => ({
+          direction: item.direction,
+          text: item.messageContent?.text, // Extract only the text from messageContent
+        })));
+      }
+    },[UpdatedigitalContactCaseId])
     const digitalSdkwebsoket=()=>{
      try{
       
@@ -68,43 +81,33 @@ const DigitalSdk = () => {
      
       CXoneDigitalClient.instance.digitalContactManager.onDigitalContactEvent?.subscribe(
        async (digitalConct: any) => {
-        
-        console.log("digitalConct", digitalConct);
-          if(!digitalContact.messages){
-          setDigitalContact(digitalConct);
-          setMessages(digitalConct.messages.map((item: any) => ({
-            direction:item.direction,
-            text: item.messageContent?.text, // Extract only the text from messageContent
-          })));
-        }else{
-          setDigitalContact((prevState: any) =>{
-            if(prevState.caseId === digitalConct.caseId){
-              
-              return digitalConct;
+        setDigitalContacts((prevState: any) => {
+          if (prevState.some((contact: any) => contact.caseId === digitalConct.caseId)) {
+            return prevState.map((contact: any) =>
+              contact.caseId === digitalConct.caseId ? digitalConct : contact
+            );
+            } else {
+            return [...prevState, digitalConct];
             }
-            return prevState;
-          })
-
-          setMessages((prevState: any) =>{
-            if(digitalContact.caseId==digitalConct.caseId){
-              return digitalConct.messages.map((item: any) => ({
-                direction:item.direction,
-                text: item.messageContent?.text, // Extract only the text from messageContent
-              }));
-            }
-            return prevState;
-          });
-        }
-         
+        })
+        // Using uuid to trigger re-render as React does not detect changes in nested objects
+        setUpdatedigitalContactCaseId({...digitalConct,update_id:uuid()});
         }
       );
-      // console.log(CXoneDigitalClient.instance.digitalContactManager.socket.readyState);
-
+     
      }catch(e){
       console.log(e)
      }
     }
   
+    const onClickCaseId=(contact:any)=>{
+      setSelectedDigitalContact(contact);
+      
+      setMessages(contact.messages.map((item: any) => ({
+        direction:item.direction,
+        text: item.messageContent?.text, // Extract only the text from messageContent
+      })));
+    }
 
    const replyObject: CXoneDigitalReplyRequest = {
     messageContent: {
@@ -115,15 +118,15 @@ const DigitalSdk = () => {
     },
    
       thread: {
-        idOnExternalPlatform: digitalContact?.case?.threadIdOnExternalPlatform,
+        idOnExternalPlatform: selectedDigitalContact?.case?.threadIdOnExternalPlatform,
       },
      
       recipients: [
         {
-          idOnExternalPlatform: digitalContact?.case?.threadIdOnExternalPlatform,
-          name: digitalContact?.channel?.name,
+          idOnExternalPlatform: selectedDigitalContact?.case?.threadIdOnExternalPlatform,
+          name: selectedDigitalContact?.channel?.name,
           isPrimary: true,
-          isPrivate: digitalContact?.channel?.isPrivate,
+          isPrivate: selectedDigitalContact?.channel?.isPrivate,
         },
       ],
     };
@@ -135,7 +138,7 @@ const DigitalSdk = () => {
       e.preventDefault();
       digitalContactInstance = new CXoneDigitalContact();
       digitalContactInstance
-        .reply(replyObject, digitalContact?.channel?.id, uuid())
+        .reply(replyObject, selectedDigitalContact?.channel?.id, uuid())
         .then((res) => {
           console.log("Reply Sent Successfully!", res);
         })
@@ -145,7 +148,7 @@ const DigitalSdk = () => {
       setInputValue("");
     };
 
-        const handleChange = (
+    const handleChange = (
           e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
         ) => {
           setInputValue(e.target.value);
@@ -157,54 +160,94 @@ const DigitalSdk = () => {
       <CardContent>
         <form className="root">
           <Box
+          
             sx={[
               accessTokenFlowStyles.inputs_alignment,
               accessTokenFlowStyles.flex_column,
             ]}
           >
-            <CardContent sx={accessTokenFlowStyles.case_alignment}>
-              <InputLabel>caseId:</InputLabel> {digitalContact?.caseId}
-            </CardContent>
-            <CardContent sx={gaAccessTokenFlowStyles.msg_box}>
-              Messages :
-               <div style={{ display: "flex", flexDirection: "column" }}>
-                {(messages||[]).map((item: any,index:any) => {
-                  if (item?.direction == "inbound") {
-                    return <div  key={index}>{item.text}</div>;
-                  } else {
-                    return (
-                      <div  key={index} style={{ alignSelf: "end" }}>
-                        {item.text}
-                      </div>
-                    );
-                  } 
-                })}
-              </div> 
-              <CardContent
-                sx={[
-                  gaAccessTokenFlowStyles.card_content,
-                  gaAccessTokenFlowStyles.reply_textbox,
-                ]}
-              >
-                <TextField
-                  sx={accessTokenFlowStyles.reply_width}
-                  id="outlined-basic"
-                  value={inputValue}
-                  onChange={(e) => handleChange(e)}
-                  inputProps={{ shrink: true }}
-                />
-                <Button
-                  onClick={sendReply}
-                  color="primary"
-                  variant="contained"
-                  size="large"
-                  disabled={!inputValue}
-                  sx={accessTokenFlowStyles.reply_btn}
-                >
-                  Reply
-                </Button>
+            {digitalContacts.length === 0 && (
+              <Box>
+                <p>There is no digital card assigned to you.</p>
+              </Box>
+            )}
+            <Box
+              sx={{
+                display: 'flex',
+                flexWrap: 'wrap',
+                flexDirection: 'row',
+                alignItems: 'flex-start',
+                height: '20%',
+                
+              }}
+            >
+              {digitalContacts.map((contact: any, index: any) => {
+                const isSelected = selectedDigitalContact.caseId === contact.caseId;
+                return (
+                  <Box
+                    sx={{
+                      cursor: 'pointer',
+                      padding: '10px',
+                 
+                    }}
+                    onClick={() => onClickCaseId(contact)}
+                    key={index}
+                  >
+                    <HorizontalCards selected={isSelected} contact={contact} />
+                  </Box>
+                );
+              })}
+          
+            </Box>
+            
+            
+            {messages.length > 0 && (
+              <>
+              <CardContent sx={accessTokenFlowStyles.case_alignment}>
+              <InputLabel>caseId:</InputLabel> {selectedDigitalContact?.caseId}
               </CardContent>
-            </CardContent>
+              <CardContent sx={gaAccessTokenFlowStyles.msg_box}>
+                Messages :
+                <div style={{ display: "flex", flexDirection: "column" }}>
+                  {(messages||[]).map((item: any,index:any) => {
+                    if (item?.direction == "inbound") {
+                      return <div  key={index}>{item.text}</div>;
+                    } else {
+                      return (
+                        <div  key={index} style={{ alignSelf: "end" }}>
+                          {item.text}
+                        </div>
+                      );
+                    } 
+                  })}
+                </div> 
+                <CardContent
+                  sx={[
+                    gaAccessTokenFlowStyles.card_content,
+                    gaAccessTokenFlowStyles.reply_textbox,
+                  ]}
+                >
+                  <TextField
+                    sx={accessTokenFlowStyles.reply_width}
+                    id="outlined-basic"
+                    value={inputValue}
+                    onChange={(e) => handleChange(e)}
+                    inputProps={{ shrink: true }}
+                  />
+                  <Button
+                    onClick={sendReply}
+                    color="primary"
+                    variant="contained"
+                    size="large"
+                    disabled={!inputValue}
+                    sx={accessTokenFlowStyles.reply_btn}
+                  >
+                    Reply
+                  </Button>
+                </CardContent>
+              </CardContent> 
+              </>
+            )}
           </Box>
         </form>
       </CardContent>
