@@ -63,10 +63,13 @@ const DigitalSdk = () => {
   
     useEffect(() => {
       if (Object.keys(UpdatedigitalContactCaseId).length > 0) {
-        setMessages(UpdatedigitalContactCaseId.messages.map((item: any) => ({
-          direction: item.direction,
-          text: item.messageContent?.text, // Extract only the text from messageContent
-        })));
+        if(selectedDigitalContact.caseId === UpdatedigitalContactCaseId.caseId){
+          setMessages(UpdatedigitalContactCaseId.messages.map((item: any) => ({
+            direction: item.direction,
+            text: item.messageContent?.text, // Extract only the text from messageContent
+          })));
+        }
+        
       }
     },[UpdatedigitalContactCaseId])
     const digitalSdkwebsoket=()=>{
@@ -81,6 +84,7 @@ const DigitalSdk = () => {
      
       CXoneDigitalClient.instance.digitalContactManager.onDigitalContactEvent?.subscribe(
        async (digitalConct: any) => {
+        // Update the existing digital contact if it already exists, otherwise add the new contact
         setDigitalContacts((prevState: any) => {
           if (prevState.some((contact: any) => contact.caseId === digitalConct.caseId)) {
             return prevState.map((contact: any) =>
@@ -90,7 +94,10 @@ const DigitalSdk = () => {
             return [...prevState, digitalConct];
             }
         })
+        console.log(digitalConct)
+
         // Using uuid to trigger re-render as React does not detect changes in nested objects
+        //because of this we can trigger useEffect which shows updared messages
         setUpdatedigitalContactCaseId({...digitalConct,update_id:uuid()});
         }
       );
@@ -106,6 +113,7 @@ const DigitalSdk = () => {
       setMessages(contact.messages.map((item: any) => ({
         direction:item.direction,
         text: item.messageContent?.text, // Extract only the text from messageContent
+        caseId:contact.caseId
       })));
     }
 
@@ -121,20 +129,12 @@ const DigitalSdk = () => {
         idOnExternalPlatform: selectedDigitalContact?.case?.threadIdOnExternalPlatform,
       },
      
-      recipients: [
-        {
-          idOnExternalPlatform: selectedDigitalContact?.case?.threadIdOnExternalPlatform,
-          name: selectedDigitalContact?.channel?.name,
-          isPrimary: true,
-          isPrivate: selectedDigitalContact?.channel?.isPrivate,
-        },
-      ],
+      recipients: [],
     };
 
 
 
     const sendReply = (e: { preventDefault: () => void }) => {
-      
       e.preventDefault();
       digitalContactInstance = new CXoneDigitalContact();
       digitalContactInstance
@@ -188,7 +188,6 @@ const DigitalSdk = () => {
                     sx={{
                       cursor: 'pointer',
                       padding: '10px',
-                 
                     }}
                     onClick={() => onClickCaseId(contact)}
                     key={index}
@@ -197,10 +196,7 @@ const DigitalSdk = () => {
                   </Box>
                 );
               })}
-          
             </Box>
-            
-            
             {messages.length > 0 && (
               <>
               <CardContent sx={accessTokenFlowStyles.case_alignment}>
