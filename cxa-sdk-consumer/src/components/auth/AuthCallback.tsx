@@ -135,7 +135,7 @@ import { useNavigate } from "react-router-dom";
                   variant="outlined"
                   InputLabelProps={{ shrink: true }}
                   inputRef={hostName}
-                  defaultValue={"https://cxone.staging.niceincontact.com"}
+                  defaultValue={"https://cxone.niceincontact.com"}
                   required
                 />
                 <TextField
