@@ -267,7 +267,6 @@ export default function NavBar() {
       <Main open={true}>
         <DrawerHeader />
         <Routes>
-          <Route path="/authentication" element={<Authentication />} />
           <Route path="/auth-callback" element={<AuthCallBack />} />
           <Route path="/" element={ <Auth/> }/>
           <Route path="/acd-sdk"  element={<AcdSdk />}/>
