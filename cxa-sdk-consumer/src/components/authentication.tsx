@@ -452,7 +452,7 @@ const Authentication = () => {
                 InputLabelProps={{ shrink: true }}
                 inputRef={hostName}
            
-                defaultValue={"https://cxone.niceincontact.com"}
+                defaultValue={"https://cxone.staging.niceincontact.com"}
                 required
               />
               <TextField
@@ -461,7 +461,7 @@ const Authentication = () => {
                 variant="outlined"
                 InputLabelProps={{ shrink: true }}
                 inputRef={clientId}
-                defaultValue="Salesforce Agent Console@inContact Inc."
+                defaultValue=""
                 required
               />
               <TextField
@@ -544,7 +544,7 @@ const Authentication = () => {
                 variant="outlined"
                 InputLabelProps={{ shrink: true }}
                 inputRef={hostName}
-                defaultValue={"https://cxone.niceincontact.com"}
+                defaultValue={"https://cxone.staging.niceincontact.com"}
                 required
               />
               <TextField
