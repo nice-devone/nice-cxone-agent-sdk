@@ -28,7 +28,6 @@ import IconButton from "@mui/material/IconButton";
 import ListItem from "@mui/material/ListItem";
 import ListItemButton from "@mui/material/ListItemButton";
 import ListItemText from "@mui/material/ListItemText";
-import Authentication from "../authentication";
 import { Route, Routes, useNavigate } from "react-router-dom";
 import CxaPlaceholder from "../cxa-placeholder/CxaPlaceholder";
 import AcdSdk from "../acd-sdk/AcdSdk";
