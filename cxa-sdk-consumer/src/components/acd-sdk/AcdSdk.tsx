@@ -37,14 +37,14 @@ import {
   ccfAccessTokenFlowStyles,
   ccfGaAccessTokenFlowStyles,
 } from "../side-navbar/NavBar";
-import { CXoneAcdClient } from "@nice-devone/acd-sdk";
-import { AgentSessionStatus,  EndSessionRequest } from "@nice-devone/common-sdk";
+import { CXoneAcdClient, CXoneVoiceContact } from "@nice-devone/acd-sdk";
+import { AgentSessionStatus,    EndSessionRequest } from "@nice-devone/common-sdk";
 import { CXoneVoiceClient } from "@nice-devone/voice-sdk";
 import { CXoneClient } from "@nice-devone/agent-sdk";
-import { StorageKeys } from "@nice-devone/core-sdk";
+import {  StorageKeys } from "@nice-devone/core-sdk";
 import { CXoneDigitalClient } from "@nice-devone/digital-sdk";
 import {  CXoneUser } from '@nice-devone/auth-sdk';
-
+import {PermissionKeys,PermissionValues}  from '@nice-devone/common-sdk';
 
 const AcdSdk = () => {
   const theme = useTheme();
@@ -54,6 +54,7 @@ const AcdSdk = () => {
   const [startSessionButton, setStartSessionButton] = useState(false);
   const [endSessionButton, setEndSessionButton] = useState(true);
   const [agentLegButton, setAgentLegButton] = useState(true);
+  const [voiceContact,setVoiceContact]=useState({} as any);
   const gaAccessTokenFlowStyles = ccfGaAccessTokenFlowStyles(theme);
   const accessTokenFlowStyles = ccfAccessTokenFlowStyles(theme);
 
@@ -66,6 +67,7 @@ const AcdSdk = () => {
    
 
   useEffect(() => {
+    
      CXoneDigitalClient.instance.initDigitalEngagement();
      CXoneAcdClient.instance.initAcdEngagement();
      const getLastLoggedInAgentId = localStorage.getItem(
@@ -82,7 +84,13 @@ const AcdSdk = () => {
         }
       );
       CXoneAcdClient.instance.getAgentSkills(agentId).then((data: any) => {
-        setSkillDetails(data[0]);
+       
+        const outboundSkill = data.find((skill: any) => skill.isOutbound === true);
+        if (outboundSkill) {
+          setSkillDetails(outboundSkill);
+        }
+       
+        
       });
       CXoneAcdClient.instance.contactManager.voiceContactUpdateEvent.subscribe(
         (data: any) => {
@@ -93,7 +101,7 @@ const AcdSdk = () => {
       CXoneAcdClient.instance.session.agentLegEvent.subscribe((data: any) => {
         if (data.status === "Dialing") {
           CXoneVoiceClient.instance.triggerAutoAccept(data.agentLegId);
-          // CXoneVoiceClient.instance.connectServer("1926802",cxoneVoiceConnectionOptions,new Audio("<audio ref={audio_tag} id=\"audio\" controls autoPlay/>"),"CCS NiceCXone CTI Toolbar")
+    
         }
       });
   
@@ -109,7 +117,7 @@ const AcdSdk = () => {
       );
 
       CXoneAcdClient.instance.session.onAgentSessionChange.subscribe(
-        (agentSessionChange) => {
+        async(agentSessionChange) => {
           switch (agentSessionChange.status) {
           case AgentSessionStatus.JOIN_SESSION_SUCCESS:
           case AgentSessionStatus.SESSION_START: {
@@ -127,22 +135,23 @@ const AcdSdk = () => {
           }
         }
       );
-    }else{
-      console.log("Agent Id not found",agentId);
-      
-    }
-  
 
-    
-  
+      CXoneAcdClient.instance.contactManager.voiceContactUpdateEvent.subscribe(
+        (cxoneContact: CXoneVoiceContact) => {
+          if (cxoneContact.status === "Disconnected") {
+            setVoiceContact({});
+          }else{
+            setVoiceContact(cxoneContact);
+          }
+          
+        })
+    }else{
+      console.log("Agent Id not found",agentId); 
+    }
   }, []);
 
   const initWebRTC = async() => {
     const agentSettingService =  await CXoneUser.instance.getAgentSettings()
-    const userDetailService = await CXoneClient.instance.cxoneUser.getUserDetails()
-
-    console.log("agentSetting",agentSettingService);
-    console.log("userDetail",userDetailService);
 
     const cxoneVoiceConnectionOptions = {
     
@@ -153,7 +162,7 @@ const AcdSdk = () => {
       webRTCDnis: agentSettingService.webRTCDnis,
       webRTCIceUrls: agentSettingService.webRTCWssUrls,
     }
-   console.log("cxoneVoiceConnectionOptions",cxoneVoiceConnectionOptions);	
+   	
     try{
       CXoneVoiceClient.instance.connectServer(localStorage.getItem(
         StorageKeys.LAST_LOGGED_IN_AGENT_ID
@@ -173,20 +182,24 @@ const AcdSdk = () => {
    * ```
    */
   const dialCallButtonClick = () => {
+    //AgentLeg must be start to initiate call
+    // onAgentLegClick()
     const contactDetails = {
       skillId:
         skillDetails?.skillId /*Before using skillID agent Application must be linked with acd  */,
       phoneNumber: dialNumber,
     };
+
     CXoneAcdClient.instance.contactManager.voiceService.dialPhone(
       contactDetails
-    );
-    console.log("Dialled Given number and dial phone api successfully called");
+    ).then(res=>{
+      console.log("Dialled Given number and dial phone api successfully called",res);
+    }).catch(e=>{
+      console.log('eerr',e)
+    })
   };
 
-  const rejectContactButtonClick = () => {
-    // CXoneAcdClient.instance.contactManager.contactService.rejectContact(contactId);
-  };
+ 
 
   const startSessiononCall=()=>{
     CXoneAcdClient.instance.session
@@ -247,10 +260,10 @@ const AcdSdk = () => {
     try {
       await CXoneAcdClient.instance.agentLegService.dialAgentLeg()
       CXoneAcdClient.instance.session.agentLegEvent.subscribe(
-        (data: any) => {
-          console.log("agent leg data", data);
+        async(data: any) => {
+          
           if (data.status === "Dialing") {
-            CXoneVoiceClient.instance.connectAgentLeg(data.agentLegId);
+            console.log('Dialing',data.agentLegId)
            
           }
         }
@@ -258,8 +271,6 @@ const AcdSdk = () => {
     } catch (error) {
       console.log("agent leg error",error);
     }
-  
-    
   }
 
   return (
@@ -347,16 +358,43 @@ const AcdSdk = () => {
                       >
                         Dial Number
                       </Button>
-                      <Button
+                    </Box>
+                    <Box sx={accessTokenFlowStyles.inputs_alignment}>
+                      {Object.keys(voiceContact).length > 0 && (
+                          <span>{voiceContact.status}</span>
+                        )}
+                        <Button
                         onClick={() => {
-                          rejectContactButtonClick();
+                         
                         }}
                         color="primary"
                         variant="contained"
                         size="large"
                         sx={accessTokenFlowStyles.margin}
                       >
-                        Reject Contact
+                        mute
+                      </Button>
+                      <Button
+                        onClick={() => {
+                          // rejectContactButtonClick();
+                        }}
+                        color="primary"
+                        variant="contained"
+                        size="large"
+                        sx={accessTokenFlowStyles.margin}
+                      >
+                       Hold
+                      </Button>
+                      <Button
+                        onClick={() => {
+                          // rejectContactButtonClick();
+                        }}
+                        color="primary"
+                        variant="contained"
+                        size="large"
+                        sx={accessTokenFlowStyles.margin}
+                      >
+                       Hang up
                       </Button>
                     </Box>
                   </form>
