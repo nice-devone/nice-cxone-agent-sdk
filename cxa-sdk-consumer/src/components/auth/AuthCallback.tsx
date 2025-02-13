@@ -144,7 +144,7 @@ import { useNavigate } from "react-router-dom";
                   variant="outlined"
                   InputLabelProps={{ shrink: true }}
                   inputRef={clientId}
-                  defaultValue="Salesforce Agent Console@inContact Inc."
+                  defaultValue=""
                   required
                 />
                 <TextField
