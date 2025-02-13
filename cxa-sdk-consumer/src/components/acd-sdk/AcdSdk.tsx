@@ -359,44 +359,7 @@ const AcdSdk = () => {
                         Dial Number
                       </Button>
                     </Box>
-                    <Box sx={accessTokenFlowStyles.inputs_alignment}>
-                      {Object.keys(voiceContact).length > 0 && (
-                          <span>{voiceContact.status}</span>
-                        )}
-                        <Button
-                        onClick={() => {
-                         
-                        }}
-                        color="primary"
-                        variant="contained"
-                        size="large"
-                        sx={accessTokenFlowStyles.margin}
-                      >
-                        mute
-                      </Button>
-                      <Button
-                        onClick={() => {
-                          // rejectContactButtonClick();
-                        }}
-                        color="primary"
-                        variant="contained"
-                        size="large"
-                        sx={accessTokenFlowStyles.margin}
-                      >
-                       Hold
-                      </Button>
-                      <Button
-                        onClick={() => {
-                          // rejectContactButtonClick();
-                        }}
-                        color="primary"
-                        variant="contained"
-                        size="large"
-                        sx={accessTokenFlowStyles.margin}
-                      >
-                       Hang up
-                      </Button>
-                    </Box>
+                   
                   </form>
                 </CardContent>
               </Card>
