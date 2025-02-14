@@ -1,10 +1,14 @@
 import './App.css';
-import Authentication from './components/authentication';
+import ErrorBoundary from './components/error-boundary/ErrorBoundary';
+
+import Navbar from './components/side-navbar/NavBar';
 
 function App() {
   return (
     <div className="App">
-      <Authentication/>
+      <ErrorBoundary>
+        <Navbar/>
+      </ErrorBoundary>     
     </div>
   );
 }
