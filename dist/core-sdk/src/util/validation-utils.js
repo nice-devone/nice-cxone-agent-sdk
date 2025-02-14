@@ -1,3 +1,4 @@
+import * as linkify from 'linkifyjs';
 /**
  * This class to provide basic validation methods
  */
@@ -149,6 +150,32 @@ export class ValidationUtils {
      */
     validateRFCSupportedEmail(value) {
         return (/^[^\s@]+@[a-zA-Z0-9]([a-zA-Z0-9.-]*[a-zA-Z0-9])?\.[a-zA-Z]{2,}$/.test(value));
+    }
+    /**
+     * This method to check if the input is a valid URL
+     * @param value  - accepts string
+     * @example -
+     * ```
+     * isValidURL('https://www.example.com');
+     * ```
+     * @returns  - true/false
+     */
+    isValidURL(value) {
+        return !!(value && linkify.find(value).length);
+    }
+    /**
+     * Method to validate the token expiry
+     * @param accessToken - access token
+     * @returns  - true/false
+     * @example -
+     * ```
+     * validateToken(accessToken);
+     * ```
+     */
+    validateToken(accessToken) {
+        const decodedTokenPayload = JSON.parse(window.atob(accessToken === null || accessToken === void 0 ? void 0 : accessToken.split('.')[1]));
+        const currentTime = Math.floor(Date.now() / 1000);
+        return decodedTokenPayload.exp > currentTime;
     }
 }
 //# sourceMappingURL=validation-utils.js.map

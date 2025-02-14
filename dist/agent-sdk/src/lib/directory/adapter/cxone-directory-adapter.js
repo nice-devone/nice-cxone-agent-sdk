@@ -33,8 +33,8 @@ export class CXoneDirectoryAdapter {
             }
             if (response.get(DirectoryEntities.SKILL_LIST)) {
                 const skillValue = response.get(DirectoryEntities.SKILL_LIST);
-                if (skillValue.status === 'fulfilled' && ((_b = skillValue === null || skillValue === void 0 ? void 0 : skillValue.value.resultSet) === null || _b === void 0 ? void 0 : _b.Skills)) {
-                    skillValue.value.resultSet.Skills.forEach((skill) => {
+                if ((skillValue === null || skillValue === void 0 ? void 0 : skillValue.status) === 'fulfilled' && ((_b = skillValue.value) === null || _b === void 0 ? void 0 : _b.skillActivity)) {
+                    skillValue.value.skillActivity.forEach((skill) => {
                         const skillEvent = new SkillEvent();
                         skillEvent.parse(skill);
                         SkillList.push(skillEvent);

@@ -69,6 +69,7 @@ export class ACDSessionManager {
         this._answerEvent = new Subject();
         this._rejectEvent = new Subject();
         this._callControlEvent = new Subject();
+        this.isEventQueueResized = false;
         /**
          * Posts custom form data
          * @param contactId - sendor contact id
@@ -423,9 +424,9 @@ export class ACDSessionManager {
      * this.toggleAgentEventsReceivingMethod(invokeSnapshot, sessionId)
      * ```
      */
-    toggleAgentEventsReceivingMethod(invokeSnapshot, sessionId) {
+    toggleAgentEventsReceivingMethod({ invokeSnapshot = false, sessionId = '', isUIQueueEnabled: isUIQueueTMToggleEnabled = false }) {
         this.adminService.getAgentSettings().then((agentSetting) => {
-            if (agentSetting.enableUIQueue) {
+            if (agentSetting.enableUIQueue && isUIQueueTMToggleEnabled) {
                 this.establishUIQSocketConnection(invokeSnapshot);
             }
             else {
@@ -444,7 +445,7 @@ export class ACDSessionManager {
      * const startAgentSession = this.startSession(startSessionRequest)
      * ```
      */
-    startSession(startSessionRequest) {
+    startSession(startSessionRequest, isUIQueueEnabled) {
         const baseUri = this.cxOneConfig.acdApiBaseUri;
         const endpoint = baseUri + ApiUriConstants.AGENT_SESSION_URI;
         return new Promise((resolve, reject) => {
@@ -461,7 +462,7 @@ export class ACDSessionManager {
                     resolve(resp);
                     // initiate get next event
                     if (CXoneLeaderElector.instance.isLeader) {
-                        this.toggleAgentEventsReceivingMethod();
+                        this.toggleAgentEventsReceivingMethod({ isUIQueueEnabled });
                     }
                     else {
                         const msg = {
@@ -513,7 +514,7 @@ export class ACDSessionManager {
                     });
                     // initiate get next event
                     if (CXoneLeaderElector.instance.isLeader) {
-                        this.toggleAgentEventsReceivingMethod(true);
+                        this.toggleAgentEventsReceivingMethod({ invokeSnapshot: true, isUIQueueEnabled: options === null || options === void 0 ? void 0 : options.isUIQueueEnabled });
                     }
                     else {
                         const msg = {
@@ -628,11 +629,14 @@ export class ACDSessionManager {
      * ```
      */
     startGetNextEvents(sessionId) {
-        this.adminService.resizeEventQueue(this.sessionId, false).then(() => {
-            this.logger.info('startGetNextEvents', 'Resized event queue');
-        }, error => {
-            this.logger.error('startGetNextEvents', 'Error while resizing event queue' + error.toString());
-        });
+        if (this.isEventQueueResized) {
+            this.adminService.resizeEventQueue(this.sessionId, false).then(() => {
+                this.isEventQueueResized = false;
+                this.logger.info('startGetNextEvents', 'Resized event queue');
+            }, error => {
+                this.logger.error('startGetNextEvents', 'Error while resizing event queue' + error.toString());
+            });
+        }
         GetNextEventProvider.instance.startGetNextEvents(sessionId);
     }
     /**
@@ -656,6 +660,7 @@ export class ACDSessionManager {
     establishUIQSocketConnection(invokeSnapshot) {
         this.adminService.resizeEventQueue(this.sessionId, true)
             .then(() => {
+            this.isEventQueueResized = true;
             UIQueueWsProvider.instance.connectAgent(this.userInfo, invokeSnapshot);
         }, error => {
             this.logger.error('establishUIQSocketConnection', 'Error while resizing event queue' + error.toString());

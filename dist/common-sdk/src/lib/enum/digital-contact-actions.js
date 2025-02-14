@@ -70,5 +70,13 @@ var DigitalContactActions;
      * Delete content
      */
     DigitalContactActions["DELETE_CONTENT"] = "delete content";
+    /**
+     * Reply on message
+     */
+    DigitalContactActions["REPLY"] = "reply";
+    /**
+    * Like the post
+     */
+    DigitalContactActions["LIKE"] = "like";
 })(DigitalContactActions = exports.DigitalContactActions || (exports.DigitalContactActions = {}));
 //# sourceMappingURL=digital-contact-actions.js.map

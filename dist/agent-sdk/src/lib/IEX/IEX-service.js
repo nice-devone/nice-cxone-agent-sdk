@@ -1,18 +1,11 @@
 import { CXoneAuth } from '@nice-devone/auth-sdk';
 import { ACDSessionManager, ApiUriConstants, HttpClient, HttpUtilService, Logger } from '@nice-devone/core-sdk';
 /**
- * Class to manage all commitments related methods
+ * Class to manage all IEXService related methods
  */
 export class IEXService {
-    /**
-     * get instance for initialize commitments
-     * @example
-     * ```
-     * new CommitmentService();
-     * ```
-     */
     constructor() {
-        this.logger = new Logger('SDK', 'CommitmentService');
+        this.logger = new Logger('SDK', 'IEXService');
         this.utilService = new HttpUtilService();
         this.acdSession = {};
         this.auth = CXoneAuth.instance;

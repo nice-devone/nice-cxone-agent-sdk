@@ -53,5 +53,9 @@ var PermissionKeys;
      * preference selection after the user logged in the application.
      */
     PermissionKeys["ACS"] = "LaunchACS";
+    /**
+     * permission key whether Agent soft phone login allow auto accept of contacts
+     */
+    PermissionKeys["HIDE_CALLER_PHONE_NUMBER"] = "HideCallerPhoneNumber";
 })(PermissionKeys = exports.PermissionKeys || (exports.PermissionKeys = {}));
 //# sourceMappingURL=permission-keys.js.map

@@ -355,6 +355,7 @@ export class DigitalContactManager {
             this.userSlotPollingStarted = true;
             this.userSlotProvider.getUserSlots();
             this.onUserSlotEvent.subscribe((userSlotResponse) => {
+                var _a;
                 this.logger.info('pollUserSlots', 'User slot API response received');
                 userSlotResponse === null || userSlotResponse === void 0 ? void 0 : userSlotResponse.forEach((contact) => {
                     // Checking for the inbox assigned contact is present in Map or not
@@ -365,6 +366,22 @@ export class DigitalContactManager {
                         this.getDigitalContactDetails(contact.caseId, eventDetailsToPublish);
                     }
                 });
+                //Dev Note: if userSlotResponse length is not equal to digitalContactMap size then it means some contacts are unassigned
+                if ((userSlotResponse === null || userSlotResponse === void 0 ? void 0 : userSlotResponse.length) !== ((_a = this.digitalContactMap) === null || _a === void 0 ? void 0 : _a.size) || WebsocketConnectionFailure) {
+                    const eventDetailsToPublish = { eventId: '', eventObject: 'Case', eventType: CXoneDigitalEventType.CASE_INBOX_UNASSIGNED };
+                    // Will iterate over the digital contact map to check both contacts are present in userSlotResponse or not
+                    this.digitalContactMap.forEach((contact, _) => {
+                        //if contact is not present in userSlotResponse and then it means it is unassigned
+                        const isContactPresentInUserSlotResponse = userSlotResponse === null || userSlotResponse === void 0 ? void 0 : userSlotResponse.find(userSlot => userSlot.caseId === contact.caseId);
+                        if (!isContactPresentInUserSlotResponse) {
+                            // Here will attach the unAssign event to contact & publish it.
+                            const contactInMap = Object.assign(Object.assign({}, contact), { eventDetails: eventDetailsToPublish });
+                            this.updatePublishDigitalContactMap(contactInMap);
+                            // Removing the contact from map
+                            this.digitalContactMap.delete(contact.caseId);
+                        }
+                    });
+                }
             });
         }
     }

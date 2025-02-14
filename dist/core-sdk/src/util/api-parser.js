@@ -14,9 +14,10 @@ export class ApiParser {
        * ```
        */
     parsePermissions(response) {
-        var _a, _b;
+        var _a, _b, _c;
         const data = (_a = response === null || response === void 0 ? void 0 : response.data) === null || _a === void 0 ? void 0 : _a.permissions;
         const ACS_PERMISSION = (_b = PermissionKeys.ACS) === null || _b === void 0 ? void 0 : _b.toLowerCase();
+        const HIDE_CALLER_NUMBER_PERMISSION = (_c = PermissionKeys.HIDE_CALLER_PHONE_NUMBER) === null || _c === void 0 ? void 0 : _c.toLowerCase();
         const keys = [
             'agentsfsoftphone',
             'recordcontact',
@@ -37,7 +38,8 @@ export class ApiParser {
             'desearchmessages',
             'desearchcustomers',
             'desearchposts',
-            ACS_PERMISSION
+            ACS_PERMISSION,
+            HIDE_CALLER_NUMBER_PERMISSION
         ];
         const permission = [];
         for (let i = 0; i < keys.length; i++) {

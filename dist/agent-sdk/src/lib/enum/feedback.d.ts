@@ -7,7 +7,11 @@ export declare enum Feedback {
      */
     LIKE_ARTICLE = "likeArticle",
     /**
-     * Represents a private KBAnswer is liked
+     * Represents overall subcard like
      */
-    LIKE_PRIVATE_ARTICLE = "likePrivateArticle"
+    LIKE_OVERALL_SUBCARD = "likeOverallSubcard",
+    /**
+     * Represents perSuggestion Subcard is liked
+     */
+    LIKE_INDIVIDUAL_SUBCARDS = "likeIndividualCards"
 }

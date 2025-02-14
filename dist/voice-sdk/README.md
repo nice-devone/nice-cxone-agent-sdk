@@ -52,7 +52,7 @@ import { CXoneVoiceClient } from '@nice-devone/Voice-sdk';
 
 Import other relevant functionalities as needed (e.g., VoiceConnectionStatus, VoiceMessageType, VoiceConnection etc.,)
 ```
-2. Initialize CXone Client:
+2. Initialize CXone Voice Client:
 ```
 const cxoneVoiceClient = CXoneVoiceClient.instance;
 
@@ -66,19 +66,19 @@ Explore the available classes and methods within the library to interact with CX
 
 ### Documentation
 
-For detailed documentation and developer related queries, Please visit  [Link to developer documentation](https://developer.niceincontact.com/)
+For detailed documentation and developer related queries, Please visit [Official SDK Documentation](https://help.nice-incontact.com/content/agent/agentapplicationadministration/cxoneagent/cxasdk.htm?tocpath=Agent%20Application%20Administration%7CAgent%20Application%20Administration%7CCXone%20Agent%7C_____8)
 
 ### Compatibility
 
-This SDK is likely compatible with specific CXone ACD versions. Refer to the documentation for supported versions.
+This SDK is likely compatible with specific CXone Agent SDK versions. Refer to the documentation for supported versions.
 
 ### License
 
-This library is licensed under the (mention license here).
+Check the license file for specific terms regarding the use of this SDK.
 
 ### Support
 
-For any issues or questions, please refer to the (mention support channel/link here).
+For further assistance, refer to the official documentation or reach out to NICE CXone support channels.
 
 ### Additional Notes
 

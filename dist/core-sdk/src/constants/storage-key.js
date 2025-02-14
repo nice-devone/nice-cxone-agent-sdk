@@ -79,6 +79,8 @@ export const StorageKeys = {
     IMAGE_PASTE_ERROR: 'imagePasteError',
     VOICE_BIO_HUB_DATA: 'voiceBioHubData',
     VOICE_BIO_HUB_AGENT_ASSIST: 'voiceBioHubAgentAssist',
+    SFCRM_NAVIGATION_DATA: 'sfCrmNavigationData',
+    FOCUSED_CONTACT_MEDIA_TYPE: 'focused_contact_media_type',
 };
 export const NotificationSettings = {
     ACCESSIBILITY: 'Accessibility',

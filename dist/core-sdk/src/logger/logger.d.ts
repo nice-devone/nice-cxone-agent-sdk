@@ -4,8 +4,10 @@ import { AgentLog, ContactLog, SkillLog } from '@nice-devone/common-sdk';
  * This class implements multiple loglevels with different appenders
  */
 export declare class Logger {
-    static config: LoggerConfig;
     private className;
+    static config: LoggerConfig;
+    private static eventLog;
+    private readonly maxEventLogLength;
     private module;
     /**
      * Get the module name and class name while create logger object
@@ -18,6 +20,24 @@ export declare class Logger {
      * ```
      */
     constructor(module?: string, className?: string);
+    /**
+     * Returns the EventLog
+     *
+     * @example
+     *  getEventLog()
+     */
+    getEventLog(): string[];
+    /**
+     * Saves messages into an array with the most recent first.
+     * It pops the oldest message off the back when it reaches max length
+     *
+     * @param message - the message string to save into the eventlog
+     * @example
+     *
+     * sendToEventLog(message);
+     *
+     */
+    private saveToEventLog;
     /**
      * Set the multiple appenders and log level in Logger
      *

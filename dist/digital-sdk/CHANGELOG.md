@@ -1,4 +1,4 @@
-## 25.1.0 - 2025-02-13 ##
+## 25.1.1 - 2025-02-14 ##
 
 - `[Updated]`: Digital contact manager to display right count in map (inbox) when WS is disabled and UserSlot is running
 - `[Added] :` Included new request header x-message-sender for DFO API billing tracking

@@ -97,6 +97,7 @@ export class VoiceBioHubService {
             voiceBioConfigName: voiceBioCustomerActionRequest.voiceBioConfigName,
             contactId: voiceBioCustomerActionRequest.contactId,
             CustomParams: voiceBioCustomerActionRequest.CustomParams,
+            stringParams: voiceBioCustomerActionRequest.stringParams,
         };
         if (voiceBioCustomerActionRequest.requestType === 3) {
             body.OptOutReason = voiceBioCustomerActionRequest.OptOutReason;

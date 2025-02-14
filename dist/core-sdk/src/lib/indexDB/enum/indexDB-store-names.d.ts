@@ -9,5 +9,6 @@ export declare enum IndexDBStoreNames {
     QUICKREPLIESOUTBOUND = "QuickRepliesOutbound",
     AGENT_SETTINGS = "AgentSettings",
     COPILOT = "Copilot",
-    AGENT_ASSIST = "AgentAssist"
+    AGENT_ASSIST = "AgentAssist",
+    CONTACT_HISTORY = "ContactHistory"
 }

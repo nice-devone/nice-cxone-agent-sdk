@@ -142,7 +142,7 @@ export class SkillService {
                 return allSkillsFromIndexedDB;
             const requiredAttributes = [
                 'skillId', 'skillName', 'mediaTypeId', 'mediaTypeName', 'isActive', 'isOutbound', 'agentResponseEnabled',
-                'agentFirstResponseTime', 'agentFollowOnResponseTime', 'customerResponseEnabled', 'customerIdleTime', 'timeExtensionEnabled', 'requireDisposition'
+                'agentFirstResponseTime', 'agentFollowOnResponseTime', 'customerResponseEnabled', 'customerIdleTime', 'timeExtensionEnabled', 'requireDisposition', 'workItemQueueType'
             ];
             const requestParams = Object.assign(Object.assign({ fields: requiredAttributes.join(','), isActive: true, orderby: 'skillName', searchString: searchText ? searchText : '' }, ((startIndex && recordsToLoad) && { skip: startIndex, top: recordsToLoad })), (mediaTypeId && { mediaTypeId: mediaTypeId }));
             return new Promise((resolve, reject) => {

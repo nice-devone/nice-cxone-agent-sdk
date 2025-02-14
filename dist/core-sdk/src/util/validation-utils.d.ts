@@ -107,4 +107,24 @@ export declare class ValidationUtils {
      * validateRFCSupportedEmail(rishav.kumar\@nice.com);
      */
     validateRFCSupportedEmail(value: string): boolean;
+    /**
+     * This method to check if the input is a valid URL
+     * @param value  - accepts string
+     * @example -
+     * ```
+     * isValidURL('https://www.example.com');
+     * ```
+     * @returns  - true/false
+     */
+    isValidURL(value?: string): boolean;
+    /**
+     * Method to validate the token expiry
+     * @param accessToken - access token
+     * @returns  - true/false
+     * @example -
+     * ```
+     * validateToken(accessToken);
+     * ```
+     */
+    validateToken(accessToken: string): boolean;
 }

@@ -1,5 +1,4 @@
-const eventHubWorkerCode = () => {
-  self.importScripts(
+const eventHubWorkerCode = `self.importScripts(
     'https://cdnjs.cloudflare.com/ajax/libs/rxjs/6.6.7/rxjs.umd.min.js'
   );
   
@@ -109,7 +108,6 @@ const eventHubWorkerCode = () => {
       return body.toString();
     }
     return '';
-  }
-}
+  }`
 
 export default eventHubWorkerCode;

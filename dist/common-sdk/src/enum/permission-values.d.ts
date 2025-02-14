@@ -9,5 +9,6 @@ export declare enum PermissionValues {
     EDIT = "Edit",
     ENABLE = "Enable",
     AGENT_CONFIG = "AgentConfig",
-    HIDE = "Hide"
+    HIDE = "Hide",
+    DISABLE = "Disable"
 }

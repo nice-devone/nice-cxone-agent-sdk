@@ -35,6 +35,44 @@ export class AddressBookApiParser {
         return addressBookList;
     }
     /**
+     * This method to parse standard address book 2.0 list
+     * @param response - api response
+     * @example -
+     * ```
+     * parseAddressBookList(response);
+     * ```
+     * @returns - address book list
+     */
+    parseSAB2List(response) {
+        const addressBookList = [];
+        if (this.validationUtils.isNotNullOrEmpty(response) && this.validationUtils.isNotNullOrEmptyArray(response)) {
+            response.sort((a, b) => {
+                const firstValue = a.addressBookName.toLowerCase();
+                const secondValue = b.addressBookName.toLowerCase();
+                if (firstValue > secondValue) {
+                    return 1;
+                }
+                if (firstValue < secondValue) {
+                    return -1;
+                }
+                return 0;
+            }).forEach((addressBook) => {
+                const SAB2AddressBook = {
+                    addressBookName: addressBook.addressBookName,
+                    addressBookId: addressBook.addressBookId,
+                    status: addressBook.status,
+                    assignmentLevel: addressBook.assignmentLevel,
+                    createdAt: addressBook.createdAt,
+                    createdBy: addressBook.createdBy,
+                    updatedAt: addressBook.updatedAt,
+                    updatedBy: addressBook.updatedBy,
+                };
+                addressBookList.push(SAB2AddressBook);
+            });
+        }
+        return addressBookList;
+    }
+    /**
      * This method to parse standard address book entries
      * @param response - api response
      * @example -

@@ -107,5 +107,53 @@ export class AgentIntegrationConfigurationService {
             });
         });
     }
+    /**
+     * Method to get studio action workflow data
+     * @returns - studio action workflow data
+     * ```
+     * @example
+     * getWorkflowsEntities('01899438-147f-433b-945b-f1fde6d91877')
+     * ```
+     */
+    getWorkflowsEntities(configId, token) {
+        this.logger.info('getWorkflowEntities', 'Get workflow entity');
+        const baseUrl = this.auth.getCXoneConfig().acdApiBaseUri;
+        const reqInit = this.utilService.initHeader(token, 'application/json');
+        const url = baseUrl +
+            ApiUriConstants.GET_AGENT_INTEGRATION_WORKFLOW_ENTITIES_URI.replace('{configurationId}', configId);
+        return new Promise((resolve, reject) => {
+            HttpClient.get(url, reqInit).then((resp) => {
+                this.logger.info('getWorkflowEntities', 'Get Entity success');
+                resolve(resp.data);
+            }, (error) => {
+                this.logger.info('getWorkflowEntities', 'Get entity failed' + JSON.stringify(error));
+                reject(error);
+            });
+        });
+    }
+    /**
+     * Method to get studio action workflow data
+     * @returns - studio action workflow data
+     * ```
+     * @example
+     * getWorkflowsEntitiesFields('01899438-147f-433b-945b-f1fde6d91877')
+     * ```
+     */
+    getWorkflowsEntitiesFields(configId, token, entityName) {
+        this.logger.info('getWorkflowEntitiesfields', 'Get workflow entity fields');
+        const baseUrl = this.auth.getCXoneConfig().acdApiBaseUri;
+        const reqInit = this.utilService.initHeader(token, 'application/json');
+        const url = baseUrl +
+            ApiUriConstants.GET_AGENT_INTEGRATION_WORKFLOW_ENTITIES_FIELDS_URI.replace('{configurationId}', configId).replace('{entityName}', entityName);
+        return new Promise((resolve, reject) => {
+            HttpClient.get(url, reqInit).then((resp) => {
+                this.logger.info('getWorkflowsEntitiesFields', 'Get Entity success');
+                resolve(resp.data);
+            }, (error) => {
+                this.logger.info('getWorkflowsEntitiesFields', 'Get entity failed' + JSON.stringify(error));
+                reject(error);
+            });
+        });
+    }
 }
 //# sourceMappingURL=agent-integration-configuration-service.js.map

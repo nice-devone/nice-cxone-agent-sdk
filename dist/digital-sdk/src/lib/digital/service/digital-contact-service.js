@@ -219,7 +219,7 @@ export class DigitalContactService {
         const authToken = this.auth.getAuthToken().accessToken;
         const url = baseUrl + ApiUriConstants.DIGITAL_SEND_REPLY_URI.replace('{channelId}', channelId);
         const reqInit = {
-            headers: this.utilService.initHeader(authToken, 'application/json').headers,
+            headers: this.utilService.initHeader(authToken, 'application/json', "x-message-sender" /* HttpRequestCustomHeaders.X_MESSAGE_SENDER */).headers,
             body: sendReplyRequest,
         };
         // Dev Note: Change added for for visual indicators, Sending xTraceId in outbound API headers
@@ -353,13 +353,16 @@ export class DigitalContactService {
      * getQuickRepliesForOutboundContact(1, 10, '')
      * ```
     */
-    getQuickRepliesForOutboundContact(page = 1, size = 1000, // This is a temporary solution and needs to be handled properly using server side pagination.
+    getQuickRepliesForOutboundContact(page = 1, channelId, size = 1000, // This is a temporary solution and needs to be handled properly using server side pagination.
     search = '') {
         const baseUrl = this.auth.getCXoneConfig().dfoApiBaseUri;
         const authToken = this.auth.getAuthToken().accessToken;
         const queryParams = { page: page, size: size };
         if (search !== '') {
             queryParams.search = search;
+        }
+        if (channelId) {
+            queryParams.channelId = channelId;
         }
         let url = baseUrl + this.DIGITAL_QUICK_REPLIES_OUTBOUND;
         url = this.urlUtilsService.appendQueryString(url, queryParams);
@@ -468,7 +471,7 @@ export class DigitalContactService {
         const baseUrl = this.auth.getCXoneConfig().dfoApiBaseUri;
         const authToken = this.auth.getAuthToken().accessToken;
         const url = baseUrl + ApiUriConstants.GET_MESSAGE_BY_ID.replace('{messageId}', messageId);
-        const reqInit = this.utilService.initHeader(authToken);
+        const reqInit = this.utilService.initHeader(authToken, undefined, "x-message-sender" /* HttpRequestCustomHeaders.X_MESSAGE_SENDER */);
         return new Promise((resolve, reject) => {
             HttpClient.get(url, reqInit).then((response) => {
                 this.logger.info('getMessageById ', 'Message detail fetched successfully');
@@ -494,7 +497,7 @@ export class DigitalContactService {
             'messageId': messageId,
         };
         const reqInit = {
-            headers: this.utilService.initHeader(authToken, 'application/json').headers,
+            headers: this.utilService.initHeader(authToken, 'application/json', "x-message-sender" /* HttpRequestCustomHeaders.X_MESSAGE_SENDER */).headers,
             body: body,
         };
         return new Promise((resolve, reject) => {
@@ -520,7 +523,7 @@ export class DigitalContactService {
         const authToken = this.auth.getAuthToken().accessToken;
         const url = baseUrl +
             this.HIDE_MESSAGE_BY_ID.replace('{messageId}', messageData.msgId);
-        const reqInit = this.utilService.initHeader(authToken);
+        const reqInit = this.utilService.initHeader(authToken, undefined, "x-message-sender" /* HttpRequestCustomHeaders.X_MESSAGE_SENDER */);
         return new Promise((resolve, reject) => {
             if (!messageData.isHidden) {
                 HttpClient.post(url, reqInit).then((response) => {

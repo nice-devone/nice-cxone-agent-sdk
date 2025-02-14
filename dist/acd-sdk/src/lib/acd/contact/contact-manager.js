@@ -243,7 +243,7 @@ export class ContactManager {
         this.acdSession.callContactEventSubject.subscribe((callContactEvent) => {
             const existContact = this.voiceContactMap.get(callContactEvent.contactId);
             let voiceContact;
-            // Create an instance for new contact else get the instance from the Map, if the contact already exist.
+            // // Create an instance for new contact else get the instance from the Map, if the contact already exist.
             if (!existContact) {
                 voiceContact = new CXoneVoiceContact();
                 this.voiceContactMap.set(callContactEvent.contactId, voiceContact);
@@ -291,7 +291,7 @@ export class ContactManager {
                 delete this.dispositionsData[callContactEvent.contactId];
                 delete this.tagsData[callContactEvent.contactId];
                 const isVoiceBioHubEnabled = isVoiceBioHubFeatureEnabled() && FeatureToggleService.instance.getFeatureToggleSync("release-agent-voiceBioHub-AW-24969" /* FeatureToggles.VOICE_BIO_HUB_FEATURE_TOGGLE */);
-                if (isVoiceBioHubEnabled) {
+                if (isVoiceBioHubEnabled && contactKeys.length === 1) {
                     const voicBioAgentAssistData = LocalStorageHelper.getItem(StorageKeys.VOICE_BIO_HUB_AGENT_ASSIST);
                     if (voicBioAgentAssistData) {
                         LocalStorageHelper.removeItem(StorageKeys.VOICE_BIO_HUB_AGENT_ASSIST);

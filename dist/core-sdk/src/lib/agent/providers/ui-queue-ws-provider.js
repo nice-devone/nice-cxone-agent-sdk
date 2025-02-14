@@ -2,13 +2,16 @@ import { __awaiter } from "tslib";
 import { DefaultHttpClient, HubConnectionBuilder, HubConnectionState } from '@microsoft/signalr';
 import { AdminService } from '../../admin';
 import { CXoneGetNextAdapter } from '../../adapter/cxone-get-next-adapter';
-import { CXoneLeaderElector, CXoneSdkError, CXoneSdkErrorType, MessageBus, MessageType } from '@nice-devone/common-sdk';
+import { CXoneLeaderElector, CXoneSdkError, CXoneSdkErrorType, MessageBus, MessageType, RetryOptions } from '@nice-devone/common-sdk';
 import { Logger } from '../../../logger/logger';
 import { LoadWorker } from '../../worker/load-worker';
 import { ACDSessionManager } from '../session/acd-session-manager';
 import { ApiUriConstants } from '../../../constants/api-uri-constants';
 import { HttpClient, HttpUtilService } from '../../http';
 import { UIQEventType } from '../../../enum/uiq-event-type';
+import { ValidationUtils } from '../../../util/validation-utils';
+import { LocalStorageHelper } from '../../../util/storage-helper-local';
+import { StorageKeys } from '../../../constants/storage-key';
 /** Custom HttpClient to handle uiq websocket connection */
 class CustomHttpClient extends DefaultHttpClient {
     /**
@@ -57,6 +60,7 @@ export class UIQueueWsProvider {
         this.utilService = new HttpUtilService();
         this.isUIQueueDegraded = false;
         this.loader = new LoadWorker();
+        this.validationUtils = new ValidationUtils();
         this.agentSession = ACDSessionManager.instance;
         this.adminService = AdminService.instance;
         window.addEventListener('RefreshTokenSuccess', () => {
@@ -88,7 +92,7 @@ export class UIQueueWsProvider {
      * @param sessionId - sessionid
      * @example
      * ```
-     * this.getNextEvents(retryOptions, '12345');
+     * this.keepAlivePolling('12345');
      * ```
      */
     keepAlivePolling(sessionId) {
@@ -152,8 +156,17 @@ export class UIQueueWsProvider {
             const reqInit = {
                 headers: this.utilService.initHeader(authToken).headers,
             };
-            HttpClient.get(endpoint, reqInit).then(() => {
-                this.logger.info('getInitialGetNextEvent', 'Get next event called successfully');
+            HttpClient.get(endpoint, reqInit).then((response) => {
+                var _a, _b, _c, _d;
+                if (((_a = response === null || response === void 0 ? void 0 : response.data) === null || _a === void 0 ? void 0 : _a.events) && ((_b = response === null || response === void 0 ? void 0 : response.data) === null || _b === void 0 ? void 0 : _b.events.length) > 0) {
+                    this.getNextEventAdapter.handleGetNextResponse((_c = response === null || response === void 0 ? void 0 : response.data) === null || _c === void 0 ? void 0 : _c.events);
+                    const msg = {
+                        type: MessageType.GET_NEXT_EVENT_RESPONSE,
+                        data: (_d = response === null || response === void 0 ? void 0 : response.data) === null || _d === void 0 ? void 0 : _d.events,
+                    };
+                    MessageBus.instance.postResponse(msg);
+                    this.logger.info('getInitialGetNextEvent', 'Get next event called successfully');
+                }
                 resolve();
             }, (error) => {
                 this.logger.error('getInitialGetNextEvent', 'Failed to call get next events: ' + error.toString());
@@ -175,6 +188,42 @@ export class UIQueueWsProvider {
         return UIQueueWsProvider.singleton;
     }
     /**
+     * Method to get hub url
+     * @returns hub url
+     * @example
+     * ```
+     * getHubUrl();
+     * ```
+     */
+    getHubUrl() {
+        return new Promise((resolve, reject) => {
+            this.adminService.getUiqHubUrl().then((response) => {
+                if ('aggregatorServiceNodeURL' in response) {
+                    this.hubUrl = response.aggregatorServiceNodeURL;
+                }
+                resolve(this.hubUrl);
+            }, (err) => {
+                this.logger.error('getHubUrl', 'Failed to get hub url: ' + err.toString());
+                reject(this.hubUrl);
+            });
+        });
+    }
+    /**
+     * Method to get valid access token
+     * @returns  access token
+     * @example
+     * ```
+     * getValidAccessToken();
+     * ```
+     */
+    getValidAccessToken() {
+        let accessToken = this.agentSession.accessToken;
+        if (!accessToken || !this.validationUtils.validateToken(accessToken)) {
+            accessToken = LocalStorageHelper.getItem(StorageKeys.AUTH_TOKEN, true).accessToken;
+        }
+        return accessToken;
+    }
+    /**
      * Method to establish connection
      * @param userInfo - user info object
      * @param invokeSnapshot - flag to invoke snapshot request
@@ -184,18 +233,49 @@ export class UIQueueWsProvider {
      * ```
      */
     connectAgent(userInfo, invokeSnapshot) {
-        this.adminService.getUiqHubUrl().then((result) => {
-            this.hubUrl = result.body.aggregatorServiceNodeURL;
-            this.establishSocketConnection(userInfo, invokeSnapshot).catch((error) => {
-                this.logger.error('connectAgent', 'establishSocketConnection failed:-' + error);
-                this.agentSession.startGetNextEvents();
-            });
-        }, (error) => {
-            this.logger.error('connectAgent', 'getUiqHubUrl failed:-' + error);
-            throw new CXoneSdkError(CXoneSdkErrorType.CXONE_API_ERROR, error === null || error === void 0 ? void 0 : error.message, error === null || error === void 0 ? void 0 : error.data);
-        }).catch((error) => {
+        this.establishSocketConnection(userInfo, invokeSnapshot).catch((error) => {
+            this.logger.error('connectAgent', 'establishSocketConnection failed:-' + error);
+            this.logger.error('connectAgent', 'Switching to get-next polling as websocket connection failed');
+            this.terminatePolling();
             this.agentSession.startGetNextEvents();
-            this.logger.error('connectAgent', 'connectAgent failed:-' + error);
+        });
+    }
+    /**
+     * Method to get new hub connection
+     * @param retryOptions  - retry options
+     * @returns   hub connection
+     * @example
+     * ```
+     * getNewHubConnection(retryOptions)
+     * ```
+     */
+    getNewHubConnection(userInfo, retryOptions) {
+        return __awaiter(this, void 0, void 0, function* () {
+            const accessToken = this.getValidAccessToken();
+            try {
+                if (!this.hubConnection || this.hubConnection.state !== HubConnectionState.Connected) {
+                    yield this.getHubUrl();
+                    this.hubConnection = new HubConnectionBuilder()
+                        .withUrl(this.hubUrl, { httpClient: new CustomHttpClient(accessToken), accessTokenFactory: () => `Bearer ${accessToken}` })
+                        .withAutomaticReconnect([1000])
+                        .build();
+                    this.hubConnection.serverTimeoutInMilliseconds = 60000;
+                    yield this.startConnection(userInfo);
+                }
+            }
+            catch (error) {
+                if ((retryOptions === null || retryOptions === void 0 ? void 0 : retryOptions.maxRetryAttempts) > 0) {
+                    retryOptions.maxRetryAttempts--;
+                    this.logger.error('getNewHubConnection', 'getNewHubConnection failed:-' + error);
+                    this.logger.info('getNewHubConnection', `Retrying to establish socket connection. Attempts left: ${retryOptions.maxRetryAttempts}`);
+                    setTimeout(() => this.getNewHubConnection(userInfo, retryOptions).catch((error) => {
+                        this.logger.error('getNewHubConnection', 'getNewHubConnection failed:-' + error);
+                    }), retryOptions === null || retryOptions === void 0 ? void 0 : retryOptions.retryInterval);
+                }
+                else {
+                    throw new CXoneSdkError(CXoneSdkErrorType.WEBSOCKET_ERROR, 'Max retry attempts reached. Failed to establish socket connection.');
+                }
+            }
         });
     }
     /**
@@ -207,21 +287,24 @@ export class UIQueueWsProvider {
      * establishSocketConnection(userInfo, invokeSnapshot)
      * ```
      */
-    establishSocketConnection(userInfo, invokeSnapshot = false) {
+    establishSocketConnection(userInfo, _invokeSnapshot = false) {
         return __awaiter(this, void 0, void 0, function* () {
-            yield this.getInitialGetNextEvent();
-            if (!this.hubConnection) {
-                this.hubConnection = new HubConnectionBuilder()
-                    .withUrl(`${this.hubUrl}`, { httpClient: new CustomHttpClient(this.agentSession.accessToken), accessTokenFactory: () => `Bearer ${this.agentSession.accessToken}` })
-                    .withAutomaticReconnect([0, 0, 2000])
-                    .build();
+            const retryOptions = RetryOptions.default();
+            this.getNewHubConnection(userInfo, retryOptions).then(() => __awaiter(this, void 0, void 0, function* () {
+                this.logger.info('establishSocketConnection', 'UIQ Connection established');
+                yield this.getInitialGetNextEvent();
                 this.addEventListeners(userInfo);
-                yield this.startConnection(userInfo);
                 this.startKeepAlivePolling();
-            }
-            if (invokeSnapshot) {
-                this.invokeUIQEventSnapshotRequest();
-            }
+            })).catch((error) => {
+                this.logger.error('establishSocketConnection', 'establishSocketConnection failed:-' + error);
+                this.logger.error('establishSocketConnection', 'Switching to get-next polling as websocket connection failed');
+                this.terminatePolling();
+                this.agentSession.startGetNextEvents();
+            });
+            // TODO: Removing temporarily as it is not required for now, will enable it in next release when UIQ is ready
+            // if(invokeSnapshot) {
+            //   this.invokeUIQEventSnapshotRequest();
+            // }
         });
     }
     /**
@@ -264,6 +347,7 @@ export class UIQueueWsProvider {
                 this.establishSocketConnection(userInfo, true).catch((error) => {
                     this.agentSession.startGetNextEvents();
                     this.logger.error('addEventListeners', 'establishSocketConnection failed:-' + error);
+                    this.logger.error('addEventListeners', 'Switching to get-next polling as websocket connection failed');
                 });
             }
         });
@@ -272,27 +356,41 @@ export class UIQueueWsProvider {
             this.isUIQueueDegraded = true;
             this.terminatePolling();
             this.agentSession.startGetNextEvents();
+            this.logger.error('CustomDegradation', 'Switching to get-next polling as UIQ is degraded');
         });
         this.hubConnection.on(UIQEventType.UIQ_HEALTHY, (receivedData) => {
             if (this.isUIQueueDegraded === true) {
                 this.isUIQueueDegraded = false;
                 this.agentSession.terminateGetNextPolling();
                 this.startKeepAlivePolling();
-                this.invokeUIQEventSnapshotRequest();
+                // TODO: Removing temporarily as it is not required for now, will enable it in next release when UIQ is ready
+                // this.invokeUIQEventSnapshotRequest();
+                //Adding get-next call to flush the initial renew-state event from the agent state
+                this.getInitialGetNextEvent();
                 this.logger.info('UIQueueHealthy', `Received UIQueue Healthy event: ${receivedData}`);
             }
         });
         this.hubConnection.onreconnected((connectionId) => {
             this.logger.info('onreconnected', `UIQ Connection reestablished. Connected with connectionId ${connectionId}.`);
             if (this.hubConnection.state === HubConnectionState.Connected) {
-                this.invokeUIQEventSnapshotRequest();
+                // TODO: Removing temporarily as it is not required for now, will enable it in next release when UIQ is ready
+                // this.invokeUIQEventSnapshotRequest();
+                // Adding get-next call to flush the initial renew-state event from the agent state
+                this.getInitialGetNextEvent();
             }
         });
         this.hubConnection.onclose(() => {
             this.logger.info('onclose', 'UIQ Connection state closed event triggered.');
             clearInterval(this.hearbeatPoller);
             this.disconnectConsumerAgent();
-            this.agentSession.startGetNextEvents();
+            if (this.agentSession.getSessionId()) {
+                this.establishSocketConnection(userInfo, true).catch((error) => {
+                    this.terminatePolling();
+                    this.agentSession.startGetNextEvents();
+                    this.logger.error('onclose', 'establishSocketConnection failed:-' + error);
+                    this.logger.error('onclose', 'Switching to get-next polling as websocket connection closed');
+                });
+            }
         });
     }
     /**
@@ -313,6 +411,7 @@ export class UIQueueWsProvider {
                 this.disconnectConsumerAgent();
                 clearInterval(this.hearbeatPoller);
                 this.agentSession.startGetNextEvents();
+                this.logger.error('startSocketHeartBeat', 'Switching to get-next polling as heartbeat failed');
                 if (err instanceof Error) {
                     this.logger.error('startSocketHeartBeat', 'Error while sending heartbeat' + new CXoneSdkError(CXoneSdkErrorType.WEBSOCKET_ERROR, err.message));
                 }
@@ -343,7 +442,8 @@ export class UIQueueWsProvider {
          */
     sendRefreshToken() {
         if (this.hubConnection && this.hubConnection.state === HubConnectionState.Connected) {
-            this.hubConnection.invoke(UIQEventType.RECEIVE_TOKEN_BEFORE_EXPIRY, this.agentSession.accessToken)
+            const accessToken = this.getValidAccessToken();
+            this.hubConnection.invoke(UIQEventType.RECEIVE_TOKEN_BEFORE_EXPIRY, accessToken)
                 .then(() => {
                 this.logger.info('sendRefreshToken', 'Token Refresh successful');
             }).catch((err) => {

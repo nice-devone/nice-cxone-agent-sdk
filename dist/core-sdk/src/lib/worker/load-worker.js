@@ -20,25 +20,25 @@ export class LoadWorker {
         let worker;
         switch (workerScriptName) {
             case 'ws-worker':
-                worker = this.initWorker(wsWorkerCode.toString(), workerName);
+                worker = this.initWorker(wsWorkerCode, workerName);
                 break;
             case 'util-worker':
-                worker = this.initWorker(utilityWorkerCode.toString(), workerName);
+                worker = this.initWorker(utilityWorkerCode, workerName);
                 break;
             case 'wem-notification-worker':
-                worker = this.initWorker(wemWorkerCode.toString(), workerName);
+                worker = this.initWorker(wemWorkerCode, workerName);
                 break;
             case 'user-slot-worker':
-                worker = this.initWorker(userSlotWorkerCode.toString(), workerName);
+                worker = this.initWorker(userSlotWorkerCode, workerName);
                 break;
             case 'event-hub-worker':
-                worker = this.initWorker(eventHubWorkerCode.toString(), workerName);
+                worker = this.initWorker(eventHubWorkerCode, workerName);
                 break;
             case 'ws-worker-acp':
-                worker = this.initWorker(wsWorkerACPCode.toString(), workerName);
+                worker = this.initWorker(wsWorkerACPCode, workerName);
                 break;
             case 'ws-worker-agent-assist':
-                worker = this.initWorker(wsWorkerAgentAssistCode.toString(), workerName);
+                worker = this.initWorker(wsWorkerAgentAssistCode, workerName);
                 break;
         }
         return worker;
@@ -51,7 +51,6 @@ export class LoadWorker {
      * ```
      */
     initWorker(workerScript, name) {
-        workerScript = workerScript.substring(workerScript.indexOf('{') + 1, workerScript.lastIndexOf('}'));
         const blob = new Blob([workerScript], { type: 'application/javascript' });
         const worker_script = URL.createObjectURL(blob);
         return new Worker(worker_script, {

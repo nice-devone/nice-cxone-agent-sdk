@@ -2,9 +2,13 @@ import { __awaiter } from "tslib";
 import { openDB, deleteDB } from 'idb';
 import { IndexDBStoreNames } from './enum/indexDB-store-names';
 let db;
-const DB_NAME = 'nice-cxone-ccf', DB_VERSION = Number(1 + '.' + Object.keys(IndexDBStoreNames).length); //Dynamic version number to update the DB everytime new objectSTore is introduced
+const DB_NAME = 'nice-cxone-ccf';
+//If changes made to IndexDB store is not reflecting, make sure that DB_VERSION is updated to a higher version than that of the previous one.
+//https://developer.mozilla.org/en-US/docs/Web/API/IDBOpenDBRequest/upgradeneeded_event
+const DB_VERSION = Number(Object.keys(IndexDBStoreNames).length);
 /**
- * Used to get the indexDB instance
+ * Used to get the indexDB instance.
+ * When we create new instance of 'dbInstance', the "upgrade" callback is only called when DB_VERSION is higher than the previous one.
  * @example -
  * ```
  * const db = dbInstance();

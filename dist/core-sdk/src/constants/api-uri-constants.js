@@ -35,6 +35,7 @@ ApiUriConstants.ADD_CONTACT_URI = '/InContactAPI/services/v23.0/agent-sessions/{
 ApiUriConstants.ACTIVATE_CONTACT_URI = '/InContactAPI/services/v23.0/agent-sessions/{sessionId}/interactions/{contactId}/activate';
 // Api for urls for address book
 ApiUriConstants.ADDRESS_BOOK_URI = '/incontactapi/services/v23.0/agents/{agentId}/address-books';
+ApiUriConstants.ADDRESS_BOOK_2_URI = '/sab/v1/addressbook';
 ApiUriConstants.STANDARD_ADDRESS_BOOK_URI = '/incontactapi//services/v23.0/address-books/{addressBookId}/entries';
 ApiUriConstants.GET_AGENT_SKILLS_URI = '/InContactAPI/services/v23.0/agents/{agentId}/skills';
 ApiUriConstants.GET_SKILL_WITH_ID_URI = '/InContactAPI/services/v23.0/skills/{skillId}';
@@ -150,6 +151,8 @@ ApiUriConstants.MESSAGE_TAG = '/dfo/3.0/messages/{messageId}/tags/{tagId}';
 ApiUriConstants.GET_MESSAGE_TAG = '/dfo/3.0/tags';
 ApiUriConstants.GET_MESSAGE_TAGS_BY_PAGE = '/dfo/3.0/tags?page={pageNumber}';
 ApiUriConstants.SEARCH_DIGITAL_TAG = '/dfo/3.0/tags?nameContains={tagName}&page={pageNumber}&includeDeleted=false';
+ApiUriConstants.GET_AGENT_INTEGRATION_WORKFLOW_ENTITIES_URI = '/InContactAPI/services/v27.0/agent-integration/configuration/{configurationId}/entities';
+ApiUriConstants.GET_AGENT_INTEGRATION_WORKFLOW_ENTITIES_FIELDS_URI = '/InContactAPI/services/v27.0/agent-integration/configuration/{configurationId}/entities?name={entityName}';
 //API uri to update isRead flag for a digital contact
 ApiUriConstants.UPDATE_MESSAGE_READ_STATUS = '/dfo/3.0/messages/{messageId}/read';
 //Transcript APIs
@@ -159,5 +162,7 @@ ApiUriConstants.CONTINUE_RESKILL = '/inContactapi/services/v23.0/agent-sessions/
 ApiUriConstants.GET_PRESENCE_SYNC_RULE = '/adapter-apis/v1/{partnerName}/rule/{partnerId}';
 ApiUriConstants.GET_AGENT_LOCATION = '/user-management/v1/users/location/evaluate';
 ApiUriConstants.SELECT_AGENT_LOCATION = '/user-management/v1/users/location/select-location';
+ApiUriConstants.FEEDBACK_CATEGORIES_AND_PRIORITIES = '/incontactapi/services/v23.0/feedback-categories-and-priorities';
+ApiUriConstants.SUBMIT_FEEDBACK = '/incontactapi/services/V23.0/agent-sessions/{sessionId}/submit-feedback';
 ;
 //# sourceMappingURL=api-uri-constants.js.map

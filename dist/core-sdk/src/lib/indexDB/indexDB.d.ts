@@ -1,5 +1,5 @@
 import { DBSchema, IDBPDatabase } from 'idb';
-import { AddressBooks, AgentMessageNotification, AgentStateResponse, CXoneAudioVisualNotificationSettings, CXoneDigitalChannel, DirectoryEntities, DirectoryResponse, FavQuickReply, NotificationEntities, SkillEvent, Team, CXoneRoutingQueue, WemNotificationDisplayData, Skills, CopilotMessageData, InteractionFailedMessages, AgentAssistWSRequest } from '@nice-devone/common-sdk';
+import { AddressBooks, AgentMessageNotification, AgentStateResponse, CXoneAudioVisualNotificationSettings, CXoneDigitalChannel, DirectoryEntities, DirectoryResponse, FavQuickReply, NotificationEntities, SkillEvent, Team, CXoneRoutingQueue, WemNotificationDisplayData, Skills, CopilotMessageData, InteractionFailedMessages, AgentAssistWSRequest, agentCompletedContactsResponse } from '@nice-devone/common-sdk';
 import { IndexDBStoreNames } from './enum/indexDB-store-names';
 import { IndexDBKeyNames } from './enum/indexDB-key-names';
 import { SkillActivityEvent } from './models/skill-activity-event';
@@ -39,9 +39,16 @@ export interface storeSchema extends DBSchema {
         key: string;
         value: AgentAssistWSRequest;
     };
+    ContactHistory: {
+        key: IndexDBKeyNames.ACD_CONTACT_HISTORY;
+        value: {
+            [contactId: string]: agentCompletedContactsResponse;
+        };
+    };
 }
 /**
- * Used to get the indexDB instance
+ * Used to get the indexDB instance.
+ * When we create new instance of 'dbInstance', the "upgrade" callback is only called when DB_VERSION is higher than the previous one.
  * @example -
  * ```
  * const db = dbInstance();

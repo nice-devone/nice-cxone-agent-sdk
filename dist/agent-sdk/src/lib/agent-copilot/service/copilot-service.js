@@ -1,4 +1,4 @@
-import { __awaiter } from "tslib";
+import { __awaiter, __rest } from "tslib";
 import { CXoneAuth, CXoneUser } from '@nice-devone/auth-sdk';
 import { CXoneSdkError, MediaType, AgentCopilotContentType, CXoneSdkErrorType } from '@nice-devone/common-sdk';
 import { Logger, HttpUtilService, StorageKeys, HttpClient, LocalStorageHelper, dbInstance, IndexDBStoreNames, IndexDBKeyNames, clearIndexDbKey, ValidationUtils } from '@nice-devone/core-sdk';
@@ -33,7 +33,10 @@ export class CopilotService {
             GENERATE_EMAIL: this.AGENT_COPILOT_BASE_URI + 'email/draft',
             EMAIL_ACTION: this.AGENT_COPILOT_BASE_URI + 'email/action',
         };
-        this.AGENT_COPILOT_FEEDBACK_GUIDANCE = this.AGENT_COPILOT_BASE_URI + 'guidance-feedback';
+        this.PATH_GUIDANCE_FEEDBACK = '/agentcopilotapi/v1/interaction-feedback/kbAnswers';
+        this.PATH_CONTACT_FEEDBACK = '/agentcopilotapi/v1/interaction-feedback/interaction';
+        this.PATH_KB_FILTER_UPDATE = '/agent-copilot/v1/kb-filter/update';
+        this.JOURNEY_SUMMARY = '/agent-copilot/v1/journey-summary';
         this.aahConfigStore = {};
         /**
          * @returns base url for ACP backend
@@ -62,11 +65,8 @@ export class CopilotService {
          * @example commonPayload()
          */
         this.basePayload = () => {
-            const userInfo = CXoneUser.instance.getUserInfo();
             const { idToken } = this.auth.getAuthToken();
             const payload = {
-                agentId: userInfo === null || userInfo === void 0 ? void 0 : userInfo.icAgentId,
-                tenantId: userInfo === null || userInfo === void 0 ? void 0 : userInfo.tenantId,
                 contactId: LocalStorageHelper.getItem(StorageKeys.FOCUSED_CONTACT_ID) || '',
                 idToken,
             };
@@ -234,8 +234,11 @@ export class CopilotService {
          * ```
          */
         this.setAgentAssistConfig = (contactId, aahConfig) => {
-            this.aahConfigStore[contactId] = aahConfig;
-            LocalStorageHelper.setItem(`${contactId}_agentAssistAppConfig`, aahConfig);
+            const acpConfig = JSON.parse(aahConfig || '{}');
+            const _a = acpConfig.Params, { perSuggestionSubcards, positiveTag, negativeTag, positiveComment, negativeComment, positiveFeedback, negativeFeedback } = _a, restParams = __rest(_a, ["perSuggestionSubcards", "positiveTag", "negativeTag", "positiveComment", "negativeComment", "positiveFeedback", "negativeFeedback"]);
+            const extendedAgentAssistConfig = Object.assign(Object.assign({}, acpConfig), { Params: Object.assign(Object.assign({}, restParams), { guidanceFeedbackCards: perSuggestionSubcards, positiveTagEnabled: positiveTag, negativeTagEnabled: negativeTag, positiveCommentEnabled: positiveComment, negativeCommentEnabled: negativeComment, positiveFeedbackEnabled: positiveFeedback, negativeFeedbackEnabled: negativeFeedback }) });
+            this.aahConfigStore[contactId] = extendedAgentAssistConfig;
+            LocalStorageHelper.setItem(`${contactId}_agentAssistAppConfig`, extendedAgentAssistConfig);
         };
         /**
          * Used to get AAH config for the contactId
@@ -252,43 +255,6 @@ export class CopilotService {
                 return aahConfig;
             }
             return LocalStorageHelper.getItem(`${contactId}_agentAssistAppConfig`, isObjectFlag);
-        };
-        /**
-         * Used to get AAH config for the contactIds from redis cache
-         * @param contactIds - list of contact Id
-         * @example -
-         * ```
-         * copilotService.fetchAgentAssistConfigFromCache(['12321']);
-         * ```
-         */
-        this.fetchAgentAssistConfigFromCache = (contactIds) => {
-            return new Promise((resolve, reject) => {
-                const reqInit = this.getBaseHttpRequest({
-                    contactIds,
-                });
-                const baseUrl = this.getBaseUrlForAcp();
-                const apiUrl = baseUrl + this.AGENT_COPILOT_ENABLEMENT_FOR_CONTACT;
-                HttpClient === null || HttpClient === void 0 ? void 0 : HttpClient.post(apiUrl, reqInit).then((response) => {
-                    const contactIdMap = response === null || response === void 0 ? void 0 : response.data;
-                    for (const contactId in contactIdMap) {
-                        if (!this.aahConfigStore[contactId] && contactIdMap[contactId]) {
-                            const aahConfig = {
-                                AppTitle: 'Enlighten Agent Copilot',
-                                ContactId: contactId,
-                                Params: {
-                                    providerId: 'agentCopilot',
-                                },
-                            };
-                            this.setAgentAssistConfig(contactId, aahConfig);
-                        }
-                    }
-                    resolve(contactIdMap);
-                }, (error) => {
-                    const errorResponse = new CXoneSdkError(CXoneSdkErrorType.CXONE_API_ERROR, 'Failed to fetch agent assist config from cache', error);
-                    this.logger.error('fetchAgentAssistConfigFromCache', errorResponse.toString());
-                    reject(errorResponse);
-                });
-            });
         };
         /**
          * Used to get AAH config for the contactId
@@ -309,14 +275,14 @@ export class CopilotService {
                 HttpClient === null || HttpClient === void 0 ? void 0 : HttpClient.post(apiUrl, reqInit).then((response) => {
                     var _a;
                     if (response.status === 200 && ((_a = response === null || response === void 0 ? void 0 : response.data) === null || _a === void 0 ? void 0 : _a.success) !== false && !this.aahConfigStore[contactId]) {
-                        const aahConfig = {
+                        const aahConfig = JSON.stringify({
                             AppTitle: 'Enlighten Agent Copilot',
                             ContactId: contactId,
                             Params: Object.assign({ providerId: 'agentCopilot' }, response === null || response === void 0 ? void 0 : response.data),
-                        };
+                        });
                         this.setAgentAssistConfig(contactId, aahConfig);
                     }
-                    resolve(response === null || response === void 0 ? void 0 : response.data);
+                    resolve(this.aahConfigStore[contactId]);
                 }, (error) => {
                     const errorResponse = new CXoneSdkError(CXoneSdkErrorType.CXONE_API_ERROR, 'Failed to retrieve agent assist config', error);
                     this.logger.error('retriveAgentAssistConfig', errorResponse.toString());
@@ -414,37 +380,65 @@ export class CopilotService {
             });
         };
         /**
-         * Used to store the feedback guidance
-         * @param feedback - feedback given by the agent
-         * @param utteranceId - utteranceId
-         * @param kbAnswerUid - unique id of the kbAnswer
+         * Used to store the comprehensive feedback
+         * @param feedbackData - list of all feedbacks given by the agent
          * @example -
          * ```
-         * copilotService.sendGuidanceFeedback("Like", "1234", "1234");
+         * copilotService.sendGuidanceFeedback(feedbacks);
          * ```
          */
         this.sendGuidanceFeedback = (feedbackData) => {
+            const updatedFeedbackData = feedbackData.map((feedbackObj) => {
+                const { contactId, kbAnswerUid, utteranceId, feedback, tag, comment } = feedbackObj;
+                const valueEnum = (feedback === Feedback.LIKE_ARTICLE || feedback === Feedback.LIKE_INDIVIDUAL_SUBCARDS) ? 1 : 2;
+                return {
+                    contactId,
+                    utteranceId,
+                    kbAnswerUid,
+                    valueEnum,
+                    tagEnum: tag,
+                    comment,
+                };
+            });
             return new Promise((resolve, reject) => {
-                {
-                    const { feedback, utteranceId, kbAnswerUid } = feedbackData;
-                    const feedbacks = [
-                        {
-                            'utteranceId': utteranceId,
-                            'kbAnswerUid': kbAnswerUid,
-                            'valueEnum': (feedback === Feedback.LIKE_ARTICLE || feedback === Feedback.LIKE_PRIVATE_ARTICLE) ? 1 : 2,
-                        }
-                    ];
-                    const reqInit = this.getBaseHttpRequest({ feedbacks });
-                    const baseUrl = this.getBaseUrlForAcp();
-                    const copilotUrl = baseUrl + this.AGENT_COPILOT_FEEDBACK_GUIDANCE;
-                    HttpClient === null || HttpClient === void 0 ? void 0 : HttpClient.post(copilotUrl, reqInit).then((response) => {
-                        resolve(response);
-                    }, (error) => {
-                        const errorResponse = new CXoneSdkError(CXoneSdkErrorType.CXONE_API_ERROR, 'Failed to send feedback data', error);
-                        this.logger.error('sendGuidanceFeedback', errorResponse.toString());
-                        reject(errorResponse);
-                    });
-                }
+                const feedbacks = [...updatedFeedbackData];
+                const reqInit = this.getBaseHttpRequest({ feedbacks });
+                const baseUrl = this.getBaseUrlForAcp();
+                const copilotUrl = baseUrl + this.PATH_GUIDANCE_FEEDBACK;
+                HttpClient === null || HttpClient === void 0 ? void 0 : HttpClient.post(copilotUrl, reqInit).then((response) => {
+                    resolve(response);
+                }, (error) => {
+                    const errorResponse = new CXoneSdkError(CXoneSdkErrorType.CXONE_API_ERROR, 'Failed to send comprehensive feedback data', error);
+                    this.logger.error('sendGuidanceFeedback', errorResponse.toString());
+                    reject(errorResponse);
+                });
+            });
+        };
+        /**
+         * Used to store the overall subcard feedback
+         * @param contactFeedbackCard - contactFeedbackCard data given by the agent
+         * @example -
+         * ```
+         * copilotService.sendContactFeedback({overallFeedbackTitle: "1234", feedback: "feedback"});
+         * ```
+         */
+        this.sendContactFeedback = (contactFeedbackCard) => {
+            const { feedback, tag, comment } = contactFeedbackCard;
+            return new Promise((resolve, reject) => {
+                const reqInit = this.getBaseHttpRequest({
+                    valueEnum: feedback === Feedback.LIKE_OVERALL_SUBCARD ? '1' : '2',
+                    tag: tag || '',
+                    comment: comment || '',
+                });
+                const baseUrl = this.getBaseUrlForAcp();
+                const copilotUrl = baseUrl + this.PATH_CONTACT_FEEDBACK;
+                HttpClient === null || HttpClient === void 0 ? void 0 : HttpClient.post(copilotUrl, reqInit).then((response) => {
+                    resolve(response);
+                }, (error) => {
+                    const errorResponse = new CXoneSdkError(CXoneSdkErrorType.CXONE_API_ERROR, 'Failed to send overall subcard feedback data', error);
+                    this.logger.error('sendContactFeedback', errorResponse.toString());
+                    reject(errorResponse);
+                });
             });
         };
         this.auth = CXoneAuth.instance;
@@ -565,6 +559,67 @@ export class CopilotService {
             }, (error) => {
                 const errorResponse = new CXoneSdkError(CXoneSdkErrorType.CXONE_API_ERROR, 'Editor command processing failed', error);
                 this.logger.error('processEditorCommand', errorResponse.toString());
+                reject(errorResponse);
+            });
+        });
+    }
+    ;
+    /**
+    * Use to update copilot filters/ tag lists
+    * @param copilotFilterTags - tags for filters
+    * @param contactId - contactId/caseId
+    * @example -
+    * ```
+    * copilotService.updateCopilotFilters([{name: 'planYear', default: ['2024'], selected: ['2024','2025]}],'1234');
+    * ```
+    */
+    updateCopilotFilters(copilotFilterTags, contactId) {
+        return new Promise((resolve, reject) => {
+            const reqInit = this.getBaseHttpRequest({
+                contactId,
+                expertTags: copilotFilterTags,
+            });
+            const baseUrl = this.getBaseUrlForAcp();
+            const updateCopilotFiltersUrl = baseUrl + this.PATH_KB_FILTER_UPDATE;
+            HttpClient === null || HttpClient === void 0 ? void 0 : HttpClient.put(updateCopilotFiltersUrl, reqInit).then((response) => {
+                const resp = response === null || response === void 0 ? void 0 : response.data;
+                resolve(resp);
+            }, (error) => {
+                const errorResponse = new CXoneSdkError(CXoneSdkErrorType.CXONE_API_ERROR, 'Update copilot filters failed', error);
+                this.logger.error('updateCopilotFilters', errorResponse.toString());
+                reject(errorResponse);
+            });
+        });
+    }
+    ;
+    /**
+    * Use to get journey summary data
+    * @param contactHistory - contact history of the contact
+    * @param contactId - contactId/caseId
+    * @param customerId - customerId
+    * @param aahConfiguration - agent assist configuration
+    * @param customerName - customer name
+    * @example -
+    * ```
+    * copilotService.getJourneySummary([{contactNumber: '1234', channelType: 'Voice', contactDate: '2021-09-01', skill: 'skill', status: 'status'}],'1234','1234',{},'user');
+    * ```
+    */
+    getJourneySummary(contactHistory, contactId, customerUid, aahConfiguration, customerName) {
+        return new Promise((resolve, reject) => {
+            const reqInit = this.getBaseHttpRequest({
+                contactId,
+                customerUid,
+                customerName,
+                contactHistory,
+                agentAssistConfiguration: aahConfiguration.Params,
+            });
+            const baseUrl = this.getBaseUrlForAcp();
+            const adaptiveCardUrl = baseUrl + this.JOURNEY_SUMMARY;
+            HttpClient === null || HttpClient === void 0 ? void 0 : HttpClient.post(adaptiveCardUrl, reqInit).then((response) => {
+                resolve(response.data);
+            }, (error) => {
+                const errorResponse = new CXoneSdkError(CXoneSdkErrorType.CXONE_API_ERROR, 'Failed to get journey summary', error);
+                this.logger.error('getJourneySummary', errorResponse.toString());
                 reject(errorResponse);
             });
         });

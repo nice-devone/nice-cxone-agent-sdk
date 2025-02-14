@@ -70,10 +70,6 @@ export interface InteractionData {
      * This will contain object list of Agent Queue Details for current interaction
      */
     queueDetails?: AgentQueuesDetail;
-    /**
-     * This number points to the tab number for elevation
-     */
-    selectedTab?: number | null;
 }
 /**
  * Contact object which contains key-value pair of contact data. It can be either ACD or DFO or Both.

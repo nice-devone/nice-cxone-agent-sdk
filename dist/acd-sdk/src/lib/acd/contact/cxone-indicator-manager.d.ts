@@ -84,14 +84,15 @@ export declare class CXoneIndicatorManager {
      */
     private prepareHtmlDocument;
     /**
-     * Submit function for custom form
+     * Submits custom form data to the server via the custom form API and closes the window
      * @param event - submit event with form elements
      * @example
      * ```
-     * this.onCustomFormSubmit(submitEvent);
+     * this.onCustomFormSubmit(submitEvent, customFormWindow);
      * ```
+     *
      */
-    onCustomFormSubmit: (event: any) => void;
+    onCustomFormSubmit: (event: any, customFormWindow: Window) => void;
     /**
      * Dispose observable values when sequence ends
      * @example CXoneClient.instance.indicator.dipose();

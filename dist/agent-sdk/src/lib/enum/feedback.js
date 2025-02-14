@@ -8,8 +8,12 @@ export var Feedback;
      */
     Feedback["LIKE_ARTICLE"] = "likeArticle";
     /**
-     * Represents a private KBAnswer is liked
+     * Represents overall subcard like
      */
-    Feedback["LIKE_PRIVATE_ARTICLE"] = "likePrivateArticle";
+    Feedback["LIKE_OVERALL_SUBCARD"] = "likeOverallSubcard";
+    /**
+     * Represents perSuggestion Subcard is liked
+     */
+    Feedback["LIKE_INDIVIDUAL_SUBCARDS"] = "likeIndividualCards";
 })(Feedback || (Feedback = {}));
 //# sourceMappingURL=feedback.js.map

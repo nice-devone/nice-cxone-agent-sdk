@@ -65,5 +65,13 @@ export declare enum DigitalContactActions {
     /**
      * Delete content
      */
-    DELETE_CONTENT = "delete content"
+    DELETE_CONTENT = "delete content",
+    /**
+     * Reply on message
+     */
+    REPLY = "reply",
+    /**
+    * Like the post
+     */
+    LIKE = "like"
 }

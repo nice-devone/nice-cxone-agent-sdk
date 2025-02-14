@@ -14,4 +14,6 @@ export interface CXoneVoiceConnection {
     status: CXoneVoiceConnectionStatus;
     isLoggedIn: boolean;
     credentials?: IrisCredentials;
+    isExtensionInstalled?: boolean;
+    extensionId?: string;
 }

@@ -61,8 +61,8 @@ Initialize the CXoneAuth instance with your authentication configuration:
 
 ```
 const authSettings: AuthSettings = {
-    cxoneHostname: 'https://cxone.dev.niceincontact.com',
-    clientId: 'Salesforce Agent Console@inContact Inc.'
+    cxoneHostname: 'https://cxone.niceincontact.com',
+    clientId: '<ClientIdPlaceholder>'
 };
 
 const auth = CXoneAuth.instance;
@@ -80,7 +80,5 @@ Refer to the official CXone documentation for recommended security practices whe
 
 This library offers a high-level abstraction over the complexities of CXone authentication.
 The provided functionalities might vary depending on the specific version of the @nice-devone/auth-sdk.
-
-* Link to Developer Portal: For detailed information on CXone authentication, including best practices and security considerations, refer to the NICE CXone developer portal page on Authentication: [Link to Developer Portal Page on Authentication](https://developer.niceincontact.com/)
 
 We hope this overview aids you in integrating user authentication into your CXone applications using the @nice-devone/auth-sdk library. For further assistance, refer to the official documentation or reach out to NICE CXone support channels.

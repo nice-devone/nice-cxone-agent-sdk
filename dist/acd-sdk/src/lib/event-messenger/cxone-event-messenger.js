@@ -18,6 +18,7 @@ export class CXoneEventMessenger {
         this.pendingSubscriptions = [];
         this.windowEventSubscribers = [];
         this.agentSession = ACDSessionManager.instance;
+        this.getNextEventHandler();
     }
     /**
        * Method to create singleton object of the class
@@ -42,7 +43,6 @@ export class CXoneEventMessenger {
        */
     init() {
         this.processPendingSubscriptions(this.pendingSubscriptions);
-        this.getNextEventHandler();
     }
     /**
        * Method to handle received events
@@ -57,6 +57,7 @@ export class CXoneEventMessenger {
             case EventMessageType.REGISTER_FOR_CLIENT_EVENTS:
                 this.pendingSubscriptions.push(event);
                 this.init();
+                this.pendingSubscriptions.pop();
                 break;
             case EventMessageType.UNREGISTER_FOR_CLIENT_EVENTS:
                 this.onWindowUnsubscribe(event);
@@ -131,14 +132,15 @@ export class CXoneEventMessenger {
         let events = [];
         if (this.validateWindowObjectIsNew(event.source)) {
             if (response.status === 'OK' && subscriberObject) {
+                const agentCurrentState = CXoneAcdClient.instance.agentStateService.getAgentState();
+                if (agentCurrentState && subscriberObject) {
+                    events = this.getEventsFromState(subscriberObject);
+                }
+                ackEvent.contactId = subscriberObject === null || subscriberObject === void 0 ? void 0 : subscriberObject.contactId;
                 this.windowEventSubscribers.push(subscriberObject);
             }
             ackEvent.status = response.status;
             ackEvent.reason = response.reason;
-            const agentCurrentState = CXoneAcdClient.instance.agentStateService.getAgentState();
-            if (agentCurrentState && subscriberObject) {
-                events = this.getEventsFromState(subscriberObject);
-            }
             events.push(ackEvent);
             subscriberObject && this.sendEventsToWindow(subscriberObject, events);
         }
@@ -175,11 +177,18 @@ export class CXoneEventMessenger {
             if (agentState && (sendAll || sendAgent)) {
                 contactEvents.push(agentState);
             }
+            const allContacts = CXoneAcdClient.instance.contactManager.getAllContacts();
             if (isCallContactAvailable && (sendAll || sendContacts)) {
                 // send all contacts
-                const allContacts = CXoneAcdClient.instance.contactManager.getAllContacts();
                 for (const contact of Object.values(allContacts)) {
                     contactEvents.push(contact);
+                }
+            }
+            if ((subscriber === null || subscriber === void 0 ? void 0 : subscriber.contactId) && allContacts[subscriber.contactId]) {
+                // we have a specific contact ID that the subscriber is interested in
+                const contactEvent = allContacts[subscriber.contactId];
+                if (contactEvents.indexOf(contactEvent) === -1) {
+                    contactEvents.push(contactEvent);
                 }
             }
             if (sendSession && this.agentSession.hasSessionId) {

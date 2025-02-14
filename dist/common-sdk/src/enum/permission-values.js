@@ -14,5 +14,6 @@ var PermissionValues;
     PermissionValues["ENABLE"] = "Enable";
     PermissionValues["AGENT_CONFIG"] = "AgentConfig";
     PermissionValues["HIDE"] = "Hide";
+    PermissionValues["DISABLE"] = "Disable";
 })(PermissionValues = exports.PermissionValues || (exports.PermissionValues = {}));
 //# sourceMappingURL=permission-values.js.map

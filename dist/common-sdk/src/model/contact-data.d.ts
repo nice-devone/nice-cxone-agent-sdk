@@ -41,4 +41,5 @@ export interface ContactData {
     realExternalPlatformId?: string;
     isAudioRecordingRemoved?: boolean;
     isRecordingInProgress?: boolean;
+    finalState?: boolean;
 }

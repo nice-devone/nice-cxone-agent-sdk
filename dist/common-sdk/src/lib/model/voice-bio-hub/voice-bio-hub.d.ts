@@ -110,6 +110,10 @@ export interface voiceBioPatronActions {
   * @remarks - 'contactId' is identifier for the current IB/OB call.
   */
     contactId: string;
+    /**
+  * @remarks - 'stringParams' is identifier for the parameters which voice bio hub API needs.
+  */
+    stringParams: string;
 }
 /**
  * model to capture VoiceBioAgentActionRequest
@@ -148,6 +152,10 @@ export interface CustomParamsObject {
   * @remarks - 'contactId' is identifier for the current IB/OB call.
   */
     contactId: string;
+    /**
+  * @remarks - 'isRetry' is flag for knowing if current request is re-verify or not.
+  */
+    isRetry?: boolean;
 }
 /**
  * model to capture VoiceBioHubDataResponse
@@ -177,4 +185,8 @@ export interface VoiceBioHubDataResponse {
    * @remarks - 'isSilentANIAuthentication' is identifier for person id whether it is ANI or custom.
    */
     isSilentANIAuthentication?: boolean;
+    /**
+   * @remarks - 'isRetry' is flag for knowing if current request is re-verify or not.
+   */
+    isRetry?: boolean;
 }

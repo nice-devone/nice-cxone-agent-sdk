@@ -39,3 +39,6 @@ export * from './lib/datadog/datadog';
 export * from './constants/websocket-status-code';
 export * from './util/common-util';
 export * from './lib/admin/model/tenant';
+export * from './lib/admin/model/feedback-categories-and-priorities';
+export * from './lib/admin//model/feedback-data';
+export * from './constants/http-request-custom-headers';

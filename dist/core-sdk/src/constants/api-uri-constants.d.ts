@@ -32,6 +32,7 @@ export declare class ApiUriConstants {
     static ADD_CONTACT_URI: string;
     static ACTIVATE_CONTACT_URI: string;
     static ADDRESS_BOOK_URI: string;
+    static ADDRESS_BOOK_2_URI: string;
     static STANDARD_ADDRESS_BOOK_URI: string;
     static GET_AGENT_SKILLS_URI: string;
     static GET_SKILL_WITH_ID_URI: string;
@@ -118,10 +119,14 @@ export declare class ApiUriConstants {
     static GET_MESSAGE_TAG: string;
     static GET_MESSAGE_TAGS_BY_PAGE: string;
     static SEARCH_DIGITAL_TAG: string;
+    static GET_AGENT_INTEGRATION_WORKFLOW_ENTITIES_URI: string;
+    static GET_AGENT_INTEGRATION_WORKFLOW_ENTITIES_FIELDS_URI: string;
     static UPDATE_MESSAGE_READ_STATUS: string;
     static SEND_TRANSCRIPT: string;
     static CONTINUE_RESKILL: string;
     static GET_PRESENCE_SYNC_RULE: string;
     static GET_AGENT_LOCATION: string;
     static SELECT_AGENT_LOCATION: string;
+    static FEEDBACK_CATEGORIES_AND_PRIORITIES: string;
+    static SUBMIT_FEEDBACK: string;
 }

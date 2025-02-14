@@ -11,5 +11,6 @@ export var IndexDBStoreNames;
     IndexDBStoreNames["AGENT_SETTINGS"] = "AgentSettings";
     IndexDBStoreNames["COPILOT"] = "Copilot";
     IndexDBStoreNames["AGENT_ASSIST"] = "AgentAssist";
+    IndexDBStoreNames["CONTACT_HISTORY"] = "ContactHistory";
 })(IndexDBStoreNames || (IndexDBStoreNames = {}));
 //# sourceMappingURL=indexDB-store-names.js.map

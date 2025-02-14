@@ -482,8 +482,8 @@ export class CXoneDirectoryProvider {
                 });
             }
             if (entity.includes(DirectoryEntities.SKILL_LIST)) {
-                const skillUrl = new URL(ApiUriConstants.SKILL_CACHE_URI, this.baseUri);
-                skillUrl.searchParams.set('fields', 'IsActive,IsOutbound,MediaType,MediaName,LastUpdateTime,SkillId,SkillName');
+                const skillUrl = new URL(ApiUriConstants.SKILL_ACTIVITY_URI, this.baseUri);
+                skillUrl.searchParams.set('fields', 'isActive,isOutbound,mediaTypeId,mediaTypeName,skillId,skillName');
                 skillUrl.searchParams.set('updatedSince', new Date(0).toISOString());
                 const skillRequest = {
                     headers: this.utilService.initHeader(authToken).headers,
@@ -725,9 +725,11 @@ export class CXoneDirectoryProvider {
      * @param isUpdate - this boolean flag will help us to identify if the request is for update or not
      */
     publishDirectoryData(directoryResponse, isUpdate = false) {
-        var _a, _b, _c, _d, _e, _f, _g, _h, _j, _k, _l, _m, _o, _p, _q, _r, _s;
+        var _a, _b, _c, _d, _e, _f, _g, _h, _j, _k, _l, _m, _o, _p, _q, _r, _s, _t;
         if (!isUpdate || ((_b = (_a = directoryResponse === null || directoryResponse === void 0 ? void 0 : directoryResponse.agentList) === null || _a === void 0 ? void 0 : _a.data) === null || _b === void 0 ? void 0 : _b.length) || ((_d = (_c = directoryResponse === null || directoryResponse === void 0 ? void 0 : directoryResponse.addressBookList) === null || _c === void 0 ? void 0 : _c.data) === null || _d === void 0 ? void 0 : _d.length)
             || ((_f = (_e = directoryResponse === null || directoryResponse === void 0 ? void 0 : directoryResponse.skillList) === null || _e === void 0 ? void 0 : _e.data) === null || _f === void 0 ? void 0 : _f.length) || ((_h = (_g = directoryResponse === null || directoryResponse === void 0 ? void 0 : directoryResponse.teamList) === null || _g === void 0 ? void 0 : _g.data) === null || _h === void 0 ? void 0 : _h.length)) {
+            directoryResponse.agentList.data = directoryResponse.agentList.data.filter(agent => agent.isActive); // filter out the agents which are not active
+            this.favroiteAgentList = (_j = this.favroiteAgentList) === null || _j === void 0 ? void 0 : _j.filter(agent => agent.isActive); // filter out the agents which are not active
             directoryResponse.agentList.totalRecords = this.entityCounts.agentList;
             directoryResponse.skillList.totalRecords = this.entityCounts.skillList;
             directoryResponse.agentList.allAgentCount = this.entityCounts.totalAgentCount;
@@ -741,14 +743,14 @@ export class CXoneDirectoryProvider {
             directoryResponse.teamList.totalSearchMatchRecords = this.totalSearchResultCount.teamList;
             directoryResponse.addressBookList.totalSearchMatchRecords = this.totalSearchResultCount.addressBookList;
             directoryResponse.agentList.favoriteAgents = this.favroiteAgentList || [];
-            if ((_j = this.currentEntities) === null || _j === void 0 ? void 0 : _j.length) {
-                if (this.currentEntities.includes(DirectoryEntities.ADDRESS_BOOK_LIST) && !((_l = (_k = directoryResponse === null || directoryResponse === void 0 ? void 0 : directoryResponse.addressBookList) === null || _k === void 0 ? void 0 : _k.data) === null || _l === void 0 ? void 0 : _l.length))
+            if ((_k = this.currentEntities) === null || _k === void 0 ? void 0 : _k.length) {
+                if (this.currentEntities.includes(DirectoryEntities.ADDRESS_BOOK_LIST) && !((_m = (_l = directoryResponse === null || directoryResponse === void 0 ? void 0 : directoryResponse.addressBookList) === null || _l === void 0 ? void 0 : _l.data) === null || _m === void 0 ? void 0 : _m.length))
                     directoryResponse.addressBookList.errorMsg = NO_MATCHING_RECORDS_FOUND;
-                if (this.currentEntities.includes(DirectoryEntities.AGENT_LIST) && !((_o = (_m = directoryResponse === null || directoryResponse === void 0 ? void 0 : directoryResponse.agentList) === null || _m === void 0 ? void 0 : _m.data) === null || _o === void 0 ? void 0 : _o.length))
+                if (this.currentEntities.includes(DirectoryEntities.AGENT_LIST) && !((_p = (_o = directoryResponse === null || directoryResponse === void 0 ? void 0 : directoryResponse.agentList) === null || _o === void 0 ? void 0 : _o.data) === null || _p === void 0 ? void 0 : _p.length))
                     directoryResponse.agentList.errorMsg = NO_MATCHING_RECORDS_FOUND;
-                if (this.currentEntities.includes(DirectoryEntities.SKILL_LIST) && !((_q = (_p = directoryResponse === null || directoryResponse === void 0 ? void 0 : directoryResponse.skillList) === null || _p === void 0 ? void 0 : _p.data) === null || _q === void 0 ? void 0 : _q.length))
+                if (this.currentEntities.includes(DirectoryEntities.SKILL_LIST) && !((_r = (_q = directoryResponse === null || directoryResponse === void 0 ? void 0 : directoryResponse.skillList) === null || _q === void 0 ? void 0 : _q.data) === null || _r === void 0 ? void 0 : _r.length))
                     directoryResponse.skillList.errorMsg = NO_MATCHING_RECORDS_FOUND;
-                if (this.currentEntities.includes(DirectoryEntities.TEAM_LIST) && !((_s = (_r = directoryResponse === null || directoryResponse === void 0 ? void 0 : directoryResponse.teamList) === null || _r === void 0 ? void 0 : _r.data) === null || _s === void 0 ? void 0 : _s.length))
+                if (this.currentEntities.includes(DirectoryEntities.TEAM_LIST) && !((_t = (_s = directoryResponse === null || directoryResponse === void 0 ? void 0 : directoryResponse.teamList) === null || _s === void 0 ? void 0 : _s.data) === null || _t === void 0 ? void 0 : _t.length))
                     directoryResponse.teamList.errorMsg = NO_MATCHING_RECORDS_FOUND;
                 if (!this.searchText)
                     this.currentEntities = [];
@@ -831,7 +833,7 @@ export class CXoneDirectoryProvider {
      * @param directoryResponse - directory response object
      */
     handleDirectoryPagination(directoryResponse) {
-        var _a, _b, _c, _d, _e, _f, _g, _h, _j, _k, _l, _m, _o, _p, _q, _r, _s, _t;
+        var _a, _b, _c, _d, _e, _f, _g, _h, _j, _k, _l, _m, _o, _p, _q, _r, _s, _t, _u, _v, _w, _x;
         return __awaiter(this, void 0, void 0, function* () {
             const db = yield dbInstance();
             let currentAgentList = yield (db === null || db === void 0 ? void 0 : db.get(IndexDBStoreNames.DIRECTORY, DirectoryEntities.AGENT_LIST));
@@ -860,7 +862,7 @@ export class CXoneDirectoryProvider {
                 });
                 agentList = newAgentList;
             }
-            if (((_m = (_l = directoryResponse.skillList) === null || _l === void 0 ? void 0 : _l.data) === null || _m === void 0 ? void 0 : _m.length) && currentSkillList.length && skillList.length) { // in case of skill list updation we will check if the updated data is present in the search option if so then only we will publish that data
+            if (((_m = (_l = directoryResponse.skillList) === null || _l === void 0 ? void 0 : _l.data) === null || _m === void 0 ? void 0 : _m.length) && (currentSkillList === null || currentSkillList === void 0 ? void 0 : currentSkillList.length) && (skillList === null || skillList === void 0 ? void 0 : skillList.length)) { // in case of skill list updation we will check if the updated data is present in the search option if so then only we will publish that data
                 const newSkillList = [];
                 (_p = (_o = directoryResponse.skillList) === null || _o === void 0 ? void 0 : _o.data) === null || _p === void 0 ? void 0 : _p.forEach(skill => {
                     const matchedSkillIndex = skillList.findIndex(e => e.skillId == skill.skillId);
@@ -869,7 +871,7 @@ export class CXoneDirectoryProvider {
                 });
                 skillList = newSkillList;
             }
-            if (((_r = (_q = directoryResponse.teamList) === null || _q === void 0 ? void 0 : _q.data) === null || _r === void 0 ? void 0 : _r.length) && (currentTeamList === null || currentTeamList === void 0 ? void 0 : currentTeamList.length) && teamList.length) { // in case of team list updation we will check if the updated data is present in the search option if so then only we will publish that data
+            if (((_r = (_q = directoryResponse.teamList) === null || _q === void 0 ? void 0 : _q.data) === null || _r === void 0 ? void 0 : _r.length) && (currentTeamList === null || currentTeamList === void 0 ? void 0 : currentTeamList.length) && (teamList === null || teamList === void 0 ? void 0 : teamList.length)) { // in case of team list updation we will check if the updated data is present in the search option if so then only we will publish that data
                 const newTeamList = [];
                 (_t = (_s = directoryResponse.teamList) === null || _s === void 0 ? void 0 : _s.data) === null || _t === void 0 ? void 0 : _t.forEach(agent => {
                     const matchedTeamIndex = teamList.findIndex(e => e.teamId == agent.teamId);
@@ -882,10 +884,10 @@ export class CXoneDirectoryProvider {
             directoryResponse.skillList.data = skillList;
             directoryResponse.teamList.data = teamList;
             //update entity count after pagination 
-            this.entityCounts.agentList = directoryResponse.agentList.data.length || 0;
-            this.entityCounts.skillList = directoryResponse.skillList.data.length || 0;
-            this.entityCounts.addressBookList = directoryResponse.addressBookList.data.length || 0;
-            this.entityCounts.teamList = directoryResponse.teamList.data.length || 0;
+            this.entityCounts.agentList = ((_u = directoryResponse.agentList.data) === null || _u === void 0 ? void 0 : _u.length) || 0;
+            this.entityCounts.skillList = ((_v = directoryResponse.skillList.data) === null || _v === void 0 ? void 0 : _v.length) || 0;
+            this.entityCounts.addressBookList = ((_w = directoryResponse.addressBookList.data) === null || _w === void 0 ? void 0 : _w.length) || 0;
+            this.entityCounts.teamList = ((_x = directoryResponse.teamList.data) === null || _x === void 0 ? void 0 : _x.length) || 0;
             return directoryResponse;
         });
     }
@@ -986,7 +988,7 @@ export class CXoneDirectoryProvider {
             let favAgentList = [];
             const agentListFromDB = (yield (db === null || db === void 0 ? void 0 : db.get(IndexDBStoreNames.DIRECTORY, DirectoryEntities.AGENT_LIST))) || [];
             if (agentListFromDB === null || agentListFromDB === void 0 ? void 0 : agentListFromDB.length) {
-                favAgentList = agentListFromDB === null || agentListFromDB === void 0 ? void 0 : agentListFromDB.filter((agent) => agent.isFavorite === true);
+                favAgentList = agentListFromDB === null || agentListFromDB === void 0 ? void 0 : agentListFromDB.filter((agent) => agent.isFavorite === true && agent.isActive);
                 if (agentName.length > 0) {
                     favAgentList = this.getFilteredAgentList(agentName.toUpperCase(), favAgentList);
                 }
@@ -1081,7 +1083,7 @@ export class CXoneDirectoryProvider {
                 addressBookList.forEach((addressBook) => {
                     var _a;
                     const addressBookEntries = (addressBook === null || addressBook === void 0 ? void 0 : addressBook.addressBooksEntries) || [];
-                    const matchedAddressBookIndex = currentAddressBookList.findIndex((currentAddressBook) => currentAddressBook.addressBookId == addressBook.addressBookId);
+                    const matchedAddressBookIndex = currentAddressBookList.findIndex((currentAddressBook) => currentAddressBook.addressBookId === addressBook.addressBookId);
                     if (matchedAddressBookIndex >= 0) {
                         if (addressBookEntries.length) {
                             let currentAddressBookEntries = ((_a = currentAddressBookList[matchedAddressBookIndex]) === null || _a === void 0 ? void 0 : _a.addressBooksEntries) || [];
@@ -1090,7 +1092,7 @@ export class CXoneDirectoryProvider {
                             if (currentAddressBookList === null || currentAddressBookList === void 0 ? void 0 : currentAddressBookList.length) {
                                 addressBookEntries.forEach((addressBookEntry, index) => {
                                     addressBookEntry.addressBookName = addressBook.addressBookName;
-                                    const matchedAddressBookEntryIndex = currentAddressBookEntries.findIndex((currentAddressBookEntry) => currentAddressBookEntry.addressBookEntryId == addressBookEntry.addressBookEntryId);
+                                    const matchedAddressBookEntryIndex = currentAddressBookEntries.findIndex((currentAddressBookEntry) => currentAddressBookEntry.addressBookEntryId === addressBookEntry.addressBookEntryId);
                                     if (matchedAddressBookEntryIndex >= 0)
                                         currentAddressBookEntries[matchedAddressBookEntryIndex] = addressBookEntries[index];
                                     else
@@ -1174,7 +1176,7 @@ export class CXoneDirectoryProvider {
      * @param skillList - new skill list response
      */
     filterSkillByMediaType(skillList) {
-        return (skillList.filter(skill => skill.mediaType === (this === null || this === void 0 ? void 0 : this.mediaType) && skill.isActive) || []);
+        return ((skillList === null || skillList === void 0 ? void 0 : skillList.filter(skill => skill.mediaTypeId === (this === null || this === void 0 ? void 0 : this.mediaType) && skill.isActive)) || []);
     }
     /**
      * Used to update the team list in index DB as per the new list

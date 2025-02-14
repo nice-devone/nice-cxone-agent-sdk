@@ -1,5 +1,5 @@
-import { CopilotFeedbackData } from './copilot-feedback-data';
-import { CopilotElement } from './index';
+import { OverallContactFeedbackData } from './copilot-feedback-data';
+import { CopilotElement, CopilotFilterDetails, ContactHistoryData } from './index';
 /**
  * model interface for agent assist payload data
  */
@@ -49,7 +49,35 @@ export interface CopilotMessageData {
     */
     emailCards?: CopilotElement[];
     /**
-     * field for storing feedback data
+     * field for storing comprehensive feedback card data
+     */
+    comprehensiveFeedback: OverallContactFeedbackData;
+    /**
+     * field for storing filter Details
     */
-    feedbackData: CopilotFeedbackData[];
+    filterDetails?: CopilotFilterDetails;
+    /**
+     * flag for checking if editor action is performed
+     */
+    isEditorActionPerformed: boolean;
+    /**
+     * flag for checking if comprehensive feedback is sent
+     */
+    isComprehensiveFeedbackSent: boolean;
+    /**
+     * flag for checking if comprehensive cards needs to re-render
+     */
+    updateComprehensiveCard: boolean;
+    /**
+     * flag for generating comprehensive card
+     */
+    generateComprehensiveCard: boolean;
+    /**
+     * flag for checking if journey summary is expanded
+     */
+    isJourneySummaryExpanded: boolean;
+    /**
+     * field for storing contact history data
+     */
+    contactHistory: ContactHistoryData[];
 }

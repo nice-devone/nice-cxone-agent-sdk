@@ -73,6 +73,7 @@ const CXoneRichPluginSchema = (0, yup_1.object)().shape({
             elements: (0, yup_1.array)().of((0, yup_1.object)()).nullable(),
             variables: (0, yup_1.array)().nullable(),
             mimeType: (0, yup_1.string)().optional().nullable(),
+            filename: (0, yup_1.string)().optional().nullable(),
         }).nullable()).nullable(),
     }).nullable()).nullable(),
 });

@@ -263,4 +263,10 @@ tslib_1.__exportStar(require("./lib/model/screenPop/cxone-custom-screenpop"), ex
 tslib_1.__exportStar(require("./lib/model/voice-bio-hub/voice-bio-hub-response"), exports);
 tslib_1.__exportStar(require("./lib/model/voice-bio-hub/voice-bio-hub"), exports);
 tslib_1.__exportStar(require("./lib/model/agent-assist/agent-assist-get-next-response"), exports);
+tslib_1.__exportStar(require("./lib/model/agent-copilot/copilot-interfaces/copilot-feedback-data"), exports);
+tslib_1.__exportStar(require("./lib/model/customer-card/cxone-sf-crm-navigation-data"), exports);
+tslib_1.__exportStar(require("./enum/crm"), exports);
+tslib_1.__exportStar(require("./enum/typing-indicator-actions"), exports);
+tslib_1.__exportStar(require("./lib/enum/multimedia-types"), exports);
+tslib_1.__exportStar(require("./lib/enum/feedback-tags"), exports);
 //# sourceMappingURL=index.js.map

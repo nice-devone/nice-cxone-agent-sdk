@@ -4,7 +4,7 @@ import { AgentStateService } from '../../agent-state/service/agent-state-service
 import { Subject } from 'rxjs';
 import { CXoneAuth, CXoneUser } from '@nice-devone/auth-sdk';
 import { CXoneAcdClient } from '../../cxone-acd-client';
-import { PersonalConnectionService } from '@nice-devone/agent-sdk';
+import { CXoneClient, PersonalConnectionService } from '@nice-devone/agent-sdk';
 import { CXoneEventMessenger } from '../../event-messenger/cxone-event-messenger';
 /** This is the class to manage session mechanism */
 export class CXoneSession {
@@ -20,18 +20,21 @@ export class CXoneSession {
         this.auth = {};
         this.user = {};
         this.cxoneAcdClient = {};
+        this.cxoneClient = {};
         this.agentStateService = {};
         this.personalConnectionService = {};
         this.onAgentSessionChange = new Subject();
         this.networkOfflineSubject = new Subject();
         this.naturalCallingSkillListSubject = new Subject();
         this.hoursOfOperationSubject = new Subject();
+        this.isUiQueueEnabled = false;
         this.auth = CXoneAuth.instance;
         this.user = CXoneUser.instance;
         this.agentStateService = AgentStateService.instance;
         this.personalConnectionService = PersonalConnectionService.instance;
         this.acdSessionManager = ACDSessionManager.instance;
         this.cxoneAcdClient = CXoneAcdClient.instance;
+        this.cxoneClient = CXoneClient.instance;
         const accessToken = this.auth.getAuthToken().accessToken;
         const cxOneConfig = this.auth.getCXoneConfig();
         const userInfo = this.user.getUserInfo();
@@ -56,7 +59,8 @@ export class CXoneSession {
     startSession(startSessionRequest) {
         if (startSessionRequest.stationId !== '' ||
             startSessionRequest.stationPhoneNumber !== '') {
-            return this.acdSessionManager.startSession(startSessionRequest);
+            this.isUiQueueEnabled = this.cxoneClient.isUIQueueEnabled;
+            return this.acdSessionManager.startSession(startSessionRequest, this.isUiQueueEnabled);
         }
         else {
             return Promise.reject(new CXoneSdkError(CXoneSdkErrorType.INVALID_METHOD_INVOCATION, 'Missing stationId or station phone number'));
@@ -70,7 +74,8 @@ export class CXoneSession {
      * ```
      */
     joinSession() {
-        return this.acdSessionManager.joinSession();
+        this.isUiQueueEnabled = this.cxoneClient.isUIQueueEnabled;
+        return this.acdSessionManager.joinSession({ isUIQueueEnabled: this.isUiQueueEnabled });
     }
     /**
      * Method to end the session

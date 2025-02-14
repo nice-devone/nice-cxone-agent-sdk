@@ -1,5 +1,5 @@
 import { Subject } from 'rxjs';
-import { DirectoryResponse, DirectoryRequest, AgentSkill, AgentStateResponse, AddressBookEntriesResponse, AddressBooks } from '@nice-devone/common-sdk';
+import { DirectoryResponse, DirectoryRequest, AgentSkill, AgentStateResponse, AddressBookEntriesResponse, AddressBooks, SAB2AddressBook } from '@nice-devone/common-sdk';
 import { AddressBookService } from './service/address-book-service';
 import { SkillService } from './service/skill-service';
 import { CXoneDirectoryProvider } from './provider/cxone-directory-provider';
@@ -60,7 +60,7 @@ export declare class CXoneDirectory {
    * ```
    */
     getFilteredStandardBookEntries: (data: {
-        addressBooks: AddressBooks[];
+        addressBooks: (AddressBooks | SAB2AddressBook)[];
         skip: number;
         top: number;
         searchText: string;

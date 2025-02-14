@@ -62,23 +62,21 @@ Import other relevant functionalities as needed (e.g., call control, notificatio
 ```
 2. Initialize CXoneDigital Client:
 ```
-const cxoneDigtialClient: CXoneDigitalClient = CXoneDigitalClient.instance;
-
-cxoneDigtialClient.digitalService.getContactHistory('customerId); 
+CXoneDigitalClient.instance.initDigitalEngagement();
 ```
 3. Leverage SDK functionalities:
 
-Refer to the official documentation for detailed usage examples on specific features like CXoneDigitalClient, CXoneDigitalContact,SortOrder etc.
+Refer to the official documentation for detailed usage examples on specific features like CXoneDigitalClient, CXoneDigitalContact, DigitalContactManager etc.
 
 Explore the available classes and methods within the library to interact with CXone digital-sdk functionalities.
 
 ### Documentation
 
-For detailed documentation and developer related queries, Please visit  [Link to developer documentation](https://developer.niceincontact.com/)
+For detailed documentation and developer related queries, Please visit [Official SDK Documentation](https://help.nice-incontact.com/content/agent/agentapplicationadministration/cxoneagent/cxasdk.htm?tocpath=Agent%20Application%20Administration%7CAgent%20Application%20Administration%7CCXone%20Agent%7C_____8)
 
 ### Compatibility
 
-This SDK is likely compatible with specific CXone ACD versions. Refer to the documentation for supported versions.
+This SDK is likely compatible with specific CXone Agent SDK versions. Refer to the documentation for supported versions.
 
 ### License
 

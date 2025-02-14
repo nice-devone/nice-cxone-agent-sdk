@@ -88,6 +88,10 @@ export declare class SkillActivityEvent extends CXoneEvent {
      */
     skillQueueCount: number;
     /**
+     * @remarks type of skill
+     */
+    workItemQueueType: string;
+    /**
      * @remarks isRestricted
      */
     /**

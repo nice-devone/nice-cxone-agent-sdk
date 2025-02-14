@@ -11,5 +11,6 @@ export declare enum IndexDBKeyNames {
     COPILOT = "copilot",
     INTERACTION_FAILED_MESSAGES = "interactionFailedMessages",
     WEM_NOTIFICATIONS = "wemNotifications",
-    SKILL_ACTIVITY = "SkillActivity"
+    SKILL_ACTIVITY = "SkillActivity",
+    ACD_CONTACT_HISTORY = "acdContactHistory"
 }

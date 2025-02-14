@@ -1,5 +1,4 @@
-const wsWorkerACPCode = () => {
-    self.importScripts(
+const wsWorkerACPCode = `self.importScripts(
       'https://cdnjs.cloudflare.com/ajax/libs/rxjs/6.6.7/rxjs.umd.min.js'
     );
     
@@ -47,9 +46,7 @@ const wsWorkerACPCode = () => {
      * 
      * @example
      * 
-     * ```
      * connect('ws://localhost:8089');
-     * ```
      * 
      */
     function connect(input) {
@@ -70,8 +67,8 @@ const wsWorkerACPCode = () => {
             self.postMessage({
               type: WSEventType.CLOSE,
               message: {
-                code: `${closeEvent?.code}`,
-                reason: `${closeEvent?.reason}`,
+                code: closeEvent?.code,
+                reason: closeEvent?.reason,
               }
             });
             stopHeartbeat();
@@ -85,7 +82,7 @@ const wsWorkerACPCode = () => {
           self.postMessage({
             type: WSEventType.ERROR,
             message: {
-              error: `${err}`,
+              error: err,
             }
           });
           stopHeartbeat();
@@ -97,9 +94,7 @@ const wsWorkerACPCode = () => {
    /**
      * This method used to start heartbeat
      * @example 
-     * * ```
      * startHeartbeat();
-     * ```
      */
     function startHeartbeat() {
       heartbeatSubscription = self.rxjs.interval(HEARTBEAT_INTERVAL).subscribe(() => {
@@ -113,9 +108,7 @@ const wsWorkerACPCode = () => {
      /**
      * This method used to stop heartbeat
      * @example
-     * ```
      * stopHeartbeat();
-     * ```
      */
     function stopHeartbeat() {
       if (heartbeatSubscription) {
@@ -127,9 +120,7 @@ const wsWorkerACPCode = () => {
      * This method used reconnect websocket
      * @example
      * 
-     * ```
      * attemptReconnect(data);
-     * ```
      * @param data - which is object contain errReason and reasonToReconnect
      * @param callback - callback method which will be executed when time interval is completed 
      * 
@@ -140,7 +131,7 @@ const wsWorkerACPCode = () => {
         let reconnectInfo = input.reconnectInfo;
         if (wsReconnectAttempt < reconnectInfo.retryOptions.maxRetryAttempts && !isConnectionOpen) {
           wsReconnectAttempt++;
-          const message = `Websocket reconnect attempt ${wsReconnectAttempt} of ${reconnectInfo.retryOptions.maxRetryAttempts}...`;
+          const message = 'Websocket reconnect attempt ' + wsReconnectAttempt + ' of ' + reconnectInfo.retryOptions.maxRetryAttempts;
           const reconnectResponse = {
             maxAttempts: reconnectInfo.retryOptions.maxRetryAttempts,
             currentAttempt: wsReconnectAttempt
@@ -158,9 +149,7 @@ const wsWorkerACPCode = () => {
     /**
      * This Method used to dispose the websocket connection 
      *@example
-     * ```
      * close();
-     * ```
      */
      function close() {
       wsSubject?.complete();
@@ -174,17 +163,13 @@ const wsWorkerACPCode = () => {
        * @param msg - message
        * @example - 
        * 
-       * ```
        * send('hi');
-       * ```
        */
       function send(input) {
         if (wsSubject) {
           wsSubject.next(input.msg);
         }
-      }
-  
-  }
+      }`
   
   
   export default wsWorkerACPCode;

@@ -56,5 +56,9 @@ export var CXoneProductFeature;
    * @remarks - Product feature Id for Noise Cancellation - 40355
    */
     CXoneProductFeature[CXoneProductFeature["NC_CXONE_AGENT"] = 40355] = "NC_CXONE_AGENT";
+    /**
+     * @remarks - Product feature Id for UI Queue
+     */
+    CXoneProductFeature[CXoneProductFeature["UI_QUEUE_WS"] = 30254] = "UI_QUEUE_WS";
 })(CXoneProductFeature || (CXoneProductFeature = {}));
 //# sourceMappingURL=cxone-product-feature.js.map

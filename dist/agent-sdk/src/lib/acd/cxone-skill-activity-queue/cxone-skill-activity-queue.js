@@ -3,7 +3,6 @@ import { Subject } from 'rxjs';
 import { CXoneAgentQueuesProvider } from '../provider/cxone-agent-queues-provider';
 import { CXoneAgentQueuesDetailProvider } from '../provider/cxone-agent-queues-detail-provider';
 import { CXoneLeaderElector, MessageBus, MessageType } from '@nice-devone/common-sdk';
-import { LocalStorageHelper, StorageKeys } from '@nice-devone/core-sdk';
 /** This is the base class for ACD */
 export class CXoneSkillActivityQueue {
     /**
@@ -51,6 +50,8 @@ export class CXoneSkillActivityQueue {
     }
     /**
      * Used to start the agent queue polling
+     * Note - while the parameter isn't used anymore there is a strange call to this method in cxone-client.ts
+     * that I don't understand and don't want to mess with so keeping it as is for now.
      * @example -
      * ```
      * this.cxoneQueue.startAgentQueuesPolling()
@@ -58,16 +59,8 @@ export class CXoneSkillActivityQueue {
      */
     startAgentQueuesPolling(agentId) {
         if (CXoneLeaderElector.instance.isLeader) {
-            if (!agentId) {
-                agentId = LocalStorageHelper.getItem(StorageKeys.QUEUED_AGENT_ID);
-            }
-            else {
-                LocalStorageHelper.setItem(StorageKeys.QUEUED_AGENT_ID, agentId);
-            }
-            if (agentId) {
-                this.agentQueueProvider.agentQueuesPolling(agentId);
-                this.agentQueuesDetailProvider.agentQueuesDetailsPolling(agentId);
-            }
+            this.agentQueueProvider.agentQueuesPolling(agentId);
+            this.agentQueuesDetailProvider.agentQueuesDetailsPolling(agentId);
         }
         else {
             // broadcast data

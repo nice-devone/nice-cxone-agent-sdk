@@ -8033,6 +8033,22 @@ export interface ExternalPlatformTemplateElement {
      * @remarks template variables
      */
     variables?: Record<string, string>;
+    /**
+     * @remarks template elements
+     */
+    elements?: Array<ExternalPlatformTemplateElement>;
+    /**
+     * @remarks file name
+     */
+    filename?: string;
+    /**
+     * @remarks file url
+     */
+    url?: string;
+    /**
+     * @remarks file mime type
+     */
+    mimeType?: string;
 }
 /**
  * Interface for external platform message template

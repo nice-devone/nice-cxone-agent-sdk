@@ -6,11 +6,11 @@ export declare class SkillEvent extends CXoneEvent {
     /**
      * @remarks  Media type number
      */
-    mediaType: number;
+    mediaTypeId: number;
     /**
      * @remarks  Media type name of the channel like Chat, email, call etc..
      */
-    mediaName: string;
+    mediaTypeName: string;
     /**
      * @remarks  Indicates if skill is in ACTIVE state
      */

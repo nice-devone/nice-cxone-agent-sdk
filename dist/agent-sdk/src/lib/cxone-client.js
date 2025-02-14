@@ -27,6 +27,8 @@ import { PresenceSyncService } from './presence-sync/service/presence-sync-servi
 import { AgentAssistWSService } from './agent-assist/agent-assist-ws-service';
 import { AgentAssistProvider } from './enum/agent-assist-provider';
 import { VoiceBioHubService } from './voice-bio-hub/voice-bio-hub-service';
+import { CXoneAgentContactHistory } from './acd/cxone-agent-contact-history/cxone-agent-contact-history';
+import { CXoneProductFeature } from './acd';
 /** This is the base class for ACD */
 export class CXoneClient {
     /**
@@ -43,6 +45,7 @@ export class CXoneClient {
         this.directory = {};
         this.agentPermission = {};
         this.agentSetting = {};
+        this.agentContactHistory = {};
         this.skillActivityQueue = {};
         this.notification = {};
         this.copilotNotificationClient = {};
@@ -68,6 +71,7 @@ export class CXoneClient {
         this.presenceSyncService = {};
         this.agentAssistWSService = {};
         this.voiceBioHubService = {};
+        this.isUIQueueEnabled = false;
         /**
          * Subscription for leader change event
          */
@@ -81,11 +85,8 @@ export class CXoneClient {
                     if (isRefreshTokenFlowStarted) {
                         // Start join session and initiate get next event
                         if (this.acdSessionManager.hasSessionId) {
-                            this.acdSessionManager.toggleAgentEventsReceivingMethod(true);
+                            this.acdSessionManager.toggleAgentEventsReceivingMethod({ invokeSnapshot: true, isUIQueueEnabled: this.isUIQueueEnabled });
                         }
-                        // Agent queue polling
-                        if (this.skillActivityQueue.startAgentQueuesPolling)
-                            this.skillActivityQueue.startAgentQueuesPolling();
                         // WEM Notification polling
                         const wemNotificationPollingConfig = (_a = this.notification.wemNotificationProvider) === null || _a === void 0 ? void 0 : _a.getWemNotificationPollingConfig();
                         if (wemNotificationPollingConfig) {
@@ -115,7 +116,7 @@ export class CXoneClient {
                             this.notification.terminateWemWebSocket();
                             break;
                         case MessageType.JOIN_SESSION_FOR_NON_LEADER:
-                            this.acdSessionManager.toggleAgentEventsReceivingMethod(true, msg.data);
+                            this.acdSessionManager.toggleAgentEventsReceivingMethod({ invokeSnapshot: true, sessionId: msg.data, isUIQueueEnabled: this.isUIQueueEnabled });
                             break;
                         case MessageType.WEM_NOTIFICATION_ACK:
                             this.notification.sendWemAcknowledge(msg.data);
@@ -186,10 +187,11 @@ export class CXoneClient {
             this.acdSessionManager.agentAssistSubject.subscribe((agentAssist) => {
                 var _a;
                 const { allParams } = agentAssist;
-                const agentAssistJson = JSON.parse((allParams === null || allParams === void 0 ? void 0 : allParams.AgentAssistAppConfigJson) || '{}');
+                const acpConfig = (allParams === null || allParams === void 0 ? void 0 : allParams.AgentAssistAppConfigJson) || '{}';
+                const agentAssistJson = JSON.parse(acpConfig);
                 const providerId = (_a = agentAssistJson === null || agentAssistJson === void 0 ? void 0 : agentAssistJson.Params) === null || _a === void 0 ? void 0 : _a.providerId;
                 if (agentAssistJson && providerId === AgentAssistProvider.AGENT_COPILOT) {
-                    this.copilotService.setAgentAssistConfig(agentAssistJson.ContactId, agentAssistJson);
+                    this.copilotService.setAgentAssistConfig(agentAssistJson.ContactId, acpConfig);
                 }
             });
         };
@@ -236,6 +238,7 @@ export class CXoneClient {
         this.directory = new CXoneDirectory();
         this.agentPermission = new CXoneAgentPermission();
         this.agentSetting = new CXoneAgentSetting();
+        this.agentContactHistory = new CXoneAgentContactHistory();
         this.cxoneTenant = new CXoneTenant();
         this.wemSchedule = new WemSchedule();
         this.iexService = new IEXService();
@@ -252,6 +255,12 @@ export class CXoneClient {
         this.transcript = new TranscriptService();
         this.notification = new CXoneNotificationManager(CXoneClient.instance.cxoneTenant);
         this.voiceBioHubService = new VoiceBioHubService();
+        this.cxoneTenant.checkProductEnablement([CXoneProductFeature.UI_QUEUE_WS]).then((resp) => {
+            this.isUIQueueEnabled = !!resp;
+            this.logger.info('initAuthDependentModules', 'UI Queue enablement: ' + this.isUIQueueEnabled);
+        }).catch(() => {
+            this.logger.error('initAuthDependentModules', 'Failed to check UI Queue enablement');
+        });
     }
     /**
      * method to initialize AgentIntegrationConfigurationService
@@ -402,6 +411,28 @@ export class CXoneClient {
                 }
             }
         });
+    }
+    /**
+     * Method to get feedback categories and priorities
+     * @returns  - It returns the feedback categories and priorities
+     * @example
+     * ```
+     * getFeedbackCategoriesAndPriorities();
+     * ```
+     */
+    getFeedbackCategoriesAndPriorities() {
+        return AdminService.instance.getFeedbackCategoriesAndPriorities();
+    }
+    /**
+     * Method to submit feedback issue
+     * @returns  - promise result from submit feedback post
+     * @example
+     * ```
+     * submitFeedback();
+     * ```
+     */
+    submitFeedback(feedbackData) {
+        return AdminService.instance.submitFeedback(feedbackData);
     }
 }
 //# sourceMappingURL=cxone-client.js.map

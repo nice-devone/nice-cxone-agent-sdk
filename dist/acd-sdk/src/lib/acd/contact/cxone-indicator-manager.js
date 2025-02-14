@@ -147,14 +147,17 @@ export class CXoneIndicatorManager {
             return indicator;
         };
         /**
-         * Submit function for custom form
+         * Submits custom form data to the server via the custom form API and closes the window
          * @param event - submit event with form elements
          * @example
          * ```
-         * this.onCustomFormSubmit(submitEvent);
+         * this.onCustomFormSubmit(submitEvent, customFormWindow);
          * ```
+         *
          */
-        this.onCustomFormSubmit = (event) => {
+        // This any de-lint is needed due to the form elements dynamically being parsed.
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        this.onCustomFormSubmit = (event, customFormWindow) => {
             var _a;
             const formElement = event.target || event.srcElement;
             const rawDataMap = {};
@@ -229,7 +232,15 @@ export class CXoneIndicatorManager {
                 indicatorName: indicatorName,
             };
             // The API expects a '|' delimited string for each key/value combination. E.g. 'checkbox1=yes|textbox1=hello|multiSelect1=Option1,Option2'
-            this.acdSessionManager.postCustomFormData(contactId, customFormData);
+            this.acdSessionManager.postCustomFormData(contactId, customFormData).then((response) => {
+                if ('status' in response && response.status === 202) {
+                    this.logger.debug('postCustomFormData', 'postCustomFormData success: ' + response.toString());
+                    customFormWindow === null || customFormWindow === void 0 ? void 0 : customFormWindow.close();
+                }
+                else {
+                    this.logger.error('postCustomFormData', 'postCustomFormData failed: ' + response.toString());
+                }
+            });
         };
         this.adminService = AdminService.instance;
         this.acdSessionManager = ACDSessionManager.instance;

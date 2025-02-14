@@ -50,5 +50,13 @@ var DigitalMessageContentTypes;
      * Message type of adaptive card
      */
     DigitalMessageContentTypes["ADAPTIVE_CARD"] = "ADAPTIVE_CARD";
+    /**
+     * Message type of menu
+     */
+    DigitalMessageContentTypes["MENU"] = "MENU";
+    /**
+     * Message type of text template
+     */
+    DigitalMessageContentTypes["TEXT_TEMPLATE"] = "TEXT_TEMPLATE";
 })(DigitalMessageContentTypes = exports.DigitalMessageContentTypes || (exports.DigitalMessageContentTypes = {}));
 //# sourceMappingURL=digital-message-content-types.js.map

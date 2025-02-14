@@ -1,5 +1,4 @@
-const userSlotWorkerCode = () =>  {
-  self.importScripts(
+const userSlotWorkerCode = `self.importScripts(
     'https://cdnjs.cloudflare.com/ajax/libs/rxjs/6.6.7/rxjs.umd.min.js'
   );
 
@@ -34,9 +33,7 @@ const userSlotWorkerCode = () =>  {
    * @param callback - method to invoke on completion
    * @param polling - polling interval & polling start indicator
    * @example
-   * ```
    * startUserSlotApiPolling(request, proxy(callback.bind(this)), pollingOptions)
-   * ```
   */
     async function startUserSlotApiPolling(input) {
       const requestParams = input.requestParams;
@@ -67,9 +64,7 @@ const userSlotWorkerCode = () =>  {
   * @param requestParam - http request along with headers and url
   * @param callback - method to invoke on completion
   * @example
-  * ```
   * getUserSlotDetails(request, proxy(callback.bind(this)))
-  * ```
  */
   async function getUserSlotDetails(requestParams) {
     try{
@@ -103,9 +98,7 @@ const userSlotWorkerCode = () =>  {
    * Perform Agent keep alive polling on web worker thread
    * @param requestParam - http request along with headers, url and pollingoptions
    * @example
-   * ```
    * startAgentKeepAlivePolling(request)
-   * ```
   */
   async function startAgentKeepAlivePolling(input) {
     const requestParams = input.requestParams;
@@ -146,9 +139,7 @@ const userSlotWorkerCode = () =>  {
    * @param polling - polling interval & polling start indicator
    * @param digitalAgentState - Id for agent current state
    * @example
-   * ```
    * updateDigitalUserStatusPolling(request, proxy(callback.bind(this)), pollingOptions, 'bf919341');
-   * ```
    */
     async function updateDigitalUserStatusPolling(input){
       const requestParams = input.requestParams;
@@ -184,9 +175,7 @@ const userSlotWorkerCode = () =>  {
    * @param requestParam - http request along with headers and url
    * @param callback - method to invoke on completion
    * @example
-   * ```
    * updateKeepAliveStatus(request, proxy(callback.bind(this)))
-   * ```
    */
   async function updateKeepAliveStatus(
     requestParams
@@ -220,9 +209,7 @@ const userSlotWorkerCode = () =>  {
    * Method to return request body object
    * @param digitalAgentStatusId - Id for agent current state
    * @example
-   * ```
    * this.updateRequestBody('bf919341');
-   * ```
    */
     function updateRequestBody(digitalAgentStatusId) {
       const curTime = new Date().getTime();
@@ -237,9 +224,7 @@ const userSlotWorkerCode = () =>  {
       /**
    * Method to convert ISO Time format
    * @example -
-   * ```
    * this.toIsoStringWithTimeZoneOffset()
-   * ```
    */
   function toIsoStringWithTimeZoneOffset(date) {
     const tzo = -date.getTimezoneOffset();
@@ -248,9 +233,7 @@ const userSlotWorkerCode = () =>  {
      * Method to add '0' in single digit number
      * @param num - number
      * @example
-     * ```
      * pad(1)
-     * ```
      */
     const pad = (num) => {
       return (num < 10 ? '0' : '') + num;
@@ -319,7 +302,6 @@ const userSlotWorkerCode = () =>  {
       return body.toString();
     }
     return '';
-  }
-}
+  }`
 
 export default userSlotWorkerCode;

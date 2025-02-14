@@ -109,12 +109,12 @@ import {
 
 ### Usage
 
-The library provides a modular structure. Import the specific functionalities you need from the relevant sub-modules within the src folder. Refer to the API documentation for detailed usage instructions for each function or model.
+The library provides a modular structure. Import the specific functionalities you need from the relevant sub-modules within the src folder. Refer to the documentation for detailed usage instructions for each function or model.
 
 ### License
 
-This library is licensed under the (mention license here).
+Check the license file for specific terms regarding the use of this SDK.
 
 ### Support
 
-For any issues or questions, please refer to the (mention support channel/link here).
+For further assistance, refer to the official documentation or reach out to NICE CXone support channels.

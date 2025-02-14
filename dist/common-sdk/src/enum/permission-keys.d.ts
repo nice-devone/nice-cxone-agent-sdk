@@ -48,5 +48,9 @@ export declare enum PermissionKeys {
      * permission key of showing or hiding the ACS radio button during
      * preference selection after the user logged in the application.
      */
-    ACS = "LaunchACS"
+    ACS = "LaunchACS",
+    /**
+     * permission key whether Agent soft phone login allow auto accept of contacts
+     */
+    HIDE_CALLER_PHONE_NUMBER = "HideCallerPhoneNumber"
 }

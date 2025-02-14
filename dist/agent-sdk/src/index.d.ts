@@ -26,3 +26,7 @@ export * from './lib/presence-sync/service/presence-sync-service';
 export * from './lib/enum/agent-assist-title';
 export * from './lib/enum/agent-assist-provider';
 export * from '../../agent-sdk/src/lib/acd/mock-responses/mock-tenant-data-response';
+export * from './lib/directory/cxone-directory';
+export * from './lib/directory/provider/cxone-directory-provider';
+export * from './lib/acd/cxone-agent-setting/cxone-agent-setting';
+export * from './lib/commitment/commitment-service';

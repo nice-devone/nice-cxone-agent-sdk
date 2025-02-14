@@ -8,12 +8,14 @@ export declare class CXoneSession {
     private auth;
     private user;
     private cxoneAcdClient;
+    private cxoneClient;
     agentStateService: AgentStateService;
     personalConnectionService: PersonalConnectionService;
     onAgentSessionChange: Subject<AgentSessionResponse>;
     networkOfflineSubject: Subject<UpdateNetworkTimeoutEvent>;
     naturalCallingSkillListSubject: Subject<boolean>;
     hoursOfOperationSubject: Subject<unknown>;
+    private isUiQueueEnabled;
     /**
      * get instance for CXoneSession
      * @example

@@ -8,7 +8,7 @@ declare class StudioForDesktop {
     setupCommunicationInterface: (dispatch: Dispatch<any>, initialize: ActionCreator<any>, setToken: ActionCreatorWithPayload<string, 'studioActionEditorSlice/setToken'>, setData: ActionCreatorWithPayload<string, 'studioActionEditorSlice/setData'>) => void;
     populate: (data: {
         [key: string]: any;
-    }) => Promise<void>;
+    }, closeAfterSave?: boolean) => Promise<void>;
     close: () => Promise<void>;
     private getWindowObject;
     private setfillData;
@@ -24,7 +24,7 @@ declare class StudioForWeb {
     setupCommunicationInterface: (origin: string, dispatch: Dispatch<any>, initialize: ActionCreatorWithPayload<string, 'studioActionEditorSlice/setToken'>, setToken: ActionCreatorWithPayload<string, 'studioActionEditorSlice/setToken'>, setData: ActionCreatorWithPayload<string, 'studioActionEditorSlice/setData'>) => void;
     populate: (data: {
         [key: string]: any;
-    }) => void;
+    }, closeAfterSave?: boolean) => void;
     close: () => void;
 }
 /**
@@ -61,7 +61,7 @@ export default class Studio {
      */
     populate: (data: {
         [key: string]: any;
-    }) => Promise<void>;
+    }, closeAfterSave?: boolean) => Promise<void>;
     /**
      * Method for populating studio action with editor data.
      * @example

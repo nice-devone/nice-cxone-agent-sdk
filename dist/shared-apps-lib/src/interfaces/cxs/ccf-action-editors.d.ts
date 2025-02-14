@@ -254,3 +254,28 @@ export interface CcfActionEditorSlice {
      */
     selection: any;
 }
+export interface AgentIntegrationEntities {
+    label: string;
+    name: string;
+}
+export interface AgentIntegrationFieldsParams extends AgentIntegrationEntities {
+    isUpdatable: boolean;
+}
+export interface AgentIntegrationEntityField {
+    label: string;
+    name: string;
+    fields: AgentIntegrationFieldsParams[];
+}
+export interface AgentIntegrationWorkflowEntitiesFields {
+    entities: AgentIntegrationEntityField[];
+}
+export interface AgentIntegrationEntities {
+    label: string;
+    name: string;
+}
+export interface AgentIntegrationFieldsParams extends AgentIntegrationEntities {
+    isUpdatable: boolean;
+}
+export interface AgentIntegrationWorkflowEntities {
+    entities: AgentIntegrationEntities[];
+}

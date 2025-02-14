@@ -1,5 +1,4 @@
-const workercode = () => {
-  self.importScripts(
+const workercode = `self.importScripts(
     'https://cdnjs.cloudflare.com/ajax/libs/sockjs-client/1.5.1/sockjs.min.js'
   );
 
@@ -36,9 +35,7 @@ const workercode = () => {
    *@param timezone - client timezone
    *@param retryOptions - reconnect options
    * @example -
-   * ```
    * initialize(notificationWsInfo)
-   * ```
    */
   const initialize = (inputRequestData, inputWemWsAuthData) => {
     requestData = inputRequestData;
@@ -52,9 +49,7 @@ const workercode = () => {
    * This method to start Wem websocket connection
    *
    * @example -
-   * ```
    * startWemWebsocket()
-   * ```
    */
   const startWemWebSocket = () => {
     if (!sock) {
@@ -119,9 +114,7 @@ const workercode = () => {
    * This method to attempt reconnect
    * @param callback - execute a callback method from consumer class
    * @example -
-   * ```
    * attemptReconnect()
-   * ```
    */
   const attemptReconnect = () => {
     currentRetryAttempt += 1;
@@ -146,9 +139,7 @@ const workercode = () => {
    *@param msgId - Notification message id
    *@param callback - execute a callback method from consumer class
    * @example -
-   * ```
    * sendAcknowledge('1002bcd', callback)
-   * ```
    */
   const sendWemAcknowledge = (msgId) => {
     if (sock) {
@@ -174,9 +165,7 @@ const workercode = () => {
   /**
    * Method to clear time interval
    * @example
-   * ```
    * this.clearConnectionInterval();
-   * ```
    */
   const clearConnectionInterval = () => {
     if (retryTimerId) {
@@ -189,13 +178,11 @@ const workercode = () => {
    * Method to perform reconnect notification ws connection
    * @param callback - execute a callback method from consumer class
    * @example
-   * ```
    * this.retryToConnect();
-   * ```
    */
   const retryToConnect = () => {
     sock = null;
-    const errorMessage = `CXone notification ws reconnect attempt ${currentRetryAttempt} of ${retryOptions.maxRetryAttempts}`;
+    const errorMessage = 'CXone notification ws reconnect attempt ' + currentRetryAttempt + ' of ' + retryOptions.maxRetryAttempts;
     self.postMessage({
       type: 'error',
       message: errorMessage,
@@ -206,9 +193,7 @@ const workercode = () => {
   /**
    * This method to rest connect interval
    * @example -
-   * ```
    * resetTryToConnectInterval()
-   * ```
    */
   const resetConnectInterval = () => {
     currentRetryAttempt = 0;
@@ -219,9 +204,7 @@ const workercode = () => {
    * Method to terminate notification ws connection
    * @param callback - execute a callback method from consumer class
    * @example
-   * ```
    * this.terminateWsConnection(callback);
-   * ```
    */
   const terminateWemWebSocket = () => {
     if (sock) {
@@ -238,6 +221,5 @@ const workercode = () => {
         message: 'CXone notification ws connection is already terminated',
       });
     }
-  };
-};
+  };`
 export default workercode;

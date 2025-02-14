@@ -20,8 +20,4 @@ export interface AuthSettings {
      * For example, this might be used to store the URL that the user should be directed to after a successful login.
      */
     state?: string;
-    /**
-    * Required. This value will depend on your application.
-    */
-    isVerificationRequired?: boolean;
 }

@@ -1,3 +1,4 @@
+import { FeedbackData } from '@nice-devone/core-sdk';
 import { AgentSkill, CXoneApiPerformanceMetrics } from '@nice-devone/common-sdk';
 import { CXoneDirectory } from './directory/cxone-directory';
 import { CopilotNotificationClient } from './agent-copilot/copilot-notification-client';
@@ -24,6 +25,7 @@ import { TranscriptService } from './transcript/transcript-service';
 import { PresenceSyncService } from './presence-sync/service/presence-sync-service';
 import { AgentAssistWSService } from './agent-assist/agent-assist-ws-service';
 import { VoiceBioHubService } from './voice-bio-hub/voice-bio-hub-service';
+import { CXoneAgentContactHistory } from './acd/cxone-agent-contact-history/cxone-agent-contact-history';
 /** This is the base class for ACD */
 export declare class CXoneClient {
     private logger;
@@ -33,6 +35,7 @@ export declare class CXoneClient {
     directory: CXoneDirectory;
     agentPermission: CXoneAgentPermission;
     agentSetting: CXoneAgentSetting;
+    agentContactHistory: CXoneAgentContactHistory;
     skillActivityQueue: CXoneSkillActivityQueue;
     notification: CXoneNotificationManager;
     copilotNotificationClient: CopilotNotificationClient;
@@ -57,6 +60,7 @@ export declare class CXoneClient {
     presenceSyncService: PresenceSyncService;
     agentAssistWSService: AgentAssistWSService;
     voiceBioHubService: VoiceBioHubService;
+    isUIQueueEnabled: boolean;
     /**
      * get instance for agent auth and session
      * @example
@@ -148,4 +152,22 @@ export declare class CXoneClient {
      * @example this.createAgentAssistWSService();
      */
     private createAgentAssistWSService;
+    /**
+     * Method to get feedback categories and priorities
+     * @returns  - It returns the feedback categories and priorities
+     * @example
+     * ```
+     * getFeedbackCategoriesAndPriorities();
+     * ```
+     */
+    getFeedbackCategoriesAndPriorities(): Promise<import("@nice-devone/common-sdk").CXoneSdkError | import("@nice-devone/core-sdk").feedbackCategoriedAndPrioritiesResponse>;
+    /**
+     * Method to submit feedback issue
+     * @returns  - promise result from submit feedback post
+     * @example
+     * ```
+     * submitFeedback();
+     * ```
+     */
+    submitFeedback(feedbackData: FeedbackData): Promise<import("@nice-devone/common-sdk").HttpResponse | import("@nice-devone/common-sdk").CXoneSdkError>;
 }

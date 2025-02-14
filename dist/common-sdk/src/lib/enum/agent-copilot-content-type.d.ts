@@ -49,5 +49,17 @@ export declare enum AgentCopilotContentType {
     /**
      * Represents comprehensive feedback guidance content type
      */
-    COMP_FEEDBACK_GUIDANCE = "comprehensiveFeedback"
+    COMPREHENSIVE_FEEDBACK = "comprehensiveFeedback",
+    /**
+     * Represents the copilot filter card content type.
+     */
+    COPILOT_FILTER_CARD = "filtersCard",
+    /**
+     * Represents the copilot journey summary content type.
+     */
+    JOURNEY_SUMMARY = "journeySummary",
+    /**
+    * Represents the copilot disclosure card content type.
+    */
+    DISCLOSURE = "disclosure"
 }

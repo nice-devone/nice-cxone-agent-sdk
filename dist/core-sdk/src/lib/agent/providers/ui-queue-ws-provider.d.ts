@@ -1,4 +1,4 @@
-import { UserInfo } from '@nice-devone/common-sdk';
+import { RetryOptions, UserInfo } from '@nice-devone/common-sdk';
 import { HttpUtilService } from '../../http';
 /**
  * Class to connect UI Queue web socket
@@ -19,6 +19,7 @@ export declare class UIQueueWsProvider {
     protected utilService: HttpUtilService;
     private isUIQueueDegraded;
     private loader;
+    private validationUtils;
     /**
    * constructor which sets agent session instance
    * @example
@@ -41,7 +42,7 @@ export declare class UIQueueWsProvider {
      * @param sessionId - sessionid
      * @example
      * ```
-     * this.getNextEvents(retryOptions, '12345');
+     * this.keepAlivePolling('12345');
      * ```
      */
     private keepAlivePolling;
@@ -72,6 +73,24 @@ export declare class UIQueueWsProvider {
      */
     static get instance(): UIQueueWsProvider;
     /**
+     * Method to get hub url
+     * @returns hub url
+     * @example
+     * ```
+     * getHubUrl();
+     * ```
+     */
+    private getHubUrl;
+    /**
+     * Method to get valid access token
+     * @returns  access token
+     * @example
+     * ```
+     * getValidAccessToken();
+     * ```
+     */
+    private getValidAccessToken;
+    /**
      * Method to establish connection
      * @param userInfo - user info object
      * @param invokeSnapshot - flag to invoke snapshot request
@@ -82,6 +101,16 @@ export declare class UIQueueWsProvider {
      */
     connectAgent(userInfo: UserInfo, invokeSnapshot?: boolean): void;
     /**
+     * Method to get new hub connection
+     * @param retryOptions  - retry options
+     * @returns   hub connection
+     * @example
+     * ```
+     * getNewHubConnection(retryOptions)
+     * ```
+     */
+    getNewHubConnection(userInfo: UserInfo, retryOptions: RetryOptions): Promise<void>;
+    /**
      * Method to establish connection
      * @param userInfo - user info object
      * @param invokeSnapshot - flag to invoke snapshot request
@@ -90,7 +119,7 @@ export declare class UIQueueWsProvider {
      * establishSocketConnection(userInfo, invokeSnapshot)
      * ```
      */
-    establishSocketConnection(userInfo: UserInfo, invokeSnapshot?: boolean): Promise<void>;
+    establishSocketConnection(userInfo: UserInfo, _invokeSnapshot?: boolean): Promise<void>;
     /**
       * Method to add event listeners
       * @param events - recieved events

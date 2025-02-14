@@ -75,7 +75,6 @@ export const datadogInit = (agentSettings, userInfo, appName = 'cxa') => {
 * @example diconnectDatadog()
 */
 export const disconnectDatadog = () => {
-    // datadogRum.stopSession();
     document.cookie = '_dd_s=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;';
 };
 //# sourceMappingURL=datadog.js.map

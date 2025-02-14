@@ -130,7 +130,7 @@ export declare class DigitalContactService {
      * getQuickRepliesForOutboundContact(1, 10, '')
      * ```
     */
-    getQuickRepliesForOutboundContact(page?: number, size?: number | string, // This is a temporary solution and needs to be handled properly using server side pagination.
+    getQuickRepliesForOutboundContact(page?: number, channelId?: string, size?: number | string, // This is a temporary solution and needs to be handled properly using server side pagination.
     search?: string): Promise<CXoneDigitalOutboundQuickReply>;
     /**
      * Method to get DFO chat replace variables

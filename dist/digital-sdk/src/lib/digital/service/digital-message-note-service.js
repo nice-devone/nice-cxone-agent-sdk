@@ -31,7 +31,7 @@ export class DigitalMessageNoteService {
         const authToken = this.auth.getAuthToken().accessToken;
         const url = baseUrl + this.CREATE_NOTE.replace('messageId', messageId);
         const reqInit = {
-            headers: this.utilService.initHeader(authToken, 'application/json').headers,
+            headers: this.utilService.initHeader(authToken, 'application/json', "x-message-sender" /* HttpRequestCustomHeaders.X_MESSAGE_SENDER */).headers,
             body: {
                 content: content,
             },
@@ -59,7 +59,7 @@ export class DigitalMessageNoteService {
         const authToken = this.auth.getAuthToken().accessToken;
         const url = baseUrl + this.UPDATE_NOTE.replace('messageId', messageId).replace('noteId', noteId);
         const reqInit = {
-            headers: this.utilService.initHeader(authToken, 'application/json').headers,
+            headers: this.utilService.initHeader(authToken, 'application/json', "x-message-sender" /* HttpRequestCustomHeaders.X_MESSAGE_SENDER */).headers,
             body: {
                 content: content,
             },
@@ -85,7 +85,7 @@ export class DigitalMessageNoteService {
         const baseUrl = this.auth.getCXoneConfig().dfoApiBaseUri;
         const authToken = this.auth.getAuthToken().accessToken;
         const url = baseUrl + this.DELETE_NOTE.replace('messageId', messageId).replace('noteId', noteId);
-        const reqInit = this.utilService.initHeader(authToken);
+        const reqInit = this.utilService.initHeader(authToken, undefined, "x-message-sender" /* HttpRequestCustomHeaders.X_MESSAGE_SENDER */);
         return new Promise((resolve, reject) => {
             HttpClient.delete(url, reqInit).then((response) => {
                 this.logger.info('deleteMessageNote', 'message note deleted');

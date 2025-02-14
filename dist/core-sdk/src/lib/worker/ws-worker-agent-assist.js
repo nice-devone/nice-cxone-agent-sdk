@@ -1,5 +1,4 @@
-const wsWorkerAgentAssistCode = () => {
-  self.importScripts(
+const wsWorkerAgentAssistCode = `self.importScripts(
     'https://cdnjs.cloudflare.com/ajax/libs/rxjs/6.6.7/rxjs.umd.min.js'
   );
   let wsReconnectAttempt = 0;
@@ -45,11 +44,7 @@ const wsWorkerAgentAssistCode = () => {
    * @param callback - callback method which will be executed when time interval is completed 
    * 
    * @example
-   * 
-   * ```
    * connect('ws://localhost:8089');
-   * ```
-   * 
    */
   function connect(input, reconnectAttempt = false) {
     if(isConnectionOpen) return;// if connection is established then no need to connect again
@@ -75,8 +70,8 @@ const wsWorkerAgentAssistCode = () => {
             self.postMessage({
               type: WSEventType.CLOSE,
               message: {
-                code: `${closeEvent?.code}`,
-                reason: `${closeEvent?.reason}`,
+                code: closeEvent?.code,
+                reason: closeEvent?.reason,
               }
             });
           }
@@ -90,7 +85,7 @@ const wsWorkerAgentAssistCode = () => {
         self.postMessage({
           type: WSEventType.ERROR,
           message: {
-            error: `${err}`,
+            error: err,
           }
         });
       },
@@ -103,9 +98,7 @@ const wsWorkerAgentAssistCode = () => {
    * This method used reconnect websocket
    * @example
    * 
-   * ```
    * attemptReconnect(data);
-   * ```
    * @param data - which is object contain errReason and reasonToReconnect
    * @param callback - callback method which will be executed when time interval is completed 
    * 
@@ -117,7 +110,7 @@ const wsWorkerAgentAssistCode = () => {
       let reconnectInfo = input.reconnectInfo;
       if (wsReconnectAttempt < reconnectInfo.retryOptions.maxRetryAttempts && !isConnectionOpen) {
         wsReconnectAttempt++;
-        const message = `Websocket reconnect attempt ${wsReconnectAttempt} of ${reconnectInfo.retryOptions.maxRetryAttempts}...`;
+        const message = 'Websocket reconnect attempt ' + wsReconnectAttempt + ' of ' + reconnectInfo.retryOptions.maxRetryAttempts;
         const reconnectResponse = {
           maxAttempts: reconnectInfo.retryOptions.maxRetryAttempts,
           currentAttempt: wsReconnectAttempt
@@ -136,9 +129,7 @@ const wsWorkerAgentAssistCode = () => {
   /**
    * This Method used to dispose the websocket connection 
    *@example
-   * ```
    * close();
-   * ```
    */
    function close() {
     if(isConnectionOpen){
@@ -156,17 +147,12 @@ const wsWorkerAgentAssistCode = () => {
      * @param msg - message
      * @example - 
      * 
-     * ```
      * send('hi');
-     * ```
      */
     function send(input) {
       if (wsSubject) {
         wsSubject.next(input.msg);
       }
-    }
-
-}
-
+    }`
 
 export default wsWorkerAgentAssistCode;

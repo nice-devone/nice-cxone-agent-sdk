@@ -1,20 +1,13 @@
 import { HttpUtilService, Logger } from '@nice-devone/core-sdk';
 import { IEXResponse } from './model/IEXModel';
 /**
- * Class to manage all commitments related methods
+ * Class to manage all IEXService related methods
  */
 export declare class IEXService {
     private auth;
     protected logger: Logger;
     protected utilService: HttpUtilService;
     private acdSession;
-    /**
-     * get instance for initialize commitments
-     * @example
-     * ```
-     * new CommitmentService();
-     * ```
-     */
     constructor();
     /**
      * This method is to get all the IEXSchedules

@@ -30,7 +30,20 @@ class CopilotMessageResponse extends agent_assist_base_response_1.AgentAssistBas
             isNBROpen: false,
             isResponseInserted: false,
             isFinalSummaryGenerated: false,
-            feedbackData: [],
+            comprehensiveFeedback: {
+                guidanceFeedbacks: [],
+                contactFeedbackCard: {
+                    overallFeedbackTitle: '',
+                    feedback: '',
+                },
+            },
+            filterDetails: {},
+            isEditorActionPerformed: false,
+            isComprehensiveFeedbackSent: false,
+            updateComprehensiveCard: false,
+            generateComprehensiveCard: false,
+            isJourneySummaryExpanded: false,
+            contactHistory: [],
         };
         acpAppElements === null || acpAppElements === void 0 ? void 0 : acpAppElements.forEach((element) => {
             const elemObj = CopilotMessageResponse.formatCopilotElement(element);

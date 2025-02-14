@@ -418,7 +418,7 @@ class ACWebRtcService {
                         break;
                     case cxone_voice_connection_status_1.CXoneVoiceConnectionStatus.DISCONNECTED:
                     case 'logout':
-                        core_sdk_1.LocalStorageHelper.removeItem(core_sdk_1.StorageKeys.CONNECTED_AC_SERVER);
+                        this.removeConnectedSBC();
                         this.logger.trace('loginStateChanged', 'removed ConnectedAudioCodeServer value from localstorage');
                         break;
                     default:
@@ -518,8 +518,8 @@ class ACWebRtcService {
                 });
                 this.audioCodeCall = null;
                 this.lastAgentLegIdCall = '';
-                this.connectedSBC = '';
                 core_sdk_1.LocalStorageHelper.removeItem(core_sdk_1.StorageKeys.AGENT_LEG_CALL);
+                this.removeConnectedSBC();
                 this.logger.debug('callTerminated', 'AC Event:CallTerminated Received, call: ' + JSON.stringify(call.data)
                     + ', message = ' + message + ', cause = ' + cause + ', redirectTo = ' + redirectTo);
             },
@@ -610,6 +610,7 @@ class ACWebRtcService {
                 if ((callData === null || callData === void 0 ? void 0 : callData.agentLegId) && this.agentLegId && callData.agentLegId !== this.agentLegId) {
                     this.logger.debug('restoreCall', 'skipped restoring call as agentLegId does not match with the stored data.');
                     core_sdk_1.LocalStorageHelper.removeItem(core_sdk_1.StorageKeys.AGENT_LEG_CALL);
+                    this.removeConnectedSBC();
                     return false;
                 }
                 const params = [this.AudioCodesHeader + callData.agentLegId, this.AudioCodesHeaderReplace + callData.replaces];
@@ -683,8 +684,21 @@ class ACWebRtcService {
         this.audioCodeConnectRequested = false;
         this.lastAgentLegIdCall = '';
         core_sdk_1.LocalStorageHelper.removeItem(core_sdk_1.StorageKeys.AGENT_LEG_CALL);
+        this.removeConnectedSBC();
         if (this.audioElement)
             this.audioElement.srcObject = null;
+    }
+    /**
+     * Method to remove connected SBC data from the localstorage
+     * @example
+     * ```
+     * this.removeConnectedSBC();
+     * ```
+     */
+    removeConnectedSBC() {
+        this.connectedSBC = '';
+        core_sdk_1.LocalStorageHelper.removeItem(core_sdk_1.StorageKeys.CONNECTED_AC_SERVER);
+        this.logger.debug('removeConnectedSBC', 'removed ConnectedAudioCodeServer value from localstorage');
     }
 }
 exports.ACWebRtcService = ACWebRtcService;

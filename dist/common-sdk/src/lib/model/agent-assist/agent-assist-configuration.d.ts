@@ -1,27 +1,6 @@
 /**
  * model interface for agent assist Configuration
  */
-export interface AgentAssistConfig {
-    /**
-     * Full app title
-     */
-    AppTitle: string;
-    /**
-     * The ID of the contact.
-     */
-    ContactId: string;
-    /**
-     * Parameters
-     */
-    Params: {
-        /**
-         * Id of event provider like agentCopilot
-         */
-        providerId: string;
-        publicFeedback?: boolean;
-        privateFeedback?: boolean;
-    };
-}
 /**
  * Enum for Agent Assist App Settings
  */
@@ -70,5 +49,126 @@ export declare enum AgentAssistConfigACPParamsKeys {
     EMAIL_CHANNEL = "emailChannel",
     EMAIL_CHANNEL_SIMPLIFY = "emailChannelSimplify",
     EMAIL_CHANNEL_EXPAND = "emailChannelExpand",
-    EMAIL_CHANNEL_REPHRASE = "emailChannelRephrase"
+    EMAIL_CHANNEL_REPHRASE = "emailChannelRephrase",
+    OVERALL_SUBCARD = "overallSubcard",
+    PER_SUGGESTION_SUBCARDS = "perSuggestionSubcards",
+    POSITIVE_FEEDBACK = "positiveFeedback",
+    POSITIVE_FEEDBACK_ENABLED = "positiveFeedbackEnabled",
+    POSITIVE_COMMENT = "positiveComment",
+    POSITIVE_COMMENT_ENABLED = "positiveCommentEnabled",
+    POSITIVE_TAG = "positiveTag",
+    POSITIVE_TAG_ENABLED = "positiveTagEnabled",
+    POSITIVE_TAGS = "positiveTags",
+    NEGATIVE_FEEDBACK = "negativeFeedback",
+    NEGATIVE_FEEDBACK_ENABLED = "negativeFeedbackEnabled",
+    NEGATIVE_COMMENT = "negativeComment",
+    NEGATIVE_COMMENT_ENABLED = "negativeCommentEnabled",
+    NEGATIVE_TAG = "negativeTag",
+    NEGATIVE_TAG_ENABLED = "negativeTagEnabled",
+    NEGATIVE_TAGS = "negativeTags",
+    UNRATED_FEEDBACK = "unratedFeedback",
+    GUIDANCE_FEEDBACK_CARDS = "guidanceFeedbackCards",
+    JOURNEY_SUMMARY = "journeySummary",
+    LEGAL_DISCLOSURE = "legalDisclosure",
+    DISCLOSURE_CARD_TITLE = "disclosureCardTitle",
+    DISCLOSURE_DESCRIPTION = "disclosureDescription"
+}
+export interface CopilotProfileConfig {
+    /**
+     * Full app title
+     */
+    AppTitle: string;
+    /**
+     * The ID of the contact.
+     */
+    ContactId: string;
+    /**
+     * Parameters
+     */
+    Params: {
+        /**
+         * Id of event provider like agentCopilot
+         */
+        providerId: string;
+        /**
+         * Determines if public feedback is enabled
+         */
+        publicFeedback: boolean;
+        /**
+         *Determines if private feedback is enabled
+         */
+        privateFeedback: boolean;
+        /**
+         * Determines if there is an overall subcard present.
+         */
+        overallSubcard: boolean;
+        /**
+         * Determines if there are subcards per suggestion is enable.
+         */
+        guidanceFeedbackCards: boolean;
+        /**
+         * Determines if the positive tags are enable
+         */
+        positiveTagEnabled: boolean;
+        /**
+         * Determines if the negative tags are enable
+         */
+        negativeTagEnabled: boolean;
+        /**
+         * Contains an array of positive feedback tags.
+         */
+        positiveTags: string[];
+        /**
+         * Contains an array of negative feedback tags.
+         */
+        negativeTags: string[];
+        /**
+         * Determines if the Like is enable
+         */
+        positiveFeedbackEnabled: boolean;
+        /**
+         *  Determines if the dislike is enable
+         */
+        negativeFeedbackEnabled: boolean;
+        /**
+         *  Determines if the comment section for the positive feedback is enable
+         */
+        positiveCommentEnabled: boolean;
+        /**
+         *  Determines if the comment section for the negative feedback is enable
+         */
+        negativeCommentEnabled: boolean;
+        /**
+         * Indicates if the feedback is unrated.
+         */
+        unratedFeedback: boolean;
+        /**
+         * Indicates language.
+         */
+        language: string;
+        /**
+         * Indicates generative response tone.
+         */
+        generativeResponseTone: string;
+        /**
+         * Indicates if journey summary is enabled.
+         */
+        journeySummary: boolean;
+        /**
+         * Indicates the count of the journey summary interaction.
+         */
+        journeySummaryInteractionCount: number;
+        /**
+         * Indicates the period of the journey summary interaction.
+         */
+        journeySummaryInteractionPeriod: number;
+        /**
+         * Indicates the length of the journey summary response.
+         */
+        journeySummaryResponseLength: number;
+        /**
+         * Indicates if the journey summary detail view is enabled.
+         */
+        journeySummaryDetailView: boolean;
+    };
 }

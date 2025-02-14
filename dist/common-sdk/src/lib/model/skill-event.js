@@ -16,14 +16,12 @@ class SkillEvent extends cxone_event_1.CXoneEvent {
      * ```
      */
     parse(data) {
-        this.mediaType = (0, utility_1.parseInteger)(data.MediaType);
-        this.mediaName = data.MediaName;
-        this.isOutbound = (0, utility_1.parseBooleanString)(data.IsOutbound);
-        this.isActive = (0, utility_1.parseBooleanString)(data.IsActive);
-        this.skillId = data.SkillId;
-        this.skillName = data.SkillName;
-        this.lastPollTime = new Date(data.lastPollTime);
-        this.lastUpdateTime = new Date(data.lastUpdateTime);
+        this.mediaTypeId = (0, utility_1.parseInteger)(data.mediaTypeId);
+        this.mediaTypeName = data.mediaTypeName;
+        this.isOutbound = (0, utility_1.parseBooleanString)(data.isOutbound);
+        this.isActive = (0, utility_1.parseBooleanString)(data.isActive);
+        this.skillId = data.skillId;
+        this.skillName = data.skillName;
     }
 }
 exports.SkillEvent = SkillEvent;

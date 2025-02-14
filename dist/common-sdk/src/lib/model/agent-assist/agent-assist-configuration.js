@@ -1,4 +1,7 @@
 "use strict";
+/**
+ * model interface for agent assist Configuration
+ */
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.AgentAssistConfigACPParamsKeys = exports.AgentAssistSettings = void 0;
 /**
@@ -52,5 +55,27 @@ var AgentAssistConfigACPParamsKeys;
     AgentAssistConfigACPParamsKeys["EMAIL_CHANNEL_SIMPLIFY"] = "emailChannelSimplify";
     AgentAssistConfigACPParamsKeys["EMAIL_CHANNEL_EXPAND"] = "emailChannelExpand";
     AgentAssistConfigACPParamsKeys["EMAIL_CHANNEL_REPHRASE"] = "emailChannelRephrase";
+    AgentAssistConfigACPParamsKeys["OVERALL_SUBCARD"] = "overallSubcard";
+    AgentAssistConfigACPParamsKeys["PER_SUGGESTION_SUBCARDS"] = "perSuggestionSubcards";
+    AgentAssistConfigACPParamsKeys["POSITIVE_FEEDBACK"] = "positiveFeedback";
+    AgentAssistConfigACPParamsKeys["POSITIVE_FEEDBACK_ENABLED"] = "positiveFeedbackEnabled";
+    AgentAssistConfigACPParamsKeys["POSITIVE_COMMENT"] = "positiveComment";
+    AgentAssistConfigACPParamsKeys["POSITIVE_COMMENT_ENABLED"] = "positiveCommentEnabled";
+    AgentAssistConfigACPParamsKeys["POSITIVE_TAG"] = "positiveTag";
+    AgentAssistConfigACPParamsKeys["POSITIVE_TAG_ENABLED"] = "positiveTagEnabled";
+    AgentAssistConfigACPParamsKeys["POSITIVE_TAGS"] = "positiveTags";
+    AgentAssistConfigACPParamsKeys["NEGATIVE_FEEDBACK"] = "negativeFeedback";
+    AgentAssistConfigACPParamsKeys["NEGATIVE_FEEDBACK_ENABLED"] = "negativeFeedbackEnabled";
+    AgentAssistConfigACPParamsKeys["NEGATIVE_COMMENT"] = "negativeComment";
+    AgentAssistConfigACPParamsKeys["NEGATIVE_COMMENT_ENABLED"] = "negativeCommentEnabled";
+    AgentAssistConfigACPParamsKeys["NEGATIVE_TAG"] = "negativeTag";
+    AgentAssistConfigACPParamsKeys["NEGATIVE_TAG_ENABLED"] = "negativeTagEnabled";
+    AgentAssistConfigACPParamsKeys["NEGATIVE_TAGS"] = "negativeTags";
+    AgentAssistConfigACPParamsKeys["UNRATED_FEEDBACK"] = "unratedFeedback";
+    AgentAssistConfigACPParamsKeys["GUIDANCE_FEEDBACK_CARDS"] = "guidanceFeedbackCards";
+    AgentAssistConfigACPParamsKeys["JOURNEY_SUMMARY"] = "journeySummary";
+    AgentAssistConfigACPParamsKeys["LEGAL_DISCLOSURE"] = "legalDisclosure";
+    AgentAssistConfigACPParamsKeys["DISCLOSURE_CARD_TITLE"] = "disclosureCardTitle";
+    AgentAssistConfigACPParamsKeys["DISCLOSURE_DESCRIPTION"] = "disclosureDescription";
 })(AgentAssistConfigACPParamsKeys = exports.AgentAssistConfigACPParamsKeys || (exports.AgentAssistConfigACPParamsKeys = {}));
 //# sourceMappingURL=agent-assist-configuration.js.map

@@ -54,5 +54,9 @@ export declare enum CXoneProductFeature {
     /**
    * @remarks - Product feature Id for Noise Cancellation - 40355
    */
-    NC_CXONE_AGENT = 40355
+    NC_CXONE_AGENT = 40355,
+    /**
+     * @remarks - Product feature Id for UI Queue
+     */
+    UI_QUEUE_WS = 30254
 }

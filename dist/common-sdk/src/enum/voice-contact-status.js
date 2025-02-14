@@ -16,6 +16,7 @@ var VoiceContactStatus;
     VoiceContactStatus["TRANSFER"] = "transfer";
     VoiceContactStatus["CONFERENCE"] = "conference";
     VoiceContactStatus["PREVIEW"] = "preview";
+    VoiceContactStatus["CALLBACK"] = "callback";
     VoiceContactStatus["CALL_BACK_DISCONNECTED"] = "callbackdisconnected";
     VoiceContactStatus["NATURAL_CALL_DIALING"] = "naturalcalldialing";
     VoiceContactStatus["NATURAL_CALL_AMD"] = "naturalcallamd";

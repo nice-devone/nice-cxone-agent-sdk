@@ -36,24 +36,24 @@ npm install @nice-devone/acd-sdk
 import { /* functionalities from acd-sdk */ } from '@nice-devone/acd-sdk';
 ```
 
-2. **(Optional) Initialize the SDK (if required):**
+2. ** Initialize the CXoneAcdClient **
 
 ```
-// If the SDK requires initialization, follow instructions from the documentation
-const acdClient = /* Initialize the ACD client object */;
+CXoneAcdClient.instance.initAcdEngagement();
 ```
 
 3. **Leverage SDK functionalities:**
 
-Refer to the official documentation (link to be provided, once found) for detailed usage examples on specific functionalities.
+Refer to the official documentation for detailed usage examples on specific functionalities.
 Explore the available classes and methods within the library (src/lib/acd) to interact with ACD features.
-Documentation
 
-For comprehensive API reference and usage examples, refer to the official documentation provided by NICE CXone (link to be retrieved).
+### Documentation
+
+For detailed documentation and developer related queries, Please visit [Official SDK Documentation](https://help.nice-incontact.com/content/agent/agentapplicationadministration/cxoneagent/cxasdk.htm?tocpath=Agent%20Application%20Administration%7CAgent%20Application%20Administration%7CCXone%20Agent%7C_____8)
 
 ### Compatibility
 
-This SDK is likely compatible with specific ACD platform versions supported by its peer dependencies (e.g., @nice-devone/agent-sdk, @nice-devone/common-sdk). Refer to the official documentation (if available) for supported versions.
+This SDK is likely compatible with specific CXone Agent SDK versions supported by its peer dependencies (e.g., @nice-devone/agent-sdk, @nice-devone/common-sdk). Refer to the official documentation for supported versions.
 
 ### License
 

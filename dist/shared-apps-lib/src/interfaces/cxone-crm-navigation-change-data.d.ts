@@ -14,4 +14,8 @@ export interface CXoneCRMNavigationChangeData {
      * @remarks Field name to link with some other entity like task in salesforce and phone call in dynamics
      */
     mappingFieldName: string;
+    /**
+     * @remarks CRM Entity/Record Name
+     */
+    entityName: string;
 }

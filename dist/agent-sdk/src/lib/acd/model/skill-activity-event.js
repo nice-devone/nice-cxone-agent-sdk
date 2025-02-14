@@ -37,6 +37,7 @@ export class SkillActivityEvent extends CXoneEvent {
         this.skillId = data.skillId;
         this.skillName = data.skillName;
         this.skillQueueCount = data.skillQueueCount;
+        this.workItemQueueType = data.workItemQueueType;
         //this.isRestricted = data.isRestricted;
     }
 }

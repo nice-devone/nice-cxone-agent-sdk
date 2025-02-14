@@ -1,5 +1,4 @@
-const workercode = () => {
-  self.importScripts(
+const workercode = `self.importScripts(
     'https://cdnjs.cloudflare.com/ajax/libs/rxjs/6.6.7/rxjs.umd.min.js'
   );
 
@@ -150,7 +149,7 @@ const workercode = () => {
       .catch((error) =>
         console.error(
           'startAgentPolling',
-          `Error in api call:-` + error.toString()
+          'Error in api call:-' + error.toString()
         )
       );
   }
@@ -231,7 +230,7 @@ const workercode = () => {
     }).catch((error) =>
     console.error(
       'startAgentPolling',
-      `Error in api call:-` + error.toString()
+      'Error in api call:-' + error.toString()
     )
   );
   }
@@ -283,10 +282,10 @@ const workercode = () => {
       self.postMessage(combinedResponse);
     } catch (error) {
       if (error instanceof Error) {
-        console.error('getData', `Error in api call:-` + error.toString());
+        console.error('getData', 'Error in api call:-' + error.toString());
       }
     }
-    console.info('getData', `getData executed on worker`);
+    console.info('getData', 'getData executed on worker');
   }
 
   /**
@@ -346,7 +345,5 @@ const workercode = () => {
       return body.toString();
     }
     return '';
-  }
-};
-
+  }`
 export default workercode;

@@ -31,7 +31,7 @@ export class CXoneGetNextAdapter {
             events.splice(0, 0, sessionStartEventObj);
         }
         events.forEach((event) => __awaiter(this, void 0, void 0, function* () {
-            var _a, _b, _c, _d, _e, _f, _g, _h, _j;
+            var _a, _b, _c, _d, _e, _f, _g, _h, _j, _k;
             switch ((event === null || event === void 0 ? void 0 : event.Type) || (event === null || event === void 0 ? void 0 : event.type)) {
                 case GetNextEventType.CALL_CONTACT_EVENT: {
                     const callContactEvent = CallContactEventYup.cast(event);
@@ -83,11 +83,11 @@ export class CXoneGetNextAdapter {
                     agentSessionEndEvent.parse(event);
                     // stop polling and clear new session id provided by end session event
                     GetNextEventProvider.instance.terminateUtilWorker();
+                    LocalStorageHelper.removeItem(StorageKeys.ACD_SESSION_ID);
+                    this.agentSession.setSessionId('');
                     if (UIQueueWsProvider.instance instanceof UIQueueWsProvider) {
                         UIQueueWsProvider.instance.disconnectConsumerAgent();
                     }
-                    LocalStorageHelper.removeItem(StorageKeys.ACD_SESSION_ID);
-                    this.agentSession.setSessionId('');
                     this.agentSession.onAgentSessionChange.next({
                         status: AgentSessionStatus.SESSION_END,
                         data: agentSessionEndEvent,
@@ -241,14 +241,14 @@ export class CXoneGetNextAdapter {
                             break;
                         }
                     }
-                    else if (agentAssistJson && ((_h = agentAssistJson === null || agentAssistJson === void 0 ? void 0 : agentAssistJson.Params) === null || _h === void 0 ? void 0 : _h.providerId) === 'nuance-voice-bio') {
+                    else if (agentAssistJson && (((_h = agentAssistJson === null || agentAssistJson === void 0 ? void 0 : agentAssistJson.Params) === null || _h === void 0 ? void 0 : _h.providerId.includes('nuance-voice-bio')) || ((_j = agentAssistJson === null || agentAssistJson === void 0 ? void 0 : agentAssistJson.Params) === null || _j === void 0 ? void 0 : _j.providerId.includes('enlighten-autopilot-voice-bio')))) {
                         const autoSummaryStart = {
                             webSocketUri: agentAssistJson.WebSocketUri,
                             contactId,
                             subscriptions: agentAssistJson.Subscriptions,
                             mediaType: MediaType.VOICE,
                             agentAssistType: 'voice-bio-hub',
-                            providerId: (_j = agentAssistJson === null || agentAssistJson === void 0 ? void 0 : agentAssistJson.Params) === null || _j === void 0 ? void 0 : _j.providerId,
+                            providerId: (_k = agentAssistJson === null || agentAssistJson === void 0 ? void 0 : agentAssistJson.Params) === null || _k === void 0 ? void 0 : _k.providerId,
                             profileName: agentAssistJson.Params.voiceBiometricProfileName,
                             customerId: agentAssistJson.Params.customerId,
                         };

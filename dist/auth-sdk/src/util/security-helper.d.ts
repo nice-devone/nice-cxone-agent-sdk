@@ -2,6 +2,7 @@
  * To generate code verifier and code challenge
  */
 export declare class SecurityHelper {
+    private logger;
     /**
      * To generate the code verifier
      * @returns - code verifier
@@ -54,4 +55,24 @@ export declare class SecurityHelper {
      * ```
      */
     private base64urlencode;
+    /**
+     * Parse jwt token to extract user data
+     * @param token - input jwt token string
+     * @returns - parsed user details
+     * @example
+     * ```
+     * parseJwt('token_string');
+     * ```
+     */
+    parseJwt(token: string): any;
+    /**
+     * Custom atob implementation to parse jwt token
+     * @param token - input base64 string
+     * @returns - parsed user details
+     * @example
+     * ```
+     * atobV2('base64_string');
+     * ```
+     */
+    private atobV2;
 }

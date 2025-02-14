@@ -29,17 +29,22 @@ export class CopilotNotificationClient extends AgentAssistNotificationService {
      */
     subscribe(agentCopilotInput) {
         this.agentAssistInput = agentCopilotInput;
-        this.topic = `${agentCopilotInput.contactId}`;
-        const accessToken = CXoneAuth.instance.getAuthToken().accessToken;
-        const req = new AgentAssistSubscribe(accessToken, this.topic);
-        this.sendMessage(req, this.wssWorker);
-        if (this.wssWorker) {
-            this.wssWorker.onmessage = (response) => {
-                this.checkWSEvent(response === null || response === void 0 ? void 0 : response.data);
-            };
-            this.wssWorker.onerror = (error) => {
-                this.logger.error('wssWorker-subscribe', 'Error occured on wssWorker', error);
-            };
+        const subscriptions = agentCopilotInput.subscriptions;
+        if (subscriptions) {
+            subscriptions.forEach((subscription) => {
+                this.topic = subscription;
+                const accessToken = CXoneAuth.instance.getAuthToken().accessToken;
+                const req = new AgentAssistSubscribe(accessToken, this.topic);
+                this.sendMessage(req, this.wssWorker);
+                if (this.wssWorker) {
+                    this.wssWorker.onmessage = (response) => {
+                        this.checkWSEvent(response === null || response === void 0 ? void 0 : response.data);
+                    };
+                    this.wssWorker.onerror = (error) => {
+                        this.logger.error('wssWorker-subscribe', 'Error occured on wssWorker' + error);
+                    };
+                }
+            });
         }
         return true;
     }

@@ -15,6 +15,24 @@ export const isVoiceBioHubFeatureEnabled = () => {
     return isVoiceBioHubFeatureEnabled;
 };
 /**
+ * Checks if the IEX feature is enabled.
+ *
+ * @returns - Returns true if all valid product IDs are enabled, otherwise false.
+ *
+ * @example
+ * ```
+ * const isEnabled = isIEXFeatureEnabled();
+ * console.log(isEnabled); // true or false
+ * ```
+ */
+export const isIEXFeatureEnabled = () => {
+    const validProductID = [83, 90, 91, 94, 95];
+    const businessUnitData = (LocalStorageHelper.getItem(StorageKeys.BUSINESS_UNIT, true) || {});
+    // Check if all validProductID are present and enabled
+    const isIEXFeatureEnabled = validProductID.every((productId) => { var _a; return (_a = businessUnitData === null || businessUnitData === void 0 ? void 0 : businessUnitData.features) === null || _a === void 0 ? void 0 : _a.some((feature) => feature.productId === productId && feature.isEnabled); });
+    return isIEXFeatureEnabled;
+};
+/**
  * Method to get ANI
  *
  * @example
@@ -23,7 +41,7 @@ export const isVoiceBioHubFeatureEnabled = () => {
  * ```
  */
 export const getANI = (voiceContact) => {
-    if ((voiceContact === null || voiceContact === void 0 ? void 0 : voiceContact.isInbound) && ((voiceContact === null || voiceContact === void 0 ? void 0 : voiceContact.ani) !== '' || (voiceContact === null || voiceContact === void 0 ? void 0 : voiceContact.ani) !== '1')) {
+    if ((voiceContact === null || voiceContact === void 0 ? void 0 : voiceContact.isInbound) && ((voiceContact === null || voiceContact === void 0 ? void 0 : voiceContact.ani) !== '' && (voiceContact === null || voiceContact === void 0 ? void 0 : voiceContact.ani) !== '1')) {
         return voiceContact === null || voiceContact === void 0 ? void 0 : voiceContact.ani;
     }
     else if ((voiceContact === null || voiceContact === void 0 ? void 0 : voiceContact.dnis) !== '') {

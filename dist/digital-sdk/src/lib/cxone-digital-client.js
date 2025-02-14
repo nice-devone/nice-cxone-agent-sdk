@@ -1,5 +1,5 @@
 import { __awaiter } from "tslib";
-import { CXoneProductFeature, SkillService, CXoneTenant, CXoneClient } from '@nice-devone/agent-sdk';
+import { CXoneProductFeature, SkillService, CXoneTenant, CXoneClient, FeatureToggleService } from '@nice-devone/agent-sdk';
 import { CXoneLeaderElector } from '@nice-devone/common-sdk';
 import { LocalStorageHelper, Logger, StorageKeys } from '@nice-devone/core-sdk';
 import { CXoneAuth, CXoneUser } from '@nice-devone/auth-sdk';
@@ -95,6 +95,7 @@ export class CXoneDigitalClient {
                     try {
                         this.digitalService = new DigitalService();
                         yield this.getDigitalUserDetails();
+                        this.updateDfoWSUrl();
                         this.digitalContactManager.initializeDigital();
                         this.cxoneDigitalWebsocket = new CXoneDigitalWebsocket();
                         yield this.digitalService.getDigitalAgentStatus();
@@ -156,6 +157,22 @@ export class CXoneDigitalClient {
                 }
             }
         });
+    }
+    /**
+     * Method to update DFO URL
+     * @example
+     * ```
+     * updateDfoWSUrl()
+     * ```
+     */
+    updateDfoWSUrl() {
+        const cxoneConfig = this.auth.getCXoneConfig();
+        const isToggleEnabled = FeatureToggleService.instance.getFeatureToggleSync("utility-cxa-eventhub-websocket-url-change-AW-32020" /* FeatureToggles.EVENTHUB_WEBSOCKET_URL_CHANGE_FEATURE_TOGGLE */) || false;
+        if (isToggleEnabled) {
+            cxoneConfig.dfoWssUri = cxoneConfig.dfoWssUri.replace('wss://event-hub-de-', 'wss://eventhub-de-');
+            this.auth.setCXoneConfig(cxoneConfig);
+            LocalStorageHelper.setItem(StorageKeys.CXONE_CONFIG, cxoneConfig);
+        }
     }
 }
 //# sourceMappingURL=cxone-digital-client.js.map

@@ -79,6 +79,8 @@ export declare const StorageKeys: {
     IMAGE_PASTE_ERROR: string;
     VOICE_BIO_HUB_DATA: string;
     VOICE_BIO_HUB_AGENT_ASSIST: string;
+    SFCRM_NAVIGATION_DATA: string;
+    FOCUSED_CONTACT_MEDIA_TYPE: string;
 };
 export declare const NotificationSettings: {
     ACCESSIBILITY: string;

@@ -8,6 +8,9 @@ import { CXoneIndicator, CXoneSdkError, HttpResponse, UserInfo, CXoneConfigurati
 import { AgentSettings } from './model/agent-settings';
 import { CXoneUserDetails } from './model/cxone-user-details';
 import { Tenant } from './model/tenant';
+import { feedbackCategoriedAndPrioritiesResponse } from './model/feedback-categories-and-priorities';
+import { FeedbackData } from './model/feedback-data';
+import { UIQHubUrl } from './model/uiq-hub-url';
 /**
  * Class to perform get admin api
  */
@@ -21,6 +24,7 @@ export declare class AdminService {
     private accessToken;
     private cxOneConfig;
     private userInfo;
+    private acdSessionManager;
     /**
      * Method to initialize the user details
      * (i.e) cxoneConfig, userInfo and aceessToken
@@ -205,7 +209,7 @@ export declare class AdminService {
      * getUiqHubUrl()
      * ```
      */
-    getUiqHubUrl(): Promise<HttpResponse | CXoneSdkError>;
+    getUiqHubUrl(): Promise<UIQHubUrl | CXoneSdkError>;
     /**
      * Method to resize the event queue
      * @param sessionId - session id
@@ -236,4 +240,22 @@ export declare class AdminService {
      * ```
      */
     selectUserLocation(locationId: string): Promise<HttpResponse | CXoneSdkError>;
+    /**
+     * Method to get Categories and priorities for the agent feedback form
+     * @returns - object
+     * @example
+     * ```
+     * getFeedbackCategoriesAndPriorities()
+     * ```
+     */
+    getFeedbackCategoriesAndPriorities(): Promise<feedbackCategoriedAndPrioritiesResponse | CXoneSdkError>;
+    /**
+     * Method to submit agent feedback
+     * @returns -
+     * @example
+     * ```
+     * submitFeedback()
+     * ```
+     */
+    submitFeedback(feedbackData: FeedbackData): Promise<HttpResponse | CXoneSdkError>;
 }

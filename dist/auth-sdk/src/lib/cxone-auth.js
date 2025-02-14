@@ -7,7 +7,7 @@ import { AuthStatus } from './enum/auth-status';
 import { SecurityHelper } from '../util/security-helper';
 import { OpenIDConfiguration } from './model/open-id-configuration';
 import { CXoneUser } from './user/cxone-user';
-import { decode, verify } from 'jsonwebtoken';
+import { KEYUTIL, KJUR } from 'jsrsasign';
 // eslint-disable-next-line @nrwl/nx/enforce-module-boundaries
 import jwkToBuffer from 'jwk-to-pem';
 const TOKEN_EXPIREIN_BUFFER_IN_SECONDS = 600; // value is in seconds
@@ -144,51 +144,53 @@ export class CXoneAuth {
                     body: `grant_type=authorization_code&code=${authWithCodeReq.code}&redirect_uri=${redirectUrl}&client_id=${authWithCodeReq.clientId}&code_verifier=${verifier}`,
                 };
                 HttpClient.post(tokenEndpoint, reqInit).then((resp) => __awaiter(this, void 0, void 0, function* () {
-                    let param;
-                    if (this.authSettings.isVerificationRequired) {
-                        const verifiedUser = yield this.verifyJwt(resp);
-                        param = verifiedUser;
-                    }
-                    else {
-                        param = {};
-                    }
-                    const authToken = this.parseAndSaveAuthToken(resp, param);
-                    this.getCXoneConfiguration(this.authSettings.cxoneHostname, this.cxoneUser.userInfo.tenantId, this.cxoneUser.userInfo.tenant ? true : false).then(() => {
-                        this.getWhoAmIData(authToken).then((resp) => {
-                            const cxoneConfigObj = this.getCXoneConfig();
-                            cxoneConfigObj.acdApiBaseUri = resp.resourceServerBaseUri;
-                            this.setCXoneConfig(cxoneConfigObj);
-                            this.cxoneUser.setTeamIdUserInfo(resp.teamId);
-                            LocalStorageHelper.setItem(StorageKeys.CXONE_CONFIG, cxoneConfigObj);
-                            this.logger.info('getWhoAmIData', 'Successfully fetched and set data');
-                            this.cxoneUser.initAuth(authToken.accessToken, cxoneConfigObj);
-                            this.onAuthStatusChange.next({
-                                status: AuthStatus.AUTHENTICATED,
-                                response: authToken,
+                    const isValidToken = yield this.verifyJwt(resp);
+                    if (isValidToken) {
+                        const authToken = this.parseAndSaveAuthToken(resp);
+                        this.getCXoneConfiguration(this.authSettings.cxoneHostname, this.cxoneUser.userInfo.tenantId, this.cxoneUser.userInfo.tenant ? true : false).then(() => {
+                            this.getWhoAmIData(authToken).then((resp) => {
+                                const cxoneConfigObj = this.getCXoneConfig();
+                                cxoneConfigObj.acdApiBaseUri = resp.resourceServerBaseUri;
+                                this.setCXoneConfig(cxoneConfigObj);
+                                this.cxoneUser.setTeamIdUserInfo(resp.teamId);
+                                LocalStorageHelper.setItem(StorageKeys.CXONE_CONFIG, cxoneConfigObj);
+                                this.logger.info('getWhoAmIData', 'Successfully fetched and set data');
+                                this.cxoneUser.initAuth(authToken.accessToken, cxoneConfigObj);
+                                this.getUserManagementDetails();
+                                this.onAuthStatusChange.next({
+                                    status: AuthStatus.AUTHENTICATED,
+                                    response: authToken,
+                                });
+                                const msg = {
+                                    type: MessageType.AUTHENTICATION_RESPONSE,
+                                    data: authToken,
+                                };
+                                MessageBus.instance.postResponse(msg);
+                                resolve(authToken);
+                            }, (error) => {
+                                this.logger.error('getAccessTokenByCode', 'Error from whoami api' + error.toString());
+                                this.onAuthStatusChange.next({
+                                    status: AuthStatus.AUTHENTICATION_FAILED,
+                                    response: error,
+                                });
+                                reject(error);
                             });
-                            const msg = {
-                                type: MessageType.AUTHENTICATION_RESPONSE,
-                                data: authToken,
-                            };
-                            MessageBus.instance.postResponse(msg);
-                            resolve(authToken);
                         }, (error) => {
-                            this.logger.error('getAccessTokenByCode', 'Error from whoami api' + error.toString());
+                            this.logger.error('getAccessTokenByCode', 'Error from cxoneconfiguration api ' + error.toString());
                             this.onAuthStatusChange.next({
                                 status: AuthStatus.AUTHENTICATION_FAILED,
                                 response: error,
                             });
                             reject(error);
                         });
-                    }, (error) => {
-                        this.logger.error('getAccessTokenByCode', 'Error from cxoneconfiguration api ' + error.toString());
+                        this.logger.info('getAccessTokenByCode', 'Token generated successfully');
+                    }
+                    else {
+                        this.logger.info('getAccessTokenByCode', 'Token verification failed');
                         this.onAuthStatusChange.next({
                             status: AuthStatus.AUTHENTICATION_FAILED,
-                            response: error,
                         });
-                        reject(error);
-                    });
-                    this.logger.info('getAccessTokenByCode', 'Token generated successfully');
+                    }
                 }), (error) => {
                     this.logger.error('getAccessTokenByCode', 'Error from access token api' + error.toString());
                     this.onAuthStatusChange.next({
@@ -233,52 +235,53 @@ export class CXoneAuth {
                 };
                 HttpClient.post(response.tokenEndpoint, reqInit).then((resp) => __awaiter(this, void 0, void 0, function* () {
                     if (resp.status === 200) {
-                        let param;
-                        if (this.authSettings.isVerificationRequired) {
-                            const verifiedUser = yield this.verifyJwt(resp);
-                            param = verifiedUser;
-                        }
-                        else {
-                            param = {};
-                        }
-                        const cxOneAuthToken = this.parseAndSaveAuthToken(resp, param);
-                        this.getCXoneConfiguration(this.authSettings.cxoneHostname, this.cxoneUser.userInfo.tenantId, this.cxoneUser.userInfo.tenant ? true : false).then(() => {
-                            this.getWhoAmIData(cxOneAuthToken).then((resp) => {
-                                const cxoneConfigObj = this.getCXoneConfig();
-                                cxoneConfigObj.acdApiBaseUri =
-                                    resp.resourceServerBaseUri;
-                                this.setCXoneConfig(cxoneConfigObj);
-                                this.cxoneUser.setTeamIdUserInfo(resp.teamId);
-                                LocalStorageHelper.setItem(StorageKeys.CXONE_CONFIG, cxoneConfigObj);
-                                this.logger.info('getWhoAmIData', 'Successfully fetched and set data');
-                                this.cxoneUser.initAuth(cxOneAuthToken.accessToken, cxoneConfigObj);
-                                this.onAuthStatusChange.next({
-                                    status: AuthStatus.AUTHENTICATED,
-                                    response: cxOneAuthToken,
+                        const isValidToken = yield this.verifyJwt(resp);
+                        if (isValidToken) {
+                            const cxOneAuthToken = this.parseAndSaveAuthToken(resp);
+                            this.getCXoneConfiguration(this.authSettings.cxoneHostname, this.cxoneUser.userInfo.tenantId, this.cxoneUser.userInfo.tenant ? true : false).then(() => {
+                                this.getWhoAmIData(cxOneAuthToken).then((resp) => {
+                                    const cxoneConfigObj = this.getCXoneConfig();
+                                    cxoneConfigObj.acdApiBaseUri = resp.resourceServerBaseUri;
+                                    this.setCXoneConfig(cxoneConfigObj);
+                                    this.cxoneUser.setTeamIdUserInfo(resp.teamId);
+                                    LocalStorageHelper.setItem(StorageKeys.CXONE_CONFIG, cxoneConfigObj);
+                                    this.logger.info('getWhoAmIData', 'Successfully fetched and set data');
+                                    this.cxoneUser.initAuth(cxOneAuthToken.accessToken, cxoneConfigObj);
+                                    this.getUserManagementDetails();
+                                    this.onAuthStatusChange.next({
+                                        status: AuthStatus.AUTHENTICATED,
+                                        response: cxOneAuthToken,
+                                    });
+                                    const msg = {
+                                        type: MessageType.AUTHENTICATION_RESPONSE,
+                                        data: cxOneAuthToken,
+                                    };
+                                    MessageBus.instance.postResponse(msg);
+                                    resolve(cxOneAuthToken);
+                                }, (error) => {
+                                    this.logger.error('getAccessTokenByToken', 'Error from whoami api' + error.toString());
+                                    this.onAuthStatusChange.next({
+                                        status: AuthStatus.AUTHENTICATION_FAILED,
+                                        response: error,
+                                    });
+                                    reject(error);
                                 });
-                                const msg = {
-                                    type: MessageType.AUTHENTICATION_RESPONSE,
-                                    data: cxOneAuthToken,
-                                };
-                                MessageBus.instance.postResponse(msg);
-                                resolve(cxOneAuthToken);
                             }, (error) => {
-                                this.logger.error('getAccessTokenByToken', 'Error from whoami api' + error.toString());
+                                this.logger.error('getAccessTokenByToken', 'Error from cxone configuration api ' + error.toString());
                                 this.onAuthStatusChange.next({
                                     status: AuthStatus.AUTHENTICATION_FAILED,
                                     response: error,
                                 });
                                 reject(error);
                             });
-                        }, (error) => {
-                            this.logger.error('getAccessTokenByToken', 'Error from cxone configuration api ' + error.toString());
-                            this.onAuthStatusChange.next({
-                                status: AuthStatus.AUTHENTICATION_FAILED,
-                                response: error,
-                            });
-                            reject(error);
+                            this.logger.info('getAccessTokenByToken', 'Token generated successfully');
+                        }
+                    }
+                    else {
+                        this.logger.info('getAccessTokenByToken', 'Token verification failed');
+                        this.onAuthStatusChange.next({
+                            status: AuthStatus.AUTHENTICATION_FAILED,
                         });
-                        this.logger.info('getAccessTokenByToken', 'Token generated successfully');
                     }
                 }), (err) => {
                     this.logger.error('getAccessTokenByToken', 'Error while generating new token from existing token' +
@@ -295,14 +298,17 @@ export class CXoneAuth {
     /**
      * method to generate new token using existing token using regional token exchange service
      * @param authWithTokenReq - request object containing host url and existing access token
+     * @param impersonatingUser - impersonating user details
      * @returns - returns the auth token
      * @example
      * ```
-     * getAccessTokenByToken({'http:testhost.com', 'eyJ0eXAiOiJKV1Qi...'});
+     * getRegionalAccessTokenByToken({'http:testhost.com', 'eyJ0eXAiOiJKV1Qi...'}, {name:'test'});
      * ```
      */
-    getRegionalAccessTokenByToken(authWithTokenReq, impersonatingUser) {
-        var _a;
+    getRegionalAccessTokenByToken(authWithTokenReq, 
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    impersonatingUser) {
+        var _a, _b;
         const reqInit = {
             headers: this.utilService.initHeader('', 'application/json').headers,
             body: {
@@ -311,16 +317,16 @@ export class CXoneAuth {
         };
         const tokenHeader = {
             name: 'Authorization',
-            value: 'Basic ' + btoa(`${this.authSettings.clientId}@cxone`),
+            value: 'Basic ' + window.btoa(`${(_a = this.authSettings) === null || _a === void 0 ? void 0 : _a.clientId}@cxone`),
         };
-        (_a = reqInit === null || reqInit === void 0 ? void 0 : reqInit.headers) === null || _a === void 0 ? void 0 : _a.push(tokenHeader);
+        (_b = reqInit === null || reqInit === void 0 ? void 0 : reqInit.headers) === null || _b === void 0 ? void 0 : _b.push(tokenHeader);
         this.onAuthStatusChange.next({ status: AuthStatus.AUTHENTICATING });
         return new Promise((resolve, reject) => {
             this.getCXoneConfiguration(this.authSettings.cxoneHostname, impersonatingUser.tenantId, true).then((resp) => {
                 const endpoint = resp.userHubBaseUrl + ApiUriConstants.REGIONAL_AUTH_TOKEN;
                 HttpClient.post(endpoint, reqInit).then((resp) => __awaiter(this, void 0, void 0, function* () {
                     if (resp.status === 200) {
-                        const cxOneAuthToken = this.parseAndSaveAuthToken(resp, impersonatingUser);
+                        const cxOneAuthToken = this.parseAndSaveAuthToken(resp, true, impersonatingUser);
                         this.getWhoAmIData(cxOneAuthToken).then((resp) => {
                             const cxoneConfigObj = this.getCXoneConfig();
                             cxoneConfigObj.acdApiBaseUri =
@@ -330,6 +336,7 @@ export class CXoneAuth {
                             LocalStorageHelper.setItem(StorageKeys.CXONE_CONFIG, cxoneConfigObj);
                             this.logger.info('getWhoAmIData', 'Successfully fetched and set data');
                             this.cxoneUser.initAuth(cxOneAuthToken.accessToken, cxoneConfigObj);
+                            this.getUserManagementDetails();
                             this.onAuthStatusChange.next({
                                 status: AuthStatus.AUTHENTICATED,
                                 response: cxOneAuthToken,
@@ -503,7 +510,7 @@ export class CXoneAuth {
         if (userLoginDetails.isTokenValid) {
             if (userLoginDetails.authToken) {
                 const userDetails = LocalStorageHelper.getItem(StorageKeys.USER_INFO, true);
-                this.setAuthAndUserData(userLoginDetails.authToken, userDetails);
+                this.setAuthAndUserData(userLoginDetails.authToken, true, userDetails);
                 const cxOneConfig = LocalStorageHelper.getItem(StorageKeys.CXONE_CONFIG, true);
                 if (cxOneConfig)
                     this.setCXoneConfig(cxOneConfig);
@@ -524,38 +531,41 @@ export class CXoneAuth {
     /**
      * Method used to parse the auth token, user info and store the values to local storage
      * @param authToken - authToken response
-     * @param verifiedUser - user details after token verification
      * @param setUserInfo - flag to decide whether to set user info or not
+     * @param impersonatingUser - impersonating user details
      * @returns - parsed authToken data
      * @example -
      * ```
-     * parseAndSaveAuthToken(authToken, verifiedUser, true);
+     * parseAndSaveAuthToken(authToken, true, impersonatingUser);
      * ```
      */
-    parseAndSaveAuthToken(authToken, verifiedUser, setUserInfo = true) {
+    parseAndSaveAuthToken(authToken, setUserInfo = true, 
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    impersonatingUser) {
         const cxOneAuthToken = new AuthToken();
         cxOneAuthToken.parseData(authToken.data);
-        this.setAuthAndUserData(cxOneAuthToken, verifiedUser, setUserInfo);
+        this.setAuthAndUserData(cxOneAuthToken, setUserInfo, impersonatingUser);
         LocalStorageHelper.setItem(StorageKeys.AUTH_TOKEN, cxOneAuthToken);
         return cxOneAuthToken;
     }
     /**
      * Method used to process parsed auth token and set user info object
      * @param authToken - parsed authToken
-     * @param verifiedUser - user details after token verification
      * @param setUserInfo - flag to decide whether to set user info or not
+     * @param userDetails - user details
      * @returns - parsed authToken data
      * @example -
      * ```
-     * setAuthAndUserData(authToken, verifiedUser, true);
+     * setAuthAndUserData(authToken, true, userDetails);
      * ```
      */
-    setAuthAndUserData(authToken, verifiedUser, setUserInfo = true) {
+    setAuthAndUserData(authToken, setUserInfo = true, 
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    userDetails) {
         this.setAuthToken(authToken);
         // if refresh token flow then we will skip updating user details part
         if (setUserInfo) {
-            const isVerifiedUser = this.validationUtils.isValidObject(verifiedUser);
-            this.cxoneUser.setUserDetails(isVerifiedUser ? verifiedUser : authToken, isVerifiedUser);
+            this.cxoneUser.setUserDetails(authToken, userDetails);
         }
     }
     /**
@@ -735,7 +745,7 @@ export class CXoneAuth {
                     };
                     yield HttpClient.post(discoveryResponse['tokenEndpoint'], reqInit).then((response) => __awaiter(this, void 0, void 0, function* () {
                         // Skip userInfo update in refresh token flow
-                        const authToken = this.parseAndSaveAuthToken(response, {}, false);
+                        const authToken = this.parseAndSaveAuthToken(response, false);
                         this.logger.info('getRefreshToken', 'refresh token api response');
                         this.startRefreshTokenCheck(this.getAuthToken(), CXoneLeaderElector.instance.isLeader, true);
                         this.onAuthStatusChange.next({
@@ -773,7 +783,7 @@ export class CXoneAuth {
      * Used to fetch the new access token using regional token endpoint when the old token is expired
      */
     getRegionalRefreshToken() {
-        var _a;
+        var _a, _b;
         return __awaiter(this, void 0, void 0, function* () {
             try {
                 this.terminateUtilWorker(); // terminate the util worker after the request has been completed
@@ -788,12 +798,12 @@ export class CXoneAuth {
                     };
                     const tokenHeader = {
                         name: 'Authorization',
-                        value: 'Basic ' + btoa(`${this.authSettings.clientId}@cxone`),
+                        value: 'Basic ' + window.btoa(`${(_a = this.authSettings) === null || _a === void 0 ? void 0 : _a.clientId}@cxone`),
                     };
-                    (_a = reqInit === null || reqInit === void 0 ? void 0 : reqInit.headers) === null || _a === void 0 ? void 0 : _a.push(tokenHeader);
+                    (_b = reqInit === null || reqInit === void 0 ? void 0 : reqInit.headers) === null || _b === void 0 ? void 0 : _b.push(tokenHeader);
                     yield HttpClient.post(endpoint, reqInit).then((response) => __awaiter(this, void 0, void 0, function* () {
                         // Skip userInfo update in refresh token flow
-                        const authToken = this.parseAndSaveAuthToken(response, {}, false);
+                        const authToken = this.parseAndSaveAuthToken(response);
                         this.logger.info('getRegionalRefreshToken', 'refresh token api response');
                         this.startRefreshTokenCheck(this.getAuthToken(), CXoneLeaderElector.instance.isLeader, true);
                         this.onAuthStatusChange.next({
@@ -941,13 +951,13 @@ export class CXoneAuth {
     /**
        * Check if token is impersonated token
        * @param token - token
-       * @example - verifyImpersonation(token)
+       * @example -
+       * ```
+       * getImpersonatingUser(token)
+       * ```
        */
     getImpersonatingUser(token) {
-        var _a;
-        const decodedTokenPayload = (_a = decode(token, {
-            complete: true,
-        })) === null || _a === void 0 ? void 0 : _a.payload;
+        const decodedTokenPayload = this.securityHelper.parseJwt(token);
         if (decodedTokenPayload === null || decodedTokenPayload === void 0 ? void 0 : decodedTokenPayload.impersonatingUserTenantId) {
             this.isActiveImpersonatedUser = true;
         }
@@ -972,16 +982,14 @@ export class CXoneAuth {
      * ```
      */
     verifyJwt(authResponse) {
-        var _a;
+        var _a, _b, _c;
         return __awaiter(this, void 0, void 0, function* () {
-            const decodedHeader = (_a = decode(authResponse.data.id_token, {
-                complete: true,
-            })) === null || _a === void 0 ? void 0 : _a.header;
+            const decodedHeader = JSON.parse(window.atob((_b = (_a = authResponse === null || authResponse === void 0 ? void 0 : authResponse.data) === null || _a === void 0 ? void 0 : _a.id_token) === null || _b === void 0 ? void 0 : _b.split('.')[0]));
             const headerKID = decodedHeader === null || decodedHeader === void 0 ? void 0 : decodedHeader.kid;
-            let user = null;
+            let isValid = false;
             try {
                 const keys = (yield this.getJWKS()).keys;
-                const key = keys.find((key) => key.kid === headerKID);
+                const key = keys === null || keys === void 0 ? void 0 : keys.find((key) => (key === null || key === void 0 ? void 0 : key.kid) === headerKID);
                 if (key) {
                     const jwk = {
                         kty: 'RSA',
@@ -989,7 +997,8 @@ export class CXoneAuth {
                         e: key.e,
                     };
                     const pem = jwkToBuffer(jwk);
-                    user = verify(authResponse.data.id_token, pem, { ignoreNotBefore: true });
+                    const pubKey = KEYUTIL.getKey(pem);
+                    isValid = KJUR.jws.JWS.verifyJWT((_c = authResponse === null || authResponse === void 0 ? void 0 : authResponse.data) === null || _c === void 0 ? void 0 : _c.id_token, pubKey, { alg: ['RS256'], gracePeriod: 60 });
                 }
                 else {
                     this.logger.error('verifyJwt', `unable to find signing key that matches ${headerKID}`);
@@ -998,7 +1007,7 @@ export class CXoneAuth {
             catch (err) {
                 this.logger.error('verifyJwt', JSON.stringify(err));
             }
-            return user;
+            return isValid;
         });
     }
     /**
@@ -1036,6 +1045,28 @@ export class CXoneAuth {
             else {
                 resolve(keysFromStorage);
             }
+        });
+    }
+    /**
+     * Fetch the user details of logged in user
+     * @example
+     * ```
+     * getUserManagementDetails();
+     * ```
+     */
+    getUserManagementDetails() {
+        const userInfo = this.cxoneUser.getUserInfo();
+        this.adminService
+            .getUserDetails(true)
+            .then((response) => {
+            if ((response === null || response === void 0 ? void 0 : response.firstName) && (response === null || response === void 0 ? void 0 : response.lastName)) {
+                userInfo.firstName = response === null || response === void 0 ? void 0 : response.firstName;
+                userInfo.lastName = response === null || response === void 0 ? void 0 : response.lastName;
+                LocalStorageHelper.setItem(StorageKeys.USER_INFO, userInfo);
+            }
+        })
+            .catch((e) => {
+            this.logger.error('getUserManagementDetails', e.toString());
         });
     }
 }

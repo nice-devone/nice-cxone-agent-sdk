@@ -1,5 +1,6 @@
 import { AdminService, LocalStorageHelper, Logger, StorageKeys, ValidationUtils } from '@nice-devone/core-sdk';
 import { CXoneSdkError, CXoneSdkErrorType, parseBooleanString, PermissionKeys } from '@nice-devone/common-sdk';
+import { SecurityHelper } from '../../util/security-helper';
 /**
  * Class to manage all user-related methods
  */
@@ -15,6 +16,7 @@ export class CXoneUser {
         this.logger = new Logger('Auth-SDK', 'CXoneUser');
         this.validationUtils = new ValidationUtils();
         this.userInfo = {};
+        this.securityHelper = new SecurityHelper();
         this.adminService = AdminService.instance;
     }
     /**
@@ -135,16 +137,21 @@ export class CXoneUser {
     }
     /**
      * Set the userinfo from the idToken after the successful authentication
-     * @param user - id_token signature verified user details
+     * @param verfiedUser - token for verified user
+     * @param userDetails - user details
      * @example
      * ```
-     * setUserDetails(authToken);
+     * setUserDetails(authToken, userDetails);
      * ```
      */
-    setUserDetails(verfiedUser, isVerified) {
-        var _a, _b;
-        const user = isVerified ? verfiedUser : JSON.parse(atob((_a = verfiedUser === null || verfiedUser === void 0 ? void 0 : verfiedUser.idToken) === null || _a === void 0 ? void 0 : _a.split('.')[1]));
-        if (user) {
+    setUserDetails(verfiedUser, 
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    userDetails) {
+        var _a;
+        const user = this.validationUtils.isValidObject(userDetails)
+            ? userDetails
+            : this.securityHelper.parseJwt(verfiedUser === null || verfiedUser === void 0 ? void 0 : verfiedUser.idToken);
+        if (this.validationUtils.isValidObject(user)) {
             this.userInfo = JSON.parse(JSON.stringify(this.userInfo));
             this.userInfo.tenantId = user.tenantId;
             this.userInfo.firstName = user.given_name ? user.given_name : user.firstName;
@@ -153,7 +160,7 @@ export class CXoneUser {
             this.userInfo.userName = user.name ? user.name : user.userName;
             this.userInfo.icBUId = user.icBUId;
             this.userInfo.icClusterId = user.icClusterId;
-            this.userInfo.userId = user.userId || ((_b = user.sub) === null || _b === void 0 ? void 0 : _b.slice(5));
+            this.userInfo.userId = user.userId || ((_a = user.sub) === null || _a === void 0 ? void 0 : _a.slice(5));
             this.userInfo.teamId = user.teamId;
             this.userInfo.tenant = user.tenant;
             LocalStorageHelper.setItem(StorageKeys.USER_INFO, this.userInfo);

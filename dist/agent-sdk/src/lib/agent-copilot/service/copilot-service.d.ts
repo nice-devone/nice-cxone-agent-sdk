@@ -1,6 +1,9 @@
 import { CXoneAuth } from '@nice-devone/auth-sdk';
-import { AgentCopilotSearchRequest, AgentCopilotCacheElement, CopilotMessageData, AgentAssistConfig } from '@nice-devone/common-sdk';
+import { AgentCopilotSearchRequest, AgentCopilotCacheElement, CopilotMessageData, CustomCopilotFilterTags, GuidanceFeedbackData, ContactFeedbackData, CopilotProfileConfig, ContactHistoryData } from '@nice-devone/common-sdk';
 import { Logger, HttpUtilService, HttpRequestInit, ValidationUtils } from '@nice-devone/core-sdk';
+/**
+ * Represents a collection of Copilot message data indexed by case ID.
+ */
 declare type CcfCopilotData = {
     [caseId: string]: CopilotMessageData;
 };
@@ -22,7 +25,10 @@ export declare class CopilotService {
     private AGENT_COPILOT_ENABLEMENT_FOR_CONTACT;
     private AGENT_COPILOT_AGENT_ASSIST_HUB_CONFIG;
     private AGENT_COPILOT_EMAIL_APIS;
-    private AGENT_COPILOT_FEEDBACK_GUIDANCE;
+    private PATH_GUIDANCE_FEEDBACK;
+    private PATH_CONTACT_FEEDBACK;
+    private PATH_KB_FILTER_UPDATE;
+    private JOURNEY_SUMMARY;
     private aahConfigStore;
     /**
      * Create instance of CXoneAuth
@@ -48,8 +54,6 @@ export declare class CopilotService {
      * @example commonPayload()
      */
     basePayload: () => {
-        agentId: string;
-        tenantId: string;
         contactId: any;
         idToken: string;
     };
@@ -168,7 +172,7 @@ export declare class CopilotService {
      * copilotService.setAgentAssistConfig('123123', {ContactId : '123123',});
      * ```
      */
-    setAgentAssistConfig: (contactId: string, aahConfig: AgentAssistConfig) => void;
+    setAgentAssistConfig: (contactId: string, aahConfig: string) => void;
     /**
      * Used to get AAH config for the contactId
      * @param contactId - contact Id
@@ -180,15 +184,6 @@ export declare class CopilotService {
      */
     getAgentAssistConfig: (contactId: string, isObjectFlag?: boolean) => any;
     /**
-     * Used to get AAH config for the contactIds from redis cache
-     * @param contactIds - list of contact Id
-     * @example -
-     * ```
-     * copilotService.fetchAgentAssistConfigFromCache(['12321']);
-     * ```
-     */
-    fetchAgentAssistConfigFromCache: (contactIds: string[]) => Promise<AgentAssistConfig>;
-    /**
      * Used to get AAH config for the contactId
      * @param contactId -  contact Id
      * @example -
@@ -196,7 +191,7 @@ export declare class CopilotService {
      * copilotService.retriveAgentAssistConfig('12321');
      * ```
      */
-    retriveAgentAssistConfig: (contactId: string) => Promise<AgentAssistConfig>;
+    retriveAgentAssistConfig: (contactId: string) => Promise<CopilotProfileConfig>;
     /**
      * Used to store AAH config for the contactId in browser memory by pulling from redis cache, if not already available
      * @param contactId - contact Id
@@ -240,20 +235,23 @@ export declare class CopilotService {
         content: string;
     }[]) => Promise<string>;
     /**
-     * Used to store the feedback guidance
-     * @param feedback - feedback given by the agent
-     * @param utteranceId - utteranceId
-     * @param kbAnswerUid - unique id of the kbAnswer
+     * Used to store the comprehensive feedback
+     * @param feedbackData - list of all feedbacks given by the agent
      * @example -
      * ```
-     * copilotService.sendGuidanceFeedback("Like", "1234", "1234");
+     * copilotService.sendGuidanceFeedback(feedbacks);
      * ```
      */
-    sendGuidanceFeedback: (feedbackData: {
-        feedback: string;
-        utteranceId: string;
-        kbAnswerUid: string;
-    }) => Promise<unknown>;
+    sendGuidanceFeedback: (feedbackData: GuidanceFeedbackData[]) => Promise<unknown>;
+    /**
+     * Used to store the overall subcard feedback
+     * @param contactFeedbackCard - contactFeedbackCard data given by the agent
+     * @example -
+     * ```
+     * copilotService.sendContactFeedback({overallFeedbackTitle: "1234", feedback: "feedback"});
+     * ```
+     */
+    sendContactFeedback: (contactFeedbackCard: ContactFeedbackData) => Promise<unknown>;
     /**
     * Use to process an editor command to get the Simplified/Rephrased/Expanded text in reponse
     * @param action - email action
@@ -266,5 +264,28 @@ export declare class CopilotService {
     * ```
     */
     processEditorCommand(action: string, context: string, selectedText: string, contactId: string): Promise<string>;
+    /**
+    * Use to update copilot filters/ tag lists
+    * @param copilotFilterTags - tags for filters
+    * @param contactId - contactId/caseId
+    * @example -
+    * ```
+    * copilotService.updateCopilotFilters([{name: 'planYear', default: ['2024'], selected: ['2024','2025]}],'1234');
+    * ```
+    */
+    updateCopilotFilters(copilotFilterTags: Array<CustomCopilotFilterTags>, contactId: string): Promise<string>;
+    /**
+    * Use to get journey summary data
+    * @param contactHistory - contact history of the contact
+    * @param contactId - contactId/caseId
+    * @param customerId - customerId
+    * @param aahConfiguration - agent assist configuration
+    * @param customerName - customer name
+    * @example -
+    * ```
+    * copilotService.getJourneySummary([{contactNumber: '1234', channelType: 'Voice', contactDate: '2021-09-01', skill: 'skill', status: 'status'}],'1234','1234',{},'user');
+    * ```
+    */
+    getJourneySummary(contactHistory: ContactHistoryData[], contactId: string, customerUid: string, aahConfiguration: CopilotProfileConfig, customerName: string): Promise<string>;
 }
 export {};

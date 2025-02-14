@@ -53,6 +53,18 @@ var AgentCopilotContentType;
     /**
      * Represents comprehensive feedback guidance content type
      */
-    AgentCopilotContentType["COMP_FEEDBACK_GUIDANCE"] = "comprehensiveFeedback";
+    AgentCopilotContentType["COMPREHENSIVE_FEEDBACK"] = "comprehensiveFeedback";
+    /**
+     * Represents the copilot filter card content type.
+     */
+    AgentCopilotContentType["COPILOT_FILTER_CARD"] = "filtersCard";
+    /**
+     * Represents the copilot journey summary content type.
+     */
+    AgentCopilotContentType["JOURNEY_SUMMARY"] = "journeySummary";
+    /**
+    * Represents the copilot disclosure card content type.
+    */
+    AgentCopilotContentType["DISCLOSURE"] = "disclosure";
 })(AgentCopilotContentType = exports.AgentCopilotContentType || (exports.AgentCopilotContentType = {}));
 //# sourceMappingURL=agent-copilot-content-type.js.map

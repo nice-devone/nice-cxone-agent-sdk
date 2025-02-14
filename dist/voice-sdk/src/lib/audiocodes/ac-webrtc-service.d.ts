@@ -180,4 +180,12 @@ export declare class ACWebRtcService {
        * ```
        */
     disconnectAgentLeg(): void;
+    /**
+     * Method to remove connected SBC data from the localstorage
+     * @example
+     * ```
+     * this.removeConnectedSBC();
+     * ```
+     */
+    private removeConnectedSBC;
 }

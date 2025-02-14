@@ -15,8 +15,45 @@ export class Logger {
      * ```
      */
     constructor(module, className) {
+        this.maxEventLogLength = 100;
         this.className = className !== null && className !== void 0 ? className : '';
         this.module = module !== null && module !== void 0 ? module : '';
+    }
+    /**
+     * Returns the EventLog
+     *
+     * @example
+     *  getEventLog()
+     */
+    getEventLog() {
+        return Logger.eventLog;
+    }
+    /**
+     * Saves messages into an array with the most recent first.
+     * It pops the oldest message off the back when it reaches max length
+     *
+     * @param message - the message string to save into the eventlog
+     * @example
+     *
+     * sendToEventLog(message);
+     *
+     */
+    saveToEventLog(message) {
+        var _a;
+        const date = new Date();
+        const dateTime = date.toLocaleTimeString();
+        const dateString = date.toDateString() + ' ' + dateTime.replace(/\u200E/g, '');
+        //message format
+        const module = this.module ? `[${this.module}] ` : '';
+        const className = this.className ? `[${this.className}] ` : '';
+        const log = `${dateString} - ${message.text} - ${module}${className}`;
+        if (((_a = Logger.eventLog) === null || _a === void 0 ? void 0 : _a.length) >= this.maxEventLogLength) {
+            Logger.eventLog.pop();
+            Logger.eventLog.unshift(log);
+        }
+        else {
+            Logger.eventLog.unshift(log);
+        }
     }
     /**
      * Set the multiple appenders and log level in Logger
@@ -119,6 +156,7 @@ export class Logger {
      * ```
      */
     doLog(level, message) {
+        this.saveToEventLog(message);
         Logger.config.getAppenders().forEach((appender) => {
             if (level >= Logger.config.getLevel()) {
                 appender.append({
@@ -132,4 +170,5 @@ export class Logger {
     }
 }
 Logger.config = new LoggerConfig();
+Logger.eventLog = [];
 //# sourceMappingURL=logger.js.map

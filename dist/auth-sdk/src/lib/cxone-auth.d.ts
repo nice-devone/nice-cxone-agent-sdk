@@ -6,7 +6,6 @@ import { AuthWithCodeReq } from './model/auth-with-code-req';
 import { AuthWithTokenReq } from './model/auth-with-token-req';
 import { AuthSettings } from './model/auth-settings';
 import { OpenIDConfiguration } from './model/open-id-configuration';
-import { JwtPayload } from 'jsonwebtoken';
 /**
  * Class to perform common authentication of user
  */
@@ -81,13 +80,14 @@ export declare class CXoneAuth {
     /**
      * method to generate new token using existing token using regional token exchange service
      * @param authWithTokenReq - request object containing host url and existing access token
+     * @param impersonatingUser - impersonating user details
      * @returns - returns the auth token
      * @example
      * ```
-     * getAccessTokenByToken({'http:testhost.com', 'eyJ0eXAiOiJKV1Qi...'});
+     * getRegionalAccessTokenByToken({'http:testhost.com', 'eyJ0eXAiOiJKV1Qi...'}, {name:'test'});
      * ```
      */
-    getRegionalAccessTokenByToken(authWithTokenReq: AuthWithTokenReq, impersonatingUser: JwtPayload): Promise<AuthToken>;
+    getRegionalAccessTokenByToken(authWithTokenReq: AuthWithTokenReq, impersonatingUser: any): Promise<AuthToken>;
     /**
      * Method to get discovery endpoints for authentication purposes
      * @returns - Http Response form well known openid config api
@@ -145,27 +145,27 @@ export declare class CXoneAuth {
     /**
      * Method used to parse the auth token, user info and store the values to local storage
      * @param authToken - authToken response
-     * @param verifiedUser - user details after token verification
      * @param setUserInfo - flag to decide whether to set user info or not
+     * @param impersonatingUser - impersonating user details
      * @returns - parsed authToken data
      * @example -
      * ```
-     * parseAndSaveAuthToken(authToken, verifiedUser, true);
+     * parseAndSaveAuthToken(authToken, true, impersonatingUser);
      * ```
      */
-    parseAndSaveAuthToken(authToken: HttpResponse, verifiedUser: any, setUserInfo?: boolean): AuthToken;
+    parseAndSaveAuthToken(authToken: HttpResponse, setUserInfo?: boolean, impersonatingUser?: any): AuthToken;
     /**
      * Method used to process parsed auth token and set user info object
      * @param authToken - parsed authToken
-     * @param verifiedUser - user details after token verification
      * @param setUserInfo - flag to decide whether to set user info or not
+     * @param userDetails - user details
      * @returns - parsed authToken data
      * @example -
      * ```
-     * setAuthAndUserData(authToken, verifiedUser, true);
+     * setAuthAndUserData(authToken, true, userDetails);
      * ```
      */
-    setAuthAndUserData(authToken: AuthToken, verifiedUser: JwtPayload, setUserInfo?: boolean): void;
+    setAuthAndUserData(authToken: AuthToken, setUserInfo?: boolean, userDetails?: any): void;
     /**
      * @param authToken - authToken object
      * @example
@@ -312,9 +312,12 @@ export declare class CXoneAuth {
     /**
        * Check if token is impersonated token
        * @param token - token
-       * @example - verifyImpersonation(token)
+       * @example -
+       * ```
+       * getImpersonatingUser(token)
+       * ```
        */
-    getImpersonatingUser(token: string): JwtPayload | undefined;
+    getImpersonatingUser(token: string): any;
     /**
        * Checks if instance is leader or not
        * @example
@@ -341,4 +344,12 @@ export declare class CXoneAuth {
      * ```
      */
     private getJWKS;
+    /**
+     * Fetch the user details of logged in user
+     * @example
+     * ```
+     * getUserManagementDetails();
+     * ```
+     */
+    private getUserManagementDetails;
 }

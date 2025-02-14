@@ -13,5 +13,6 @@ export var IndexDBKeyNames;
     IndexDBKeyNames["INTERACTION_FAILED_MESSAGES"] = "interactionFailedMessages";
     IndexDBKeyNames["WEM_NOTIFICATIONS"] = "wemNotifications";
     IndexDBKeyNames["SKILL_ACTIVITY"] = "SkillActivity";
+    IndexDBKeyNames["ACD_CONTACT_HISTORY"] = "acdContactHistory";
 })(IndexDBKeyNames || (IndexDBKeyNames = {}));
 //# sourceMappingURL=indexDB-key-names.js.map

@@ -9,6 +9,8 @@ import { LocalStorageHelper } from '../../util/storage-helper-local';
 import { ApiUriConstants } from '../../constants/api-uri-constants';
 import { ValidationUtils } from '../../util/validation-utils';
 import { CXoneUserDetails } from './model/cxone-user-details';
+import { ACDSessionManager } from '../agent';
+import { UIQHubUrl } from './model/uiq-hub-url';
 /**
  * Class to perform get admin api
  */
@@ -22,6 +24,7 @@ export class AdminService {
         this.accessToken = '';
         this.cxOneConfig = {};
         this.userInfo = {};
+        this.acdSessionManager = {};
     }
     /**
      * Method to initialize the user details
@@ -38,6 +41,7 @@ export class AdminService {
         this.cxOneConfig = config;
         this.userInfo = userInfo;
         this.setAccessToken(accessToken);
+        this.acdSessionManager = ACDSessionManager.instance;
     }
     /**
      * @returns - cxone configuration object
@@ -564,7 +568,9 @@ export class AdminService {
             const url = this.cxOneConfig.uiQueueWSBaseUri;
             HttpClient.get(url, reqInit).then((response) => {
                 this.logger.info('getUiqHubUrl', 'Get hub url Success');
-                resolve(response);
+                const uiqHubUrl = new UIQHubUrl();
+                uiqHubUrl.parse(response === null || response === void 0 ? void 0 : response.data);
+                resolve(uiqHubUrl);
             }, (error) => {
                 var _a;
                 this.logger.error('getUiqHubUrl', 'Get hub url failed' + JSON.stringify(error));
@@ -645,6 +651,51 @@ export class AdminService {
             }, (error) => {
                 var _a;
                 this.logger.error('selectAgentLocation', 'Select agent location failed' + JSON.stringify(error));
+                reject(new CXoneSdkError(CXoneSdkErrorType.CXONE_API_ERROR, (_a = error === null || error === void 0 ? void 0 : error.data) === null || _a === void 0 ? void 0 : _a.message, error === null || error === void 0 ? void 0 : error.data));
+            });
+        });
+    }
+    /**
+     * Method to get Categories and priorities for the agent feedback form
+     * @returns - object
+     * @example
+     * ```
+     * getFeedbackCategoriesAndPriorities()
+     * ```
+     */
+    getFeedbackCategoriesAndPriorities() {
+        return new Promise((resolve, reject) => {
+            const reqInit = this.utilService.initHeader(this.accessToken, 'application/json');
+            const url = this.cxOneConfig.acdApiBaseUri + ApiUriConstants.FEEDBACK_CATEGORIES_AND_PRIORITIES;
+            HttpClient.get(url, reqInit).then((response) => {
+                resolve(response.data);
+            }, (error) => {
+                var _a;
+                this.logger.error('getFeedbackCategoriesAndPriorities', 'Get feedback categories and priorities failed' + JSON.stringify(error));
+                reject(new CXoneSdkError(CXoneSdkErrorType.CXONE_API_ERROR, (_a = error === null || error === void 0 ? void 0 : error.data) === null || _a === void 0 ? void 0 : _a.message, error === null || error === void 0 ? void 0 : error.data));
+            });
+        });
+    }
+    /**
+     * Method to submit agent feedback
+     * @returns -
+     * @example
+     * ```
+     * submitFeedback()
+     * ```
+     */
+    submitFeedback(feedbackData) {
+        return new Promise((resolve, reject) => {
+            const reqInit = this.utilService.initHeader(this.accessToken, 'application/json');
+            const sessionId = this.acdSessionManager.getSessionId();
+            const url = this.cxOneConfig.acdApiBaseUri + ApiUriConstants.SUBMIT_FEEDBACK.replace('{sessionId}', sessionId);
+            reqInit.body = feedbackData;
+            HttpClient.post(url, reqInit).then((response) => {
+                this.logger.info('submitFeedback', 'Submit agent feedback Success');
+                resolve(response);
+            }, (error) => {
+                var _a;
+                this.logger.error('submitFeedback', 'Submit agent feedback failed' + JSON.stringify(error));
                 reject(new CXoneSdkError(CXoneSdkErrorType.CXONE_API_ERROR, (_a = error === null || error === void 0 ? void 0 : error.data) === null || _a === void 0 ? void 0 : _a.message, error === null || error === void 0 ? void 0 : error.data));
             });
         });

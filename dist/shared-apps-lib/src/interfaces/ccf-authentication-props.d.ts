@@ -3,7 +3,6 @@ export interface AuthSettings {
     clientId: string;
     redirectUri: string;
     state?: string;
-    isVerificationRequired?: boolean;
 }
 export interface CcfAuthenticationProps {
     consumerAppName: string;

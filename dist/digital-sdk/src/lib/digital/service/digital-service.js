@@ -32,6 +32,7 @@ export class DigitalService {
         this.DELETE_MESSAGE_AUTHOR_NAME = '/dfo/3.0/messages/{messageId}/author-name-removal';
         this.DELETE_MESSAGE_CONTENT = '/dfo/3.0/messages/{messageId}/content-removal';
         this.ERASE_MESSAGE_AUTHOR_NAME = '/internal/2.0/frontend-app-state?nodesToFetch=configurationEnvironment';
+        this.TYPING_INDICATOR_FOR_PATRON = '/dfo/3.0/channels/{channelId}/threads/{threadIdOnExternalPlatform}/sender-actions';
         /**
          * Method to get available languages for translation
          * @returns - languages
@@ -123,7 +124,7 @@ export class DigitalService {
             const baseUrl = this.auth.getCXoneConfig().dfoApiBaseUri;
             const authToken = this.auth.getAuthToken().accessToken;
             const url = baseUrl + ApiUriConstants.DIGITAL_CHANNELS_LIST + '?includeDeleted=1&orderBy=name&order=asc';
-            const reqInit = this.utilService.initHeader(authToken);
+            const reqInit = this.utilService.initHeader(authToken, undefined, "x-message-sender" /* HttpRequestCustomHeaders.X_MESSAGE_SENDER */);
             return new Promise((resolve, reject) => {
                 HttpClient.get(url, reqInit).then((response) => __awaiter(this, void 0, void 0, function* () {
                     const responseData = response.data;
@@ -153,7 +154,7 @@ export class DigitalService {
         const url = baseUrl +
             ApiUriConstants.DIGITAL_CHANNELS_LIST +
             '?query=isPrivate=1&hasManualOutboundFlow=1&withPermissionToManualOutbound=1&orderBy=name&order=asc';
-        const reqInit = this.utilService.initHeader(authToken);
+        const reqInit = this.utilService.initHeader(authToken, undefined, "x-message-sender" /* HttpRequestCustomHeaders.X_MESSAGE_SENDER */);
         return new Promise((resolve, reject) => {
             HttpClient.get(url, reqInit).then((response) => {
                 const responseData = response.data;
@@ -529,7 +530,7 @@ export class DigitalService {
         const authToken = this.auth.getAuthToken().accessToken;
         const url = baseUrl +
             this.UPDATE_MESSAGE_REACTION.replace('{messageId}', messageId).replace('{reactionType}', reactionType);
-        const reqInit = this.utilService.initHeader(authToken);
+        const reqInit = this.utilService.initHeader(authToken, undefined, "x-message-sender" /* HttpRequestCustomHeaders.X_MESSAGE_SENDER */);
         return new Promise((resolve, reject) => {
             HttpClient.post(url, reqInit).then((response) => {
                 this.logger.info('addMessageReaction', 'Message reaction added successfully');
@@ -552,7 +553,7 @@ export class DigitalService {
         const authToken = this.auth.getAuthToken().accessToken;
         const url = baseUrl +
             this.UPDATE_MESSAGE_REACTION.replace('{messageId}', messageId).replace('{reactionType}', reactionType);
-        const reqInit = this.utilService.initHeader(authToken);
+        const reqInit = this.utilService.initHeader(authToken, undefined, "x-message-sender" /* HttpRequestCustomHeaders.X_MESSAGE_SENDER */);
         return new Promise((resolve, reject) => {
             HttpClient.delete(url, reqInit).then((response) => {
                 this.logger.info('removeMessageReaction', 'Message reaction removed successfully');
@@ -737,8 +738,8 @@ export class DigitalService {
     getExternalPlatformTemplates(channelId) {
         const baseUrl = this.auth.getCXoneConfig().dfoApiBaseUri;
         const authToken = this.auth.getAuthToken().accessToken;
-        const url = baseUrl + this.EXTERNAL_PLATFORM_TEMPLATE_URI.replace('{channelId}', channelId);
-        const reqInit = this.utilService.initHeader(authToken);
+        const url = baseUrl + this.EXTERNAL_PLATFORM_TEMPLATE_URI.replace('{channelId}', channelId) + '?includeTemplatesWithMultimedia=1';
+        const reqInit = this.utilService.initHeader(authToken, undefined, "x-message-sender" /* HttpRequestCustomHeaders.X_MESSAGE_SENDER */);
         return new Promise((resolve, reject) => {
             HttpClient.get(url, reqInit).then((response) => {
                 const responseData = response.data;
@@ -763,7 +764,7 @@ export class DigitalService {
         const authToken = this.auth.getAuthToken().accessToken;
         const url = baseUrl + ApiUriConstants.MESSAGE_TAG.replace('{messageId}', messageId).replace('{tagId}', tagId);
         const reqInit = {
-            headers: this.utilService.initHeader(authToken, 'application/json').headers,
+            headers: this.utilService.initHeader(authToken, 'application/json', "x-message-sender" /* HttpRequestCustomHeaders.X_MESSAGE_SENDER */).headers,
         };
         return new Promise((resolve, reject) => {
             HttpClient.put(url, reqInit).then((response) => {
@@ -787,7 +788,7 @@ export class DigitalService {
         const authToken = this.auth.getAuthToken().accessToken;
         const url = baseUrl + ApiUriConstants.MESSAGE_TAG.replace('{messageId}', messageId).replace('{tagId}', tagId);
         const reqInit = {
-            headers: this.utilService.initHeader(authToken, 'application/json').headers,
+            headers: this.utilService.initHeader(authToken, 'application/json', "x-message-sender" /* HttpRequestCustomHeaders.X_MESSAGE_SENDER */).headers,
         };
         return new Promise((resolve, reject) => {
             HttpClient.delete(url, reqInit).then((response) => {
@@ -835,7 +836,7 @@ export class DigitalService {
         const authToken = this.auth.getAuthToken().accessToken;
         const url = baseUrl + ApiUriConstants.GET_MESSAGE_TAGS_BY_PAGE.replace('{pageNumber}', pageNumber.toString());
         const reqInit = {
-            headers: this.utilService.initHeader(authToken, 'application/json').headers,
+            headers: this.utilService.initHeader(authToken, 'application/json', "x-message-sender" /* HttpRequestCustomHeaders.X_MESSAGE_SENDER */).headers,
         };
         return new Promise((resolve, reject) => {
             HttpClient.get(url, reqInit).then((response) => {
@@ -858,7 +859,7 @@ export class DigitalService {
         const authToken = this.auth.getAuthToken().accessToken;
         const url = baseUrl + ApiUriConstants.GET_MESSAGE_TAG;
         const reqInit = {
-            headers: this.utilService.initHeader(authToken, 'application/json').headers,
+            headers: this.utilService.initHeader(authToken, 'application/json', "x-message-sender" /* HttpRequestCustomHeaders.X_MESSAGE_SENDER */).headers,
         };
         return new Promise((resolve, reject) => {
             HttpClient.get(url, reqInit).then((response) => {
@@ -980,7 +981,7 @@ export class DigitalService {
             const baseUrl = this.auth.getCXoneConfig().dfoApiBaseUri;
             const authToken = this.auth.getAuthToken().accessToken;
             const url = baseUrl + this.GET_MESSAGES_LIST + getQueryURLForSearchMessagesTab(searchRequest);
-            const reqInit = this.utilService.initHeader(authToken);
+            const reqInit = this.utilService.initHeader(authToken, undefined, "x-message-sender" /* HttpRequestCustomHeaders.X_MESSAGE_SENDER */);
             // we need to call /channels & /routing-queues api separately as channelName & routing Queue name is not coming in /contacts search api response
             const allChannelsMap = yield this.getAllChannels(forceFetchChannel);
             return new Promise((resolve, reject) => {
@@ -1055,7 +1056,7 @@ export class DigitalService {
         const authToken = this.auth.getAuthToken().accessToken;
         const url = baseUrl + this.DELETE_MESSAGE_AUTHOR_NAME.replace('{messageId}', messageId);
         const reqInit = {
-            headers: this.utilService.initHeader(authToken, 'application/json').headers,
+            headers: this.utilService.initHeader(authToken, 'application/json', "x-message-sender" /* HttpRequestCustomHeaders.X_MESSAGE_SENDER */).headers,
             body: { 'reason': 'GDPR' },
         };
         return new Promise((resolve, reject) => {
@@ -1082,7 +1083,7 @@ export class DigitalService {
         const authToken = this.auth.getAuthToken().accessToken;
         const url = baseUrl + this.DELETE_MESSAGE_CONTENT.replace('{messageId}', messageId);
         const reqInit = {
-            headers: this.utilService.initHeader(authToken, 'application/json').headers,
+            headers: this.utilService.initHeader(authToken, 'application/json', "x-message-sender" /* HttpRequestCustomHeaders.X_MESSAGE_SENDER */).headers,
             body: { 'reason': 'GDPR' },
         };
         return new Promise((resolve, reject) => {
@@ -1132,6 +1133,36 @@ export class DigitalService {
                 this.logger.info('canEraseMessageContentAndUserNames', 'Erase content and author permission fetched from storage');
                 resolve(canEraseMessageContentAndUserNames);
             }
+        });
+    }
+    /**
+   * Method to set the typing indicator on or off for patron side
+   * @param channelId - Id of the channel
+   * @param threadIdOnExternalPlatform - Id of the thread on external platform
+   * @param typingActionType - action type to set typing indicator on or off
+   * @example -
+   * ```
+   * setTypingIndicatorForPatron('chat_98a533ba-9722-46c3-a909-78f72a0abaa5', '98a533ba-9722-46c3-a909-78f72a0abaa5', true);
+   * ```
+   */
+    setTypingIndicatorForPatron(channelId, threadIdOnExternalPlatform, typingActionType) {
+        const baseUrl = this.auth.getCXoneConfig().dfoApiBaseUri;
+        const authToken = this.auth.getAuthToken().accessToken;
+        const url = baseUrl + this.TYPING_INDICATOR_FOR_PATRON.replace('{channelId}', channelId)
+            .replace('{threadIdOnExternalPlatform}', threadIdOnExternalPlatform);
+        const reqInit = {
+            headers: this.utilService.initHeader(authToken, 'application/json').headers,
+            body: { 'action': typingActionType },
+        };
+        return new Promise((resolve, reject) => {
+            HttpClient.post(url, reqInit).then((response) => {
+                this.logger.info('setTypingIndicatorForPatron', `Typing indicator ${typingActionType} set successfully`);
+                resolve(response);
+            }, (error) => {
+                const errorResponse = new CXoneSdkError(CXoneSdkErrorType.CXONE_API_ERROR, `Typing indicator ${typingActionType} set failed`, error);
+                this.logger.error('setTypingIndicatorForPatron', errorResponse.toString());
+                reject(errorResponse);
+            });
         });
     }
 }

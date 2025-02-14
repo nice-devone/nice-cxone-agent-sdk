@@ -56,6 +56,7 @@ export declare class ACDSessionManager {
     private _answerEvent;
     private _rejectEvent;
     private _callControlEvent;
+    private isEventQueueResized;
     /**
      * @example
      * ```
@@ -127,12 +128,7 @@ export declare class ACDSessionManager {
         disconnectCode: import("yup/lib/string").RequiredStringSchema<string, import("yup/lib/types").AnyObject>;
         isLogging: import("yup/lib/boolean").RequiredBooleanSchema<boolean, import("yup/lib/types").AnyObject>;
         timeout: import("yup/lib/number").RequiredNumberSchema<number, import("yup/lib/types").AnyObject>;
-        allowDispositions: import("yup/lib/boolean").RequiredBooleanSchema<boolean, import("yup/lib/types").AnyObject>; /**
-         * @example -
-         * ```
-         * const rejectEvent = acdSession.rejectEvent
-         * ```
-         */
+        allowDispositions: import("yup/lib/boolean").RequiredBooleanSchema<boolean, import("yup/lib/types").AnyObject>;
         label: import("yup/lib/string").RequiredStringSchema<string, import("yup/lib/types").AnyObject>;
         isLinked: import("yup/lib/boolean").RequiredBooleanSchema<boolean, import("yup/lib/types").AnyObject>;
         timeZones: import("yup/lib/string").RequiredStringSchema<string, import("yup/lib/types").AnyObject>;
@@ -420,7 +416,11 @@ export declare class ACDSessionManager {
      * this.toggleAgentEventsReceivingMethod(invokeSnapshot, sessionId)
      * ```
      */
-    toggleAgentEventsReceivingMethod(invokeSnapshot?: boolean, sessionId?: string): void;
+    toggleAgentEventsReceivingMethod({ invokeSnapshot, sessionId, isUIQueueEnabled: isUIQueueTMToggleEnabled }: {
+        invokeSnapshot?: boolean;
+        sessionId?: string;
+        isUIQueueEnabled?: boolean;
+    }): void;
     /**
      * Method to start session for an agent
      * @param startSessionRequest - Object of type StartSessionRequest.
@@ -430,7 +430,7 @@ export declare class ACDSessionManager {
      * const startAgentSession = this.startSession(startSessionRequest)
      * ```
      */
-    startSession(startSessionRequest: StartSessionRequest): Promise<HttpResponse | CXoneSdkError>;
+    startSession(startSessionRequest: StartSessionRequest, isUIQueueEnabled?: boolean): Promise<HttpResponse | CXoneSdkError>;
     /**
      * Method to join session for an agent
      * @param options - input parameters for the method includes agent id
@@ -442,7 +442,8 @@ export declare class ACDSessionManager {
      * ```
      */
     joinSession(options?: {
-        agentId: number;
+        agentId?: number;
+        isUIQueueEnabled?: boolean;
     }): Promise<HttpResponse | CXoneSdkError>;
     /**
      * Method to end an agent session

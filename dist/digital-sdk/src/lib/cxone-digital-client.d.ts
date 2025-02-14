@@ -1,4 +1,4 @@
-import { CXoneTenant } from '@nice-devone/agent-sdk';
+import { SkillService, CXoneTenant } from '@nice-devone/agent-sdk';
 import { CXoneAuth, CXoneUser } from '@nice-devone/auth-sdk';
 import { CXoneDigitalWebsocket } from './digital/ws/cxone-digital-websocket';
 import { DigitalService } from './digital/service/digital-service';
@@ -8,7 +8,7 @@ import { DigitalMessageNoteService } from './digital/service/digital-message-not
 export declare class CXoneDigitalClient {
     private logger;
     private isStartedDigitalStatusPolling;
-    private skillService;
+    skillService: SkillService;
     cxoneTenant: CXoneTenant;
     cxoneUser: CXoneUser;
     cxoneDigitalWebsocket: CXoneDigitalWebsocket;
@@ -61,4 +61,12 @@ export declare class CXoneDigitalClient {
      * Subscription for leader change event
      */
     private onLeaderElectionChange;
+    /**
+     * Method to update DFO URL
+     * @example
+     * ```
+     * updateDfoWSUrl()
+     * ```
+     */
+    private updateDfoWSUrl;
 }

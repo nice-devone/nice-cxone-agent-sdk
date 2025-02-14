@@ -1,6 +1,5 @@
 import { AgentSettings, Logger } from '@nice-devone/core-sdk';
-import { CXoneConfiguration, CXoneSdkError, UserInfo, CXoneDigitalSearchTabPermissions } from '@nice-devone/common-sdk';
-import { JwtPayload } from 'jsonwebtoken';
+import { CXoneConfiguration, CXoneSdkError, UserInfo, CXoneDigitalSearchTabPermissions, AuthToken } from '@nice-devone/common-sdk';
 import { UserCustomAttributes } from '../enum/user/custom-attributes';
 /**
  * Class to manage all user-related methods
@@ -11,6 +10,7 @@ export declare class CXoneUser {
     private adminService;
     private validationUtils;
     userInfo: UserInfo;
+    private securityHelper;
     /**
      * Method to create singleton object of the class
      * @example
@@ -83,13 +83,14 @@ export declare class CXoneUser {
     getAgentSettings(): Promise<AgentSettings>;
     /**
      * Set the userinfo from the idToken after the successful authentication
-     * @param user - id_token signature verified user details
+     * @param verfiedUser - token for verified user
+     * @param userDetails - user details
      * @example
      * ```
-     * setUserDetails(authToken);
+     * setUserDetails(authToken, userDetails);
      * ```
      */
-    setUserDetails(verfiedUser: JwtPayload, isVerified: boolean): void;
+    setUserDetails(verfiedUser: AuthToken, userDetails?: any): void;
     /**
      * Get the user details from the auth token that stored in the local storage
      * @returns - It returns the user information

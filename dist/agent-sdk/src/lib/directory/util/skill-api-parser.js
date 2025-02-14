@@ -70,6 +70,7 @@ export class SkillApiParser {
                     customerIdleTime: respObj.customerIdleTime,
                     timeExtensionEnabled: respObj.timeExtensionEnabled,
                     requireDisposition: respObj.requireDisposition,
+                    workItemQueueType: respObj.workItemQueueType,
                 };
                 allSkillLists.push(data);
             }

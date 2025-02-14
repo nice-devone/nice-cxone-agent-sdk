@@ -40,12 +40,14 @@ export declare class CXoneSkillActivityQueue {
     terminateSkillActivityPolling(): void;
     /**
      * Used to start the agent queue polling
+     * Note - while the parameter isn't used anymore there is a strange call to this method in cxone-client.ts
+     * that I don't understand and don't want to mess with so keeping it as is for now.
      * @example -
      * ```
      * this.cxoneQueue.startAgentQueuesPolling()
      * ```
      */
-    startAgentQueuesPolling(agentId?: string): void;
+    startAgentQueuesPolling(agentId: string): void;
     /**
      * Used to terminate the agent queue polling
      * @example -

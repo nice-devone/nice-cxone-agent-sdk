@@ -3,14 +3,17 @@
  */
 export class HttpUtilService {
     /**
-     * Method to initialise headers for a http api call
+     * Method to initialize headers for a http api call
+     * @param token - token to be added in header
+     * @param contentType - content type to be added in header (optional)
+     * @param xMessageSender - x-message-sender header to be added in header (optional)
      * @returns HttpRequestInit response
      * ```
      * @example
      * const initApi = this.initHeader()
      * ```
      */
-    initHeader(token, contentType) {
+    initHeader(token, contentType, xMessageSender) {
         const reqInit = {
             headers: [],
         };
@@ -34,6 +37,15 @@ export class HttpUtilService {
                 value: 'CXoneAgent',
             };
             reqInit.headers.push(originIdentifier);
+        }
+        // Dev Note: Below Change added temporarily as per request from DF sandy team, considering billing implications
+        // TODO: Need to be removed when DFO completes ADR approved DE ticket of reading above header - Originating-Service-Identifier
+        if (reqInit.headers && xMessageSender) {
+            const xMessageSenderHeader = {
+                name: xMessageSender,
+                value: 'cxagent',
+            };
+            reqInit.headers.push(xMessageSenderHeader);
         }
         return reqInit;
     }

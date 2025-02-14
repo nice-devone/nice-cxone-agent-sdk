@@ -1,5 +1,5 @@
 import { CcfLogger } from '@nice-devone/agent-sdk';
-import { HttpResponse, CXoneDigitalChannel, UserSlots, CXoneAttachment, FavQuickReply, ReactionType, CustomField, ContactHistory, ExternalPlatformTemplatesSchema, CXoneDigitalContactSearchRequest, CXoneDigitalContactSearchObject, CXoneRoutingQueue, CXoneDigitalMessageTagArray, CXoneDigitalQuickReply, CXoneDigitalCustomerSearchRequest, CXoneDigitalCustomerSearchDetails, CXoneDigitalMessageSearchRequest, CXoneDigitalMessageSearchDetails, CXoneDigitalThreadSearchRequest, CXoneDigitalThreadSearchDetails, CXoneDigitalTranslationLanguages, CXoneDigitalTranslationApiRequest, CXoneDigitalTranslationApiResponse } from '@nice-devone/common-sdk';
+import { HttpResponse, CXoneDigitalChannel, UserSlots, CXoneAttachment, FavQuickReply, ReactionType, CustomField, ContactHistory, ExternalPlatformTemplatesSchema, CXoneDigitalContactSearchRequest, CXoneDigitalContactSearchObject, CXoneRoutingQueue, CXoneDigitalMessageTagArray, CXoneDigitalQuickReply, CXoneDigitalCustomerSearchRequest, CXoneDigitalCustomerSearchDetails, CXoneDigitalMessageSearchRequest, CXoneDigitalMessageSearchDetails, CXoneDigitalThreadSearchRequest, CXoneDigitalThreadSearchDetails, CXoneDigitalTranslationLanguages, CXoneDigitalTranslationApiRequest, CXoneDigitalTranslationApiResponse, TypingIndicatorActions } from '@nice-devone/common-sdk';
 import { HttpUtilService } from '@nice-devone/core-sdk';
 /**
  * Service to handle generic digital API calls
@@ -20,6 +20,7 @@ export declare class DigitalService {
     private DELETE_MESSAGE_AUTHOR_NAME;
     private DELETE_MESSAGE_CONTENT;
     private ERASE_MESSAGE_AUTHOR_NAME;
+    private TYPING_INDICATOR_FOR_PATRON;
     cachedLanguageTranslations: CXoneDigitalTranslationLanguages | undefined;
     /**
      * @example
@@ -322,4 +323,15 @@ export declare class DigitalService {
      * ```
      */
     getCanEraseMessageContentAndUserNames(): Promise<boolean>;
+    /**
+   * Method to set the typing indicator on or off for patron side
+   * @param channelId - Id of the channel
+   * @param threadIdOnExternalPlatform - Id of the thread on external platform
+   * @param typingActionType - action type to set typing indicator on or off
+   * @example -
+   * ```
+   * setTypingIndicatorForPatron('chat_98a533ba-9722-46c3-a909-78f72a0abaa5', '98a533ba-9722-46c3-a909-78f72a0abaa5', true);
+   * ```
+   */
+    setTypingIndicatorForPatron(channelId: string, threadIdOnExternalPlatform: string, typingActionType: TypingIndicatorActions): Promise<HttpResponse>;
 }

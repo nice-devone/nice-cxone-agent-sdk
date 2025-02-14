@@ -36,11 +36,11 @@ With the usage of i18n sdk on change of language it turns the application into d
 
 ### Documentation
 
-For detailed documentation and developer related queries, Please visit  [Link to developer documentation](https://developer.niceincontact.com/)
+For detailed documentation and developer related queries, Please visit [Official SDK Documentation](https://help.nice-incontact.com/content/agent/agentapplicationadministration/cxoneagent/cxasdk.htm?tocpath=Agent%20Application%20Administration%7CAgent%20Application%20Administration%7CCXone%20Agent%7C_____8)
 
 ### Compatibility
 
-This SDK is likely compatible with specific CXone ACD versions. Refer to the documentation for supported versions.
+This SDK is likely compatible with specific CXone Agent SDK versions. Refer to the documentation for supported versions.
 
 ### License
 
@@ -48,7 +48,7 @@ Check the license file for specific terms regarding the use of this SDK.
 
 ### Support
 
-For any issues or questions, please refer to the (mention support channel/link here).
+For further assistance, refer to the official documentation or reach out to NICE CXone support channels.
 
 ### Additional Notes
 

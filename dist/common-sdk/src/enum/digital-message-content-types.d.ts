@@ -45,5 +45,13 @@ export declare enum DigitalMessageContentTypes {
     /**
      * Message type of adaptive card
      */
-    ADAPTIVE_CARD = "ADAPTIVE_CARD"
+    ADAPTIVE_CARD = "ADAPTIVE_CARD",
+    /**
+     * Message type of menu
+     */
+    MENU = "MENU",
+    /**
+     * Message type of text template
+     */
+    TEXT_TEMPLATE = "TEXT_TEMPLATE"
 }

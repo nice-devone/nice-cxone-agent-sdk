@@ -37,7 +37,6 @@ This README file provides an overview of the `@nice-devone/core-sdk` library. It
 
 ### Installation
 
-Bash
 ```
 npm install @nice-devone/core-sdk
 ```
@@ -72,7 +71,7 @@ import {
 
 2. Initialize Logger:
 ```
-const logger = new Logger('Browser Extension', 'DockingTab');
+const logger = new Logger('Module', 'ClassName');
 ```
 
 3. Leverage SDK functionalities:
@@ -83,11 +82,11 @@ Explore the available classes and methods within the library to interact with CX
 
 ### Documentation
 
-For detailed documentation and developer related queries, Please visit [Link to developer documentation](https://developer.niceincontact.com/)
+For detailed documentation and developer related queries,Please visit [Official SDK Documentation](https://help.nice-incontact.com/content/agent/agentapplicationadministration/cxoneagent/cxasdk.htm?tocpath=Agent%20Application%20Administration%7CAgent%20Application%20Administration%7CCXone%20Agent%7C_____8)
 
 ### Compatibility
 
-This SDK is likely compatible with specific CXone ACD versions. Refer to the documentation for supported versions.
+This SDK is likely compatible with specific CXone Agent SDK versions. Refer to the documentation for supported versions.
 
 ### License
 
