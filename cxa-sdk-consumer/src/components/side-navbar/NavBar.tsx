@@ -34,6 +34,8 @@ import AcdSdk from "../acd-sdk/AcdSdk";
 import DigitalSdk from "../digital-sdk/DigitalSdk";
 import Auth from "../auth/Auth";
 import AuthCallBack from "../auth/AuthCallback";
+import { CXoneAcdClient } from "@nice-devone/acd-sdk";
+
 
 
 const drawerWidth = 240;
@@ -181,9 +183,28 @@ export default function NavBar() {
     if (index === 1) navigate("/acd-sdk");
     if (index === 2) navigate("/digital-sdk");
     if (index === 3) navigate("/cxa-placeholder");
+    if (index === 4) {
+     CXoneAcdClient.instance.initAcdEngagement();
+     CXoneAcdClient.instance.session
+     .endSession({
+      forceLogoff: false,
+      endContacts: true,
+      ignorePersonalQueue: true,
+    })
+     .then((response: any) => {
+      localStorage.clear();
+      setDisableTab(true);
+      window.location.href = "/";
+       
+     })
+     .catch((err: any) => {
+       console.log(err.message ?? "An error occured");
+     });
+   
+    }
   };
 
-  let tabNamesArray = ["Auth","ACD ","Digital ","Custom"];
+  let tabNamesArray = ["Auth","ACD ","Digital ","Custom","Logout"];
  
 
   useEffect(() => {
