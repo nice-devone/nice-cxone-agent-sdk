@@ -44,17 +44,21 @@ import { CXoneClient } from "@nice-devone/agent-sdk";
 import {  StorageKeys } from "@nice-devone/core-sdk";
 import { CXoneDigitalClient } from "@nice-devone/digital-sdk";
 import {  CXoneUser } from '@nice-devone/auth-sdk';
-import {PermissionKeys,PermissionValues}  from '@nice-devone/common-sdk';
+import { FeatureToggleService } from '@nice-devone/agent-sdk';
+import { CommitmentEvent } from '@nice-devone/common-sdk';
+import VoiceControls from "./voice-controls/VoiceControls";
+import { CXoneVoiceClientWrapper } from "./services/cxone-voice-client-wrapper";
+import Outbound from "./outbound/Outbound";
 
+// import '../../../public/ac_webrtc.min.js';
 const AcdSdk = () => {
   const theme = useTheme();
-  const [skillDetails, setSkillDetails] = useState({} as any);
   const [agentStatus, setAgentStatus] = useState({} as any);
-  const [dialNumber, setDialNumber] = useState("");
   const [startSessionButton, setStartSessionButton] = useState(false);
   const [endSessionButton, setEndSessionButton] = useState(true);
   const [agentLegButton, setAgentLegButton] = useState(true);
   const [voiceContact,setVoiceContact]=useState({} as any);
+  const [voiceContactStatus,setVoiceContactStatus]=useState("");
   const gaAccessTokenFlowStyles = ccfGaAccessTokenFlowStyles(theme);
   const accessTokenFlowStyles = ccfAccessTokenFlowStyles(theme);
 
@@ -64,9 +68,16 @@ const AcdSdk = () => {
     ignorePersonalQueue: true,
   };
 
-   
 
+   const getAllFeatureTogglesAsync = async(): Promise<string[]> => {
+    return await FeatureToggleService.instance.loadFeatures()
+  }
+  useEffect(()=>{
+    getAllFeatureTogglesAsync()
+  },[])
+  
   useEffect(() => {
+    
     
      CXoneDigitalClient.instance.initDigitalEngagement();
      CXoneAcdClient.instance.initAcdEngagement();
@@ -75,7 +86,7 @@ const AcdSdk = () => {
             );
 
     const agentId = getLastLoggedInAgentId?.toString();
-    
+      
     if(agentId){
       
       CXoneAcdClient.instance.session.agentStateService.agentStateSubject.subscribe(
@@ -83,18 +94,13 @@ const AcdSdk = () => {
           setAgentStatus(agentState);
         }
       );
-      CXoneAcdClient.instance.getAgentSkills(agentId).then((data: any) => {
-       
-        const outboundSkill = data.find((skill: any) => skill.isOutbound === true);
-        if (outboundSkill) {
-          setSkillDetails(outboundSkill);
-        }
-       
-        
-      });
+      
       CXoneAcdClient.instance.contactManager.voiceContactUpdateEvent.subscribe(
         (data: any) => {
-          console.log("voicedata", data);
+          setVoiceContactStatus(data.status);
+          setVoiceContact(data);
+          console.log("voice contact", data);
+
         }
       );
   
@@ -138,17 +144,23 @@ const AcdSdk = () => {
 
       CXoneAcdClient.instance.contactManager.voiceContactUpdateEvent.subscribe(
         (cxoneContact: CXoneVoiceContact) => {
-          if (cxoneContact.status === "Disconnected") {
-            setVoiceContact({});
-          }else{
+          setVoiceContactStatus(cxoneContact.status);
             setVoiceContact(cxoneContact);
-          }
+          
           
         })
+      
+       
     }else{
       console.log("Agent Id not found",agentId); 
     }
+
+    
   }, []);
+
+ 
+
+  
 
   const initWebRTC = async() => {
     const agentSettingService =  await CXoneUser.instance.getAgentSettings()
@@ -174,32 +186,6 @@ const AcdSdk = () => {
   
       }
 
-  /**
-   * dial OB call
-   * @example
-   * ```
-   * DialCallButtonClick()
-   * ```
-   */
-  const dialCallButtonClick = () => {
-    //AgentLeg must be start to initiate call
-    // onAgentLegClick()
-    const contactDetails = {
-      skillId:
-        skillDetails?.skillId /*Before using skillID agent Application must be linked with acd  */,
-      phoneNumber: dialNumber,
-    };
-
-    CXoneAcdClient.instance.contactManager.voiceService.dialPhone(
-      contactDetails
-    ).then(res=>{
-      console.log("Dialled Given number and dial phone api successfully called",res);
-    }).catch(e=>{
-      console.log('eerr',e)
-    })
-  };
-
- 
 
   const startSessiononCall=()=>{
     CXoneAcdClient.instance.session
@@ -259,15 +245,7 @@ const AcdSdk = () => {
   const onAgentLegClick=async()=>{
     try {
       await CXoneAcdClient.instance.agentLegService.dialAgentLeg()
-      CXoneAcdClient.instance.session.agentLegEvent.subscribe(
-        async(data: any) => {
-          
-          if (data.status === "Dialing") {
-            console.log('Dialing',data.agentLegId)
-           
-          }
-        }
-      );
+     
     } catch (error) {
       console.log("agent leg error",error);
     }
@@ -333,33 +311,16 @@ const AcdSdk = () => {
                     ? ""
                     : "Reason :"}{" "}
                   {agentStatus && agentStatus?.currentState?.reason}
-                  {console.log("get-Next-Event", JSON.stringify(agentStatus))}
+                  {console.log("get-Next-Event", agentStatus?.currentState?.cxoneState)}
                 </CardContent>
 
                 <CardHeader title="Dial Phone"></CardHeader>
                 <CardContent>
                   <form className="root">
-                    <Box sx={accessTokenFlowStyles.inputs_alignment}>
-                      <TextField
-                        id="outlined-basic"
-                        label="callAgent"
-                        value={dialNumber}
-                        onChange={(e: any) => setDialNumber(e.target.value)}
-                        InputLabelProps={{ shrink: true }}
-                      />
-                      <Button
-                        onClick={() => {
-                          dialCallButtonClick();
-                        }}
-                        color="primary"
-                        variant="contained"
-                        size="large"
-                        sx={accessTokenFlowStyles.margin}
-                      >
-                        Dial Number
-                      </Button>
-                    </Box>
-                   
+                   <Outbound/>
+                    {(agentStatus?.currentState?.cxoneState == "OutboundContact" ||agentStatus?.currentState?.cxoneState == "InboundContact") && (
+                      <VoiceControls voiceContact={voiceContact}/>
+                    )}
                   </form>
                 </CardContent>
               </Card>

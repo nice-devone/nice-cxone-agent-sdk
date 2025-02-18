@@ -1,0 +1,88 @@
+import React, { useEffect, useState } from "react";
+import {
+  ccfAccessTokenFlowStyles,
+} from "../../side-navbar/NavBar";
+import { Box, Button, TextField, useTheme } from "@mui/material";
+import { CXoneAcdClient } from "@nice-devone/acd-sdk";
+import { StorageKeys } from "@nice-devone/core-sdk";
+
+const Outbound = () => {
+  const theme = useTheme();
+  const accessTokenFlowStyles = ccfAccessTokenFlowStyles(theme);
+  const [dialNumber, setDialNumber] = useState("");
+  const [skillDetails, setSkillDetails] = useState({} as any);
+
+  useEffect(() => {
+    const getLastLoggedInAgentId = localStorage.getItem(
+      StorageKeys.LAST_LOGGED_IN_AGENT_ID
+    );
+
+    const agentId = getLastLoggedInAgentId?.toString();
+
+    if (agentId) {
+      CXoneAcdClient.instance.getAgentSkills(agentId).then((data: any) => {
+        const outboundSkill = data.find(
+          (skill: any) => skill.isOutbound === true
+        );
+        if (outboundSkill) {
+          setSkillDetails(outboundSkill);
+        }
+      });
+    }
+  }, []);
+
+  /**
+   * dial OB call
+   * @example
+   * ```
+   * DialCallButtonClick()
+   * ```
+   */
+  const dialCallButtonClick = () => {
+   
+    const contactDetails = {
+      skillId:
+        skillDetails?.skillId /*Before using skillID agent Application must be linked with acd  */,
+      phoneNumber: dialNumber,
+    };
+
+    CXoneAcdClient.instance.contactManager.voiceService
+      .dialPhone(contactDetails)
+      .then((res) => {
+        console.log(
+          "Dialled Given number and dial phone api successfully called",
+          res
+        );
+      })
+      .catch((e) => {
+        console.log("eerr", e);
+      });
+  };
+
+
+
+  return (
+    <Box sx={accessTokenFlowStyles.inputs_alignment}>
+      <TextField
+        id="outlined-basic"
+        label="callAgent"
+        value={dialNumber}
+        onChange={(e: any) => setDialNumber(e.target.value)}
+        InputLabelProps={{ shrink: true }}
+      />
+      <Button
+        onClick={() => {
+          dialCallButtonClick();
+        }}
+        color="primary"
+        variant="contained"
+        size="large"
+        sx={accessTokenFlowStyles.margin}
+      >
+        Dial Number
+      </Button>
+    </Box>
+  );
+};
+
+export default Outbound;
