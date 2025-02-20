@@ -23,7 +23,7 @@ const Outbound = () => {
       );
   
       const agentId = getLastLoggedInAgentId?.toString();
-      console.log("agentId", agentId);
+     
       if (agentId) {
         CXoneAcdClient.instance.getAgentSkills(agentId).then((data: any) => {
           const outboundSkill = data.find(

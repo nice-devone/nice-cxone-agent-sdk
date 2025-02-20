@@ -27,12 +27,9 @@ const VoiceControls = ({voiceContact}:{voiceContact:CXoneVoiceContact}) => {
 
     const handleHold = async(e:React.MouseEvent<HTMLButtonElement>) => {
       e.preventDefault()
-      console.log(voiceContact.status)
       if(voiceContact.status=='Active'){
        await voiceContact.hold()
         setHoldeResume('Resume')
-        
-
       }
         if(voiceContact.status=='Holding'){
           await voiceContact.resume()

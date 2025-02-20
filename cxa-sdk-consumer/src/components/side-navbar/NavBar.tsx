@@ -178,7 +178,6 @@ export default function NavBar() {
   const location = useLocation();
 
   useEffect(() => {
-    console.log(location.pathname)
     if(location.pathname === "/") setSelectedIndex(0)
     if(location.pathname === "/acd-sdk") setSelectedIndex(1)
     if(location.pathname === "/digital-sdk") setSelectedIndex(2)

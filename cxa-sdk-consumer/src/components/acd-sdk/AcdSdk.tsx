@@ -56,7 +56,6 @@ import {
 import {UserInfo} from '@nice-devone/common-sdk';
 import { useLocation } from "react-router-dom";
 
-// import '../../../public/ac_webrtc.min.js';
 const AcdSdk = () => {
   const theme = useTheme();
   
@@ -191,26 +190,10 @@ const AcdSdk = () => {
   
 
   const initWebRTC = async() => {
-    const agentSettingService =  await CXoneUser.instance.getAgentSettings()
+   
 
-    const cxoneVoiceConnectionOptions = {
-    
-      agentSettings: agentSettingService,
-      webRTCType: agentSettingService.webRTCType,
-      webRTCWssUrls: agentSettingService.webRTCWssUrls,
-      webRTCServerDomain: agentSettingService.webRTCServerDomain,
-      webRTCDnis: agentSettingService.webRTCDnis,
-      webRTCIceUrls: agentSettingService.webRTCWssUrls,
-    }
-    console.log("cxoneVoiceConnectionOptions",cxoneVoiceConnectionOptions,localStorage.getItem(
-        StorageKeys.LAST_LOGGED_IN_AGENT_ID
-      )?.toString())
-   	
     try{
-      // CXoneVoiceClient.instance.connectServer(localStorage.getItem(
-      //   StorageKeys.LAST_LOGGED_IN_AGENT_ID
-      // )?.toString() || "",cxoneVoiceConnectionOptions,new Audio("<audio ref={audio_tag} id=\"audio\" controls autoPlay/>"),"Nice CXone SDK Consumer")
-    
+   
       const agentSettings = (await getWebRtcServiceUrls()) as {
         agentId: string;
         agentSettings: AgentSettings;
