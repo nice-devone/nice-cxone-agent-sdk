@@ -145,7 +145,6 @@ const AcdSdk = () => {
             case AgentSessionStatus.SESSION_START: {
               console.log("Session started successfully.....");
               setStartSessionButton(true);
-              localStorage.setItem("startsessionButton", "true");
               initWebRTC();
               break;
             }
@@ -223,6 +222,7 @@ const AcdSdk = () => {
       .then((response: any) => {
         console.log("Session start successfully");
         setStartSessionButton(true);
+        localStorage.setItem("startsessionButton", "true");
         setAgentLegButton(false);
         setEndSessionButton(false);
       })
@@ -237,6 +237,7 @@ const AcdSdk = () => {
       .then((response: any) => {
         console.log("Joined Session successfully");
         setStartSessionButton(true);
+        localStorage.setItem("startsessionButton", "true");
         setAgentLegButton(false);
         setEndSessionButton(false);
       })

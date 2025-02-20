@@ -4,7 +4,7 @@ import { Box, Button, TextField, useTheme } from "@mui/material";
 import { CXoneAcdClient } from "@nice-devone/acd-sdk";
 import { StorageKeys } from "@nice-devone/core-sdk";
 import { tryCatchWrapper } from "../../../utils/tryCatchWrapper";
-import { error } from "console";
+
 
 const Outbound = () => {
   const theme = useTheme();
