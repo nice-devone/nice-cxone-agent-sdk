@@ -3,41 +3,29 @@ import { ccfAccessTokenFlowStyles } from "../../side-navbar/NavBar";
 import { useTheme } from "@mui/material/styles";
 import { Box, Button } from "@mui/material";
 import { useState } from "react";
+import { CXoneAcdClient, CXoneVoiceContact } from "@nice-devone/acd-sdk";
 
 
-const VoiceControls = ({voiceContact}:{voiceContact:any}) => {
+const VoiceControls = ({voiceContact}:{voiceContact:CXoneVoiceContact}) => {
   const theme = useTheme();
   const accessTokenFlowStyles = ccfAccessTokenFlowStyles(theme);
-  const [muteUnmute, setMuteUnmute] = useState('Mute');
   const [holdeResume, setHoldeResume] = useState('Hold');;
   const [hangUpButtonIsEnabled, setHangUpButtonIsEnabled] = useState(true);
 
 
   useEffect(() => {
-    if(muteUnmute=='Mute' && holdeResume=='Hold'){
+    if(holdeResume=='Hold'){
       setHangUpButtonIsEnabled(true)
     }else{
       setHangUpButtonIsEnabled(false)
     }
-  },[muteUnmute,holdeResume, hangUpButtonIsEnabled])
+  },[holdeResume, hangUpButtonIsEnabled])
 
-    const handleMuteUnmute = async(e:any) => {
-      e.preventDefault()
-      console.log(voiceContact)
-      if(voiceContact.callControlButton.mute.controlText=='unmute' ){
-        await voiceContact.unmute().then((res:any)=>console.log(res)).catch((err:any)=>console.log(err))
-        setMuteUnmute('Mute')
-        
 
-      }else{
-        await voiceContact.mute()
-        setMuteUnmute('UnMute')
-        
 
-      }
-    }
+ 
 
-    const handleHold = async(e:any) => {
+    const handleHold = async(e:React.MouseEvent<HTMLButtonElement>) => {
       e.preventDefault()
       console.log(voiceContact.status)
       if(voiceContact.status=='Active'){
@@ -54,23 +42,20 @@ const VoiceControls = ({voiceContact}:{voiceContact:any}) => {
       
     }
 
-    const handleHangUp = async(e:any) => {
+    const handleHangUp = async(e:React.MouseEvent<HTMLButtonElement>) => {
       e.preventDefault()
       await voiceContact.end()
+      var disposition = {
+          primaryDispositionId: 1073743862,
+          primaryDispositionNotes: ""
+      }
+      await CXoneAcdClient.instance.contactManager.saveDisposition(voiceContact.contactID,disposition)
     }
 
   return (
     <div>
       <Box sx={accessTokenFlowStyles.inputs_alignment}>
-        <Button
-          color="primary"
-          variant="contained"
-          size="large"
-          sx={accessTokenFlowStyles.margin}
-          onClick={(e)=>handleMuteUnmute(e)}
-        >
-          {muteUnmute}
-        </Button>
+      
         <Button
           color="primary"
           variant="contained"

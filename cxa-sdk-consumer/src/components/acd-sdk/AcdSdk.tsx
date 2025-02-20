@@ -49,18 +49,26 @@ import { CommitmentEvent } from '@nice-devone/common-sdk';
 import VoiceControls from "./voice-controls/VoiceControls";
 import { CXoneVoiceClientWrapper } from "./services/cxone-voice-client-wrapper";
 import Outbound from "./outbound/Outbound";
+import {
+  AgentSettings,
+ 
+} from '@nice-devone/core-sdk';
+import {UserInfo} from '@nice-devone/common-sdk';
+import { useLocation } from "react-router-dom";
 
 // import '../../../public/ac_webrtc.min.js';
 const AcdSdk = () => {
   const theme = useTheme();
+  
   const [agentStatus, setAgentStatus] = useState({} as any);
-  const [startSessionButton, setStartSessionButton] = useState(false);
+  const [startSessionButton, setStartSessionButton] = useState(localStorage.getItem("startsessionButton")=="true"?true:false);
   const [endSessionButton, setEndSessionButton] = useState(true);
   const [agentLegButton, setAgentLegButton] = useState(true);
-  const [voiceContact,setVoiceContact]=useState({} as any);
+  const [voiceContact,setVoiceContact]=useState({} as CXoneVoiceContact);
   const [voiceContactStatus,setVoiceContactStatus]=useState("");
   const gaAccessTokenFlowStyles = ccfGaAccessTokenFlowStyles(theme);
   const accessTokenFlowStyles = ccfAccessTokenFlowStyles(theme);
+  const location = useLocation();
 
   const endSessionRequest: EndSessionRequest = {
     forceLogoff: false,
@@ -76,8 +84,16 @@ const AcdSdk = () => {
     getAllFeatureTogglesAsync()
   },[])
   
+  useEffect(()=>{
+    localStorage.setItem("startsessionButton",startSessionButton.toString())
+    if(localStorage.getItem("startsessionButton")=="true"){
+      
+      setEndSessionButton(false)
+      setAgentLegButton(false)
+    }
+  },[startSessionButton])
+  
   useEffect(() => {
-    
     
      CXoneDigitalClient.instance.initDigitalEngagement();
      CXoneAcdClient.instance.initAcdEngagement();
@@ -96,7 +112,7 @@ const AcdSdk = () => {
       );
       
       CXoneAcdClient.instance.contactManager.voiceContactUpdateEvent.subscribe(
-        (data: any) => {
+        (data: CXoneVoiceContact) => {
           setVoiceContactStatus(data.status);
           setVoiceContact(data);
           console.log("voice contact", data);
@@ -105,8 +121,10 @@ const AcdSdk = () => {
       );
   
       CXoneAcdClient.instance.session.agentLegEvent.subscribe((data: any) => {
+        CXoneVoiceClient.instance.handleAgentLegEvent(data);
         if (data.status === "Dialing") {
-          CXoneVoiceClient.instance.triggerAutoAccept(data.agentLegId);
+          // CXoneVoiceClient.instance.triggerAutoAccept(data.agentLegId);
+          CXoneVoiceClient.instance.connectAgentLeg(data.agentLegId);
     
         }
       });
@@ -128,15 +146,18 @@ const AcdSdk = () => {
           case AgentSessionStatus.JOIN_SESSION_SUCCESS:
           case AgentSessionStatus.SESSION_START: {
            console.log("Session started successfully.....");
+           setStartSessionButton(true)
            initWebRTC()
             break;
           }
           case AgentSessionStatus.SESSION_END: {
             console.log("Session ended successfully.....");
+            setStartSessionButton(false)
             break;
           }
           case AgentSessionStatus.JOIN_SESSION_FAILURE:
            console.log("Session join failed.....");
+           setStartSessionButton(false)
           break;
           }
         }
@@ -156,10 +177,17 @@ const AcdSdk = () => {
     }
 
     
-  }, []);
+  }, [location.pathname]);
 
  
+   const getWebRtcServiceUrls = async () => {
+    const agentSettings = (await CXoneClient.instance.agentSetting.getAgentSettings()) as AgentSettings;
+      const getUserInfo = (await CXoneClient.instance.cxoneUser.getUserDetails()) as UserInfo;
+      if (agentSettings && getUserInfo.icAgentId) {
+        return { agentId: getUserInfo.icAgentId, agentSettings: agentSettings ,userInfo: getUserInfo};
+      }
 
+  }
   
 
   const initWebRTC = async() => {
@@ -174,11 +202,27 @@ const AcdSdk = () => {
       webRTCDnis: agentSettingService.webRTCDnis,
       webRTCIceUrls: agentSettingService.webRTCWssUrls,
     }
+    console.log("cxoneVoiceConnectionOptions",cxoneVoiceConnectionOptions,localStorage.getItem(
+        StorageKeys.LAST_LOGGED_IN_AGENT_ID
+      )?.toString())
    	
     try{
-      CXoneVoiceClient.instance.connectServer(localStorage.getItem(
-        StorageKeys.LAST_LOGGED_IN_AGENT_ID
-      )?.toString() || "",cxoneVoiceConnectionOptions,new Audio("<audio ref={audio_tag} id=\"audio\" controls autoPlay/>"),"CCS NiceCXone CTI Toolbar")
+      // CXoneVoiceClient.instance.connectServer(localStorage.getItem(
+      //   StorageKeys.LAST_LOGGED_IN_AGENT_ID
+      // )?.toString() || "",cxoneVoiceConnectionOptions,new Audio("<audio ref={audio_tag} id=\"audio\" controls autoPlay/>"),"Nice CXone SDK Consumer")
+    
+      const agentSettings = (await getWebRtcServiceUrls()) as {
+        agentId: string;
+        agentSettings: AgentSettings;
+        userInfo: UserInfo
+      };
+      await CXoneVoiceClientWrapper.instance.connectServer(
+        agentSettings?.agentId,
+        agentSettings?.agentSettings,
+        new Audio("<audio ref={audio_tag} id=\"audio\" controls autoPlay/>"),
+        agentSettings?.userInfo,
+        "Nice CXone SDK Consumer"
+      );
       console.log("Connected to WebRTC")
     }catch(e){
       console.log(e)
@@ -317,8 +361,8 @@ const AcdSdk = () => {
                 <CardHeader title="Dial Phone"></CardHeader>
                 <CardContent>
                   <form className="root">
-                   <Outbound/>
-                    {(agentStatus?.currentState?.cxoneState == "OutboundContact" ||agentStatus?.currentState?.cxoneState == "InboundContact") && (
+                   <Outbound />
+                    {(agentStatus?.currentState?.cxoneState == "OutboundContact" ||agentStatus?.currentState?.cxoneState == "InboundContact") &&(voiceContact && Object.keys(voiceContact).length > 0)&& (
                       <VoiceControls voiceContact={voiceContact}/>
                     )}
                   </form>
