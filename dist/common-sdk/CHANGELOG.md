@@ -1,4 +1,4 @@
-## 25.1.1 - 2025-02-14 ##
+## 25.1.1 - 2025-02-22 ##
 
 - `[Updated]`: Updated index db model to manage contact history data
 - `[Added]`: Clickable hyperlink support for case custom fields
