@@ -58,7 +58,7 @@ const AcdSdk = () => {
 
   const [agentStatus, setAgentStatus] = useState({} as any);
   const [startSessionButton, setStartSessionButton] = useState(
-    localStorage.getItem("startsessionButton") == "true" ? true : false
+     false
   );
   const [endSessionButton, setEndSessionButton] = useState(true);
   const [agentLegButton, setAgentLegButton] = useState(true);
@@ -75,17 +75,7 @@ const AcdSdk = () => {
   };
 
 
-  useEffect(() => {
-    const handleUnload = () => {
-      localStorage.removeItem("startsessionButton");
-    };
 
-    window.addEventListener("beforeunload", handleUnload);
-    
-    return () => {
-      window.removeEventListener("beforeunload", handleUnload);
-    };
-  }, []);
 
   useEffect(() => {
     
@@ -144,7 +134,7 @@ const AcdSdk = () => {
             case AgentSessionStatus.JOIN_SESSION_SUCCESS:
             case AgentSessionStatus.SESSION_START: {
               console.log("Session started successfully.....");
-              setStartSessionButton(true);
+              // setStartSessionButton(true);
               initWebRTC();
               break;
             }
@@ -174,10 +164,14 @@ const AcdSdk = () => {
 
   useEffect(() => {
     tryCatchWrapper(initMethods, (error) => {
-      initMethods();
+      
       console.log("error", error);
     });
   }, [location.pathname]);
+
+  useEffect(() => { 
+    manualStartSession();
+  },[])
 
   const getWebRtcServiceUrls = async () => {
     const agentSettings =
