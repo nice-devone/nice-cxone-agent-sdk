@@ -43,7 +43,7 @@ const VoiceControls = ({voiceContact}:{voiceContact:CXoneVoiceContact}) => {
       e.preventDefault()
       await voiceContact.end()
       var disposition = {
-          primaryDispositionId: 1073743862,
+          primaryDispositionId: 0,
           primaryDispositionNotes: ""
       }
       await CXoneAcdClient.instance.contactManager.saveDisposition(voiceContact.contactID,disposition)
