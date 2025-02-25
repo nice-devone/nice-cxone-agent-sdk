@@ -42,11 +42,7 @@ const VoiceControls = ({voiceContact}:{voiceContact:CXoneVoiceContact}) => {
     const handleHangUp = async(e:React.MouseEvent<HTMLButtonElement>) => {
       e.preventDefault()
       await voiceContact.end()
-      var disposition = {
-          primaryDispositionId: 0,
-          primaryDispositionNotes: ""
-      }
-      await CXoneAcdClient.instance.contactManager.saveDisposition(voiceContact.contactID,disposition)
+
     }
 
   return (
