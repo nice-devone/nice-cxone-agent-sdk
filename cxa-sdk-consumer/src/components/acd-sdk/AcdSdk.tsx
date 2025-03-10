@@ -41,7 +41,7 @@ import { CXoneAcdClient, CXoneVoiceContact } from "@nice-devone/acd-sdk";
 import { AgentSessionStatus, EndSessionRequest } from "@nice-devone/common-sdk";
 import { CXoneVoiceClient } from "@nice-devone/voice-sdk";
 import { CXoneClient } from "@nice-devone/agent-sdk";
-import { StorageKeys } from "@nice-devone/core-sdk";
+import { LocalStorageHelper, StorageKeys } from "@nice-devone/core-sdk";
 import { CXoneDigitalClient } from "@nice-devone/digital-sdk";
 import VoiceControls from "./voice-controls/VoiceControls";
 import { CXoneVoiceClientConnectServer } from "./services/cxone-voice-connect-server";
@@ -78,7 +78,7 @@ const AcdSdk = () => {
 
   useEffect(() => {
     
-    if (localStorage.getItem("startsessionButton") == "true") {
+    if (LocalStorageHelper.getItem("startsessionButton") == "true") {
       setEndSessionButton(false);
       setAgentLegButton(false);
     }
@@ -87,7 +87,7 @@ const AcdSdk = () => {
   const initMethods = async () => {
     CXoneDigitalClient.instance.initDigitalEngagement();
     CXoneAcdClient.instance.initAcdEngagement();
-    const getLastLoggedInAgentId = localStorage.getItem(
+    const getLastLoggedInAgentId = LocalStorageHelper.getItem(
       StorageKeys.LAST_LOGGED_IN_AGENT_ID
     );
 
@@ -215,7 +215,7 @@ const AcdSdk = () => {
       .then((response: any) => {
         console.log("Session start successfully");
         setStartSessionButton(true);
-        localStorage.setItem("startsessionButton", "true");
+        LocalStorageHelper.setItem("startsessionButton", "true");
         setAgentLegButton(false);
         setEndSessionButton(false);
       })
@@ -230,7 +230,7 @@ const AcdSdk = () => {
       .then((response: any) => {
         console.log("Joined Session successfully");
         setStartSessionButton(true);
-        localStorage.setItem("startsessionButton", "true");
+        LocalStorageHelper.setItem("startsessionButton", "true");
         setAgentLegButton(false);
         setEndSessionButton(false);
       })
