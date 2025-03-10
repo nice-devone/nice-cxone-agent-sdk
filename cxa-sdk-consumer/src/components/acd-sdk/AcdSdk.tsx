@@ -43,9 +43,8 @@ import { CXoneVoiceClient } from "@nice-devone/voice-sdk";
 import { CXoneClient } from "@nice-devone/agent-sdk";
 import { StorageKeys } from "@nice-devone/core-sdk";
 import { CXoneDigitalClient } from "@nice-devone/digital-sdk";
-import { FeatureToggleService } from "@nice-devone/agent-sdk";
 import VoiceControls from "./voice-controls/VoiceControls";
-import { CXoneVoiceClientWrapper } from "./services/cxone-voice-client-wrapper";
+import { CXoneVoiceClientConnectServer } from "./services/cxone-voice-connect-server";
 import Outbound from "./outbound/Outbound";
 import { AgentSettings } from "@nice-devone/core-sdk";
 import { UserInfo } from "@nice-devone/common-sdk";
@@ -194,7 +193,7 @@ const AcdSdk = () => {
         agentSettings: AgentSettings;
         userInfo: UserInfo;
       };
-      await CXoneVoiceClientWrapper.instance.connectServer(
+      await CXoneVoiceClientConnectServer.instance.connectServer(
         agentSettings?.agentId,
         agentSettings?.agentSettings,
         new Audio('<audio ref={audio_tag} id="audio" controls autoPlay/>'),
