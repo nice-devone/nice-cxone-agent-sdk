@@ -30,8 +30,7 @@ import {
 
 import {  AuthToken } from "@nice-devone/common-sdk";
 import { AuthSettings, AuthStatus,  AuthWithTokenReq, CXoneAuth } from "@nice-devone/auth-sdk";
-import { CXoneDigitalClient } from "@nice-devone/digital-sdk";
-
+import { LocalStorageHelper } from "@nice-devone/core-sdk";
 
 
 
@@ -76,7 +75,7 @@ const Auth = () => {
       clientId: clientId.current.value,
       redirectUri: redirectUri.current.value,
     };
-    localStorage.setItem("auth_consumer", JSON.stringify(authSetting));
+    LocalStorageHelper.setItem("auth_consumer", JSON.stringify(authSetting));
     cxoneAuth.init(authSetting);
   };
 
@@ -84,7 +83,7 @@ const Auth = () => {
 
   const authenticateClickHandler = () => {
     initAuth();
-    localStorage.setItem("display_mode", authMode);
+    LocalStorageHelper.setItem("display_mode", authMode);
     cxoneAuth
       .getAuthorizeUrl(authMode, codeChallenge)
       .then((authUrl: string) => {
@@ -124,11 +123,11 @@ const Auth = () => {
           setAuthToken((data.response as AuthToken).accessToken);
           break;
         case AuthStatus.NOT_AUTHENTICATED:
-          localStorage.clear();
+          LocalStorageHelper.clearStorage();
           setAuth("NOT_AUTHENTICATED");
           break;
         case AuthStatus.AUTHENTICATION_FAILED:
-          localStorage.clear();
+          LocalStorageHelper.clearStorage();
           setAuth("AUTHENTICATION_FAILED");
           break;
         default:

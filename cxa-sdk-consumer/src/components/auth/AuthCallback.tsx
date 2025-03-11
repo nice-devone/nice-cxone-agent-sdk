@@ -26,10 +26,10 @@ import {
     ccfAccessTokenFlowStyles,
     ccfGaAccessTokenFlowStyles,
   } from "../side-navbar/NavBar";
-  import {  AuthToken, EndSessionRequest } from "@nice-devone/common-sdk";
+  import {  AuthToken } from "@nice-devone/common-sdk";
   import { AuthStatus, AuthWithCodeReq, CXoneAuth } from "@nice-devone/auth-sdk";
-import { useNavigate } from "react-router-dom";
-  
+  import { useNavigate } from "react-router-dom";
+  import { LocalStorageHelper } from "@nice-devone/core-sdk";
   
   
   const AuthCallBack = () => {
@@ -60,14 +60,14 @@ import { useNavigate } from "react-router-dom";
       const searchParams = new URLSearchParams(window.location.search);
       const code = searchParams.get("code") || "";
       if (!code) return;
-      const display = localStorage.getItem("display_mode") || "";
+      const display = LocalStorageHelper.getItem("display_mode") || "";
       if (display) {
         if (display === "popup") {
           const message = { messageType: "Authenticated", code: code };
           window.opener?.postMessage({ message }, "*");
         } else {
           const authSetting = JSON.parse(
-            localStorage.getItem("auth_consumer") || ""
+            LocalStorageHelper.getItem("auth_consumer") || ""
           );
           cxoneAuth.init(authSetting);
           getAccessToken(code);

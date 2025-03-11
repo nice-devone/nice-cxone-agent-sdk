@@ -28,12 +28,14 @@ import IconButton from "@mui/material/IconButton";
 import ListItem from "@mui/material/ListItem";
 import ListItemButton from "@mui/material/ListItemButton";
 import ListItemText from "@mui/material/ListItemText";
-import { Route, Routes, useNavigate } from "react-router-dom";
+import { Route, Routes, useLocation, useNavigate } from "react-router-dom";
 import CxaPlaceholder from "../cxa-placeholder/CxaPlaceholder";
 import AcdSdk from "../acd-sdk/AcdSdk";
 import DigitalSdk from "../digital-sdk/DigitalSdk";
 import Auth from "../auth/Auth";
 import AuthCallBack from "../auth/AuthCallback";
+import { CXoneAcdClient } from "@nice-devone/acd-sdk";
+
 
 
 const drawerWidth = 240;
@@ -173,17 +175,38 @@ export default function NavBar() {
   const [selectedIndex, setSelectedIndex] = React.useState<number | null>(localStorage.getItem("selectedIndex") ? parseInt(localStorage.getItem("selectedIndex")!) : 0);
   const [disableTab, setDisableTab] = useState(true);
   const navigate = useNavigate();
+  const location = useLocation();
+
+  useEffect(() => {
+    if(location.pathname === "/") setSelectedIndex(0)
+    if(location.pathname === "/acd-sdk") setSelectedIndex(1)
+    if(location.pathname === "/digital-sdk") setSelectedIndex(2)
+    if(location.pathname === "/cxa-placeholder") setSelectedIndex(3)
+    localStorage.setItem("selectedIndex", selectedIndex?.toString()||"0");
+  },[location.pathname,selectedIndex])
 
   const handleListItemClick = async(index: number) => {
-    setSelectedIndex(index);
-    await localStorage.setItem("selectedIndex", index.toString());
     if (index === 0) navigate("/");
     if (index === 1) navigate("/acd-sdk");
     if (index === 2) navigate("/digital-sdk");
     if (index === 3) navigate("/cxa-placeholder");
+    if (index === 4) {
+     CXoneAcdClient.instance.initAcdEngagement();
+     CXoneAcdClient.instance.session
+     .endSession({
+      forceLogoff: false,
+      endContacts: true,
+      ignorePersonalQueue: true,
+    }).catch((err: any) => {
+       console.log(err.message ?? "An error occured");
+     });
+     localStorage.clear();
+     setDisableTab(true);
+     window.location.href = "/";
+    }
   };
 
-  let tabNamesArray = ["Auth","ACD ","Digital ","Custom"];
+  let tabNamesArray = ["Auth","ACD ","Digital ","Custom","Logout"];
  
 
   useEffect(() => {
