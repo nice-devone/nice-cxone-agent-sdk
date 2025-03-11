@@ -44,7 +44,6 @@ import { CXoneClient } from "@nice-devone/agent-sdk";
 import { LocalStorageHelper, StorageKeys } from "@nice-devone/core-sdk";
 import { CXoneDigitalClient } from "@nice-devone/digital-sdk";
 import VoiceControls from "./voice-controls/VoiceControls";
-import { CXoneVoiceClientConnectServer } from "./services/cxone-voice-connect-server";
 import Outbound from "./outbound/Outbound";
 import { AgentSettings } from "@nice-devone/core-sdk";
 import { UserInfo } from "@nice-devone/common-sdk";
@@ -193,14 +192,11 @@ const AcdSdk = () => {
         agentSettings: AgentSettings;
         userInfo: UserInfo;
       };
-      await CXoneVoiceClientConnectServer.instance.connectServer(
-        agentSettings?.agentId,
-        agentSettings?.agentSettings,
-        new Audio('<audio ref={audio_tag} id="audio" controls autoPlay/>'),
-        agentSettings?.userInfo,
-        "Nice CXone SDK Consumer"
-      );
-      console.log("Connected to WebRTC");
+      
+          const app = "Nice CXone SDK Consumer"
+          const appName = `${(app || 'cxa').toUpperCase()}: ${agentSettings?.agentSettings.cxaClientVersion}`;
+          await CXoneVoiceClient.instance.connectServer(agentSettings?.agentId, agentSettings?.agentSettings, new Audio('<audio ref={audio_tag} id="audio" controls autoPlay/>'), appName);
+          console.log("Connected to WebRTC");
     } catch (e) {
       console.log(e);
     }
