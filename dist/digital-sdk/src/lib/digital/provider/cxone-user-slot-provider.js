@@ -41,23 +41,28 @@ export class CXoneUserSlotProvider {
      * @example - getUserSlots()
     */
     getUserSlots() {
-        var _a;
-        this.logger.info('startPolling', 'startPolling in CXoneUserSlotWorker');
+        var _a, _b;
+        this.logger.info('getUserSlots', 'startPolling in CXoneUserSlotWorker');
         const baseUri = this.auth.getCXoneConfig().dfoApiBaseUri;
         const authToken = this.auth.getAuthToken().accessToken;
         let userId = LocalStorageHelper.getItem(StorageKeys.DIGITAL_USER_ID);
         userId = userId ? userId : '';
         if (baseUri && authToken && userId) {
             if (!this.userSlotWorker) {
+                this.logger.info('getUserSlots', 'starting worker and onmessage sub');
                 this.initUserSlotWorker();
                 this.userSlotWorker.onmessage = (response) => {
+                    this.logger.info('getUserSlots', response);
+                    this.logger.info('getUserSlots', 'onmessage sub called');
                     this.handleUserSlotSubscriptionResponse(response.data);
                 };
             }
             const url = baseUri + ApiUriConstants.USER_SLOTS.replace('{userId}', userId);
             const reqInit = this.utilService.initHeader(authToken);
             const pollingOptions = { isPolling: false, pollingInterval: this.USER_SLOT_POLLING_INTERVAL_MS };
-            this.userSlotWorker.postMessage({ type: 'startUserSlotApiPolling', requestParams: { url: url, request: reqInit }, pollingOptions, isLeader: (_a = CXoneLeaderElector.instance) === null || _a === void 0 ? void 0 : _a.isLeader });
+            this.logger.info('getUserSlots', JSON.stringify({ url: url, request: reqInit, pollingOptions: pollingOptions, isLeader: (_a = CXoneLeaderElector.instance) === null || _a === void 0 ? void 0 : _a.isLeader }));
+            this.userSlotWorker.postMessage({ type: 'startUserSlotApiPolling', requestParams: { url: url, request: reqInit }, pollingOptions, isLeader: (_b = CXoneLeaderElector.instance) === null || _b === void 0 ? void 0 : _b.isLeader });
+            this.logger.info('getUserSlots', 'postMessage called');
             this.getUserSlotPollingisActive = true;
         }
     }

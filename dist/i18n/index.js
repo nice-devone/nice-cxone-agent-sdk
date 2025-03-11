@@ -1090,9 +1090,7 @@ const translations = {
     adp_copilotFilters: 'Copilot Filters',
     adp_copilotFiltersSubtext: 'You have some filters currently setup. Click below to modify. You can also update them from the search bar at any time.',
     adp_modifyFilters: 'Modify Filters',
-    filterIconTooltip: 'Use tag filters to refine copilot search results',
     filterCopilotData: 'Filter Copilot Data',
-    filterCopilotDataSubtext: "Select from the filters below to help guide copilot's answers.",
     failedToApplyFilters: 'Failed to Apply Filters',
     failedToApplyFiltersDescription: 'Knowledge content filtering changes are not available at this time',
     selectAll: 'Select All',
@@ -1134,7 +1132,19 @@ const translations = {
     adp_hideDetails: 'Hide Details',
     adp_autoSummary: 'AUTO SUMMARY',
     adp_last: 'Last',
-    adp_interactions: 'Interactions'
+    adp_interactions: 'Interactions',
+    addEntity: 'Add Entity',
+    createNewEntity: 'Do you want to create a new {entityName} entity?',
+    createNewEntitySuccessful: 'New entity created.',
+    createNewEntityUnsuccessful: 'New entity not created.',
+    createNewEntityUnsuccessfulMessage: 'Unable to create new entity.',
+    createEntity: 'Create Entity',
+    filterIconTooltip: 'Use tag filters to refine Copilot search results',
+    filterCopilotDataSubtext: "Select from the filters below to help guide Copilot's answers.",
+    filtersApplied: 'Filters Applied',
+    standardTags: 'Standard Tags',
+    copilotFilterIcon: 'Copilot Filter Icon',
+    countOfCopilotFiltersSelected: '{filterCount} filters selected'
   }
 };
 
@@ -2230,9 +2240,7 @@ const hebrewTranslations = {
     adp_copilotFilters: 'מסנני Copilot',
     adp_copilotFiltersSubtext: 'יש מספר מסננים שמוגדרים כרגע. לחץ למטה כדי לשנות. ניתן גם לעדכן אותם מסרגל החיפוש בכל עת.',
     adp_modifyFilters: 'שינוי מסננים',
-    filterIconTooltip: 'השתמש במסנני תגיות כדי למקד את תוצאות החיפוש של Copilot.',
     filterCopilotData: 'סינון נתוני Copilot',
-    filterCopilotDataSubtext: 'בחר מתוך המסננים שלהלן כדי לסייע בהנחיית תשובות Copilot.',
     failedToApplyFilters: 'החלת מסננים נכשלה',
     failedToApplyFiltersDescription: 'שינויים בסינון תוכן הידע אינם זמינים כרגע',
     selectAll: 'בחר הכל',
@@ -2274,7 +2282,19 @@ const hebrewTranslations = {
     adp_hideDetails: 'Hide Details',
     adp_autoSummary: 'AUTO SUMMARY',
     adp_last: 'Last',
-    adp_interactions: 'Interactions'
+    adp_interactions: 'Interactions',
+    addEntity: 'Add Entity',
+    createNewEntity: 'Do you want to create a new {entityName} entity?',
+    createNewEntitySuccessful: 'New entity created.',
+    createNewEntityUnsuccessful: 'New entity not created.',
+    createNewEntityUnsuccessfulMessage: 'Unable to create new entity.',
+    createEntity: 'Create Entity',
+    filterIconTooltip: 'Use tag filters to refine Copilot search results',
+    filterCopilotDataSubtext: "Select from the filters below to help guide Copilot's answers.",
+    filtersApplied: 'Filters Applied',
+    standardTags: 'Standard Tags',
+    copilotFilterIcon: 'Copilot Filter Icon',
+    countOfCopilotFiltersSelected: '{filterCount} filters selected'
   }
 };
 
@@ -3370,9 +3390,7 @@ const japaneseTranslations = {
     adp_copilotFilters: 'Copilotフィルター',
     adp_copilotFiltersSubtext: '現在いくつかのフィルターが設定されています。変更するには以下をクリックしてください。または、検索バーからいつでも更新できます。',
     adp_modifyFilters: 'フィルターを変更',
-    filterIconTooltip: 'タグフィルターを使用してCopilot検索結果を絞り込みます。',
     filterCopilotData: 'Copilotデータをフィルタリング',
-    filterCopilotDataSubtext: '以下のフィルターを選択して、Copilotの回答を導きます。',
     failedToApplyFilters: 'フィルターの適用に失敗しました',
     failedToApplyFiltersDescription: 'ナレッジコンテンツのフィルタリングの変更は現在利用できません',
     selectAll: 'すべて選択',
@@ -3414,7 +3432,19 @@ const japaneseTranslations = {
     adp_hideDetails: 'Hide Details',
     adp_autoSummary: 'AUTO SUMMARY',
     adp_last: 'Last',
-    adp_interactions: 'Interactions'
+    adp_interactions: 'Interactions',
+    addEntity: 'Add Entity',
+    createNewEntity: 'Do you want to create a new {entityName} entity?',
+    createNewEntitySuccessful: 'New entity created.',
+    createNewEntityUnsuccessful: 'New entity not created.',
+    createNewEntityUnsuccessfulMessage: 'Unable to create new entity.',
+    createEntity: 'Create Entity',
+    filterIconTooltip: 'Use tag filters to refine Copilot search results',
+    filterCopilotDataSubtext: "Select from the filters below to help guide Copilot's answers.",
+    filtersApplied: 'Filters Applied',
+    standardTags: 'Standard Tags',
+    copilotFilterIcon: 'Copilot Filter Icon',
+    countOfCopilotFiltersSelected: '{filterCount} filters selected'
   }
 };
 
@@ -4510,9 +4540,7 @@ const portugueseTranslations = {
     adp_copilotFilters: 'Filtros Copilot',
     adp_copilotFiltersSubtext: 'Tem filtros atualmente configurados. Clique abaixo para modificar. Também é possível atualizá-los a qualquer momento a partir da barra de pesquisa.',
     adp_modifyFilters: 'Modificar filtros',
-    filterIconTooltip: 'Utilize filtros de etiquetas para refinar os resultados da pesquisa do Copilot.',
     filterCopilotData: 'Filtrar dados do Copilot',
-    filterCopilotDataSubtext: 'Selecione um dos filtros abaixo para ajudar a orientar as respostas do Copilot.',
     failedToApplyFilters: 'Falha ao aplicar filtros',
     failedToApplyFiltersDescription: 'As alterações à filtragem de conteúdos de conhecimento não estão disponíveis neste momento',
     selectAll: 'Selecionar todos',
@@ -4554,7 +4582,19 @@ const portugueseTranslations = {
     adp_hideDetails: 'Hide Details',
     adp_autoSummary: 'AUTO SUMMARY',
     adp_last: 'Last',
-    adp_interactions: 'Interactions'
+    adp_interactions: 'Interactions',
+    addEntity: 'Add Entity',
+    createNewEntity: 'Do you want to create a new {entityName} entity?',
+    createNewEntitySuccessful: 'New entity created.',
+    createNewEntityUnsuccessful: 'New entity not created.',
+    createNewEntityUnsuccessfulMessage: 'Unable to create new entity.',
+    createEntity: 'Create Entity',
+    filterIconTooltip: 'Use tag filters to refine Copilot search results',
+    filterCopilotDataSubtext: "Select from the filters below to help guide Copilot's answers.",
+    filtersApplied: 'Filters Applied',
+    standardTags: 'Standard Tags',
+    copilotFilterIcon: 'Copilot Filter Icon',
+    countOfCopilotFiltersSelected: '{filterCount} filters selected'
   }
 };
 
@@ -5650,9 +5690,7 @@ const portugueseTranslationsPtBR = {
     adp_copilotFilters: 'Filtros do Copilot',
     adp_copilotFiltersSubtext: 'Você tem alguns filtros configurados atualmente. Clique abaixo para modificar. Você também pode atualizá-los na barra de pesquisa a qualquer momento.',
     adp_modifyFilters: 'Modificar filtros',
-    filterIconTooltip: 'Use filtros de tags para refinar os resultados da pesquisa do Copilot.',
     filterCopilotData: 'Filtrar dados do Copilot',
-    filterCopilotDataSubtext: 'Selecione os filtros abaixo para ajudar a orientar as respostas do Copilot.',
     failedToApplyFilters: 'Falha ao aplicar filtros',
     failedToApplyFiltersDescription: 'As alterações na filtragem de conteúdo de conhecimento não estão disponíveis no momento',
     selectAll: 'Selecionar Tudo',
@@ -5694,7 +5732,19 @@ const portugueseTranslationsPtBR = {
     adp_hideDetails: 'Hide Details',
     adp_autoSummary: 'AUTO SUMMARY',
     adp_last: 'Last',
-    adp_interactions: 'Interactions'
+    adp_interactions: 'Interactions',
+    addEntity: 'Add Entity',
+    createNewEntity: 'Do you want to create a new {entityName} entity?',
+    createNewEntitySuccessful: 'New entity created.',
+    createNewEntityUnsuccessful: 'New entity not created.',
+    createNewEntityUnsuccessfulMessage: 'Unable to create new entity.',
+    createEntity: 'Create Entity',
+    filterIconTooltip: 'Use tag filters to refine Copilot search results',
+    filterCopilotDataSubtext: "Select from the filters below to help guide Copilot's answers.",
+    filtersApplied: 'Filters Applied',
+    standardTags: 'Standard Tags',
+    copilotFilterIcon: 'Copilot Filter Icon',
+    countOfCopilotFiltersSelected: '{filterCount} filters selected'
   }
 };
 
@@ -6790,9 +6840,7 @@ const spanishEUTranslations = {
     adp_copilotFilters: 'Filtros Copilot',
     adp_copilotFiltersSubtext: 'Tiene algunos filtros configurados actualmente. Haga clic abajo para modificarlos. También puede actualizarlos desde la barra de búsqueda en cualquier momento.',
     adp_modifyFilters: 'Modificar filtros',
-    filterIconTooltip: 'Usar filtros de etiquetas para refinar resultados de la búsqueda en Copilot.',
     filterCopilotData: 'Filtrar datos de Copilot',
-    filterCopilotDataSubtext: 'Seleccione uno de los siguientes filtros para orientar las respuestas del copiloto.',
     failedToApplyFilters: 'No se han podido aplicar los filtros',
     failedToApplyFiltersDescription: 'Los cambios en los filtros de contenido de conocimientos no están disponibles en este momento',
     selectAll: 'Seleccionar todo',
@@ -6834,7 +6882,19 @@ const spanishEUTranslations = {
     adp_hideDetails: 'Hide Details',
     adp_autoSummary: 'AUTO SUMMARY',
     adp_last: 'Last',
-    adp_interactions: 'Interactions'
+    adp_interactions: 'Interactions',
+    addEntity: 'Add Entity',
+    createNewEntity: 'Do you want to create a new {entityName} entity?',
+    createNewEntitySuccessful: 'New entity created.',
+    createNewEntityUnsuccessful: 'New entity not created.',
+    createNewEntityUnsuccessfulMessage: 'Unable to create new entity.',
+    createEntity: 'Create Entity',
+    filterIconTooltip: 'Use tag filters to refine Copilot search results',
+    filterCopilotDataSubtext: "Select from the filters below to help guide Copilot's answers.",
+    filtersApplied: 'Filters Applied',
+    standardTags: 'Standard Tags',
+    copilotFilterIcon: 'Copilot Filter Icon',
+    countOfCopilotFiltersSelected: '{filterCount} filters selected'
   }
 };
 
@@ -7930,9 +7990,7 @@ const chineseTranslations = {
     adp_copilotFilters: 'Copilot 过滤器',
     adp_copilotFiltersSubtext: '您当前设置了一些过滤器。点击下方进行修改。您还可以随时从搜索栏更新它们。',
     adp_modifyFilters: '修改过滤器',
-    filterIconTooltip: '使用标签过滤器来优化 Copilot 搜索结果。',
     filterCopilotData: '过滤 Copilot 数据',
-    filterCopilotDataSubtext: '从下面的过滤器中进行选择以帮助指导 Copilot 的回答。',
     failedToApplyFilters: '应用过滤器失败',
     failedToApplyFiltersDescription: '知识内容过滤更改目前不可用',
     selectAll: '全选',
@@ -7974,7 +8032,19 @@ const chineseTranslations = {
     adp_hideDetails: 'Hide Details',
     adp_autoSummary: 'AUTO SUMMARY',
     adp_last: 'Last',
-    adp_interactions: 'Interactions'
+    adp_interactions: 'Interactions',
+    addEntity: 'Add Entity',
+    createNewEntity: 'Do you want to create a new {entityName} entity?',
+    createNewEntitySuccessful: 'New entity created.',
+    createNewEntityUnsuccessful: 'New entity not created.',
+    createNewEntityUnsuccessfulMessage: 'Unable to create new entity.',
+    createEntity: 'Create Entity',
+    filterIconTooltip: 'Use tag filters to refine Copilot search results',
+    filterCopilotDataSubtext: "Select from the filters below to help guide Copilot's answers.",
+    filtersApplied: 'Filters Applied',
+    standardTags: 'Standard Tags',
+    copilotFilterIcon: 'Copilot Filter Icon',
+    countOfCopilotFiltersSelected: '{filterCount} filters selected'
   }
 };
 
@@ -9070,9 +9140,7 @@ const dutchTranslations = {
     adp_copilotFilters: 'Copilot-filters',
     adp_copilotFiltersSubtext: 'Er zijn momenteel enkele filters ingesteld. Klik hieronder om te wijzigen. U kunt ze ook op elk ogenblik bijwerken vanaf de zoekbalk.',
     adp_modifyFilters: 'Filters wijzigen',
-    filterIconTooltip: 'Gebruik tagfilters om de zoekresultaten van copilot te verfijnen.',
     filterCopilotData: 'Copilot-gegevens filteren',
-    filterCopilotDataSubtext: 'Selecteer uit de onderstaande filters om te helpen de antwoorden van copilot te geleiden.',
     failedToApplyFilters: 'Kan filters niet toepassen',
     failedToApplyFiltersDescription: 'Wijzigingen in het filteren van kennisinhoud zijn op momenteel niet beschikbaar',
     selectAll: 'Alles selecteren',
@@ -9114,7 +9182,19 @@ const dutchTranslations = {
     adp_hideDetails: 'Hide Details',
     adp_autoSummary: 'AUTO SUMMARY',
     adp_last: 'Last',
-    adp_interactions: 'Interactions'
+    adp_interactions: 'Interactions',
+    addEntity: 'Add Entity',
+    createNewEntity: 'Do you want to create a new {entityName} entity?',
+    createNewEntitySuccessful: 'New entity created.',
+    createNewEntityUnsuccessful: 'New entity not created.',
+    createNewEntityUnsuccessfulMessage: 'Unable to create new entity.',
+    createEntity: 'Create Entity',
+    filterIconTooltip: 'Use tag filters to refine Copilot search results',
+    filterCopilotDataSubtext: "Select from the filters below to help guide Copilot's answers.",
+    filtersApplied: 'Filters Applied',
+    standardTags: 'Standard Tags',
+    copilotFilterIcon: 'Copilot Filter Icon',
+    countOfCopilotFiltersSelected: '{filterCount} filters selected'
   }
 };
 
@@ -10210,9 +10290,7 @@ const frenchTranslations = {
     adp_copilotFilters: 'Filtres Copilot',
     adp_copilotFiltersSubtext: 'Des filtres sont déjà en place. Cliquez ci-dessous pour les modifier. Vous pouvez les mettre à jour depuis la barre de recherche à tout moment.',
     adp_modifyFilters: 'Modifier les filtres',
-    filterIconTooltip: 'Utilisez les filtres de balises pour préciser les résultats de la recherche de Copilot.',
     filterCopilotData: 'Filtrer les données de Copilot',
-    filterCopilotDataSubtext: 'Faites un choix parmi les filtres ci-dessous pour guider les réponses de Copilot.',
     failedToApplyFilters: 'Échec de l’application des filtres',
     failedToApplyFiltersDescription: 'Les modifications des filtres de contenu de la base de connaissances ne sont pas disponibles actuellement',
     selectAll: 'Tout sélectionner',
@@ -10254,7 +10332,19 @@ const frenchTranslations = {
     adp_hideDetails: 'Hide Details',
     adp_autoSummary: 'AUTO SUMMARY',
     adp_last: 'Last',
-    adp_interactions: 'Interactions'
+    adp_interactions: 'Interactions',
+    addEntity: 'Add Entity',
+    createNewEntity: 'Do you want to create a new {entityName} entity?',
+    createNewEntitySuccessful: 'New entity created.',
+    createNewEntityUnsuccessful: 'New entity not created.',
+    createNewEntityUnsuccessfulMessage: 'Unable to create new entity.',
+    createEntity: 'Create Entity',
+    filterIconTooltip: 'Use tag filters to refine Copilot search results',
+    filterCopilotDataSubtext: "Select from the filters below to help guide Copilot's answers.",
+    filtersApplied: 'Filters Applied',
+    standardTags: 'Standard Tags',
+    copilotFilterIcon: 'Copilot Filter Icon',
+    countOfCopilotFiltersSelected: '{filterCount} filters selected'
   }
 };
 
@@ -11350,9 +11440,7 @@ const frenchTranslationsFrCa = {
     adp_copilotFilters: 'Filtres Copilot',
     adp_copilotFiltersSubtext: 'Vous disposez actuellement de quelques filtres. Cliquez ci-dessous pour les modifier. Vous pouvez également les mettre à jour à tout moment à partir de la barre de recherche.',
     adp_modifyFilters: 'Modifier les filtres',
-    filterIconTooltip: 'Utilisez les filtres de balises pour affiner les résultats de la recherche Copilot.',
     filterCopilotData: 'Filtrer les données Copilot',
-    filterCopilotDataSubtext: 'Sélectionnez l’un des filtres ci-dessous pour guider les réponses de Copilot.',
     failedToApplyFilters: 'Échec de l’application des filtres',
     failedToApplyFiltersDescription: 'Les modifications du filtrage du contenu de la base de connaissances ne sont pas disponibles pour l’instant.',
     selectAll: 'Sélectionner tout',
@@ -11394,7 +11482,19 @@ const frenchTranslationsFrCa = {
     adp_hideDetails: 'Hide Details',
     adp_autoSummary: 'AUTO SUMMARY',
     adp_last: 'Last',
-    adp_interactions: 'Interactions'
+    adp_interactions: 'Interactions',
+    addEntity: 'Add Entity',
+    createNewEntity: 'Do you want to create a new {entityName} entity?',
+    createNewEntitySuccessful: 'New entity created.',
+    createNewEntityUnsuccessful: 'New entity not created.',
+    createNewEntityUnsuccessfulMessage: 'Unable to create new entity.',
+    createEntity: 'Create Entity',
+    filterIconTooltip: 'Use tag filters to refine Copilot search results',
+    filterCopilotDataSubtext: "Select from the filters below to help guide Copilot's answers.",
+    filtersApplied: 'Filters Applied',
+    standardTags: 'Standard Tags',
+    copilotFilterIcon: 'Copilot Filter Icon',
+    countOfCopilotFiltersSelected: '{filterCount} filters selected'
   }
 };
 
@@ -12490,9 +12590,7 @@ const germanTranslations = {
     adp_copilotFilters: 'Copilot-Filter',
     adp_copilotFiltersSubtext: 'Sie haben einige Filter eingerichtet. Klicken Sie unten, um sie zu ändern. Sie können sie auch jederzeit über die Suchleiste ändern.',
     adp_modifyFilters: 'Filter ändern',
-    filterIconTooltip: 'Grenzen Sie die Copilot-Suchergebnisse mit Tag-Filtern ein.',
     filterCopilotData: 'Copilot-Daten filtern',
-    filterCopilotDataSubtext: 'Wählen Sie unten Filter aus, um die Antworten von Copilot in die richtige Richtung zu lenken.',
     failedToApplyFilters: 'Filter konnten nicht angewendet werden',
     failedToApplyFiltersDescription: 'Änderungen an der Filterung der Wissensinhalte sind derzeit nicht verfügbar.',
     selectAll: 'Alle auswählen',
@@ -12534,7 +12632,19 @@ const germanTranslations = {
     adp_hideDetails: 'Hide Details',
     adp_autoSummary: 'AUTO SUMMARY',
     adp_last: 'Last',
-    adp_interactions: 'Interactions'
+    adp_interactions: 'Interactions',
+    addEntity: 'Add Entity',
+    createNewEntity: 'Do you want to create a new {entityName} entity?',
+    createNewEntitySuccessful: 'New entity created.',
+    createNewEntityUnsuccessful: 'New entity not created.',
+    createNewEntityUnsuccessfulMessage: 'Unable to create new entity.',
+    createEntity: 'Create Entity',
+    filterIconTooltip: 'Use tag filters to refine Copilot search results',
+    filterCopilotDataSubtext: "Select from the filters below to help guide Copilot's answers.",
+    filtersApplied: 'Filters Applied',
+    standardTags: 'Standard Tags',
+    copilotFilterIcon: 'Copilot Filter Icon',
+    countOfCopilotFiltersSelected: '{filterCount} filters selected'
   }
 };
 
@@ -13630,9 +13740,7 @@ const italianTranslations = {
     adp_copilotFilters: 'Filtri Copilot',
     adp_copilotFiltersSubtext: 'Risultano configurati alcuni filtri. Fare clic qui sotto per modificarli. È anche possibile aggiornarli dalla barra di ricerca in qualsiasi momento.',
     adp_modifyFilters: 'Modifica filtri',
-    filterIconTooltip: 'Utilizzare i filtri di tag per restringere i risultati della ricerca Copilot.',
     filterCopilotData: 'Filtra dati Copilot',
-    filterCopilotDataSubtext: 'Selezionare dai seguenti filtri per guidare le risposte di Copilot.',
     failedToApplyFilters: 'Impossibile applicare i filtri',
     failedToApplyFiltersDescription: 'Le modifiche dei filtri dei contenuti informativi non sono disponibili in questo momento',
     selectAll: 'Seleziona tutto',
@@ -13674,7 +13782,19 @@ const italianTranslations = {
     adp_hideDetails: 'Hide Details',
     adp_autoSummary: 'AUTO SUMMARY',
     adp_last: 'Last',
-    adp_interactions: 'Interactions'
+    adp_interactions: 'Interactions',
+    addEntity: 'Add Entity',
+    createNewEntity: 'Do you want to create a new {entityName} entity?',
+    createNewEntitySuccessful: 'New entity created.',
+    createNewEntityUnsuccessful: 'New entity not created.',
+    createNewEntityUnsuccessfulMessage: 'Unable to create new entity.',
+    createEntity: 'Create Entity',
+    filterIconTooltip: 'Use tag filters to refine Copilot search results',
+    filterCopilotDataSubtext: "Select from the filters below to help guide Copilot's answers.",
+    filtersApplied: 'Filters Applied',
+    standardTags: 'Standard Tags',
+    copilotFilterIcon: 'Copilot Filter Icon',
+    countOfCopilotFiltersSelected: '{filterCount} filters selected'
   }
 };
 
@@ -14770,9 +14890,7 @@ const koreanTranslations = {
     adp_copilotFilters: '코파일럿 필터',
     adp_copilotFiltersSubtext: '현재 몇 가지 필터가 설정되어 있습니다. 수정하려면 아래를 클릭하십시오. 언제든지 검색창에서 업데이트할 수도 있습니다.',
     adp_modifyFilters: '필터 수정',
-    filterIconTooltip: '태그 필터를 사용하여 코마일럿 검색 결과를 구체화할 수 있습니다.',
     filterCopilotData: '코파일럿 데이터 필터링',
-    filterCopilotDataSubtext: '코파일럿의 답변 안내를 도우려면 아래 필터 중에 선택하십시오.',
     failedToApplyFilters: '템플릿을 적용하지 못함',
     failedToApplyFiltersDescription: '현재 지식 콘텐츠 필터링 변경은 사용할 수 없습니다.',
     selectAll: '전체 선택',
@@ -14814,7 +14932,19 @@ const koreanTranslations = {
     adp_hideDetails: 'Hide Details',
     adp_autoSummary: 'AUTO SUMMARY',
     adp_last: 'Last',
-    adp_interactions: 'Interactions'
+    adp_interactions: 'Interactions',
+    addEntity: 'Add Entity',
+    createNewEntity: 'Do you want to create a new {entityName} entity?',
+    createNewEntitySuccessful: 'New entity created.',
+    createNewEntityUnsuccessful: 'New entity not created.',
+    createNewEntityUnsuccessfulMessage: 'Unable to create new entity.',
+    createEntity: 'Create Entity',
+    filterIconTooltip: 'Use tag filters to refine Copilot search results',
+    filterCopilotDataSubtext: "Select from the filters below to help guide Copilot's answers.",
+    filtersApplied: 'Filters Applied',
+    standardTags: 'Standard Tags',
+    copilotFilterIcon: 'Copilot Filter Icon',
+    countOfCopilotFiltersSelected: '{filterCount} filters selected'
   }
 };
 
@@ -15910,9 +16040,7 @@ const russianTranslations = {
     adp_copilotFilters: 'Фильтры Copilot',
     adp_copilotFiltersSubtext: 'В настоящее время настроены некоторые фильтры. Нажмите ниже, чтобы изменить. Вы также можете обновить их в любое время из строки поиска.',
     adp_modifyFilters: 'Изменить фильтры',
-    filterIconTooltip: 'Используйте фильтры тегов для уточнения результатов поиска Copilot.',
     filterCopilotData: 'Фильтр данных Copilot',
-    filterCopilotDataSubtext: 'Выберите следующие фильтры, чтобы помочь с ответами Copilot.',
     failedToApplyFilters: 'Не удалось применить фильтры',
     failedToApplyFiltersDescription: 'Изменения в фильтрации контента базы знаний в настоящее время недоступны.',
     selectAll: 'Выделить все',
@@ -15954,7 +16082,19 @@ const russianTranslations = {
     adp_hideDetails: 'Hide Details',
     adp_autoSummary: 'AUTO SUMMARY',
     adp_last: 'Last',
-    adp_interactions: 'Interactions'
+    adp_interactions: 'Interactions',
+    addEntity: 'Add Entity',
+    createNewEntity: 'Do you want to create a new {entityName} entity?',
+    createNewEntitySuccessful: 'New entity created.',
+    createNewEntityUnsuccessful: 'New entity not created.',
+    createNewEntityUnsuccessfulMessage: 'Unable to create new entity.',
+    createEntity: 'Create Entity',
+    filterIconTooltip: 'Use tag filters to refine Copilot search results',
+    filterCopilotDataSubtext: "Select from the filters below to help guide Copilot's answers.",
+    filtersApplied: 'Filters Applied',
+    standardTags: 'Standard Tags',
+    copilotFilterIcon: 'Copilot Filter Icon',
+    countOfCopilotFiltersSelected: '{filterCount} filters selected'
   }
 };
 

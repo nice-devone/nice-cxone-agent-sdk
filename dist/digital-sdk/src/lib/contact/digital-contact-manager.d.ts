@@ -39,6 +39,8 @@ export declare class DigitalContactManager {
     private viewOnlyCases;
     onDigitalWsNotificationEvent: Subject<string>;
     private userSlotPollingStarted;
+    private userSlotSubscribed;
+    private isWebSocketFailure;
     /**
      * @example
      * ```

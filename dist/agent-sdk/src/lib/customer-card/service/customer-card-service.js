@@ -6,6 +6,16 @@ import { mergeCustomerCardRequest } from './customer-card-merge';
 import { createCustomerNote, deleteCustomerNote, editCustomerNote, fetchCustomerNotes, } from './customer-card-notes';
 import { getCustomerList } from './customer-card-search';
 /**
+ * Enum for Customer Card Workflow Actions
+ */
+var workflowActions;
+(function (workflowActions) {
+    workflowActions["SEARCH"] = "search";
+    workflowActions["DATAMEMORIALIZATION"] = "datamemorialization";
+    workflowActions["TIMELINE"] = "timeline";
+    workflowActions["RELATESTO"] = "relatesto";
+})(workflowActions || (workflowActions = {}));
+/**
  * Class to handle Customer Card API calls
  * */
 export class CustomerCardService {
@@ -34,14 +44,14 @@ export class CustomerCardService {
                         dynamicDataMappingId: request === null || request === void 0 ? void 0 : request.dynamicDataMappingId,
                     };
                 }
-                case 'timeline': {
+                case workflowActions.TIMELINE: {
                     return {
                         action: request === null || request === void 0 ? void 0 : request.action,
                         cxoneContact: request === null || request === void 0 ? void 0 : request.cxoneContact,
                         integration: request === null || request === void 0 ? void 0 : request.integration,
                     };
                 }
-                case 'datamemorialization': {
+                case workflowActions.DATAMEMORIALIZATION: {
                     return {
                         action: request === null || request === void 0 ? void 0 : request.action,
                         interactionID: request === null || request === void 0 ? void 0 : request.interactionID,
@@ -52,7 +62,7 @@ export class CustomerCardService {
                         workflowInput: request === null || request === void 0 ? void 0 : request.workflowInput,
                     };
                 }
-                case 'relatesto':
+                case workflowActions.RELATESTO:
                     return {
                         action: request === null || request === void 0 ? void 0 : request.action,
                         entity: request === null || request === void 0 ? void 0 : request.entity,
@@ -378,6 +388,39 @@ export class CustomerCardService {
             }), (error) => {
                 const errorResponse = new CXoneSdkError(CXoneSdkErrorType.CXONE_API_ERROR, 'CRM search execute workflow response failed', error);
                 this.logger.error('executeWorkFlow', errorResponse.toString());
+                reject(errorResponse);
+            });
+        });
+    }
+    /**
+     * Method to create a new record in CRM in Tray
+     * @param crmRequest - type of CXoneWorkflowCreateRequest
+     * @returns - API Returns Response JSON with created record and status
+     * @example - createRecord(\{action: 'search', interactionId: '1234', workflowInput: 'test'\})
+     */
+    executeCreateWorkFlow(crmRequest) {
+        var _a, _b, _c, _d, _e, _f;
+        const baseUrl = ((_a = this.auth.getCXoneConfig()) !== null && _a !== void 0 ? _a : {}).acdApiBaseUri;
+        const authToken = ((_b = this.auth.getAuthToken()) !== null && _b !== void 0 ? _b : {}).accessToken;
+        const payload = {
+            action: crmRequest === null || crmRequest === void 0 ? void 0 : crmRequest.action,
+            interactionId: crmRequest === null || crmRequest === void 0 ? void 0 : crmRequest.interactionId,
+            workflowInput: crmRequest === null || crmRequest === void 0 ? void 0 : crmRequest.workflowInput,
+        };
+        const url = baseUrl +
+            this.EXECUTE_WORKFLOW_URI.replace('{workflowId}', ((_c = crmRequest === null || crmRequest === void 0 ? void 0 : crmRequest.workflowId) !== null && _c !== void 0 ? _c : '').trim()).replace('{configurationId}', ((_d = crmRequest === null || crmRequest === void 0 ? void 0 : crmRequest.configurationId) !== null && _d !== void 0 ? _d : '').trim());
+        const reqInit = {
+            headers: (_f = ((_e = this.utilService.initHeader(authToken, 'application/json')) !== null && _e !== void 0 ? _e : {})) === null || _f === void 0 ? void 0 : _f.headers,
+            body: payload,
+        };
+        return new Promise((resolve, reject) => {
+            HttpClient.post(url, reqInit).then((response) => __awaiter(this, void 0, void 0, function* () {
+                var _a;
+                this.logger.info('executeCreateWorkFlow', 'CRM create execute workflow create record success');
+                resolve(Object.assign(Object.assign({}, ((_a = response === null || response === void 0 ? void 0 : response.data) !== null && _a !== void 0 ? _a : {})), { status: response === null || response === void 0 ? void 0 : response.status, statusText: response === null || response === void 0 ? void 0 : response.statusText }));
+            }), (error) => {
+                const errorResponse = new CXoneSdkError(CXoneSdkErrorType.CXONE_API_ERROR, 'CRM search execute create workflow response failed', error);
+                this.logger.error('executeCreateWorkFlow', errorResponse.toString());
                 reject(errorResponse);
             });
         });

@@ -29,8 +29,10 @@ const workercode = `self.importScripts(
   };
 
   async function startPolling(input) {
+    console.log('startPolling','Start polling executed on worker');
     const pollingInterval = input?.pollingOptions?.pollingInterval ?? 5000;
     if (input.retryOptions) {
+      console.log('startPolling','Executing retry logic');
       if (!Array.isArray(input.requestParams)) {
         const timerId = setInterval(async () => {
           try {
@@ -45,23 +47,31 @@ const workercode = `self.importScripts(
                 )
               )
               .toPromise();
+            console.log('startPolling','Retry getNextEvents API executed successfully');
             let data = {};
             if (response && response.status < 400) {
+              console.log('startPolling','Retry getNextEvents with status < 400');
               if (response.status !== 304) {
                 data = await response.text();
+                console.log('startPolling','Retry New events received');
               }
               clearInterval(timerId);
               self.postMessage({ type:'retry', data: parseResponse(data)});
+              console.log('startPolling','Retry Response posted to main thread');
             } else{
+              console.log('startPolling','Retry Error response posted to main thread');
               if(response && response.status === 409){
                 self.postMessage({ type:'retry', errorType: 'CXONE_API_ERROR', data: {status:response.status} }); 
                 clearInterval(timerId);
+                console.log('startPolling','Retry Error for 409 posted to main thread');
               } else{
                 postMessageOnRetry(input,timerId);
               }
             }
           } catch (error) {
+            console.log('startPolling','Retry catch executed');
             if (error instanceof Error) {
+              console.log('startPolling','Retry catch executed and posted message to main thread');
               postMessageOnRetry(input,timerId);
             }
           }
@@ -74,7 +84,9 @@ const workercode = `self.importScripts(
         } else await getData(input.requestParams);
       }
     } else {
+      console.log('startPolling','Start polling for getNextEvents');
       if (!Array.isArray(input.requestParams)) {
+        console.log('startPolling','Inside start polling for getNextEvents');
         try {
           const response = await self.rxjs.fetch
             .fromFetch(
@@ -87,16 +99,22 @@ const workercode = `self.importScripts(
               )
             )
             .toPromise();
+          console.log('startPolling','getNextEvents API executed successfully');
           let data = {};
           if (response &&  response.status < 400 && response.status !== 304) {
+            console.log('startPolling','Events received from getNextEvents');
             data = await response.text();
             self.postMessage(parseResponse(data));
+            console.log('startPolling','Response posted to main thread');
           } else {
+            console.log('startPolling','No new events received from getNextEvents');
             self.postMessage({data: {status : response.status}});
           }
         } catch (error) {
+            console.log('startPolling','Error block of start polling for getNextEvents executed');
           if (error instanceof Error) {
             self.postMessage({data: {status : '403'}});
+            console.log('startPolling','Error posted back to main thread');
           }
         }
       } else {
@@ -161,6 +179,7 @@ const workercode = `self.importScripts(
     }, timeoutInterval);
   }
   function postMessageOnRetry(input,timerId){
+    console.log('postMessageOnRetry','inside postMessageOnRetry');
     //reducing the count by one before entering the clear interval function to match the exact run time scenario
     --input.retryOptions.maxRetryAttempts;
     self.postMessage({ type:'retry', errorType: 'CXONE_API_ERROR', data: {}, retryAttempt: input.retryOptions.maxRetryAttempts });

@@ -182,6 +182,7 @@ tslib_1.__exportStar(require("./lib/model/digital/external-platform-templates"),
 tslib_1.__exportStar(require("./lib/model/customer-card/cxone-customer-card-note-user"), exports);
 tslib_1.__exportStar(require("./lib/model/contact/workitem-contact-event"), exports);
 tslib_1.__exportStar(require("./lib/model/contact/agent-workflow/data-memorialization/cxone-workflow-request"), exports);
+tslib_1.__exportStar(require("./lib/model/contact/agent-workflow/create-record/cxone-workflow-create-request"), exports);
 tslib_1.__exportStar(require("./enum/workflow-enums"), exports);
 tslib_1.__exportStar(require("./lib/model/contact/workitem-contact-event"), exports);
 tslib_1.__exportStar(require("./lib/model/skill-delivery-parameters"), exports);

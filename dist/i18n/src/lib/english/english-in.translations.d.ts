@@ -1090,9 +1090,7 @@ export declare const translationsEnIn: {
         adp_copilotFilters: string;
         adp_copilotFiltersSubtext: string;
         adp_modifyFilters: string;
-        filterIconTooltip: string;
         filterCopilotData: string;
-        filterCopilotDataSubtext: string;
         failedToApplyFilters: string;
         failedToApplyFiltersDescription: string;
         selectAll: string;
@@ -1135,5 +1133,17 @@ export declare const translationsEnIn: {
         adp_autoSummary: string;
         adp_last: string;
         adp_interactions: string;
+        addEntity: string;
+        createNewEntity: string;
+        createNewEntitySuccessful: string;
+        createNewEntityUnsuccessful: string;
+        createNewEntityUnsuccessfulMessage: string;
+        createEntity: string;
+        filterIconTooltip: string;
+        filterCopilotDataSubtext: string;
+        filtersApplied: string;
+        standardTags: string;
+        copilotFilterIcon: string;
+        countOfCopilotFiltersSelected: string;
     };
 };

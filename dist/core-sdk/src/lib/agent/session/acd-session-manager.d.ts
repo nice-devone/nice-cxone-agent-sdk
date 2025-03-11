@@ -33,6 +33,7 @@ export declare class ACDSessionManager {
     private _popUrlSubject;
     private _agentWorkflowEvent;
     private _agentWorkflowRequestEvent;
+    private _agentWorkflowCreatePayloadEvent;
     private _coBrowseEvent;
     private static singleton;
     userInfo: UserInfo;
@@ -358,6 +359,14 @@ export declare class ACDSessionManager {
      * ```
      */
     get agentWorkflowRequestEvent(): Subject<AgentWorkflowRequestEvent>;
+    /**
+    * Used to get the agent workflow event subject
+    * @example -
+    * ```
+    * const agentWorkflowCreatePayloadEvent = agentSession.agentWorkflowCreatePayloadEvent
+    * ```
+    */
+    get agentWorkflowCreatePayloadEvent(): Subject<string>;
     /**
      * @example -
      * ```

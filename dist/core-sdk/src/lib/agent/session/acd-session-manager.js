@@ -47,6 +47,7 @@ export class ACDSessionManager {
         this._popUrlSubject = new Subject();
         this._agentWorkflowEvent = new Subject();
         this._agentWorkflowRequestEvent = new Subject();
+        this._agentWorkflowCreatePayloadEvent = new Subject();
         this._coBrowseEvent = new Subject();
         this.userInfo = {};
         this.cxOneConfig = {};
@@ -348,6 +349,16 @@ export class ACDSessionManager {
      */
     get agentWorkflowRequestEvent() {
         return this._agentWorkflowRequestEvent;
+    }
+    /**
+    * Used to get the agent workflow event subject
+    * @example -
+    * ```
+    * const agentWorkflowCreatePayloadEvent = agentSession.agentWorkflowCreatePayloadEvent
+    * ```
+    */
+    get agentWorkflowCreatePayloadEvent() {
+        return this._agentWorkflowCreatePayloadEvent;
     }
     /**
      * @example -

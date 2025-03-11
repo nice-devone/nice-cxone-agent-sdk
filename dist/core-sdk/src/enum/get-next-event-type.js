@@ -32,5 +32,6 @@ export var GetNextEventType;
     GetNextEventType["NATURAL_CALLING_SKILL_LIST"] = "NaturalCallingSkillList";
     GetNextEventType["CONFERENCE"] = "Conference";
     GetNextEventType["HOURS_OF_OPERATION"] = "HoursOfOperation";
+    GetNextEventType["AGENT_WORKFLOW_CREATE_PAYLOAD"] = "AgentWorkflowCreatePayload";
 })(GetNextEventType || (GetNextEventType = {}));
 //# sourceMappingURL=get-next-event-type.js.map

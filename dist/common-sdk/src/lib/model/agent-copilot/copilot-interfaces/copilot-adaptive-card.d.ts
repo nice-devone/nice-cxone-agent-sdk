@@ -106,4 +106,26 @@ export interface CopilotInformationCardData {
     iconWidth?: string;
     iconHeight?: string;
 }
+/**
+ * model interface that represents the structure for Copilot Journey summary cards
+ */
+export interface CopilotJourneySummaryCardData {
+    summary: string;
+    interactionsData: JSInteractionsData[];
+}
+/**
+ * model interface that represents the structure for journey summary interactions data
+ */
+export interface JSInteractionsData {
+    contactDate: string;
+    isResolved: boolean;
+    contactNumber: number;
+    skill: string;
+    chatAgentTasksPerformed: string[];
+    customerName: string;
+    summary: string;
+    chatFinalOutcome: string;
+    status: string;
+    channelType: string;
+}
 export {};

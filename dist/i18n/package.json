@@ -1,6 +1,6 @@
 {
   "name": "@nice-devone/i18n",
-  "version": "25.1.1",
+  "version": "25.1.2",
   "sideEffects": false,
   "description": "NICE CXone i18n SDK",
   "author": "NICE Ltd.",

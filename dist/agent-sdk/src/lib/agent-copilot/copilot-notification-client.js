@@ -42,6 +42,8 @@ export class CopilotNotificationClient extends AgentAssistNotificationService {
                     };
                     this.wssWorker.onerror = (error) => {
                         this.logger.error('wssWorker-subscribe', 'Error occured on wssWorker' + error);
+                        super.disconnectWebsocket();
+                        super.reconnectWebsocket();
                     };
                 }
             });

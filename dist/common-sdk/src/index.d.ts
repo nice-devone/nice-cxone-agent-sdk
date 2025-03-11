@@ -179,6 +179,7 @@ export * from './lib/model/digital/external-platform-templates';
 export * from './lib/model/customer-card/cxone-customer-card-note-user';
 export * from './lib/model/contact/workitem-contact-event';
 export * from './lib/model/contact/agent-workflow/data-memorialization/cxone-workflow-request';
+export * from './lib/model/contact/agent-workflow/create-record/cxone-workflow-create-request';
 export * from './enum/workflow-enums';
 export * from './lib/model/contact/workitem-contact-event';
 export * from './lib/model/skill-delivery-parameters';

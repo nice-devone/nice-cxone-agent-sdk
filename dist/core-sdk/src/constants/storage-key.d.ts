@@ -58,6 +58,7 @@ export declare const StorageKeys: {
     AGENT_MESSAGE_POPOVER: string;
     AGENT_WORKFLOW_CONFIGURATION_EVENT: string;
     AGENT_WORKFLOW_EVENT: string;
+    AGENT_WORKFLOW_EVENT_CREATE_PAYLOAD: string;
     PARENT_APP: string;
     AGENT_COPILOT_ADAPTIVE_CARD_SCHEMAS: string;
     CRM_PIN_RECORDS: string;

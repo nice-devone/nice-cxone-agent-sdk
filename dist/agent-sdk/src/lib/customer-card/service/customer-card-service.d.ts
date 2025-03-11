@@ -1,4 +1,4 @@
-import { CXoneCustomerCardCustomFields, CXoneCustomerDetails, CXoneCustomerDetailRequest, HttpResponse, CustomField, CXoneSdkError, CXoneCustomerDetail, CXoneAgentVoiceContactHistoryRequest, CXoneCase, agentCompletedContactsResponse, AgentWorkflowResponseEvent, CXoneMergeCustomerCardArguments, CXoneCustomerList, CXoneWorkflowRequest, CXoneDeleteCustomField } from '@nice-devone/common-sdk';
+import { CXoneCustomerCardCustomFields, CXoneCustomerDetails, CXoneCustomerDetailRequest, HttpResponse, CustomField, CXoneSdkError, CXoneCustomerDetail, CXoneAgentVoiceContactHistoryRequest, CXoneCase, agentCompletedContactsResponse, AgentWorkflowResponseEvent, CXoneMergeCustomerCardArguments, CXoneCustomerList, CXoneWorkflowRequest, CXoneDeleteCustomField, CXoneWorkflowCreateRequest } from '@nice-devone/common-sdk';
 import { HttpUtilService, Logger } from '@nice-devone/core-sdk';
 /**
  * Class to handle Customer Card API calls
@@ -73,6 +73,13 @@ export declare class CustomerCardService {
      * @example - CRM data from workflow.
      */
     executeWorkFlow(crmRequest: CXoneWorkflowRequest): Promise<AgentWorkflowResponseEvent>;
+    /**
+     * Method to create a new record in CRM in Tray
+     * @param crmRequest - type of CXoneWorkflowCreateRequest
+     * @returns - API Returns Response JSON with created record and status
+     * @example - createRecord(\{action: 'search', interactionId: '1234', workflowInput: 'test'\})
+     */
+    executeCreateWorkFlow(crmRequest: CXoneWorkflowCreateRequest): Promise<AgentWorkflowResponseEvent>;
     /**
      * Wrapper method used to call mergeCustomerCard() method
      * @example - mergeCustomerCard(\{currentCustomerId: 'asdafaf', customerIdToMerge: 'chat_dasfasf'\})

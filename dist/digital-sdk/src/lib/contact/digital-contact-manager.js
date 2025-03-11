@@ -50,6 +50,8 @@ export class DigitalContactManager {
         // Added new subject for handling WebSocket connection status notification display on UI
         this.onDigitalWsNotificationEvent = new Subject();
         this.userSlotPollingStarted = false;
+        this.userSlotSubscribed = null;
+        this.isWebSocketFailure = false;
         /**
          * Method used to get the CXoneContact
          */
@@ -264,14 +266,17 @@ export class DigitalContactManager {
     digitalWebsocketConnectionStateHandler() {
         var _a;
         (_a = this.digitalWebsocket.onWebSocketConnectionStatus) === null || _a === void 0 ? void 0 : _a.subscribe((response) => {
+            this.logger.info('digitalWebsocketConnectionStateHandler response code', JSON.stringify(response));
             // If the websocket connection does not reconnect, poll the user slots api
             // This will keep some customers afloat who may experience spotty websocket connection
             if ([WebsocketStatusCode.RECONNECT_UNSUCCESSFUL, WebsocketStatusCode.RECONNECT, WebsocketStatusCode.ERROR]
                 .includes(response)) {
+                this.isWebSocketFailure = true;
                 this.pollUserSlots(true);
             }
             else if (response === WebsocketStatusCode.OK) {
                 this.terminateUserSlotPolling();
+                this.isWebSocketFailure = false;
             }
             // We need to receive the actual status codes here to show main message on UI side code
             // We don't need rest any of the details of connection, as there is no need at this moment from usage pov
@@ -315,10 +320,10 @@ export class DigitalContactManager {
     manageUserSlotDetails() {
         return __awaiter(this, void 0, void 0, function* () {
             try {
-                const featureToggleExists = yield FeatureToggleService.instance.getFeatureToggle("release-cx-agent-user-slot-api-aw-24451" /* FeatureToggles.USER_SLOT_POLLING_FEATURE_TOGGLE */);
+                const isUserSlotPollingFeatureToggleOn = yield FeatureToggleService.instance.getFeatureToggle("release-cx-agent-user-slot-api-aw-24451" /* FeatureToggles.USER_SLOT_POLLING_FEATURE_TOGGLE */);
                 // Logging some info for datadog
-                this.logger.info('manageUserSlotDetails', 'featureToggleExists value ' + featureToggleExists);
-                if (featureToggleExists) {
+                this.logger.info('manageUserSlotDetails', 'featureToggleExists value ' + isUserSlotPollingFeatureToggleOn);
+                if (isUserSlotPollingFeatureToggleOn) {
                     this.pollUserSlots();
                 }
                 else {
@@ -353,36 +358,39 @@ export class DigitalContactManager {
     pollUserSlots(WebsocketConnectionFailure = false) {
         if (!this.userSlotPollingStarted) {
             this.userSlotPollingStarted = true;
+            this.logger.info('pollUserSlots', 'User slot polling started');
             this.userSlotProvider.getUserSlots();
-            this.onUserSlotEvent.subscribe((userSlotResponse) => {
-                var _a;
-                this.logger.info('pollUserSlots', 'User slot API response received');
-                userSlotResponse === null || userSlotResponse === void 0 ? void 0 : userSlotResponse.forEach((contact) => {
-                    // Checking for the inbox assigned contact is present in Map or not
-                    // If not present, calling contact Details API & publish it to Map
-                    if (contact.caseId && (!this.digitalContactMap.has(contact.caseId) || WebsocketConnectionFailure)) {
-                        this.logger.info('pollUserSlots', 'Inbox assigned contact to be published to map' + JSON.stringify(contact.caseId));
-                        const eventDetailsToPublish = { eventId: '', eventObject: 'Case', eventType: CXoneDigitalEventType.CASE_INBOX_ASSIGNED };
-                        this.getDigitalContactDetails(contact.caseId, eventDetailsToPublish);
-                    }
-                });
-                //Dev Note: if userSlotResponse length is not equal to digitalContactMap size then it means some contacts are unassigned
-                if ((userSlotResponse === null || userSlotResponse === void 0 ? void 0 : userSlotResponse.length) !== ((_a = this.digitalContactMap) === null || _a === void 0 ? void 0 : _a.size) || WebsocketConnectionFailure) {
-                    const eventDetailsToPublish = { eventId: '', eventObject: 'Case', eventType: CXoneDigitalEventType.CASE_INBOX_UNASSIGNED };
-                    // Will iterate over the digital contact map to check both contacts are present in userSlotResponse or not
-                    this.digitalContactMap.forEach((contact, _) => {
-                        //if contact is not present in userSlotResponse and then it means it is unassigned
-                        const isContactPresentInUserSlotResponse = userSlotResponse === null || userSlotResponse === void 0 ? void 0 : userSlotResponse.find(userSlot => userSlot.caseId === contact.caseId);
-                        if (!isContactPresentInUserSlotResponse) {
-                            // Here will attach the unAssign event to contact & publish it.
-                            const contactInMap = Object.assign(Object.assign({}, contact), { eventDetails: eventDetailsToPublish });
-                            this.updatePublishDigitalContactMap(contactInMap);
-                            // Removing the contact from map
-                            this.digitalContactMap.delete(contact.caseId);
+            if (!this.userSlotSubscribed) {
+                this.userSlotSubscribed = this.onUserSlotEvent.subscribe((userSlotResponse) => {
+                    var _a;
+                    this.logger.info('pollUserSlots', 'User slot API response received');
+                    userSlotResponse === null || userSlotResponse === void 0 ? void 0 : userSlotResponse.forEach((contact) => {
+                        // Checking for the inbox assigned contact is present in Map or not
+                        // If not present, calling contact Details API & publish it to Map
+                        if (contact.caseId && !this.digitalContactMap.has(contact.caseId)) {
+                            this.logger.info('pollUserSlots', 'Inbox assigned contact to be published to map' + JSON.stringify(contact.caseId));
+                            const eventDetailsToPublish = { eventId: '', eventObject: 'Case', eventType: CXoneDigitalEventType.CASE_INBOX_ASSIGNED };
+                            this.getDigitalContactDetails(contact.caseId, eventDetailsToPublish);
                         }
                     });
-                }
-            });
+                    //Dev Note: if userSlotResponse length is not equal to digitalContactMap size then it means some contacts are unassigned
+                    if ((userSlotResponse === null || userSlotResponse === void 0 ? void 0 : userSlotResponse.length) !== ((_a = this.digitalContactMap) === null || _a === void 0 ? void 0 : _a.size) || WebsocketConnectionFailure) {
+                        const eventDetailsToPublish = { eventId: '', eventObject: 'Case', eventType: CXoneDigitalEventType.CASE_INBOX_UNASSIGNED };
+                        // Will iterate over the digital contact map to check both contacts are present in userSlotResponse or not
+                        this.digitalContactMap.forEach((contact, _) => {
+                            //if contact is not present in userSlotResponse and then it means it is unassigned
+                            const isContactPresentInUserSlotResponse = userSlotResponse === null || userSlotResponse === void 0 ? void 0 : userSlotResponse.find(userSlot => userSlot.caseId === contact.caseId);
+                            if (!isContactPresentInUserSlotResponse) {
+                                // Here will attach the unAssign event to contact & publish it.
+                                const contactInMap = Object.assign(Object.assign({}, contact), { eventDetails: eventDetailsToPublish });
+                                this.updatePublishDigitalContactMap(contactInMap);
+                                // Removing the contact from map
+                                this.digitalContactMap.delete(contact.caseId);
+                            }
+                        });
+                    }
+                });
+            }
         }
     }
     /**
@@ -485,8 +493,9 @@ export class DigitalContactManager {
             if (cxoneDigitalContact.type === ContactType.DIGITAL_CONTACT && cxoneDigitalContact.status !== DigitalContactStatus.INCOMING) {
                 this.updatePublishDigitalContactMap(cxoneDigitalContact);
             }
-            // event hub subscription
-            cxoneDigitalContact.subscribeToEventHub();
+            // Call event hub subscription api when websocket is connected
+            if (!this.isWebSocketFailure)
+                cxoneDigitalContact.subscribeToEventHub();
         }), (error) => {
             this.logger.error('getContactDetails', 'Assigned Digital contact fetch failed ' + JSON.stringify(error));
         });

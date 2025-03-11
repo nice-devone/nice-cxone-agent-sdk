@@ -164,7 +164,10 @@ export class CXoneGetNextAdapter {
                     break;
                 }
                 case GetNextEventType.CUSTOM_EVENT: {
-                    if (((event === null || event === void 0 ? void 0 : event.eventName) === AcdCustomEventName.AGENT_WORKFLOW_RESPONSE || (event === null || event === void 0 ? void 0 : event.eventName) === AcdCustomEventName.AGENT_WORKFLOW_REQUEST) && (event === null || event === void 0 ? void 0 : event.data)) {
+                    if (((event === null || event === void 0 ? void 0 : event.eventName) === AcdCustomEventName.AGENT_WORKFLOW_RESPONSE
+                        || (event === null || event === void 0 ? void 0 : event.eventName) === AcdCustomEventName.AGENT_WORKFLOW_REQUEST
+                        || (event === null || event === void 0 ? void 0 : event.eventName) === AcdCustomEventName.AGENT_WORKFLOW_CREATE_PAYLOAD)
+                        && (event === null || event === void 0 ? void 0 : event.data)) {
                         let parsedEventData;
                         try {
                             parsedEventData = JSON.parse(event === null || event === void 0 ? void 0 : event.data);
@@ -181,6 +184,9 @@ export class CXoneGetNextAdapter {
                             const agentWorkflowEvent = new AgentWorkflowRequestEvent();
                             agentWorkflowEvent.parse(parsedEventData);
                             this.agentSession.agentWorkflowRequestEvent.next(agentWorkflowEvent);
+                        }
+                        if ((event === null || event === void 0 ? void 0 : event.eventName) === AcdCustomEventName.AGENT_WORKFLOW_CREATE_PAYLOAD) {
+                            this.agentSession.agentWorkflowCreatePayloadEvent.next(event === null || event === void 0 ? void 0 : event.data);
                         }
                     }
                     if ((((_c = event === null || event === void 0 ? void 0 : event.data) === null || _c === void 0 ? void 0 : _c.includes('https://app.surfly')) && ((_d = event === null || event === void 0 ? void 0 : event.data) === null || _d === void 0 ? void 0 : _d.includes('agent_token='))) ||
