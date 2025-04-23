@@ -42,7 +42,6 @@ import { AgentSessionStatus, EndSessionRequest } from "@nice-devone/common-sdk";
 import { CXoneVoiceClient } from "@nice-devone/voice-sdk";
 import { CXoneClient } from "@nice-devone/agent-sdk";
 import { LocalStorageHelper, StorageKeys } from "@nice-devone/core-sdk";
-import { CXoneDigitalClient } from "@nice-devone/digital-sdk";
 import VoiceControls from "./voice-controls/VoiceControls";
 import Outbound from "./outbound/Outbound";
 import { AgentSettings } from "@nice-devone/core-sdk";
@@ -61,7 +60,7 @@ const AcdSdk = () => {
   const [endSessionButton, setEndSessionButton] = useState(true);
   const [agentLegButton, setAgentLegButton] = useState(true);
   const [voiceContact, setVoiceContact] = useState({} as CXoneVoiceContact);
-  const [voiceContactStatus, setVoiceContactStatus] = useState("");
+  const [initEngagement, setInitEngagement] = useState(false);  
   const gaAccessTokenFlowStyles = ccfGaAccessTokenFlowStyles(theme);
   const accessTokenFlowStyles = ccfAccessTokenFlowStyles(theme);
   const location = useLocation();
@@ -72,20 +71,45 @@ const AcdSdk = () => {
     ignorePersonalQueue: true,
   };
 
+  useEffect(() => {
+    CXoneAcdClient.instance.initAcdEngagement();
+    setInitEngagement(true);
+  },[])
 
+  useEffect(() => {
+    if(initEngagement){
+      tryCatchWrapper(initMethods, (error) => {
+        console.log("error", error);
+      });
+    }
+    
+  }, [location.pathname,initEngagement]);
+
+  useEffect(() => { 
+    if(initEngagement){
+      manualStartSession();
+    }
+    
+  },[initEngagement])
 
 
   useEffect(() => {
     
     if (LocalStorageHelper.getItem("startsessionButton") == "true") {
+      setStartSessionButton(true);
       setEndSessionButton(false);
       setAgentLegButton(false);
+    }
+    if (LocalStorageHelper.getItem("startsessionButton") == "false") {
+      setStartSessionButton(false);
+      setEndSessionButton(true);
+      setAgentLegButton(true);
     }
   }, [startSessionButton]);
 
   const initMethods = async () => {
-    CXoneDigitalClient.instance.initDigitalEngagement();
-    CXoneAcdClient.instance.initAcdEngagement();
+    
+  
     const getLastLoggedInAgentId = LocalStorageHelper.getItem(
       StorageKeys.LAST_LOGGED_IN_AGENT_ID
     );
@@ -101,7 +125,7 @@ const AcdSdk = () => {
 
       CXoneAcdClient.instance.contactManager.voiceContactUpdateEvent.subscribe(
         (data: CXoneVoiceContact) => {
-          setVoiceContactStatus(data.status);
+         
           setVoiceContact(data);
           console.log("voice contact", data);
         }
@@ -132,7 +156,7 @@ const AcdSdk = () => {
             case AgentSessionStatus.JOIN_SESSION_SUCCESS:
             case AgentSessionStatus.SESSION_START: {
               console.log("Session started successfully.....");
-              // setStartSessionButton(true);
+              
               initWebRTC();
               break;
             }
@@ -151,25 +175,18 @@ const AcdSdk = () => {
 
       CXoneAcdClient.instance.contactManager.voiceContactUpdateEvent.subscribe(
         (cxoneContact: CXoneVoiceContact) => {
-          setVoiceContactStatus(cxoneContact.status);
+      
           setVoiceContact(cxoneContact);
         }
       );
     } else {
       console.log("Agent Id not found", agentId);
     }
+    
   };
 
-  useEffect(() => {
-    tryCatchWrapper(initMethods, (error) => {
-      
-      console.log("error", error);
-    });
-  }, [location.pathname]);
 
-  useEffect(() => { 
-    manualStartSession();
-  },[])
+
 
   const getWebRtcServiceUrls = async () => {
     const agentSettings =
@@ -216,6 +233,10 @@ const AcdSdk = () => {
         setEndSessionButton(false);
       })
       .catch((err: any) => {
+        setStartSessionButton(false);
+        LocalStorageHelper.setItem("startsessionButton", "false");
+        setAgentLegButton(true);
+        setEndSessionButton(true);
         console.log(err.message ?? "An error occured");
       });
   };
@@ -246,6 +267,7 @@ const AcdSdk = () => {
         console.log("Session ended successfully");
         setEndSessionButton(true);
         setStartSessionButton(false);
+        LocalStorageHelper.setItem("startsessionButton", "false");
         setAgentLegButton(true);
       })
       .catch((err: any) => {
@@ -333,7 +355,7 @@ const AcdSdk = () => {
                 <CardHeader title="Dial Phone"></CardHeader>
                 <CardContent>
                   <form className="root">
-                    <Outbound />
+                   {initEngagement && <Outbound />}
                     {(agentStatus?.currentState?.cxoneState ==
                       "OutboundContact" ||
                       agentStatus?.currentState?.cxoneState ==
