@@ -75,6 +75,7 @@ const Auth = () => {
       cxoneHostname: hostName?.current.value,
       clientId: clientId.current.value,
       redirectUri: redirectUri.current.value,
+      originatingServiceIdentifier:'CMASDK'
     };
     LocalStorageHelper.setItem("auth_consumer", JSON.stringify(authSetting));
     cxoneAuth.init(authSetting);
