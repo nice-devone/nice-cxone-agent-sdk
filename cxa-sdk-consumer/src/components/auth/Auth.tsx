@@ -29,7 +29,7 @@ import {
 } from "../side-navbar/NavBar";
 
 import {  AuthToken } from "@nice-devone/common-sdk";
-import { AuthSettings, AuthStatus,  AuthWithTokenReq, CXoneAuth } from "@nice-devone/auth-sdk";
+import { AuthSettings, AuthStatus,  AuthWithCodeReq,  AuthWithTokenReq, CXoneAuth } from "@nice-devone/auth-sdk";
 import { LocalStorageHelper } from "@nice-devone/core-sdk";
 
 
@@ -38,6 +38,7 @@ const Auth = () => {
   const theme = useTheme();
   const gaAccessTokenFlowStyles = ccfGaAccessTokenFlowStyles(theme);
   const accessTokenFlowStyles = ccfAccessTokenFlowStyles(theme);
+  
 
   const hostName: React.RefObject<HTMLInputElement> = useRef(null);
   const clientId: React.RefObject<HTMLInputElement> = useRef(null);
@@ -87,7 +88,6 @@ const Auth = () => {
     cxoneAuth
       .getAuthorizeUrl(authMode, codeChallenge)
       .then((authUrl: string) => {
-        console.log(authMode,codeChallenge,authUrl)
         if (authMode === "page") {
           window.location.href = authUrl;
         } else if (authMode === "popup") {
@@ -100,6 +100,12 @@ const Auth = () => {
             (event) => {
               const message = event.data.message;
               if (message && message["messageType"] === "Authenticated") {
+                const authObject: AuthWithCodeReq = {
+                  clientId: clientId?.current?.value || "",
+                  code: message.code,
+                };
+                cxoneAuth.getAccessTokenByCode(authObject);
+                
                 popupWindow?.close();
               }
             },

@@ -38,6 +38,7 @@ import {
 } from "../side-navbar/NavBar";
 import { uuid } from "uuidv4";
 import HorizontalCards from "./horizontal-cards-caseIds/HorizontalCards";
+import { tryCatchWrapper } from "../../utils/tryCatchWrapper";
 
 
 
@@ -46,7 +47,7 @@ const DigitalSdk = () => {
   const gaAccessTokenFlowStyles = ccfGaAccessTokenFlowStyles(theme);
   const accessTokenFlowStyles = ccfAccessTokenFlowStyles(theme);
   const [inputValue, setInputValue] = useState("");
-  
+    const [initEngagement, setInitEngagement] = useState(false);  
   let digitalContactInstance: CXoneDigitalContact;
   const [UpdatedigitalContactCaseId, setUpdatedigitalContactCaseId] = useState({} as any);
 
@@ -56,10 +57,18 @@ const DigitalSdk = () => {
 
   const [messages, setMessages] = useState([] as any);
 
+  useEffect(() => {
+    CXoneDigitalClient.instance.initDigitalEngagement();
+    setInitEngagement(true);
+  },[])
 
     useEffect(() => {
-      digitalSdkwebsoket();
-    },[])
+      if(initEngagement){
+        tryCatchWrapper(digitalSdkwebsoket, (error) => {
+          console.log("error", error);
+        });
+      }    
+    },[initEngagement])
   
     useEffect(() => {
       if (Object.keys(UpdatedigitalContactCaseId).length > 0) {
@@ -72,10 +81,8 @@ const DigitalSdk = () => {
         
       }
     },[UpdatedigitalContactCaseId])
-    const digitalSdkwebsoket=()=>{
-     try{
-      
-      CXoneDigitalClient.instance.initDigitalEngagement();
+
+    const digitalSdkwebsoket=async()=>{
       CXoneDigitalClient.instance.digitalContactManager.onDigitalContactNewMessageEvent?.subscribe(
         (eventData) => {
           console.log("eventData", eventData);
@@ -94,7 +101,7 @@ const DigitalSdk = () => {
             return [...prevState, digitalConct];
             }
         })
-        console.log(digitalConct)
+  
 
         // Using uuid to trigger re-render as React does not detect changes in nested objects
         //because of this we can trigger useEffect which shows updared messages
@@ -102,9 +109,7 @@ const DigitalSdk = () => {
         }
       );
      
-     }catch(e){
-      console.log(e)
-     }
+    
     }
   
     const onClickCaseId=(contact:any)=>{
