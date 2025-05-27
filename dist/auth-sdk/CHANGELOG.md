@@ -3,4 +3,3 @@
 - `[Added]`: Implemented token verification functionality using jsrsasign
 - `[Removed]`: Removed token verification previously implemented using jsonwebtoken
 - `[Added]`: Handled language specific characters while decoding Id token
-- `Added`: Added changes for storing token in encrypted format in localstorage, controlled by a feature toggle
