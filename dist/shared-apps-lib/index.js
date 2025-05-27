@@ -3160,6 +3160,14 @@ var CXoneAgentEvents;
    * @remarks - enum for capturing the events when the CRM entity navigation is changed
    */
   CXoneAgentEvents["CXONE_CRM_ENTITY_NAVIGATION_CHANGE"] = "CxoneCRMEntityNavigationChange";
+  /**
+   * @remarks - enum for voicemail contact type
+   */
+  CXoneAgentEvents["CXONE_VOICE_MAIL_CONTACT_EVENT"] = "VoiceMailContact";
+  /**
+   * @remarks - enum for workitem contact type
+   */
+  CXoneAgentEvents["CXONE_WORKITEM_CONTACT_EVENT"] = "WorkItemContact";
 })(CXoneAgentEvents || (CXoneAgentEvents = {}));
 
 var CXoneCallContactStatus;
@@ -3192,6 +3200,10 @@ var CXoneCallContactStatus;
    * A conference call is joined
    */
   CXoneCallContactStatus["JOINED"] = "Joined";
+  /**
+   * A callback call
+   */
+  CXoneCallContactStatus["CALL_BACK_DISCONNECTED"] = "CallBackDisconnected";
 })(CXoneCallContactStatus || (CXoneCallContactStatus = {}));
 
 /**
@@ -4755,6 +4767,7 @@ class Helpers {
         const isFedHighMatched = browserUrl === null || browserUrl === void 0 ? void 0 : browserUrl.match(/na3./);
         const isAu2Matched = browserUrl === null || browserUrl === void 0 ? void 0 : browserUrl.match(/sov1.au/);
         const isEu2Matched = browserUrl === null || browserUrl === void 0 ? void 0 : browserUrl.match(/sov1.eu/);
+        const isUk2Matched = browserUrl === null || browserUrl === void 0 ? void 0 : browserUrl.match(/sov1.uk/);
         if (isEnvMatched) {
           cxoneHostname = `https://cxone.${isEnvMatched}.niceincontact.com`;
         } else if (isFedMatched) {
@@ -4765,6 +4778,8 @@ class Helpers {
           cxoneHostname = 'https://nicecxone-sov1.au';
         } else if (isEu2Matched) {
           cxoneHostname = 'https://nicecxone-sov1.eu';
+        } else if (isUk2Matched) {
+          cxoneHostname = 'https://nicecxone-sov1.uk';
         } else {
           cxoneHostname = 'https://cxone.niceincontact.com';
         }
@@ -4943,6 +4958,42 @@ class CcfIntegrationTransformer {
     };
     return target;
   }
+  /**
+  * Transforms object to CXoneVoiceMailContactData that can be used by any integration apps.
+  * @param source - Source object from CCF SDK that has VoiceMail Contact Details
+  * @returns Object for Integration Apps
+  * @example - NA -
+  */
+  static toVoiceMailContactData(source) {
+    const target = {
+      interactionId: source.interactionId,
+      contactId: source.contactID,
+      skillId: source.skill,
+      skillName: source.skillName,
+      status: source.status,
+      type: source.type,
+      finalState: source.finalState
+    };
+    return target;
+  }
+  /**
+   * Transforms object to CXoneWorkItemContactData that can be used by any integration apps.
+   * @param source - Source object from CCF SDK that has WorkItem Contact Details
+   * @returns Object for Integration Apps
+   * @example - NA -
+   */
+  static toWorkItemContactData(source) {
+    const target = {
+      interactionId: source.interactionId,
+      contactId: source.contactID,
+      skillId: source.skill,
+      skillName: source.skillName,
+      status: source.status,
+      type: source.type,
+      finalState: source.finalState
+    };
+    return target;
+  }
 }
 
 /**
@@ -5096,6 +5147,8 @@ class CXoneAgentIntegrationManager {
     window.addEventListener(CXoneAgentEvents.CXONE_AGENT_LOG_OFF, this.handleCXoneAgentLogOff.bind(this));
     window.addEventListener(CXoneAgentEvents.CXONE_PRESENCE_SYNC_EVENT, this.handleCXonePresenceSyncEvent.bind(this));
     window.addEventListener(CXoneAgentEvents.CXONE_AGENT_HOME_INITIALIZED, this.handleCXoneAgentHomeInitialized.bind(this));
+    window.addEventListener(CXoneAgentEvents.CXONE_VOICE_MAIL_CONTACT_EVENT, this.handleCXoneVoiceMailContactEvent.bind(this));
+    window.addEventListener(CXoneAgentEvents.CXONE_WORKITEM_CONTACT_EVENT, this.handleCXoneWorkItemContactEvent.bind(this));
   }
   /**
    * Method to initialize listeners for all the events initiated by CXoneAgent Home apps.
@@ -5139,6 +5192,24 @@ class CXoneAgentIntegrationManager {
     const customEvent = new CustomEvent(CXoneAgentEvents.EMBEDDED_APP_INITIALIZED, eventArgs);
     window.dispatchEvent(customEvent);
     return true;
+  }
+  /**
+   * Handler of VoiceMail Contact CustomEvent raised from CXone Agent
+   * @example
+   */
+  handleCXoneVoiceMailContactEvent(event) {
+    const eventData = event.detail;
+    const voiceMailContactData = CcfIntegrationTransformer.toVoiceMailContactData(eventData);
+    this.agentIntegration.handleCXoneVoiceMailContactEvent(voiceMailContactData);
+  }
+  /**
+   * Handler of WorkItem Contact CustomEvent raised from CXone Agent
+   * @example
+   */
+  handleCXoneWorkItemContactEvent(event) {
+    const eventData = event.detail;
+    const workItemContactData = CcfIntegrationTransformer.toWorkItemContactData(eventData);
+    this.agentIntegration.handleCXoneWorkItemContactEvent(workItemContactData);
   }
 }
 
@@ -5220,4 +5291,24 @@ class WatchRTCService {
   }
 }
 
-export { AgentStates, CXoneAgentEvents, CXoneAgentIntegrationManager, CXoneCallContactStatus, CXoneDigitalContactStatus, CXoneDigitalEventType, CcfAppParamHelper, CcfAppType, CcfGenericConstants, CcfMessageType, CcfRegexPatterns, CcfValidationHelper, CxaExtensionAdapter, IntegrationComponentLoader, WatchRTCService, cxs, getAgentRemoteEntryUrl, getRemoteEntryUrl, loadIntegrationModule, triggerCRMScreenPop, useScript };
+/**
+ * Embedded apps can access this class
+ * Passing true / false based on the feature toggle present
+ * Not able to use the Feature Toggle Service and LocalStorageHelper due to circular dependency
+ */
+class Embeddedappsfeaturetoggleservice {
+  /**
+   * check the feature toggle exist
+   * @param featureName - feature toggle name
+   * @example - isFeatureToggleEnabled()
+   */
+  static isFeatureToggleEnabled(featureName) {
+    const features = JSON.parse(localStorage.getItem('feature_toggles') || '[]');
+    if (features) {
+      return Array.isArray(features) && (features === null || features === void 0 ? void 0 : features.includes(featureName));
+    }
+    return false;
+  }
+}
+
+export { AgentStates, CXoneAgentEvents, CXoneAgentIntegrationManager, CXoneCallContactStatus, CXoneDigitalContactStatus, CXoneDigitalEventType, CcfAppParamHelper, CcfAppType, CcfGenericConstants, CcfMessageType, CcfRegexPatterns, CcfValidationHelper, CxaExtensionAdapter, Embeddedappsfeaturetoggleservice, IntegrationComponentLoader, WatchRTCService, cxs, getAgentRemoteEntryUrl, getRemoteEntryUrl, loadIntegrationModule, triggerCRMScreenPop, useScript };

@@ -17,7 +17,7 @@ export const isVoiceBioHubFeatureEnabled = () => {
 /**
  * Checks if the IEX feature is enabled.
  *
- * @returns - Returns true if all valid product IDs are enabled, otherwise false.
+ * @returns - Returns true if any valid product ID is enabled, otherwise false.
  *
  * @example
  * ```
@@ -28,8 +28,8 @@ export const isVoiceBioHubFeatureEnabled = () => {
 export const isIEXFeatureEnabled = () => {
     const validProductID = [83, 90, 91, 94, 95];
     const businessUnitData = (LocalStorageHelper.getItem(StorageKeys.BUSINESS_UNIT, true) || {});
-    // Check if all validProductID are present and enabled
-    const isIEXFeatureEnabled = validProductID.every((productId) => { var _a; return (_a = businessUnitData === null || businessUnitData === void 0 ? void 0 : businessUnitData.features) === null || _a === void 0 ? void 0 : _a.some((feature) => feature.productId === productId && feature.isEnabled); });
+    // Check if any validProductID is present and enabled
+    const isIEXFeatureEnabled = validProductID.some((productId) => { var _a; return (_a = businessUnitData === null || businessUnitData === void 0 ? void 0 : businessUnitData.features) === null || _a === void 0 ? void 0 : _a.some((feature) => feature.productId === productId && feature.isEnabled); });
     return isIEXFeatureEnabled;
 };
 /**

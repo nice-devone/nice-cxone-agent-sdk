@@ -34,7 +34,7 @@ export class HttpUtilService {
         if (reqInit.headers) {
             const originIdentifier = {
                 name: 'Originating-Service-Identifier',
-                value: 'CXoneAgent',
+                value: HttpUtilService.originatingServiceIdentifier,
             };
             reqInit.headers.push(originIdentifier);
         }

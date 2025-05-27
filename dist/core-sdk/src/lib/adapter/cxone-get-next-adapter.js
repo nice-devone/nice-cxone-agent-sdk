@@ -207,6 +207,18 @@ export class CXoneGetNextAdapter {
                         customScreenpopEvent.parse(parsedCustomScreenpopData);
                         this.agentSession.customScreenpopSubject.next(customScreenpopEvent);
                     }
+                    if ((event === null || event === void 0 ? void 0 : event.eventName) === AcdCustomEventName.AGENT_LOCAL_POST && (event === null || event === void 0 ? void 0 : event.data)) {
+                        let customData;
+                        try {
+                            customData = JSON.parse(event === null || event === void 0 ? void 0 : event.data);
+                        }
+                        catch (error) {
+                            this.logger.error('handleGetNextResponse', 'Failed in Localpost Custom Event Parsing' + error);
+                        }
+                        if (customData) {
+                            this.agentSession.localPostEvent.next(customData);
+                        }
+                    }
                     break;
                 }
                 case GetNextEventType.AGENT_WORKFLOW_CONFIGURATION: {

@@ -10,8 +10,6 @@ import { ApiUriConstants } from '../../../constants/api-uri-constants';
 import { HttpClient, HttpUtilService } from '../../http';
 import { UIQEventType } from '../../../enum/uiq-event-type';
 import { ValidationUtils } from '../../../util/validation-utils';
-import { LocalStorageHelper } from '../../../util/storage-helper-local';
-import { StorageKeys } from '../../../constants/storage-key';
 /** Custom HttpClient to handle uiq websocket connection */
 class CustomHttpClient extends DefaultHttpClient {
     /**
@@ -58,9 +56,9 @@ export class UIQueueWsProvider {
         this.logger = new Logger('uiQueueWsProvider', 'UIQueueWsProvider');
         this.getkeepAlivePollingisActive = false;
         this.utilService = new HttpUtilService();
-        this.isUIQueueDegraded = false;
         this.loader = new LoadWorker();
         this.validationUtils = new ValidationUtils();
+        this.isUIQDegraded = false;
         this.agentSession = ACDSessionManager.instance;
         this.adminService = AdminService.instance;
         window.addEventListener('RefreshTokenSuccess', () => {
@@ -219,7 +217,7 @@ export class UIQueueWsProvider {
     getValidAccessToken() {
         let accessToken = this.agentSession.accessToken;
         if (!accessToken || !this.validationUtils.validateToken(accessToken)) {
-            accessToken = LocalStorageHelper.getItem(StorageKeys.AUTH_TOKEN, true).accessToken;
+            throw new CXoneSdkError(CXoneSdkErrorType.DATA_VALIDATION_ERROR, 'Invalid access token');
         }
         return accessToken;
     }
@@ -232,12 +230,12 @@ export class UIQueueWsProvider {
      * connectAgent(userInfo, invokeSnapshot)
      * ```
      */
-    connectAgent(userInfo, invokeSnapshot) {
-        this.establishSocketConnection(userInfo, invokeSnapshot).catch((error) => {
+    connectAgent(userInfo, invokeSnapshot, sessionId) {
+        this.establishSocketConnection(userInfo, invokeSnapshot, sessionId).catch((error) => {
             this.logger.error('connectAgent', 'establishSocketConnection failed:-' + error);
             this.logger.error('connectAgent', 'Switching to get-next polling as websocket connection failed');
             this.terminatePolling();
-            this.agentSession.startGetNextEvents();
+            this.agentSession.startGetNextEvents(sessionId);
         });
     }
     /**
@@ -287,19 +285,19 @@ export class UIQueueWsProvider {
      * establishSocketConnection(userInfo, invokeSnapshot)
      * ```
      */
-    establishSocketConnection(userInfo, _invokeSnapshot = false) {
+    establishSocketConnection(userInfo, _invokeSnapshot = false, sessionId) {
         return __awaiter(this, void 0, void 0, function* () {
             const retryOptions = RetryOptions.default();
             this.getNewHubConnection(userInfo, retryOptions).then(() => __awaiter(this, void 0, void 0, function* () {
                 this.logger.info('establishSocketConnection', 'UIQ Connection established');
-                yield this.getInitialGetNextEvent();
+                yield this.getInitialGetNextEvent(sessionId);
                 this.addEventListeners(userInfo);
                 this.startKeepAlivePolling();
             })).catch((error) => {
                 this.logger.error('establishSocketConnection', 'establishSocketConnection failed:-' + error);
                 this.logger.error('establishSocketConnection', 'Switching to get-next polling as websocket connection failed');
                 this.terminatePolling();
-                this.agentSession.startGetNextEvents();
+                this.agentSession.startGetNextEvents(sessionId);
             });
             // TODO: Removing temporarily as it is not required for now, will enable it in next release when UIQ is ready
             // if(invokeSnapshot) {
@@ -353,22 +351,10 @@ export class UIQueueWsProvider {
         });
         this.hubConnection.on(UIQEventType.CUSTOM_DEGRADATION, () => {
             this.logger.info('CustomDegradation', 'Received Custom Degradation event');
-            this.isUIQueueDegraded = true;
-            this.terminatePolling();
+            this.isUIQDegraded = true;
+            this.disconnectConsumerAgent();
             this.agentSession.startGetNextEvents();
             this.logger.error('CustomDegradation', 'Switching to get-next polling as UIQ is degraded');
-        });
-        this.hubConnection.on(UIQEventType.UIQ_HEALTHY, (receivedData) => {
-            if (this.isUIQueueDegraded === true) {
-                this.isUIQueueDegraded = false;
-                this.agentSession.terminateGetNextPolling();
-                this.startKeepAlivePolling();
-                // TODO: Removing temporarily as it is not required for now, will enable it in next release when UIQ is ready
-                // this.invokeUIQEventSnapshotRequest();
-                //Adding get-next call to flush the initial renew-state event from the agent state
-                this.getInitialGetNextEvent();
-                this.logger.info('UIQueueHealthy', `Received UIQueue Healthy event: ${receivedData}`);
-            }
         });
         this.hubConnection.onreconnected((connectionId) => {
             this.logger.info('onreconnected', `UIQ Connection reestablished. Connected with connectionId ${connectionId}.`);
@@ -383,7 +369,7 @@ export class UIQueueWsProvider {
             this.logger.info('onclose', 'UIQ Connection state closed event triggered.');
             clearInterval(this.hearbeatPoller);
             this.disconnectConsumerAgent();
-            if (this.agentSession.getSessionId()) {
+            if (this.agentSession.getSessionId() && !this.isUIQDegraded) {
                 this.establishSocketConnection(userInfo, true).catch((error) => {
                     this.terminatePolling();
                     this.agentSession.startGetNextEvents();

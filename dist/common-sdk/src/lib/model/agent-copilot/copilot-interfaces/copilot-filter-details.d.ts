@@ -40,7 +40,16 @@ export interface FilterValueSets {
  * Represents a collection of filter options where each key corresponds to a tag name from the studio script.
  */
 export interface FilterOptionValues {
-    [key: string]: FilterOptionItem[];
+    [key: string]: {
+        /**
+        * type of the filter option, "Filter" or "Append"
+        */
+        type: string;
+        /**
+        * Array of filter option items(visible in the dropdown)
+        */
+        items: FilterOptionItem[];
+    };
 }
 /**
  * Represents a filter option item.
@@ -88,4 +97,8 @@ export interface CustomCopilotFilterTags {
      * Array of selected values for the filter tag
      */
     selected?: string[];
+    /**
+     * Type of the filter option, possible values: "Filter" or "Append"
+     */
+    type?: string;
 }

@@ -9,4 +9,5 @@ tslib_1.__exportStar(require("./copilot-summary"), exports);
 tslib_1.__exportStar(require("./copilot-request-status"), exports);
 tslib_1.__exportStar(require("./copilot-filter-details"), exports);
 tslib_1.__exportStar(require("./contact-history"), exports);
+tslib_1.__exportStar(require("./copilot-task-assist"), exports);
 //# sourceMappingURL=index.js.map

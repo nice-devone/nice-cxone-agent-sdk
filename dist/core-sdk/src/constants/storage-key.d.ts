@@ -82,6 +82,12 @@ export declare const StorageKeys: {
     VOICE_BIO_HUB_AGENT_ASSIST: string;
     SFCRM_NAVIGATION_DATA: string;
     FOCUSED_CONTACT_MEDIA_TYPE: string;
+    FEATURE_TOGGLES: string;
+    ENCRYPTED_AUTH_TOKEN: string;
+    ENCRYPTED_KEY: string;
+    ENCRYPTION_IV: string;
+    ORIGINATING_SERVICE_IDENTIFIER: string;
+    FAVORITE_AGENT_STATES: string;
 };
 export declare const NotificationSettings: {
     ACCESSIBILITY: string;
@@ -103,6 +109,7 @@ export declare const NotificationSettings: {
     SECONDARY_DEVICE: string;
     SECONDARY_DEVICE_DELAY: string;
     SECONDARY_DEVICE_SETTING: string;
+    SECONDARY_DEVICE_NAME: string;
     SOFTPHONE_SETTINGS_MENU: string;
     SOFTPHONE_VOLUME: string;
     TWENTY_FOUR_HOUR_TIME: string;

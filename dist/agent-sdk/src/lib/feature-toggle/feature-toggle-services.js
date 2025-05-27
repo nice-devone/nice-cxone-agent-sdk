@@ -1,14 +1,14 @@
 import { __awaiter } from "tslib";
 import { CXoneAuth } from '@nice-devone/auth-sdk';
-import { HttpClient, HttpUtilService, Logger, } from '@nice-devone/core-sdk';
+import { HttpClient, HttpUtilService, LocalStorageHelper, Logger, StorageKeys, } from '@nice-devone/core-sdk';
 /**
  * Class to get feature toggle
  */
 export class FeatureToggleService {
     /**
      * Create instance of FeatureToggleService
-     * ```
      * @example
+     * ```
      * const ftService = new FeatureToggleService();
      * ```
      */
@@ -21,8 +21,8 @@ export class FeatureToggleService {
     }
     /**
      * Method to create singleton object of the class
-     * ```
      * @example
+     * ```
      * const ftService = FeatureToggleService.instance;
      * ```
      */
@@ -34,8 +34,8 @@ export class FeatureToggleService {
     }
     /**
      * Method to load features
-     * ```
      * @example
+     * ```
      * loadFeatures()
      * ```
      */
@@ -43,16 +43,39 @@ export class FeatureToggleService {
         if (this.features) {
             return Promise.resolve(this.features);
         }
+        else {
+            const toggledFeaturesFromStorage = this.loadFeaturesFromStorage();
+            if (toggledFeaturesFromStorage) {
+                this.features = toggledFeaturesFromStorage;
+                return Promise.resolve(toggledFeaturesFromStorage);
+            }
+        }
         return this.sendGetToggledFeaturesRequest();
     }
     /**
-     * Method to get feature toggle by Name
-     * ```
+     * Method to load features from storage
      * @example
+     * ```
+     * loadFeaturesFromStorage()
+     * ```
+     */
+    loadFeaturesFromStorage() {
+        const toggledFeaturesFromStorage = LocalStorageHelper.getItem(StorageKeys.FEATURE_TOGGLES, true);
+        if (toggledFeaturesFromStorage) {
+            return toggledFeaturesFromStorage;
+        }
+        return null;
+    }
+    /**
+     * Method to get feature toggle by Name
+     * @param featureName - The name of the feature toggle
+     * @example
+     * ```
      * getFeatureToggle('featureToggleName');
      * ```
      */
     getFeatureToggle(featureName) {
+        var _a;
         return __awaiter(this, void 0, void 0, function* () {
             try {
                 if (!this.features) {
@@ -68,7 +91,7 @@ export class FeatureToggleService {
                     }
                 }
                 else {
-                    return this.features && this.features.includes(featureName);
+                    return Array.isArray(this.features) && ((_a = this.features) === null || _a === void 0 ? void 0 : _a.includes(featureName));
                 }
             }
             catch (error) {
@@ -79,18 +102,23 @@ export class FeatureToggleService {
     }
     /**
      * Method to get feature toggle
-     * ```
+     * @param featureName - The name of the feature toggle
      * @example
+     * ```
      * getFeatureToggleSync('featureToggleName')
      * ```
      */
     getFeatureToggleSync(featureName) {
-        return this.features && this.features.includes(featureName);
+        var _a;
+        if (!this.features) {
+            this.features = this.loadFeaturesFromStorage() || [];
+        }
+        return Array.isArray(this.features) && ((_a = this.features) === null || _a === void 0 ? void 0 : _a.includes(featureName));
     }
     /**
      * Method to get feature toggle by API call
-     * ```
      * @example
+     * ```
      * sendGetToggledFeaturesRequest()
      * ```
      */
@@ -105,6 +133,7 @@ export class FeatureToggleService {
                     HttpClient.get(url, reqInit).then((res) => {
                         this.features = res.data.toggledFeatures;
                         resolve(res.data.toggledFeatures);
+                        LocalStorageHelper.setItem(StorageKeys.FEATURE_TOGGLES, res.data.toggledFeatures);
                     }, (error) => {
                         this.logger.error('sendGetToggledFeaturesRequest', 'Error while getting feature toggle data' + error.message);
                         reject(error);

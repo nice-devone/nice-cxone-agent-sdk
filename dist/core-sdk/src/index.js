@@ -42,4 +42,6 @@ export * from './lib/admin/model/tenant';
 export * from './lib/admin/model/feedback-categories-and-priorities';
 export * from './lib/admin//model/feedback-data';
 export * from './constants/http-request-custom-headers';
+export * from './util/feature-toggle-services';
+export * from './enum/originating-service-identifier';
 //# sourceMappingURL=index.js.map

@@ -4,6 +4,7 @@ import { HttpRequestInit } from './http-request/http-request';
  * Utility class
  */
 export declare class HttpUtilService {
+    static originatingServiceIdentifier: string;
     /**
      * Method to initialize headers for a http api call
      * @param token - token to be added in header

@@ -12,8 +12,8 @@ export declare class AuthToken {
     /**
      * This method to parse auth token data
      * @param data - token API response
-     * ```
      * @example
+     * ```
      * const authToken = new AuthToken();
      * authToken.parseData(data);
      * ```

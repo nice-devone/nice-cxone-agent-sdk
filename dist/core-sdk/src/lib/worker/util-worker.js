@@ -46,7 +46,10 @@ const workercode = `self.importScripts(
                   input.requestParams.request.body
                 )
               )
-              .toPromise();
+              .toPromise()
+              .catch((error) => { 
+                console.log('startPolling','Retry getNextEvents catch executed with error' + error.toString());
+              });
             console.log('startPolling','Retry getNextEvents API executed successfully');
             let data = {};
             if (response && response.status < 400) {
@@ -98,7 +101,10 @@ const workercode = `self.importScripts(
                 input.requestParams.request.body
               )
             )
-            .toPromise();
+            .toPromise()
+            .catch((error) => { 
+              console.log('startPolling','getNextEvents catch executed with error' + error.toString());
+            });
           console.log('startPolling','getNextEvents API executed successfully');
           let data = {};
           if (response &&  response.status < 400 && response.status !== 304) {

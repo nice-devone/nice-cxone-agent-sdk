@@ -45,8 +45,8 @@ export interface CopilotMessageData {
      */
     isFinalSummaryGenerated: boolean;
     /**
-    * array of email adaptive cards
-    */
+     * array of email adaptive cards
+     */
     emailCards?: CopilotElement[];
     /**
      * field for storing comprehensive feedback card data
@@ -54,7 +54,7 @@ export interface CopilotMessageData {
     comprehensiveFeedback: OverallContactFeedbackData;
     /**
      * field for storing filter Details
-    */
+     */
     filterDetails?: CopilotFilterDetails;
     /**
      * flag for checking if editor action is performed
@@ -80,4 +80,8 @@ export interface CopilotMessageData {
      * field for storing contact history data
      */
     contactHistory: ContactHistoryData[];
+    /**
+     * field for storing task assist request status
+     */
+    currentTaskAssistRequestStatus: string;
 }

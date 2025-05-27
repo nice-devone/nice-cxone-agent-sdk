@@ -5,6 +5,8 @@ import { AgentAssistInput, AgentAssistNotificationService } from '../agent-assis
  *  web socket class for agent copilot
  */
 export declare class CopilotNotificationClient extends AgentAssistNotificationService {
+    private agentId;
+    private webSocketUri;
     private topic;
     onMessageNotification: Subject<AgentAssistBaseResponse>;
     /**
@@ -12,7 +14,7 @@ export declare class CopilotNotificationClient extends AgentAssistNotificationSe
      * @example -  connect('ws://localhost:8080');
      * @param websocketServerUri - websocketServer uri
      */
-    connect(websocketServerUri: string): boolean;
+    connect(websocketServerUri: string, agentId: string): boolean;
     /**
      * Subscribe to events.
      * @example -  subscribe('topic');
@@ -49,4 +51,10 @@ export declare class CopilotNotificationClient extends AgentAssistNotificationSe
      * @example - onOpen()
      */
     protected onOpen(): void;
+    /**
+     * Callback method triggered when the WebSocket connection needs to be re-established.
+     * Resets the connection ID and reconnects using the stored WebSocket URI and provider ID.
+     * @example - onReconnect()
+     */
+    protected onReconnect(): void;
 }

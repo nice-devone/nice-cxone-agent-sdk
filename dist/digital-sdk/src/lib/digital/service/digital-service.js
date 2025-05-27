@@ -1149,7 +1149,7 @@ export class DigitalService {
         const baseUrl = this.auth.getCXoneConfig().dfoApiBaseUri;
         const authToken = this.auth.getAuthToken().accessToken;
         const url = baseUrl + this.TYPING_INDICATOR_FOR_PATRON.replace('{channelId}', channelId)
-            .replace('{threadIdOnExternalPlatform}', threadIdOnExternalPlatform);
+            .replace('{threadIdOnExternalPlatform}', encodeURIComponent(threadIdOnExternalPlatform));
         const reqInit = {
             headers: this.utilService.initHeader(authToken, 'application/json').headers,
             body: { 'action': typingActionType },

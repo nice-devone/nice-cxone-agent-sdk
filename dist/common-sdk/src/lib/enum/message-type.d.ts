@@ -35,5 +35,6 @@ export declare enum MessageType {
     AGENT_COPILOT_RESPONSE = "AgentCopilotResponse",
     UI_QUEUE_EVENT_RESPONSE = "UIQueueEventResponse",
     AGENT_ASSIST_WS_RESPONSE = "AgentAssistWSResponse",
-    VOICE_BIO_HUB_RESPONSE = "VoiceBioHubResponse"
+    VOICE_BIO_HUB_RESPONSE = "VoiceBioHubResponse",
+    START_USER_SLOT_API_POLLING = "startUserSlotApiPolling"
 }

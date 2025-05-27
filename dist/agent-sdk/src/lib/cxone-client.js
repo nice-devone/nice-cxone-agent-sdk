@@ -1,5 +1,5 @@
 import { __awaiter } from "tslib";
-import { ACDSessionManager, AdminService, clearIndexDbKey, clearIndexDbStore, IndexDBKeyNames, IndexDBStoreNames, LocalStorageHelper, Logger, NotificationSettings, SessionStorageHelper, StorageKeys, } from '@nice-devone/core-sdk';
+import { ACDSessionManager, AdminService, clearIndexDbKey, clearIndexDbStore, FeatureToggleService, HttpUtilService, IndexDBKeyNames, IndexDBStoreNames, LocalStorageHelper, Logger, NotificationSettings, OriginatingServiceIdentifier, SessionStorageHelper, StorageKeys, } from '@nice-devone/core-sdk';
 import { CXoneLeaderElector, MessageBus, MessageType, } from '@nice-devone/common-sdk';
 import { CXoneDirectory } from './directory/cxone-directory';
 import { CopilotNotificationClient } from './agent-copilot/copilot-notification-client';
@@ -81,11 +81,17 @@ export class CXoneClient {
                 if (isLeader) {
                     this.logger.info('onLeaderChanged', 'I AM THE LEADER');
                     // start refresh token flow
-                    const isRefreshTokenFlowStarted = this.auth.startRefreshTokenCheck(this.auth.getAuthToken(), isLeader, this.auth.getAuthState().isTokenValid);
+                    let isRefreshTokenFlowStarted = false;
+                    try {
+                        isRefreshTokenFlowStarted = this.auth.startRefreshTokenCheck(this.auth.getAuthToken(), isLeader, this.auth.getAuthState().isTokenValid);
+                    }
+                    catch (error) {
+                        this.logger.error('onLeaderChanged', 'Error in starting refresh token flow' + JSON.stringify(error));
+                    }
                     if (isRefreshTokenFlowStarted) {
                         // Start join session and initiate get next event
                         if (this.acdSessionManager.hasSessionId) {
-                            this.acdSessionManager.toggleAgentEventsReceivingMethod({ invokeSnapshot: true, isUIQueueEnabled: this.isUIQueueEnabled });
+                            this.acdSessionManager.toggleACDEventEmitter({ invokeSnapshot: true, isUIQueueEnabled: this.isUIQueueEnabled });
                         }
                         // WEM Notification polling
                         const wemNotificationPollingConfig = (_a = this.notification.wemNotificationProvider) === null || _a === void 0 ? void 0 : _a.getWemNotificationPollingConfig();
@@ -116,7 +122,7 @@ export class CXoneClient {
                             this.notification.terminateWemWebSocket();
                             break;
                         case MessageType.JOIN_SESSION_FOR_NON_LEADER:
-                            this.acdSessionManager.toggleAgentEventsReceivingMethod({ invokeSnapshot: true, sessionId: msg.data, isUIQueueEnabled: this.isUIQueueEnabled });
+                            this.acdSessionManager.toggleACDEventEmitter({ invokeSnapshot: true, sessionId: msg.data, isUIQueueEnabled: this.isUIQueueEnabled });
                             break;
                         case MessageType.WEM_NOTIFICATION_ACK:
                             this.notification.sendWemAcknowledge(msg.data);
@@ -175,6 +181,9 @@ export class CXoneClient {
                             this.autoSummaryService.broadcastAutoSummary(msg.data);
                         }
                         break;
+                    case MessageType.AUTHENTICATION_RESPONSE:
+                        this.auth.restoreData(msg.data);
+                        break;
                     default:
                         break;
                 }
@@ -190,8 +199,9 @@ export class CXoneClient {
                 const acpConfig = (allParams === null || allParams === void 0 ? void 0 : allParams.AgentAssistAppConfigJson) || '{}';
                 const agentAssistJson = JSON.parse(acpConfig);
                 const providerId = (_a = agentAssistJson === null || agentAssistJson === void 0 ? void 0 : agentAssistJson.Params) === null || _a === void 0 ? void 0 : _a.providerId;
+                const isToggleEnabledForConfigFromBackend = FeatureToggleService.instance.getFeatureToggleSync("release-agentcopilot-ILLUM-23604" /* FeatureToggles.COPILOT_CONFIG_FROM_ACP_BACKEND */);
                 if (agentAssistJson && providerId === AgentAssistProvider.AGENT_COPILOT) {
-                    this.copilotService.setAgentAssistConfig(agentAssistJson.ContactId, acpConfig);
+                    this.copilotService.fetchConfigFromBackend(agentAssistJson, acpConfig, isToggleEnabledForConfigFromBackend);
                 }
             });
         };
@@ -223,43 +233,51 @@ export class CXoneClient {
      * ```
      */
     initAuthDependentModules() {
-        this.hasInitModuleInitiated = true;
-        // eslint-disable-next-line @typescript-eslint/no-unused-expressions
-        CXoneClient.instance;
-        CXoneLeaderElector.instance.start();
-        this.acdSessionManager = ACDSessionManager.instance;
-        const accessToken = this.auth.getAuthToken().accessToken;
-        const cxOneConfig = this.auth.getCXoneConfig();
-        const userInfo = this.cxoneUser.getUserInfo();
-        this.skillActivityQueue = new CXoneSkillActivityQueue(this);
-        AdminService.instance.initialize(accessToken, cxOneConfig, userInfo);
-        this.copilotNotificationClient = new CopilotNotificationClient();
-        this.cxoneCustomerCard = new CustomerCardService();
-        this.directory = new CXoneDirectory();
-        this.agentPermission = new CXoneAgentPermission();
-        this.agentSetting = new CXoneAgentSetting();
-        this.agentContactHistory = new CXoneAgentContactHistory();
-        this.cxoneTenant = new CXoneTenant();
-        this.wemSchedule = new WemSchedule();
-        this.iexService = new IEXService();
-        this.screenAgent = new ScreenAgentService();
-        this.commitment = new CommitmentService();
-        this.common = new CommonService();
-        this.teamService = new TeamService();
-        this.performanceReport = new CXoneRealtimeReportService();
-        this.presenceSyncService = new PresenceSyncService();
-        this.createAutoSummaryService();
-        this.createAutoSummaryNotificationService();
-        this.createAgentAssistWSService();
-        this.copilotService = new CopilotService();
-        this.transcript = new TranscriptService();
-        this.notification = new CXoneNotificationManager(CXoneClient.instance.cxoneTenant);
-        this.voiceBioHubService = new VoiceBioHubService();
-        this.cxoneTenant.checkProductEnablement([CXoneProductFeature.UI_QUEUE_WS]).then((resp) => {
-            this.isUIQueueEnabled = !!resp;
-            this.logger.info('initAuthDependentModules', 'UI Queue enablement: ' + this.isUIQueueEnabled);
-        }).catch(() => {
-            this.logger.error('initAuthDependentModules', 'Failed to check UI Queue enablement');
+        return __awaiter(this, void 0, void 0, function* () {
+            this.hasInitModuleInitiated = true;
+            // eslint-disable-next-line @typescript-eslint/no-unused-expressions
+            CXoneClient.instance;
+            CXoneLeaderElector.instance.start();
+            this.acdSessionManager = ACDSessionManager.instance;
+            const authToken = yield this.auth.validateFtAndGetDecryptedToken();
+            authToken && this.auth.setAuthToken(authToken);
+            const accessToken = this.auth.getAuthToken().accessToken;
+            const cxOneConfig = this.auth.getCXoneConfig();
+            const userInfo = this.cxoneUser.getUserInfo();
+            this.skillActivityQueue = new CXoneSkillActivityQueue(this);
+            AdminService.instance.initialize(accessToken, cxOneConfig, userInfo);
+            this.copilotNotificationClient = new CopilotNotificationClient();
+            this.cxoneCustomerCard = new CustomerCardService();
+            this.directory = new CXoneDirectory();
+            this.agentPermission = new CXoneAgentPermission();
+            this.agentSetting = new CXoneAgentSetting();
+            this.agentContactHistory = new CXoneAgentContactHistory();
+            this.cxoneTenant = new CXoneTenant();
+            this.wemSchedule = new WemSchedule();
+            this.iexService = new IEXService();
+            this.screenAgent = new ScreenAgentService();
+            this.commitment = new CommitmentService();
+            this.common = new CommonService();
+            this.teamService = new TeamService();
+            this.performanceReport = new CXoneRealtimeReportService();
+            this.presenceSyncService = new PresenceSyncService();
+            this.createAutoSummaryService();
+            this.createAutoSummaryNotificationService();
+            this.createAgentAssistWSService();
+            this.copilotService = new CopilotService();
+            this.transcript = new TranscriptService();
+            this.notification = new CXoneNotificationManager(CXoneClient.instance.cxoneTenant);
+            this.voiceBioHubService = new VoiceBioHubService();
+            this.cxoneTenant.checkProductEnablement([CXoneProductFeature.UI_QUEUE_WS]).then((resp) => {
+                this.isUIQueueEnabled = !!resp;
+                this.logger.info('initAuthDependentModules', 'UI Queue enablement: ' + this.isUIQueueEnabled);
+            }).catch(() => {
+                this.logger.error('initAuthDependentModules', 'Failed to check UI Queue enablement');
+            });
+            HttpUtilService.originatingServiceIdentifier =
+                CXoneAuth.instance.authSettings.originatingServiceIdentifier ||
+                    LocalStorageHelper.getItem(StorageKeys.ORIGINATING_SERVICE_IDENTIFIER) ||
+                    OriginatingServiceIdentifier.CXONE_AGENT;
         });
     }
     /**
@@ -286,7 +304,8 @@ export class CXoneClient {
             StorageKeys.ACTIVE_CUSTOMWORKSPACE,
             StorageKeys.SORT_CRITERIA_DIGITAL,
             StorageKeys.SORT_ORDER_DIGITAL,
-            StorageKeys.VOICE_PREFERENCE
+            StorageKeys.VOICE_PREFERENCE,
+            StorageKeys.FAVORITE_AGENT_STATES
         ]);
         try {
             const length = localStorage.length;

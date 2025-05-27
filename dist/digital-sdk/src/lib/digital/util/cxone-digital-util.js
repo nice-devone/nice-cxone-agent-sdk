@@ -1,4 +1,5 @@
-import { CcfLogger } from '@nice-devone/agent-sdk';
+import { __awaiter } from "tslib";
+import { CcfLogger, FeatureToggleService } from '@nice-devone/agent-sdk';
 /**
  * Utility Class containing methods related to handling of generic logic
  */
@@ -45,6 +46,19 @@ export class CXoneDigitalUtil {
             .map((recipient) => recipient.idOnExternalPlatform);
         this.logger.info('getPrimaryRecipient', 'Recipient information of email contact ' + JSON.stringify(recipientTypes));
         return recipientTypes;
+    }
+    /**
+     * Method to check if user slot polling feature toggle is enabled
+     * @returns - returns feature toggle value
+     * ```
+     * @example
+     * isUserSlotFTEnabled()
+     * ```
+     */
+    isUserSlotFeatureToggleEnabled() {
+        return __awaiter(this, void 0, void 0, function* () {
+            return yield FeatureToggleService.instance.getFeatureToggle("release-cx-agent-user-slot-api-aw-24451" /* FeatureToggles.USER_SLOT_POLLING_FEATURE_TOGGLE */);
+        });
     }
 }
 //# sourceMappingURL=cxone-digital-util.js.map

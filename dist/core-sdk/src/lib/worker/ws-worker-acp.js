@@ -7,7 +7,7 @@ const wsWorkerACPCode = `self.importScripts(
     let wsSubject;
     let reconnectTimer;// to hold the timeout for reconnect attempt
     let heartbeatSubscription = null;
-    const HEARTBEAT_INTERVAL = 10000;
+    const HEARTBEAT_INTERVAL = 8000;
   
     self.onmessage = function (input) {
       switch (input.data.type) {
@@ -132,14 +132,14 @@ const wsWorkerACPCode = `self.importScripts(
         if (wsReconnectAttempt < reconnectInfo.retryOptions.maxRetryAttempts && !isConnectionOpen) {
           wsReconnectAttempt++;
           const message = 'Websocket reconnect attempt ' + wsReconnectAttempt + ' of ' + reconnectInfo.retryOptions.maxRetryAttempts;
+          console.log('[ACP-web-worker] ', message);
           const reconnectResponse = {
             maxAttempts: reconnectInfo.retryOptions.maxRetryAttempts,
             currentAttempt: wsReconnectAttempt
           }
-          self.postMessage({ type: WSEventType.RECONNECT, message: reconnectResponse  });
             reconnectTimer = setTimeout(() => {
-            connect({'websocketUrl':reconnectInfo.url});
-          }, reconnectInfo.retryOptions.retryIntervalInMs);
+            self.postMessage({ type: WSEventType.RECONNECT, message: reconnectResponse  });
+          }, reconnectInfo.retryOptions.retryInterval);
         } else {
           self.postMessage({ type: WSEventType.RECONNECT_COMPLETE });
           isConnectionOpen = true;// after reconnect attempt completes then we will set this flag to true

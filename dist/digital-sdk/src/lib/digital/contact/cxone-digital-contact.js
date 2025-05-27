@@ -179,7 +179,7 @@ export class CXoneDigitalContact extends CXoneContact {
      * @example
      */
     parse(validatedResponse) {
-        var _a, _b, _c, _d, _e, _f, _g, _h, _j, _k, _l, _m, _o, _p, _q, _r, _s, _t, _u, _v, _w, _x, _y, _z, _0, _1, _2, _3, _4, _5, _6, _7, _8;
+        var _a, _b, _c, _d, _e, _f, _g, _h, _j, _k, _l, _m, _o, _p, _q, _r, _s, _t, _u, _v, _w, _x, _y, _z, _0, _1, _2, _3, _4, _5, _6, _7, _8, _9, _10, _11, _12, _13, _14;
         return __awaiter(this, void 0, void 0, function* () {
             if (validatedResponse) {
                 const { data } = validatedResponse;
@@ -221,19 +221,22 @@ export class CXoneDigitalContact extends CXoneContact {
                     }
                     this.hasUnreadMessage = !((_h = data === null || data === void 0 ? void 0 : data.message) === null || _h === void 0 ? void 0 : _h.isRead);
                     if ((_j = this.messages) === null || _j === void 0 ? void 0 : _j.length) {
-                        const matchedMessage = this.messages.findIndex(item => item.id === data.message.id);
+                        const matchedMessage = this.messages.findIndex(item => { var _a; return item.id === ((_a = data === null || data === void 0 ? void 0 : data.message) === null || _a === void 0 ? void 0 : _a.id); });
                         if (matchedMessage !== -1) {
                             if (this.eventDetails.eventType === CXoneDigitalEventType.MESSAGE_DELIVERY_STATUS_CHANGED ||
                                 this.eventDetails.eventType === CXoneDigitalEventType.MESSAGE_SEEN_CHANGED) {
-                                this.messages[matchedMessage].delivered = data.message.delivered;
-                                this.messages[matchedMessage].customerStatistics = data.message.customerStatistics;
+                                // created a new object of message and updated delivered and customerStatistics fields in order to avoid type error assigning to readd only object
+                                const message = Object.assign({}, this.messages[matchedMessage]);
+                                message.delivered = (_k = data === null || data === void 0 ? void 0 : data.message) === null || _k === void 0 ? void 0 : _k.delivered;
+                                message.customerStatistics = (_l = data === null || data === void 0 ? void 0 : data.message) === null || _l === void 0 ? void 0 : _l.customerStatistics;
+                                this.messages[matchedMessage] = message;
                             }
-                            else if (((_k = this.messages[matchedMessage].tags) === null || _k === void 0 ? void 0 : _k.length) !== data.message.tags.length) {
-                                this.messages[matchedMessage].tags = data.message.tags.slice(0);
+                            else if (((_m = this.messages[matchedMessage].tags) === null || _m === void 0 ? void 0 : _m.length) !== ((_p = (_o = data === null || data === void 0 ? void 0 : data.message) === null || _o === void 0 ? void 0 : _o.tags) === null || _p === void 0 ? void 0 : _p.length)) {
+                                this.messages[matchedMessage].tags = (_r = (_q = data === null || data === void 0 ? void 0 : data.message) === null || _q === void 0 ? void 0 : _q.tags) === null || _r === void 0 ? void 0 : _r.slice(0);
                             }
                         }
                         else {
-                            (_l = this.messages) === null || _l === void 0 ? void 0 : _l.push(data.message);
+                            (_s = this.messages) === null || _s === void 0 ? void 0 : _s.push(data.message);
                         }
                     }
                 }
@@ -254,32 +257,32 @@ export class CXoneDigitalContact extends CXoneContact {
                         return Object.assign(Object.assign({}, message), { messageNotes: [...(data.messageNotes || []).filter((msgNote) => msgNote.message.id === message.id)] });
                     });
                     // Assign value true if at least one message is unread in case
-                    this.hasUnreadMessage = (_m = data === null || data === void 0 ? void 0 : data.messages) === null || _m === void 0 ? void 0 : _m.some((msg) => !msg.isRead);
+                    this.hasUnreadMessage = (_t = data === null || data === void 0 ? void 0 : data.messages) === null || _t === void 0 ? void 0 : _t.some((msg) => !msg.isRead);
                     this.messages = messages;
                 }
-                this.isCaseAssigned = ((_o = this.case) === null || _o === void 0 ? void 0 : _o.inboxAssignee) && (((_q = (_p = this.case) === null || _p === void 0 ? void 0 : _p.inboxAssigneeUser) === null || _q === void 0 ? void 0 : _q.incontactId) === ((_s = (_r = CXoneUser === null || CXoneUser === void 0 ? void 0 : CXoneUser.instance) === null || _r === void 0 ? void 0 : _r.getUserInfo()) === null || _s === void 0 ? void 0 : _s.userId)) ? true : false;
+                this.isCaseAssigned = ((_u = this.case) === null || _u === void 0 ? void 0 : _u.inboxAssignee) && (((_w = (_v = this.case) === null || _v === void 0 ? void 0 : _v.inboxAssigneeUser) === null || _w === void 0 ? void 0 : _w.incontactId) === ((_y = (_x = CXoneUser === null || CXoneUser === void 0 ? void 0 : CXoneUser.instance) === null || _x === void 0 ? void 0 : _x.getUserInfo()) === null || _y === void 0 ? void 0 : _y.userId)) ? true : false;
                 this.type = ContactType.DIGITAL_CONTACT;
-                this.interactionId = (_t = data === null || data === void 0 ? void 0 : data.case) === null || _t === void 0 ? void 0 : _t.interactionId;
-                this.channelType = (_u = data === null || data === void 0 ? void 0 : data.channel) === null || _u === void 0 ? void 0 : _u.realExternalPlatformId;
-                this.customerName = ((_v = data === null || data === void 0 ? void 0 : data.case) === null || _v === void 0 ? void 0 : _v.direction) === 'outbound' ? ((_y = (_x = (_w = data === null || data === void 0 ? void 0 : data.case) === null || _w === void 0 ? void 0 : _w.authorEndUserIdentity) === null || _x === void 0 ? void 0 : _x.fullName) !== null && _y !== void 0 ? _y : (((_z = data === null || data === void 0 ? void 0 : data.channel) === null || _z === void 0 ? void 0 : _z.name) || ((_0 = data === null || data === void 0 ? void 0 : data.channel) === null || _0 === void 0 ? void 0 : _0.idOnExternalPlatform))) : (_2 = (_1 = data === null || data === void 0 ? void 0 : data.case) === null || _1 === void 0 ? void 0 : _1.authorEndUserIdentity) === null || _2 === void 0 ? void 0 : _2.fullName;
-                this.skill = (_3 = data === null || data === void 0 ? void 0 : data.routingQueue) === null || _3 === void 0 ? void 0 : _3.name;
-                this.status = (_4 = data === null || data === void 0 ? void 0 : data.case) === null || _4 === void 0 ? void 0 : _4.status;
-                this.startTime = (_5 = data === null || data === void 0 ? void 0 : data.case) === null || _5 === void 0 ? void 0 : _5.createdAt;
+                this.interactionId = (_z = data === null || data === void 0 ? void 0 : data.case) === null || _z === void 0 ? void 0 : _z.interactionId;
+                this.channelType = (_0 = data === null || data === void 0 ? void 0 : data.channel) === null || _0 === void 0 ? void 0 : _0.realExternalPlatformId;
+                this.customerName = ((_1 = data === null || data === void 0 ? void 0 : data.case) === null || _1 === void 0 ? void 0 : _1.direction) === 'outbound' ? ((_4 = (_3 = (_2 = data === null || data === void 0 ? void 0 : data.case) === null || _2 === void 0 ? void 0 : _2.authorEndUserIdentity) === null || _3 === void 0 ? void 0 : _3.fullName) !== null && _4 !== void 0 ? _4 : (((_5 = data === null || data === void 0 ? void 0 : data.channel) === null || _5 === void 0 ? void 0 : _5.name) || ((_6 = data === null || data === void 0 ? void 0 : data.channel) === null || _6 === void 0 ? void 0 : _6.idOnExternalPlatform))) : (_8 = (_7 = data === null || data === void 0 ? void 0 : data.case) === null || _7 === void 0 ? void 0 : _7.authorEndUserIdentity) === null || _8 === void 0 ? void 0 : _8.fullName;
+                this.skill = (_9 = data === null || data === void 0 ? void 0 : data.routingQueue) === null || _9 === void 0 ? void 0 : _9.name;
+                this.status = (_10 = data === null || data === void 0 ? void 0 : data.case) === null || _10 === void 0 ? void 0 : _10.status;
+                this.startTime = (_11 = data === null || data === void 0 ? void 0 : data.case) === null || _11 === void 0 ? void 0 : _11.createdAt;
                 if (data === null || data === void 0 ? void 0 : data.messageDrafts) {
                     this.messageDrafts = data === null || data === void 0 ? void 0 : data.messageDrafts;
                 }
                 if (data === null || data === void 0 ? void 0 : data.messageNote) {
                     switch (validatedResponse.eventType) {
                         case CXoneDigitalEventType.MESSAGE_NOTE_CREATED:
-                            this.messages = (_6 = this.messages) === null || _6 === void 0 ? void 0 : _6.map(message => message.id === (data === null || data === void 0 ? void 0 : data.messageNote.message.id)
+                            this.messages = (_12 = this.messages) === null || _12 === void 0 ? void 0 : _12.map(message => message.id === (data === null || data === void 0 ? void 0 : data.messageNote.message.id)
                                 ? Object.assign(Object.assign({}, message), { messageNotes: [...(message.messageNotes || []), data === null || data === void 0 ? void 0 : data.messageNote] }) : Object.assign({}, message));
                             break;
                         case CXoneDigitalEventType.MESSAGE_NOTE_DELETED:
-                            this.messages = (_7 = this.messages) === null || _7 === void 0 ? void 0 : _7.map(message => message.id === (data === null || data === void 0 ? void 0 : data.messageNote.message.id)
+                            this.messages = (_13 = this.messages) === null || _13 === void 0 ? void 0 : _13.map(message => message.id === (data === null || data === void 0 ? void 0 : data.messageNote.message.id)
                                 ? Object.assign(Object.assign({}, message), { messageNotes: (((message === null || message === void 0 ? void 0 : message.messageNotes) || []).filter((msgNote) => { var _a; return msgNote.id !== ((_a = data === null || data === void 0 ? void 0 : data.messageNote) === null || _a === void 0 ? void 0 : _a.id); })) }) : Object.assign({}, message));
                             break;
                         case CXoneDigitalEventType.MESSAGE_NOTE_UPDATED:
-                            this.messages = (_8 = this.messages) === null || _8 === void 0 ? void 0 : _8.map(message => message.id === (data === null || data === void 0 ? void 0 : data.messageNote.message.id)
+                            this.messages = (_14 = this.messages) === null || _14 === void 0 ? void 0 : _14.map(message => message.id === (data === null || data === void 0 ? void 0 : data.messageNote.message.id)
                                 ? Object.assign(Object.assign({}, message), { messageNotes: (((message === null || message === void 0 ? void 0 : message.messageNotes) || []).map((msgNote) => { var _a; return msgNote.id === ((_a = data === null || data === void 0 ? void 0 : data.messageNote) === null || _a === void 0 ? void 0 : _a.id) ? data.messageNote : msgNote; })) }) : Object.assign({}, message));
                             break;
                         default: break;

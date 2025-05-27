@@ -2,6 +2,7 @@ export interface AuthSettings {
     cxoneHostname: string;
     clientId: string;
     redirectUri: string;
+    originatingServiceIdentifier: string;
     state?: string;
 }
 export interface CcfAuthenticationProps {

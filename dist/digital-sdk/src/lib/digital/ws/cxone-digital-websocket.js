@@ -7,8 +7,8 @@ const AUTHORIZED = 'authorized'; // message from server when websocket registrat
 const PONG = 'pong'; // message from server when pong is received
 const INTERVAL_TIMER = 5000; // setinterval time in milliseconds
 const PENDING_PONG_DEFAULT_VALUE = 0; // default value of pending pong
-const PENDING_PONG_MAX_VALUE = 4; // max value of pending pong
-const PENDING_PONG_NOTIFY_VALUE = 2; // value of pending pong when we will notify user that we are trying to reconnect
+const PENDING_PONG_MAX_VALUE = 5; // max value of pending pong
+const PENDING_PONG_NOTIFY_VALUE = 4; // value of pending pong when we will notify user that we are trying to reconnect
 const RATE_LIMIT_EXCEEDED = 'RATE_LIMIT_EXCEEDED';
 /**
  * digital web socket Class also implements websocket client abstract methods

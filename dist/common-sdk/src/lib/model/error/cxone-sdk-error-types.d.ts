@@ -34,5 +34,9 @@ export declare enum CXoneSdkErrorType {
     /**
      * Error Type to be used for exception while invoking APIs
      */
-    UNHANDLED_EXCEPTION = "UNHANDLED_EXCEPTION"
+    UNHANDLED_EXCEPTION = "UNHANDLED_EXCEPTION",
+    /**
+     * Error Type to be used when encryption of token fails
+     */
+    TOKEN_ENCRYPTION_ERROR = "TOKEN_ENCRYPTION_ERROR"
 }

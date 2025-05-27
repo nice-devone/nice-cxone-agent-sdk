@@ -2,6 +2,10 @@
  * To generate code verifier and code challenge
  */
 export declare class SecurityHelper {
+    private logger;
+    private algorithm;
+    private keyLength;
+    private ivLength;
     /**
      * To generate the code verifier
      * @returns - code verifier
@@ -54,4 +58,101 @@ export declare class SecurityHelper {
      * ```
      */
     private base64urlencode;
+    /**
+       * Parse jwt token to extract user data
+       * @param token - input jwt token string
+       * @returns - parsed user details
+       * @example
+       * ```
+       * parseJwt('token_string');
+       * ```
+       */
+    parseJwt(token: string): any;
+    /**
+     * Custom atob implementation to parse jwt token
+     * @param token - input base64 string
+     * @returns - parsed user details
+     * @example
+     * ```
+     * atobV2('base64_string');
+     * ```
+     */
+    private atobV2;
+    /**
+     * Method to generate a new AES-GCM key
+     * @returns A promise that resolves to a new CryptoKey
+     * @throws Error if the key generation fails
+     * @example
+     * ```
+     * generateKey();
+     * ```
+     */
+    generateKey(): Promise<CryptoKey>;
+    /**
+       * Method to import a JWK (JSON Web Key) as a CryptoKey
+       * @param keyData - The JWK to import
+       * @returns A promise that resolves to a new CryptoKey
+       * @throws Error if the JWK is invalid or the key import fails
+       * @example
+       * ```
+       * importKey(keyData);
+       * ```
+       */
+    importKey(keyData: JsonWebKey): Promise<CryptoKey>;
+    /**
+       * Method to encrypt a plaintext string using the provided CryptoKey
+       * @param key - The CryptoKey to export
+       * @returns A promise that resolves to a new JWK
+       * @throws Error if the key export fails
+       * @example
+       * ```
+       * encrypt(plainText, key);
+       * ```
+       */
+    encrypt(plainText: string, key: CryptoKey): Promise<{
+        cipherText: string;
+        iv: string;
+    }>;
+    /**
+       * Method to decrypt a cipher text using a CryptoKey
+       * @param key - The CryptoKey to export
+       * @returns A promise that resolves to a new JWK
+       * @throws Error if the key export fails
+       * @example
+       * ```
+       * decrypt(cipherText, iv, key);
+       * ```
+       */
+    decrypt(cipherText: string, iv: string, key: CryptoKey): Promise<string>;
+    /**
+       * Method to derive a CryptoKey from a string
+       * @param key - The key to derive
+       * @returns  A promise that resolves to a new JWK
+       * @throws Error if the key derivation fails
+       * @example
+       * ```
+       * deriveKey(key);
+       * ```
+       */
+    deriveKey(key: string): Promise<JsonWebKey>;
+    /**
+       * Method to Convert ArrayBuffer to Base64 string
+       * @param buffer - The buffer to convert
+       * @returns  A Base64 string
+       * @example
+       * ```
+       * arrayBufferToBase64(buffer);
+       * ```
+       */
+    arrayBufferToBase64(buffer: ArrayBuffer): string;
+    /**
+       * Method to Convert Base64 string to ArrayBuffer
+       * @param buffer - The buffer to convert
+       * @returns  A Base64 string
+       * @example
+       * ```
+       * base64ToArrayBuffer(buffer);
+       * ```
+       */
+    base64ToArrayBuffer(base64: string): ArrayBuffer;
 }

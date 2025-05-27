@@ -1,6 +1,6 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.validateURLOrACDStrings = exports.formatDateTime = exports.generateQueryForMultiSelectFilters = exports.generateQueryForFilters = exports.getQueryURLForSearchThreadsTab = exports.getQueryURLForCustomerTab = exports.getQueryURLForSearchMessagesTab = exports.getQueryURLFromObjectKeys = exports.calculatePercentage = exports.getTimeStringFromMS = exports.getMillisecondsFrom8601DurationString = exports.getDurationInSeconds = exports.getElapsedMinutes = exports.parseInteger = exports.parseBooleanString = void 0;
+exports.validatePort = exports.validateURLOrACDStrings = exports.formatDateTime = exports.generateQueryForMultiSelectFilters = exports.generateQueryForFilters = exports.getQueryURLForSearchThreadsTab = exports.getQueryURLForCustomerTab = exports.getQueryURLForSearchMessagesTab = exports.getQueryURLFromObjectKeys = exports.calculatePercentage = exports.getTimeStringFromMS = exports.getMillisecondsFrom8601DurationString = exports.getDurationInSeconds = exports.getElapsedMinutes = exports.parseInteger = exports.parseBooleanString = void 0;
 const logical_operators_1 = require("../enum/logical-operators");
 const screen_pop_urls_1 = require("../enum/screen-pop-urls");
 /**
@@ -362,4 +362,24 @@ const validateURLOrACDStrings = (inputURL) => {
     return isValidURL;
 };
 exports.validateURLOrACDStrings = validateURLOrACDStrings;
+/**
+ * Validate Port
+ *
+ * @param port - port to validate
+ * @returns True if port is valid else false
+ *
+ *
+ * @example validatePort('8080');
+ */
+const validatePort = (port) => {
+    if (typeof port === 'string') {
+        if (port === '' || port !== port.trim()) {
+            return false;
+        }
+    }
+    const portNumber = Number(port);
+    const isValidPort = Number.isInteger(portNumber) && portNumber >= 0 && portNumber <= 65535;
+    return isValidPort;
+};
+exports.validatePort = validatePort;
 //# sourceMappingURL=utility.js.map

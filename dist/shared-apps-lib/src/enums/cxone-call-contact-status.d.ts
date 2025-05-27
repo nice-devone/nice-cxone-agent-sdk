@@ -26,5 +26,9 @@ export declare enum CXoneCallContactStatus {
     /**
      * A conference call is joined
      */
-    JOINED = "Joined"
+    JOINED = "Joined",
+    /**
+     * A callback call
+     */
+    CALL_BACK_DISCONNECTED = "CallBackDisconnected"
 }

@@ -40,7 +40,15 @@ export declare class CXoneDigitalClient {
      * initDigitalEngagement();
      * ```
      */
-    initDigitalEngagement(): void;
+    initDigitalEngagement(): Promise<void>;
+    /**
+     * Method to subscribe message bus polling response message
+     * @example
+     * ```
+     *  subscribePollingResponseMessage()
+     * ```
+    */
+    private subscribePollingResponseMessage;
     /**
      * Get digital logged in user details like UserId to call other digital APIs
      * @example

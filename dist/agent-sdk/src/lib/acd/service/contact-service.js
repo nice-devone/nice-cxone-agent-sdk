@@ -1,4 +1,5 @@
 import { HttpUtilService, Logger, HttpClient, ACDSessionManager, ApiUriConstants } from '@nice-devone/core-sdk';
+import { validatePort } from '@nice-devone/common-sdk';
 import { amdOverrideType } from '../enum/amd-override-type';
 /**
  * Class to handling contact services
@@ -15,6 +16,39 @@ export class ContactService {
         this.utilService = new HttpUtilService();
         this.acdSession = {};
         this.TRANSFER_WORK_ITEM_SKILL = '/InContactAPI/services/v23.0/agent-sessions/{sessionId}/interactions/{contactId}/transfer-work-item-to-skill';
+        /**
+           * Method to send payload sent via local post event
+           * @param customData - contains an object containing port, path and payload
+           * @returns - API Returns Response JSON
+           * @example - connectLocalPostapi(customData)
+           */
+        this.sendLocalPostEventData = (customData) => {
+            const authToken = this.acdSession.accessToken;
+            let url = ApiUriConstants.AGENT_LOCALPOST_API;
+            const isValidPort = validatePort(customData === null || customData === void 0 ? void 0 : customData.port);
+            if (isValidPort) {
+                url = url.replace('{port}', String(customData === null || customData === void 0 ? void 0 : customData.port)).replace('{path}', String(customData === null || customData === void 0 ? void 0 : customData.path));
+                const params = { payload: customData === null || customData === void 0 ? void 0 : customData.payload };
+                const reqInit = {
+                    headers: this.utilService.initHeader(authToken, 'application/json').headers,
+                    body: JSON.stringify(params),
+                };
+                return new Promise((resolve, reject) => {
+                    HttpClient.post(url, reqInit).then((response) => {
+                        this.logger.info('sendLocalPostEventData', `Custom Event payload forwarded to UDP port ${customData === null || customData === void 0 ? void 0 : customData.port}`);
+                        resolve(response);
+                    }, (err) => {
+                        this.logger.error('sendLocalPostEventData', 'Custom Event Localpost Failed' + JSON.stringify(err));
+                        reject(err);
+                    });
+                });
+            }
+            else {
+                this.logger.error('sendLocalPostEventData', `Invalid port number ${customData === null || customData === void 0 ? void 0 : customData.port}`);
+                return null;
+            }
+            ;
+        };
         this.acdSession = ACDSessionManager.instance;
     }
     /**

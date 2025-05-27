@@ -1,4 +1,4 @@
-import { CXoneLeaderElector, UserSlotsSchema } from '@nice-devone/common-sdk';
+import { CXoneLeaderElector, UserSlotsSchema, MessageBus, MessageType } from '@nice-devone/common-sdk';
 import { AuthStatus, CXoneAuth, CXoneUser } from '@nice-devone/auth-sdk';
 import { ApiUriConstants, HttpUtilService, ACDSessionManager, LocalStorageHelper, StorageKeys, LoadWorker, } from '@nice-devone/core-sdk';
 import { CcfLogger } from '@nice-devone/agent-sdk';
@@ -137,10 +137,16 @@ export class CXoneUserSlotProvider {
      * ```
      */
     handleUserSlotSubscriptionResponse(response) {
-        if (response.type === 'startUserSlotApiPolling') {
+        if (response.type === MessageType.START_USER_SLOT_API_POLLING) {
             this.logger.info('handleUserSlotSubscriptionResponse', JSON.stringify(response));
             const validatedResp = UserSlotsSchema.validateSync(response, { stripUnknown: true });
             this.digitalContactManager.onUserSlotEvent.next(validatedResp);
+            // Post response to the message bus for the user slot polling response to share with other non leader tabs
+            const message = {
+                type: MessageType.START_USER_SLOT_API_POLLING,
+                data: validatedResp,
+            };
+            MessageBus.instance.postResponse(message);
         }
         else {
             this.handleResponse(response);

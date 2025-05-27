@@ -1,10 +1,9 @@
 import { __awaiter } from "tslib";
-import { CXoneSdkError, CXoneSdkErrorType, MessageType, MessageBus, AuthToken, CXoneLeaderElector, CXoneConfiguration, } from '@nice-devone/common-sdk';
+import { CXoneSdkError, CXoneSdkErrorType, MessageType, MessageBus, AuthToken, CXoneLeaderElector, CXoneConfiguration, EncryptedAuthToken, } from '@nice-devone/common-sdk';
 import { WhoamiResponse } from './model/whoami-response';
-import { HttpClient, HttpUtilService, LocalStorageHelper, Logger, StorageKeys, ValidationUtils, AdminService, LoadWorker, SessionStorageHelper, ACDSessionManager, ApiUriConstants, } from '@nice-devone/core-sdk';
+import { HttpClient, HttpUtilService, LocalStorageHelper, Logger, StorageKeys, ValidationUtils, AdminService, LoadWorker, SessionStorageHelper, ACDSessionManager, ApiUriConstants, FeatureToggleService, OriginatingServiceIdentifier, SecurityHelper, } from '@nice-devone/core-sdk';
 import { Subject } from 'rxjs';
 import { AuthStatus } from './enum/auth-status';
-import { SecurityHelper } from '../util/security-helper';
 import { OpenIDConfiguration } from './model/open-id-configuration';
 import { CXoneUser } from './user/cxone-user';
 import { KEYUTIL, KJUR } from 'jsrsasign';
@@ -29,6 +28,7 @@ export class CXoneAuth {
         this.oidcConfig = {};
         this.isActiveImpersonatedUser = false;
         this.onAuthStatusChange = new Subject();
+        this.authTokenEmpty = new Subject();
         this.authSettings = {};
         /**
          * Subscription for response message over broadcast channel
@@ -36,13 +36,30 @@ export class CXoneAuth {
         this.subscribeResponseMessage = () => {
             MessageBus.instance.onResponseMessage.subscribe((msg) => {
                 if (msg.type === MessageType.AUTHENTICATION_RESPONSE) {
-                    this.restoreData();
+                    this.restoreData(msg === null || msg === void 0 ? void 0 : msg.data);
+                }
+            });
+        };
+        /**
+         * Subscription for empty auth token
+         */
+        this.subscribeEmptyAuthToken = () => {
+            let tokenRequest;
+            this.authTokenEmpty.subscribe((isEmpty) => {
+                if (isEmpty && !tokenRequest) {
+                    tokenRequest = this.validateFtAndGetDecryptedToken();
+                    tokenRequest.then((resolvedToken) => {
+                        if (resolvedToken) {
+                            this.setAuthToken(resolvedToken);
+                        }
+                    });
                 }
             });
         };
         this.cxoneUser = CXoneUser.instance;
         this.adminService = AdminService.instance;
         this.subscribeResponseMessage();
+        this.subscribeEmptyAuthToken();
     }
     /**
      * Method to create singleton object of the class
@@ -66,6 +83,8 @@ export class CXoneAuth {
      */
     init(authSettings) {
         this.authSettings = authSettings;
+        LocalStorageHelper.setItem(StorageKeys.ORIGINATING_SERVICE_IDENTIFIER, authSettings.originatingServiceIdentifier);
+        HttpUtilService.originatingServiceIdentifier = authSettings.originatingServiceIdentifier || OriginatingServiceIdentifier.CXONE_AGENT;
     }
     /**
      * Method generate the Authorize url using authorize endpoint with clientId, code challenge, authMode and codeChallengeMethod.
@@ -146,8 +165,9 @@ export class CXoneAuth {
                 HttpClient.post(tokenEndpoint, reqInit).then((resp) => __awaiter(this, void 0, void 0, function* () {
                     const isValidToken = yield this.verifyJwt(resp);
                     if (isValidToken) {
-                        const authToken = this.parseAndSaveAuthToken(resp);
-                        this.getCXoneConfiguration(this.authSettings.cxoneHostname, this.cxoneUser.userInfo.tenantId, this.cxoneUser.userInfo.tenant ? true : false).then(() => {
+                        const authToken = yield this.parseAndSaveAuthToken(resp);
+                        this.getCXoneConfiguration(this.authSettings.cxoneHostname, this.cxoneUser.userInfo.tenantId, this.cxoneUser.userInfo.tenant ? true : false).then(() => __awaiter(this, void 0, void 0, function* () {
+                            yield this.validateFTAndSetAuthToken(authToken, reject);
                             this.getWhoAmIData(authToken).then((resp) => {
                                 const cxoneConfigObj = this.getCXoneConfig();
                                 cxoneConfigObj.acdApiBaseUri = resp.resourceServerBaseUri;
@@ -175,7 +195,7 @@ export class CXoneAuth {
                                 });
                                 reject(error);
                             });
-                        }, (error) => {
+                        }), (error) => {
                             this.logger.error('getAccessTokenByCode', 'Error from cxoneconfiguration api ' + error.toString());
                             this.onAuthStatusChange.next({
                                 status: AuthStatus.AUTHENTICATION_FAILED,
@@ -237,8 +257,9 @@ export class CXoneAuth {
                     if (resp.status === 200) {
                         const isValidToken = yield this.verifyJwt(resp);
                         if (isValidToken) {
-                            const cxOneAuthToken = this.parseAndSaveAuthToken(resp);
-                            this.getCXoneConfiguration(this.authSettings.cxoneHostname, this.cxoneUser.userInfo.tenantId, this.cxoneUser.userInfo.tenant ? true : false).then(() => {
+                            const cxOneAuthToken = yield this.parseAndSaveAuthToken(resp);
+                            this.getCXoneConfiguration(this.authSettings.cxoneHostname, this.cxoneUser.userInfo.tenantId, this.cxoneUser.userInfo.tenant ? true : false).then(() => __awaiter(this, void 0, void 0, function* () {
+                                yield this.validateFTAndSetAuthToken(cxOneAuthToken, reject);
                                 this.getWhoAmIData(cxOneAuthToken).then((resp) => {
                                     const cxoneConfigObj = this.getCXoneConfig();
                                     cxoneConfigObj.acdApiBaseUri = resp.resourceServerBaseUri;
@@ -266,7 +287,7 @@ export class CXoneAuth {
                                     });
                                     reject(error);
                                 });
-                            }, (error) => {
+                            }), (error) => {
                                 this.logger.error('getAccessTokenByToken', 'Error from cxone configuration api ' + error.toString());
                                 this.onAuthStatusChange.next({
                                     status: AuthStatus.AUTHENTICATION_FAILED,
@@ -327,6 +348,7 @@ export class CXoneAuth {
                 HttpClient.post(endpoint, reqInit).then((resp) => __awaiter(this, void 0, void 0, function* () {
                     if (resp.status === 200) {
                         const cxOneAuthToken = this.parseAndSaveAuthToken(resp, true, impersonatingUser);
+                        yield this.validateFTAndSetAuthToken(cxOneAuthToken, reject);
                         this.getWhoAmIData(cxOneAuthToken).then((resp) => {
                             const cxoneConfigObj = this.getCXoneConfig();
                             cxoneConfigObj.acdApiBaseUri =
@@ -505,28 +527,31 @@ export class CXoneAuth {
      * this.restoreData();
      * ```
      */
-    restoreData() {
-        const userLoginDetails = this.getAuthState();
-        if (userLoginDetails.isTokenValid) {
-            if (userLoginDetails.authToken) {
-                const userDetails = LocalStorageHelper.getItem(StorageKeys.USER_INFO, true);
-                this.setAuthAndUserData(userLoginDetails.authToken, true, userDetails);
-                const cxOneConfig = LocalStorageHelper.getItem(StorageKeys.CXONE_CONFIG, true);
-                if (cxOneConfig)
-                    this.setCXoneConfig(cxOneConfig);
-                this.cxoneUser.initAuth(userLoginDetails.authToken.accessToken, cxOneConfig);
-                ACDSessionManager.instance.setAccessToken(userLoginDetails.authToken.accessToken);
+    restoreData(authTokenFromLeader) {
+        return __awaiter(this, void 0, void 0, function* () {
+            const userLoginDetails = this.getAuthState();
+            if (userLoginDetails.isTokenValid) {
+                userLoginDetails.authToken = authTokenFromLeader || (yield this.validateFtAndGetDecryptedToken()) || undefined;
+                if (userLoginDetails.authToken) {
+                    const userDetails = LocalStorageHelper.getItem(StorageKeys.USER_INFO, true);
+                    this.setAuthAndUserData(userLoginDetails.authToken, true, userDetails);
+                    const cxOneConfig = LocalStorageHelper.getItem(StorageKeys.CXONE_CONFIG, true);
+                    if (cxOneConfig)
+                        this.setCXoneConfig(cxOneConfig);
+                    this.cxoneUser.initAuth(userLoginDetails.authToken.accessToken, cxOneConfig);
+                    ACDSessionManager.instance.setAccessToken(userLoginDetails.authToken.accessToken);
+                    this.onAuthStatusChange.next({
+                        status: AuthStatus.AUTHENTICATED,
+                        response: userLoginDetails.authToken,
+                    });
+                }
+            }
+            else {
                 this.onAuthStatusChange.next({
-                    status: AuthStatus.AUTHENTICATED,
-                    response: userLoginDetails.authToken,
+                    status: AuthStatus.NOT_AUTHENTICATED,
                 });
             }
-        }
-        else {
-            this.onAuthStatusChange.next({
-                status: AuthStatus.NOT_AUTHENTICATED,
-            });
-        }
+        });
     }
     /**
      * Method used to parse the auth token, user info and store the values to local storage
@@ -545,7 +570,6 @@ export class CXoneAuth {
         const cxOneAuthToken = new AuthToken();
         cxOneAuthToken.parseData(authToken.data);
         this.setAuthAndUserData(cxOneAuthToken, setUserInfo, impersonatingUser);
-        LocalStorageHelper.setItem(StorageKeys.AUTH_TOKEN, cxOneAuthToken);
         return cxOneAuthToken;
     }
     /**
@@ -562,10 +586,17 @@ export class CXoneAuth {
     setAuthAndUserData(authToken, setUserInfo = true, 
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     userDetails) {
-        this.setAuthToken(authToken);
-        // if refresh token flow then we will skip updating user details part
-        if (setUserInfo) {
-            this.cxoneUser.setUserDetails(authToken, userDetails);
+        if (authToken) {
+            this.setAuthToken(authToken);
+            // if refresh token flow then we will skip updating user details part
+            if (setUserInfo) {
+                this.cxoneUser.setUserDetails(authToken, userDetails);
+            }
+        }
+        else {
+            this.onAuthStatusChange.next({
+                status: AuthStatus.NOT_AUTHENTICATED,
+            });
         }
     }
     /**
@@ -590,10 +621,16 @@ export class CXoneAuth {
         if (this.validationUtils.isValidObject(this.authToken))
             return this.authToken;
         else {
-            const authTokenFromStorage = LocalStorageHelper.getItem(StorageKeys.AUTH_TOKEN, true);
-            return (this.authToken = this.validationUtils.isValidObject(authTokenFromStorage)
-                ? authTokenFromStorage
-                : {});
+            const isTokenEncryptionFTEnabled = FeatureToggleService.instance.getFeatureToggleSync("release-cxa-token-update-AW-34038" /* FeatureToggles.TOKEN_ENCRYPTION_FEATURE_TOGGLE */);
+            if (!isTokenEncryptionFTEnabled) {
+                const authTokenFromStorage = LocalStorageHelper.getItem(StorageKeys.AUTH_TOKEN, true);
+                return (this.authToken = this.validationUtils.isValidObject(authTokenFromStorage)
+                    ? authTokenFromStorage
+                    : {});
+            }
+            else {
+                throw new CXoneSdkError(CXoneSdkErrorType.NO_DATA_FOUND, 'Token not found');
+            }
         }
     }
     /**
@@ -633,7 +670,7 @@ export class CXoneAuth {
      */
     getAuthState() {
         const authState = {};
-        const authToken = LocalStorageHelper.getItem(StorageKeys.AUTH_TOKEN, true);
+        const authToken = LocalStorageHelper.getItem(StorageKeys.AUTH_TOKEN, true) || LocalStorageHelper.getItem(StorageKeys.ENCRYPTED_AUTH_TOKEN, true);
         if (authToken) {
             const now = new Date().getTime();
             const expiry = authToken.accessTokenTime + authToken.expiresIn * 1000;
@@ -745,8 +782,9 @@ export class CXoneAuth {
                     };
                     yield HttpClient.post(discoveryResponse['tokenEndpoint'], reqInit).then((response) => __awaiter(this, void 0, void 0, function* () {
                         // Skip userInfo update in refresh token flow
-                        const authToken = this.parseAndSaveAuthToken(response, false);
+                        const authToken = yield this.parseAndSaveAuthToken(response, false);
                         this.logger.info('getRefreshToken', 'refresh token api response');
+                        yield this.validateFTAndSetAuthToken(authToken);
                         this.startRefreshTokenCheck(this.getAuthToken(), CXoneLeaderElector.instance.isLeader, true);
                         this.onAuthStatusChange.next({
                             status: AuthStatus.REFRESH_TOKEN_SUCCESS,
@@ -803,8 +841,9 @@ export class CXoneAuth {
                     (_b = reqInit === null || reqInit === void 0 ? void 0 : reqInit.headers) === null || _b === void 0 ? void 0 : _b.push(tokenHeader);
                     yield HttpClient.post(endpoint, reqInit).then((response) => __awaiter(this, void 0, void 0, function* () {
                         // Skip userInfo update in refresh token flow
-                        const authToken = this.parseAndSaveAuthToken(response);
+                        const authToken = this.parseAndSaveAuthToken(response, false);
                         this.logger.info('getRegionalRefreshToken', 'refresh token api response');
+                        yield this.validateFTAndSetAuthToken(authToken);
                         this.startRefreshTokenCheck(this.getAuthToken(), CXoneLeaderElector.instance.isLeader, true);
                         this.onAuthStatusChange.next({
                             status: AuthStatus.REFRESH_TOKEN_SUCCESS,
@@ -941,7 +980,7 @@ export class CXoneAuth {
             const msg = {
                 issuer: 'CXA',
                 messageType: 'Token',
-                token: LocalStorageHelper.getItem(StorageKeys.AUTH_TOKEN, true).accessToken,
+                token: this.getAuthToken().accessToken,
             };
             const iFrame = document.getElementById('launchCXAFrame');
             if (iFrame)
@@ -998,7 +1037,7 @@ export class CXoneAuth {
                     };
                     const pem = jwkToBuffer(jwk);
                     const pubKey = KEYUTIL.getKey(pem);
-                    isValid = KJUR.jws.JWS.verifyJWT((_c = authResponse === null || authResponse === void 0 ? void 0 : authResponse.data) === null || _c === void 0 ? void 0 : _c.id_token, pubKey, { alg: ['RS256'], gracePeriod: 60 });
+                    isValid = KJUR.jws.JWS.verifyJWT((_c = authResponse === null || authResponse === void 0 ? void 0 : authResponse.data) === null || _c === void 0 ? void 0 : _c.id_token, pubKey, { alg: ['RS256'], gracePeriod: 300 });
                 }
                 else {
                     this.logger.error('verifyJwt', `unable to find signing key that matches ${headerKID}`);
@@ -1067,6 +1106,239 @@ export class CXoneAuth {
         })
             .catch((e) => {
             this.logger.error('getUserManagementDetails', e.toString());
+        });
+    }
+    /**
+     * Encrypts the provided authentication token and stores it in local storage.
+     * @param authToken - The authentication token to be encrypted and stored.
+     * @returns A promise that resolves when the token has been successfully encrypted and stored.
+     * @throws Will log an error to the console if there is an issue during the encryption or storage process.
+     * @example
+     * ```
+     * await this.setEncryptedAuthToken(authToken);
+     * ```
+     */
+    setEncryptedAuthToken(authToken) {
+        var _a;
+        return __awaiter(this, void 0, void 0, function* () {
+            try {
+                const encryptedAuthToken = new EncryptedAuthToken();
+                encryptedAuthToken.parseData(authToken);
+                const userId = (_a = LocalStorageHelper.getItem(StorageKeys.USER_INFO, true)) === null || _a === void 0 ? void 0 : _a.userId;
+                const cryptoKey = yield this.getOrGenerateCryptoKey(userId);
+                const encryptedAccessToken = yield this.encryptToken(authToken === null || authToken === void 0 ? void 0 : authToken.accessToken, cryptoKey);
+                const encryptedRefreshToken = yield this.encryptToken(authToken === null || authToken === void 0 ? void 0 : authToken.refreshToken, cryptoKey);
+                const encryptedIdToken = yield this.encryptToken(authToken === null || authToken === void 0 ? void 0 : authToken.idToken, cryptoKey);
+                encryptedAuthToken.aInfo = encryptedAccessToken;
+                encryptedAuthToken.rInfo = encryptedRefreshToken;
+                encryptedAuthToken.iInfo = encryptedIdToken;
+                LocalStorageHelper.setItem(StorageKeys.ENCRYPTED_AUTH_TOKEN, encryptedAuthToken);
+            }
+            catch (error) {
+                this.logger.error('setEncryptedAuthToken', 'Error during token encryption and storage:' + error);
+                throw new CXoneSdkError(CXoneSdkErrorType.TOKEN_ENCRYPTION_ERROR, 'Error during token encryption and storage');
+            }
+        });
+    }
+    /**
+       * Retrieves a CryptoKey by decrypting an encrypted key using a derived key.
+       * @param userId - The user ID used to derive the secondary key.
+       * @param encryptedKey - The encrypted key that needs to be decrypted.
+       * @param iv - The initialization vector used for decryption.
+       * @returns A promise that resolves to a CryptoKey.
+       * @example
+       * ```
+       * const cryptoKey = await this.getCryptoKey('user123', 'encryptedKeyString', 'initializationVector');
+       * ```
+       */
+    getCryptoKey(userId, encryptedKey, iv) {
+        return __awaiter(this, void 0, void 0, function* () {
+            const secondaryJSONKey = yield this.securityHelper.deriveKey(userId);
+            const secondaryCryptoKey = yield this.securityHelper.importKey(secondaryJSONKey);
+            const decryptedKeyData = yield this.securityHelper.decrypt(encryptedKey, iv, secondaryCryptoKey);
+            const decryptedJSONData = JSON.parse(decryptedKeyData);
+            return yield this.securityHelper.importKey(decryptedJSONData === null || decryptedJSONData === void 0 ? void 0 : decryptedJSONData.key);
+        });
+    }
+    /**
+       * Retrieves or generates a cryptographic key for the specified user.
+       * @param userId - The ID of the user for whom the cryptographic key is being retrieved or generated.
+       * @returns A promise that resolves to the cryptographic key.
+       * @example
+       * ```
+       * const cryptoKey = await this.getOrGenerateCryptoKey('user123');
+       * ```
+       */
+    getOrGenerateCryptoKey(userId) {
+        return __awaiter(this, void 0, void 0, function* () {
+            const userInfo = LocalStorageHelper.getItem(StorageKeys.ENCRYPTION_IV, true);
+            const encryptedKey = LocalStorageHelper.getItem(StorageKeys.ENCRYPTED_KEY, true);
+            if (userInfo && encryptedKey) {
+                return yield this.getCryptoKey(userId, encryptedKey, userInfo === null || userInfo === void 0 ? void 0 : userInfo.i);
+            }
+            else {
+                return yield this.generateAndStoreCryptoKey(userId);
+            }
+        });
+    }
+    /**
+       * Generates a cryptographic key, encrypts it, and stores it in local storage.
+       * @param userId - The user ID used to derive the secondary encryption key.
+       * @returns A promise that resolves to the generated CryptoKey.
+       * @example
+       * ```
+       * const cryptoKey = await this.generateAndStoreCryptoKey('user123');
+       * ```
+       */
+    generateAndStoreCryptoKey(userId) {
+        return __awaiter(this, void 0, void 0, function* () {
+            const cryptoKey = yield this.securityHelper.generateKey();
+            const keyData = yield crypto.subtle.exportKey('jwk', cryptoKey);
+            const encryptedKey = JSON.stringify({ key: keyData });
+            const secondaryJSONCryptoKey = yield this.securityHelper.deriveKey(userId);
+            const secondaryCryptoKey = yield this.securityHelper.importKey(secondaryJSONCryptoKey);
+            const secondaryEncryptedResult = yield this.securityHelper.encrypt(encryptedKey, secondaryCryptoKey);
+            LocalStorageHelper.setItem(StorageKeys.ENCRYPTED_KEY, secondaryEncryptedResult === null || secondaryEncryptedResult === void 0 ? void 0 : secondaryEncryptedResult.cipherText);
+            LocalStorageHelper.setItem(StorageKeys.ENCRYPTION_IV, { i: secondaryEncryptedResult === null || secondaryEncryptedResult === void 0 ? void 0 : secondaryEncryptedResult.iv });
+            return cryptoKey;
+        });
+    }
+    /**
+       * Encrypts a given token using the provided CryptoKey.
+       *
+       * @param token - The token to be encrypted.
+       * @param cryptoKey - The CryptoKey used for encryption.
+       * @returns A promise that resolves to a JSONWebKey containing the encrypted token and initialization vector.
+       *
+       * @example
+       * ```
+       * const token = "my-secret-token";
+       * const cryptoKey = await crypto.subtle.generateKey(
+       *   {
+       *     name: "AES-GCM",
+       *     length: 256,
+       *   },
+       *   true,
+       *   ["encrypt", "decrypt"]
+       * );
+       * const encryptedToken = await encryptToken(token, cryptoKey);
+       * this.logger.log(encryptedToken);
+       * // Output: { t: "encryptedText", i: "initializationVector" }
+       * ```
+       */
+    encryptToken(token, cryptoKey) {
+        return __awaiter(this, void 0, void 0, function* () {
+            const encryptedResult = yield this.securityHelper.encrypt(token, cryptoKey);
+            return {
+                t: encryptedResult === null || encryptedResult === void 0 ? void 0 : encryptedResult.cipherText,
+                i: encryptedResult === null || encryptedResult === void 0 ? void 0 : encryptedResult.iv,
+            };
+        });
+    }
+    /**
+     * Retrieves and decrypts the authentication token stored in local storage.
+     * @returns A promise that resolves to the decrypted authentication token, or null if decryption fails.
+     * @throws If an error occurs during the decryption process.
+     * @remarks
+     * This method retrieves the encrypted authentication token, encrypted key, and user information from local storage.
+     * It then attempts to decrypt the token using the retrieved information. If any required information is missing or
+     * decryption fails, the method returns null.
+     *
+     * @example
+     * ```
+     * const decryptedToken = await authSdk.getDecryptedToken();
+     * ```
+     */
+    getDecryptedToken() {
+        var _a, _b, _c;
+        return __awaiter(this, void 0, void 0, function* () {
+            if (this.validationUtils.isValidObject(this.authToken))
+                return this.authToken;
+            else {
+                const encryptedtoken = LocalStorageHelper.getItem(StorageKeys.ENCRYPTED_AUTH_TOKEN, true);
+                const encryptedKey = LocalStorageHelper.getItem(StorageKeys.ENCRYPTED_KEY, true);
+                const userInfo = LocalStorageHelper.getItem(StorageKeys.ENCRYPTION_IV, true);
+                if (!encryptedtoken || !((_a = encryptedtoken === null || encryptedtoken === void 0 ? void 0 : encryptedtoken.aInfo) === null || _a === void 0 ? void 0 : _a.t) || !((_b = encryptedtoken === null || encryptedtoken === void 0 ? void 0 : encryptedtoken.aInfo) === null || _b === void 0 ? void 0 : _b.i) || !encryptedKey || !userInfo || !(userInfo === null || userInfo === void 0 ? void 0 : userInfo.i))
+                    return null;
+                try {
+                    const decryptedAuthToken = new AuthToken();
+                    decryptedAuthToken.parseData(encryptedtoken);
+                    const userId = (_c = LocalStorageHelper.getItem(StorageKeys.USER_INFO, true)) === null || _c === void 0 ? void 0 : _c.userId;
+                    const cryptoKey = userInfo && encryptedKey ? yield this.getCryptoKey(userId, encryptedKey, userInfo === null || userInfo === void 0 ? void 0 : userInfo.i) : null;
+                    if (!cryptoKey) {
+                        this.logger.error('getDecryptedToken', 'CryptoKey is undefined');
+                        return null;
+                    }
+                    // Decrypt the token
+                    decryptedAuthToken.accessToken = yield this.securityHelper.decrypt(encryptedtoken.aInfo.t, encryptedtoken.aInfo.i, cryptoKey);
+                    decryptedAuthToken.refreshToken = yield this.securityHelper.decrypt(encryptedtoken.rInfo.t, encryptedtoken.rInfo.i, cryptoKey);
+                    decryptedAuthToken.idToken = yield this.securityHelper.decrypt(encryptedtoken.iInfo.t, encryptedtoken.iInfo.i, cryptoKey);
+                    return decryptedAuthToken;
+                }
+                catch (error) {
+                    this.logger.error('getDecryptedToken', 'Error during token decryption:' + error);
+                    return null;
+                }
+            }
+        });
+    }
+    /**
+     * Validates if the feature toggle for token encryption is enabled and retrieves the decrypted token.
+     * @returns A promise that resolves to the decrypted authentication token, or null if decryption fails or the feature toggle is disabled.
+     * @example
+     * ```
+     * const decryptedToken = await this.validateFtAndGetDecryptedToken();
+     * ```
+     */
+    validateFtAndGetDecryptedToken() {
+        return __awaiter(this, void 0, void 0, function* () {
+            try {
+                const isTokenEncryptionFTEnabled = yield FeatureToggleService.instance.getFeatureToggle("release-cxa-token-update-AW-34038" /* FeatureToggles.TOKEN_ENCRYPTION_FEATURE_TOGGLE */);
+                if (isTokenEncryptionFTEnabled) {
+                    return yield this.getDecryptedToken();
+                }
+                else {
+                    return this.getAuthToken();
+                }
+            }
+            catch (error) {
+                const authToken = LocalStorageHelper.getItem(StorageKeys.AUTH_TOKEN, true);
+                if (authToken && this.validationUtils.isValidObject(authToken)) {
+                    this.setAuthToken(authToken);
+                    return authToken;
+                }
+                this.logger.error('validateFtAndGetDecryptedToken', 'Error validating feature toggle and getting decrypted token: ' + error);
+                return null;
+            }
+        });
+    }
+    /**
+     * Method to check Ft and save auth token
+     * @param authToken - authToken to be saved
+     * @example validateFTAndSetAuthToken(authToken)
+     */
+    validateFTAndSetAuthToken(authToken, reject) {
+        var _a;
+        return __awaiter(this, void 0, void 0, function* () {
+            try {
+                const baseUrl = (_a = this.getCXoneConfig()) === null || _a === void 0 ? void 0 : _a.userHubBaseUrl;
+                FeatureToggleService.instance.init(authToken.accessToken, baseUrl);
+                const isTokenEncryptionFTEnabled = yield FeatureToggleService.instance.getFeatureToggle("release-cxa-token-update-AW-34038" /* FeatureToggles.TOKEN_ENCRYPTION_FEATURE_TOGGLE */);
+                if (!isTokenEncryptionFTEnabled) {
+                    LocalStorageHelper.setItem(StorageKeys.AUTH_TOKEN, authToken);
+                }
+                else {
+                    yield this.setEncryptedAuthToken(authToken);
+                }
+            }
+            catch (error) {
+                this.logger.error('validateFTAndSetAuthToken', 'Error while setting encrypted token' + error.toString());
+                this.onAuthStatusChange.next({
+                    status: AuthStatus.AUTHENTICATION_FAILED,
+                    response: error,
+                });
+                reject && reject();
+            }
         });
     }
 }

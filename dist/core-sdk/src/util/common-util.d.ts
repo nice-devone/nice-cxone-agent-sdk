@@ -10,7 +10,7 @@ export declare const isVoiceBioHubFeatureEnabled: () => import("../lib/admin/mod
 /**
  * Checks if the IEX feature is enabled.
  *
- * @returns - Returns true if all valid product IDs are enabled, otherwise false.
+ * @returns - Returns true if any valid product ID is enabled, otherwise false.
  *
  * @example
  * ```

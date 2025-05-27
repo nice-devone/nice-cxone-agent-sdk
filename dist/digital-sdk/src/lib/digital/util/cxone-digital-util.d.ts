@@ -35,4 +35,13 @@ export declare class CXoneDigitalUtil {
         ccRecipients: string[];
         bccRecipients: string[];
     };
+    /**
+     * Method to check if user slot polling feature toggle is enabled
+     * @returns - returns feature toggle value
+     * ```
+     * @example
+     * isUserSlotFTEnabled()
+     * ```
+     */
+    isUserSlotFeatureToggleEnabled(): Promise<boolean>;
 }

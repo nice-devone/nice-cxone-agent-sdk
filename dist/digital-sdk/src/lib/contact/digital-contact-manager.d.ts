@@ -1,5 +1,5 @@
 import { Subject } from 'rxjs';
-import { CXoneDisposition, CXoneSdkError, CXoneMessage, CXoneTypingMessageContent } from '@nice-devone/common-sdk';
+import { CXoneDisposition, CXoneSdkError, UserSlots, CXoneMessage, CXoneTypingMessageContent } from '@nice-devone/common-sdk';
 import { DispositionService } from '@nice-devone/agent-sdk';
 import { CXoneDigitalContact } from '../digital/contact/cxone-digital-contact';
 import { CXoneUserSlotProvider } from '../digital/provider/cxone-user-slot-provider';
@@ -108,7 +108,7 @@ export declare class DigitalContactManager {
      *  manageUserSlotDetails()
      * ```
     */
-    private manageUserSlotDetails;
+    manageUserSlotDetails(): Promise<void>;
     /**
      * Method to invoke user slot API and polling for data reconcile based on case
      * @example
@@ -117,6 +117,15 @@ export declare class DigitalContactManager {
      * ```
     */
     private pollUserSlots;
+    /**
+   * Method to parses the user slot poll response and updates the digital contact map accordingly.
+   *
+   * @param userSlotResponse - The response containing user slots information.
+   * @param WebsocketConnectionFailure - A boolean indicating if there was a WebSocket connection failure.
+   * @example - parseUserSlotPollResponse(userSlotResponse, WebsocketConnectionFailure)
+   *
+   */
+    parseUserSlotPollResponse(userSlotResponse: UserSlots, WebsocketConnectionFailure: boolean): void;
     /**
      * updatePublishDigitalContactMap.
      * @param contact - cxone Digital contact details

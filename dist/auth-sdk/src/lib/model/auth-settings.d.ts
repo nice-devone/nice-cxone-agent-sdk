@@ -16,6 +16,11 @@ export interface AuthSettings {
      */
     redirectUri: string;
     /**
+     * Required. The originatingServiceIdentifier is used to specify the application that initiated the request.
+     * CMA SDK consumers need to pass the meaningful identifier e.g. originatingServiceIdentifier:'CMASDK'.
+     */
+    originatingServiceIdentifier: string;
+    /**
      * Optional. It will be passed unmodified to the redirect callback.
      * For example, this might be used to store the URL that the user should be directed to after a successful login.
      */

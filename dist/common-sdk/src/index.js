@@ -269,5 +269,9 @@ tslib_1.__exportStar(require("./lib/model/customer-card/cxone-sf-crm-navigation-
 tslib_1.__exportStar(require("./enum/crm"), exports);
 tslib_1.__exportStar(require("./enum/typing-indicator-actions"), exports);
 tslib_1.__exportStar(require("./lib/enum/multimedia-types"), exports);
+tslib_1.__exportStar(require("./lib/model/digital/cxone-search-app-settings"), exports);
 tslib_1.__exportStar(require("./lib/enum/feedback-tags"), exports);
+tslib_1.__exportStar(require("./lib/model/authenticate/encrypted-auth-token"), exports);
+tslib_1.__exportStar(require("./lib/enum/agent-copilot-filter-type"), exports);
+tslib_1.__exportStar(require("./lib/model/agent/localPost-event"), exports);
 //# sourceMappingURL=index.js.map

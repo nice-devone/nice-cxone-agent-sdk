@@ -1,6 +1,6 @@
 import { __awaiter, __rest } from "tslib";
 import { CXoneAuth, CXoneUser } from '@nice-devone/auth-sdk';
-import { CXoneSdkError, MediaType, AgentCopilotContentType, CXoneSdkErrorType } from '@nice-devone/common-sdk';
+import { CXoneSdkError, CXoneSdkErrorType } from '@nice-devone/common-sdk';
 import { Logger, HttpUtilService, StorageKeys, HttpClient, LocalStorageHelper, dbInstance, IndexDBStoreNames, IndexDBKeyNames, clearIndexDbKey, ValidationUtils } from '@nice-devone/core-sdk';
 import { Feedback } from '../../enum/feedback';
 /**
@@ -22,11 +22,10 @@ export class CopilotService {
         this.AGENT_COPILOT_BASE_URI_V2 = '/agentcopilotapi/v2/';
         this.AGENT_COPILOT_SEARCH = this.AGENT_COPILOT_BASE_URI + 'agent-search';
         this.AGENT_COPILOT_FINAL_SUMMARY = this.AGENT_COPILOT_BASE_URI + 'final-summary';
-        this.AGENT_COPILOT_GET_ALL_ADAPTIVE_CARDS_SCHEMAS = this.AGENT_COPILOT_BASE_URI + 'adaptive-card/get-all-adaptive-cards';
-        this.AGENT_COPILOT_GET_ADAPTIVE_CARD_SCHEMA = this.AGENT_COPILOT_BASE_URI + 'adaptive-card?cardType={cardType}&mediaType={mediaType}';
         this.AGENT_COPILOT_HEALTH_CHECK = this.AGENT_COPILOT_BASE_URI + 'copilot-health';
         this.AGENT_COPILOT_ENABLEMENT_FOR_CONTACT = this.AGENT_COPILOT_BASE_URI + 'license/copilot-enabled';
         this.AGENT_COPILOT_AGENT_ASSIST_HUB_CONFIG = this.AGENT_COPILOT_BASE_URI_V2 + 'license/retrieve-aah-config';
+        this.AGENT_COPILOT_GET_ADAPTIVE_CARD_SCHEMAS = '/agent-copilot/v2/adaptive-cards?cardType={cardType}&cxaClientVersion={cxaClientVersion}';
         this.AGENT_COPILOT_EMAIL_APIS = {
             GET_LAST_GENERATED_TOPICS: this.AGENT_COPILOT_BASE_URI + 'email/topics?contactId={contactId}',
             GET_DRAFT_EMAIL: this.AGENT_COPILOT_BASE_URI + 'email/draft?contactId={contactId}&uniqueEmailId={uniqueEmailId}',
@@ -37,7 +36,10 @@ export class CopilotService {
         this.PATH_CONTACT_FEEDBACK = '/agentcopilotapi/v1/interaction-feedback/interaction';
         this.PATH_KB_FILTER_UPDATE = '/agent-copilot/v1/kb-filter/update';
         this.JOURNEY_SUMMARY = '/agent-copilot/v1/journey-summary';
+        this.FINAL_SUMMARY = '/agent-copilot/v1/final-summary?contactId={contactId}';
+        this.TASK_ASSIST = '/agent-copilot/v1/contacts/{contactId}/task-assist';
         this.aahConfigStore = {};
+        this.AGENT_COPILOT_GET_ALL_ADAPTIVE_CARDS_SCHEMAS = this.AGENT_COPILOT_BASE_URI + 'adaptive-card/get-all-adaptive-cards';
         /**
          * @returns base url for ACP backend
          * @example getBaseHttpRequest()
@@ -73,63 +75,32 @@ export class CopilotService {
             return payload;
         };
         /**
-         * Used to get the copilot adaptive card schema by cardType
-         * @example -
+         * Used to get the copilot adaptive card schema by cardType(all by default) and UI version
+         * @param cxaVersion - branch name indicating UI version
+         * @param cardType - type of adaptive card
          * ```
-         * copilotService.fetchCopilotAllAdaptiveCardSchemas();
+         * copilotService.fetchCopilotAdaptiveCardSchemasFromBucket('24.4.2', 'all');
          * ```
          */
-        this.fetchCopilotAllAdaptiveCardSchemas = () => {
+        this.fetchCopilotAdaptiveCardSchemasFromBucket = (cxaVersion, cardType = 'all') => {
             return new Promise((resolve, reject) => {
-                {
-                    const cxaClientVersion = LocalStorageHelper.getItem('agent_settings', true).cxaClientVersion;
-                    const reqInit = this.getBaseHttpRequest({
-                        cxaClientVersion,
-                        version: 'v2', // version is added for the new schema with localization strings
-                    });
+                const copilotAdaptiveCardSchemasFromLS = LocalStorageHelper.getItem(StorageKeys.AGENT_COPILOT_ADAPTIVE_CARD_SCHEMAS, true);
+                if (!copilotAdaptiveCardSchemasFromLS) {
+                    const reqInit = this.getBaseHttpRequest({});
                     const baseUrl = this.getBaseUrlForAcp();
-                    const adaptiveCardUrl = baseUrl + this.AGENT_COPILOT_GET_ALL_ADAPTIVE_CARDS_SCHEMAS;
-                    HttpClient === null || HttpClient === void 0 ? void 0 : HttpClient.post(adaptiveCardUrl, reqInit).then((response) => {
+                    const adaptiveCardUrl = baseUrl + this.AGENT_COPILOT_GET_ADAPTIVE_CARD_SCHEMAS.replace('{cardType}', cardType).replace('{cxaClientVersion}', cxaVersion);
+                    HttpClient === null || HttpClient === void 0 ? void 0 : HttpClient.get(adaptiveCardUrl, reqInit).then((response) => {
                         LocalStorageHelper.setItem(StorageKeys.AGENT_COPILOT_ADAPTIVE_CARD_SCHEMAS, response.data);
-                        resolve(response);
+                        resolve(response.data);
                     }, (error) => {
                         const errorResponse = new CXoneSdkError(CXoneSdkErrorType.CXONE_API_ERROR, 'Failed to fetch all copilot adaptive card schemas', error);
-                        this.logger.error('fetchCopilotAllAdaptiveCardSchemas', errorResponse.toString());
+                        this.logger.error('fetchCopilotAdaptiveCardSchemasFromBucket', errorResponse.toString());
                         reject(errorResponse);
                     });
                 }
-            });
-        };
-        /**
-         * Used to get the copilot adaptive card schema by cardType
-         * @param cardType - type of adaptive card
-         * @param mediaType - type of media channel
-         * @example -
-         * ```
-         * copilotService.fetchCopilotAdaptiveCardSchema("sentimentAndReason", "Voice");
-         * ```
-         */
-        this.fetchCopilotAdaptiveCardSchema = (cardType, mediaType) => {
-            return new Promise((resolve, reject) => {
-                {
-                    const reqInit = this.getBaseHttpRequest({});
-                    const baseUrl = this.getBaseUrlForAcp();
-                    const adaptiveCardUrl = baseUrl + this.AGENT_COPILOT_GET_ADAPTIVE_CARD_SCHEMA.replace('{cardType}', cardType).replace('{mediaType}', mediaType);
-                    HttpClient === null || HttpClient === void 0 ? void 0 : HttpClient.get(adaptiveCardUrl, reqInit).then((response) => {
-                        let schemaKeyName = `${cardType}`;
-                        const existingApativeCardSchemas = LocalStorageHelper.getItem(StorageKeys.AGENT_COPILOT_ADAPTIVE_CARD_SCHEMAS, true);
-                        let schemaToAdd = existingApativeCardSchemas ? Object.assign({}, existingApativeCardSchemas) : {};
-                        if (mediaType === MediaType.VOICE && [AgentCopilotContentType.KB_COMBO].includes(cardType)) {
-                            schemaKeyName += `_${mediaType}`;
-                        }
-                        schemaToAdd = Object.assign(Object.assign({}, schemaToAdd), { [schemaKeyName]: response.data });
-                        LocalStorageHelper.setItem(StorageKeys.AGENT_COPILOT_ADAPTIVE_CARD_SCHEMAS, schemaToAdd);
-                        resolve(response);
-                    }, (error) => {
-                        const errorResponse = new CXoneSdkError(CXoneSdkErrorType.CXONE_API_ERROR, 'Failed to fetch adaptive card schema', error);
-                        this.logger.error('fetchCopilotAdaptiveCardSchema', errorResponse.toString());
-                        reject(errorResponse);
-                    });
+                else {
+                    this.logger.info('fetchCopilotAdaptiveCardSchemasFromBucket', 'Adaptive cards fetched from storage');
+                    resolve(copilotAdaptiveCardSchemasFromLS);
                 }
             });
         };
@@ -264,11 +235,12 @@ export class CopilotService {
          * copilotService.retriveAgentAssistConfig('12321');
          * ```
          */
-        this.retriveAgentAssistConfig = (contactId) => {
+        this.retriveAgentAssistConfig = (contactId, mediaType, agentAssistId) => {
             return new Promise((resolve, reject) => {
                 const reqInit = this.getBaseHttpRequest({
-                    contactIds: contactId,
                     contactId,
+                    mediaType,
+                    agentAssistId,
                 });
                 const baseUrl = this.getBaseUrlForAcp();
                 const apiUrl = baseUrl + this.AGENT_COPILOT_AGENT_ASSIST_HUB_CONFIG;
@@ -298,10 +270,10 @@ export class CopilotService {
          * copilotService.storeAgentAssistConfig('12321');
          * ```
          */
-        this.storeAgentAssistConfig = (contactId) => __awaiter(this, void 0, void 0, function* () {
+        this.storeAgentAssistConfig = (contactId, mediaType, agentAssistId) => __awaiter(this, void 0, void 0, function* () {
             let aahConfig = this.getAgentAssistConfig(contactId, true);
             if (!aahConfig) {
-                aahConfig = yield this.retriveAgentAssistConfig(contactId);
+                aahConfig = yield this.retriveAgentAssistConfig(contactId, mediaType, agentAssistId);
             }
             return aahConfig;
         });
@@ -441,6 +413,39 @@ export class CopilotService {
                 });
             });
         };
+        /**
+         * Used to get all copilot adaptive card schemas
+         * @example -
+         * ```
+         * copilotService.fetchCopilotAllAdaptiveCardSchemas();
+         * ```
+         */
+        this.fetchCopilotAllAdaptiveCardSchemas = () => {
+            return new Promise((resolve, reject) => {
+                const copilotAdaptiveCardSchemasFromLS = LocalStorageHelper.getItem(StorageKeys.AGENT_COPILOT_ADAPTIVE_CARD_SCHEMAS, true);
+                if (!copilotAdaptiveCardSchemasFromLS) {
+                    const cxaClientVersion = LocalStorageHelper.getItem('agent_settings', true).cxaClientVersion;
+                    const reqInit = this.getBaseHttpRequest({
+                        cxaClientVersion,
+                        version: 'v2', // version is added for the new schema with localization strings
+                    });
+                    const baseUrl = this.getBaseUrlForAcp();
+                    const adaptiveCardUrl = baseUrl + this.AGENT_COPILOT_GET_ALL_ADAPTIVE_CARDS_SCHEMAS;
+                    HttpClient === null || HttpClient === void 0 ? void 0 : HttpClient.post(adaptiveCardUrl, reqInit).then((response) => {
+                        LocalStorageHelper.setItem(StorageKeys.AGENT_COPILOT_ADAPTIVE_CARD_SCHEMAS, response.data);
+                        resolve(response.data);
+                    }, (error) => {
+                        const errorResponse = new CXoneSdkError(CXoneSdkErrorType.CXONE_API_ERROR, 'Failed to fetch all copilot adaptive card schemas', error);
+                        this.logger.error('fetchCopilotAllAdaptiveCardSchemas', errorResponse.toString());
+                        reject(errorResponse);
+                    });
+                }
+                else {
+                    this.logger.info('fetchCopilotAllAdaptiveCardSchemas', 'Adaptive cards fetched from storage');
+                    resolve(copilotAdaptiveCardSchemasFromLS);
+                }
+            });
+        };
         this.auth = CXoneAuth.instance;
     }
     /**
@@ -503,22 +508,6 @@ export class CopilotService {
                 });
             }
         });
-    }
-    /**
-     * Used to set essential copilot data
-     * @param contactId - contact id to fetch the data from
-     * @param elementToAdd - element to add to the local storage
-     * @example -
-     * ```
-     * copilotService.setLsDataByAgentId("123", { sentimentAndReason: [] });
-     * ```
-     */
-    setLsDataByAgentId(contactId, elementToAdd) {
-        const agentId = LocalStorageHelper.getItem(StorageKeys.USER_INFO, true)['icAgentId'];
-        const key = `${agentId}_ccfCopilotData`;
-        const existingCopilotDataInLs = this.getLsDataByAgentId();
-        const copilotDataToStore = Object.assign(Object.assign({}, existingCopilotDataInLs), { [contactId]: Object.assign(Object.assign({}, existingCopilotDataInLs[contactId]), elementToAdd) });
-        localStorage.setItem(key, JSON.stringify(copilotDataToStore));
     }
     /**
      * Used to get local storage data by the agentId
@@ -625,5 +614,75 @@ export class CopilotService {
         });
     }
     ;
+    /**
+     * Used to fetch the generated final summary
+     * @param connectionId - connection id to send with the data
+     * @example -
+     * ```
+     * copilotService.fetchGeneratedFinalSummary("1234");
+     * ```
+     */
+    fetchGeneratedFinalSummary(contactId) {
+        return new Promise((resolve, reject) => {
+            const reqInit = this.getBaseHttpRequest({});
+            const baseUrl = this.getBaseUrlForAcp();
+            const copilotUrl = baseUrl + this.FINAL_SUMMARY.replace('{contactId}', contactId);
+            HttpClient === null || HttpClient === void 0 ? void 0 : HttpClient.get(copilotUrl, reqInit).then((response) => {
+                resolve(response);
+            }, (error) => {
+                const errorResponse = new CXoneSdkError(CXoneSdkErrorType.CXONE_API_ERROR, 'Failed to fetch generated final summary', error);
+                this.logger.error('fetchGeneratedFinalSummary', errorResponse.toString());
+                reject(errorResponse);
+            });
+        });
+    }
+    ;
+    /**
+     * Used to get task response based on the intentName for a given contactId
+     * @param intentConfig - intent config
+     * @param contactId  - contact Id
+     * @example -
+     * ```
+     * copilotService.getTaskResponse('Task intent name here', '12321');
+     * ```
+     */
+    getTaskResponse(intentConfig, contactId) {
+        return new Promise((resolve, reject) => {
+            var _a;
+            const aahConfiguration = this.getAgentAssistConfig && this.getAgentAssistConfig(`${contactId}`, true);
+            const taskAssistConfig = (_a = aahConfiguration === null || aahConfiguration === void 0 ? void 0 : aahConfiguration.Params) === null || _a === void 0 ? void 0 : _a.taskAssistConfig;
+            const reqInit = this.getBaseHttpRequest({
+                intentConfig,
+                virtualAgentId: taskAssistConfig.virtualAgentId,
+            });
+            const baseUrl = this.getBaseUrlForAcp();
+            const taskResponseUrl = baseUrl + this.TASK_ASSIST.replace('{contactId}', contactId);
+            HttpClient === null || HttpClient === void 0 ? void 0 : HttpClient.post(taskResponseUrl, reqInit).then((response) => {
+                resolve(response.data);
+            }, (error) => {
+                const errorResponse = new CXoneSdkError(CXoneSdkErrorType.CXONE_API_ERROR, 'Failed to get task response', error);
+                this.logger.error('getTaskResponse', errorResponse.toString());
+                reject(errorResponse);
+            });
+        });
+    }
+    /**
+     * Used to fetch aah config from ACP backend or get-next- event based on FT
+     * @param agentAssistJson - agent assist json data
+     * @param acpConfig - acp config data
+     * @param isToggleEnabledForConfigFromBackend - toggle to check if config is enabled from backend
+     * @example -
+     * ```
+     * copilotService.fetchConfigFromBackend({ContactId: '1234', MediaType: '4', AgentAssistId;'Acp-profile'}, '{ Params: { providerId: 'agentCopilot }, ContactId: '1234', MediaType: '4',AgentAssistId;'Acp-profile' }', true);
+     * ```
+     */
+    fetchConfigFromBackend(agentAssistJson, acpConfig, isToggleEnabledForConfigFromBackend) {
+        if (isToggleEnabledForConfigFromBackend) {
+            this.storeAgentAssistConfig(agentAssistJson.ContactId.toString(), agentAssistJson === null || agentAssistJson === void 0 ? void 0 : agentAssistJson.MediaType, agentAssistJson === null || agentAssistJson === void 0 ? void 0 : agentAssistJson.AgentAssistId);
+        }
+        else {
+            this.setAgentAssistConfig(agentAssistJson.ContactId, acpConfig);
+        }
+    }
 }
 //# sourceMappingURL=copilot-service.js.map

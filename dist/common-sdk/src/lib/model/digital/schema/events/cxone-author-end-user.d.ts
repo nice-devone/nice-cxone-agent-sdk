@@ -4,14 +4,14 @@ export declare const CXoneAuthorEndUserIdentitySchema: import("yup/lib/object").
     nickname: import("yup").StringSchema<string, import("yup/lib/types").AnyObject, string>;
     image: import("yup").StringSchema<string, import("yup/lib/types").AnyObject, string>;
     id: import("yup/lib/string").RequiredStringSchema<string, import("yup/lib/types").AnyObject>;
-    fullName: import("yup/lib/string").RequiredStringSchema<string, import("yup/lib/types").AnyObject>;
+    fullName: import("yup").StringSchema<string, import("yup/lib/types").AnyObject, string>;
     externalPlatformId: import("yup").StringSchema<string, import("yup/lib/types").AnyObject, string>;
 }, import("yup/lib/object").AnyObject, import("yup/lib/object").TypeOfShape<{
     idOnExternalPlatform: import("yup/lib/string").RequiredStringSchema<string, import("yup/lib/types").AnyObject>;
     nickname: import("yup").StringSchema<string, import("yup/lib/types").AnyObject, string>;
     image: import("yup").StringSchema<string, import("yup/lib/types").AnyObject, string>;
     id: import("yup/lib/string").RequiredStringSchema<string, import("yup/lib/types").AnyObject>;
-    fullName: import("yup/lib/string").RequiredStringSchema<string, import("yup/lib/types").AnyObject>;
+    fullName: import("yup").StringSchema<string, import("yup/lib/types").AnyObject, string>;
     externalPlatformId: import("yup").StringSchema<string, import("yup/lib/types").AnyObject, string>;
 }>>;
 export declare const CXoneAuthorUserSchema: import("yup/lib/object").OptionalObjectSchema<{

@@ -1,6 +1,5 @@
-import { AdminService, LocalStorageHelper, Logger, StorageKeys, ValidationUtils } from '@nice-devone/core-sdk';
+import { AdminService, LocalStorageHelper, Logger, StorageKeys, ValidationUtils, SecurityHelper } from '@nice-devone/core-sdk';
 import { CXoneSdkError, CXoneSdkErrorType, parseBooleanString, PermissionKeys } from '@nice-devone/common-sdk';
-import { SecurityHelper } from '../../util/security-helper';
 /**
  * Class to manage all user-related methods
  */

@@ -16,15 +16,16 @@ import { UIQHubUrl } from './model/uiq-hub-url';
  */
 export class AdminService {
     constructor() {
+        this.accessToken = '';
+        this.acdSessionManager = {};
+        this.agentIndicatorsInfo = [];
+        this.apiParser = new ApiParser();
+        this.cxOneConfig = {};
+        this.maxClientDataLength = 4000;
+        this.userInfo = {};
+        this.validationUtils = new ValidationUtils();
         this.logger = new Logger('SDK', 'AdminService');
         this.utilService = new HttpUtilService();
-        this.apiParser = new ApiParser();
-        this.agentIndicatorsInfo = [];
-        this.validationUtils = new ValidationUtils();
-        this.accessToken = '';
-        this.cxOneConfig = {};
-        this.userInfo = {};
-        this.acdSessionManager = {};
     }
     /**
      * Method to initialize the user details
@@ -238,11 +239,11 @@ export class AdminService {
         });
     }
     /**
-     * Method to return client data
+     * Method to update client data
      * @returns - returns the client data
      * ```
      * @example
-     * getClientData()
+     * putClientData(clientData)
      * ```
      */
     putClientData(clientData) {
@@ -253,19 +254,25 @@ export class AdminService {
                 agentId: this.userInfo.icAgentId,
                 dataSet: dataSet,
             };
-            const reqInit = {
-                headers: this.utilService.initHeader(this.accessToken).headers,
-                body: data,
-            };
-            HttpClient.put(url, reqInit).then(() => {
-                this.logger.info('putClientData', 'Put Client Data Success');
-                LocalStorageHelper.setItem(StorageKeys.CLIENT_DATA, dataSet);
-                resolve(dataSet);
-            }, (err) => {
-                var _a;
-                this.logger.error('putClientData', 'Put Client Data Failed' + JSON.stringify(err));
-                reject(new CXoneSdkError(CXoneSdkErrorType.CXONE_API_ERROR, (_a = err === null || err === void 0 ? void 0 : err.data) === null || _a === void 0 ? void 0 : _a.message, err === null || err === void 0 ? void 0 : err.data));
-            });
+            // Not to exceed the clientdata space in DB
+            if (dataSet.length <= this.maxClientDataLength) {
+                const reqInit = {
+                    headers: this.utilService.initHeader(this.accessToken).headers,
+                    body: data,
+                };
+                HttpClient.put(url, reqInit).then(() => {
+                    this.logger.info('putClientData', 'Put Client Data Success');
+                    LocalStorageHelper.setItem(StorageKeys.CLIENT_DATA, dataSet);
+                    resolve(dataSet);
+                }, (err) => {
+                    var _a;
+                    this.logger.error('putClientData', 'Put Client Data Failed' + JSON.stringify(err));
+                    reject(new CXoneSdkError(CXoneSdkErrorType.CXONE_API_ERROR, (_a = err === null || err === void 0 ? void 0 : err.data) === null || _a === void 0 ? void 0 : _a.message, err === null || err === void 0 ? void 0 : err.data));
+                });
+            }
+            else {
+                reject(new CXoneSdkError(CXoneSdkErrorType.DATA_VALIDATION_ERROR, 'Exceeds the limit of the database'));
+            }
         });
     }
     /**

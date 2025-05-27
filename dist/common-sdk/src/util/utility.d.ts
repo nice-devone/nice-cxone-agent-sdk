@@ -137,3 +137,13 @@ export declare const formatDateTime: (dateString: string, locale?: string, hour1
  * @example validateURLOrACDStrings('https://www.iplt20.com');
  */
 export declare const validateURLOrACDStrings: (inputURL: string) => boolean;
+/**
+ * Validate Port
+ *
+ * @param port - port to validate
+ * @returns True if port is valid else false
+ *
+ *
+ * @example validatePort('8080');
+ */
+export declare const validatePort: (port: string | number) => boolean;

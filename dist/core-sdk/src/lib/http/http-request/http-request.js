@@ -58,9 +58,7 @@ export class HttpRequest {
      * ```
      */
     getHeaderInit() {
-        // eslint-disable-next-line @typescript-eslint/no-var-requires
-        const fetch = require('node-fetch');
-        const headerInit = new fetch.Headers();
+        const headerInit = new Headers();
         if (this.headers) {
             this.headers.forEach((header) => {
                 headerInit.append(header.name, header.value);

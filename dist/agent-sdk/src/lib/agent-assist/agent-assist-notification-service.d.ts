@@ -18,6 +18,7 @@ export declare abstract class AgentAssistNotificationService extends WebsocketCl
     protected subscriptions: string[];
     protected agentAssistInput: AgentAssistInput;
     logger: Logger;
+    reconnectAttemptSource: 'fromOnError' | 'fromOnClosed' | null;
     /**
      * Used to open the webSocket data and subscribe to it.
      * @example -

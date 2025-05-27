@@ -7,6 +7,7 @@ import { CXoneGetNextAdapter } from '../../adapter/cxone-get-next-adapter';
 import { CXoneSdkErrorType, MessageBus, MessageType, } from '@nice-devone/common-sdk';
 import { LoadWorker } from '../../worker/load-worker';
 import { GetNextEventType } from '../../adapter';
+import { FeatureToggleService } from '../../../util/feature-toggle-services';
 /**
  * GetNextEventProvider to perform getNextEvent polling
  */
@@ -19,6 +20,7 @@ export class GetNextEventProvider {
         this.logger = new Logger('lib.Agent', 'lib.GetNextEventProvider');
         this.utilService = new HttpUtilService();
         this.getNextEventAdapter = new CXoneGetNextAdapter();
+        this.isRestartGetNextEventEnabled = FeatureToggleService.instance.getFeatureToggleSync("release-cxa-get-next-event-restart-AW-37270" /* FeatureToggles.RESTART_GET_NEXT_EVENT_POLLING_FEATURE_TOGGLE */);
         /**
          * Captures data returned from get-next-event api
          * @param response - collection of events
@@ -183,6 +185,16 @@ export class GetNextEventProvider {
     getNextEvents(retryOptions, sessionId) {
         try {
             this.logger.info('getNextEvents', 'getNextEvents started');
+            // Retrigger get-next-event polling after 90 seconds if not executed
+            if (this.isRestartGetNextEventEnabled) {
+                this.getNextEventHandler = setTimeout(() => {
+                    if (this.getNextEventHandler) {
+                        this.logger.info('getNextEvents', 'Timeout executed for restart of getNextEvents');
+                        this.terminateUtilWorker();
+                        this.getNextEvents();
+                    }
+                }, 90000);
+            }
             if (!sessionId) {
                 sessionId = this.agentSession.getSessionId();
             }
@@ -202,6 +214,11 @@ export class GetNextEventProvider {
                 this.initUtilWorker();
                 this.getNextPollingWorker.onmessage = (response) => {
                     var _a;
+                    if (this.isRestartGetNextEventEnabled) {
+                        this.logger.info('getNextEvents', 'Response received and clearing timeout');
+                        clearTimeout(this.getNextEventHandler);
+                        this.getNextEventHandler = undefined;
+                    }
                     if (((_a = response === null || response === void 0 ? void 0 : response.data) === null || _a === void 0 ? void 0 : _a.type) === 'retry') {
                         this.logger.info('getNextEvents', 'Response received for retry in getNextEvents');
                         this.onPollingRetrySuccess(response === null || response === void 0 ? void 0 : response.data, response.data.retryAttempt);
@@ -260,7 +277,12 @@ export class GetNextEventProvider {
         var _a;
         (_a = this.getNextPollingWorker) === null || _a === void 0 ? void 0 : _a.terminate();
         this.getNextPollingWorker = undefined;
-        this.logger.info('terminateUtilWorker', 'Termincating worker for getNextEvents');
+        if (this.isRestartGetNextEventEnabled) {
+            this.logger.info('terminateUtilWorker', 'Terminating worker and clearing timeout');
+            clearTimeout(this.getNextEventHandler);
+            this.getNextEventHandler = undefined;
+        }
+        this.logger.info('terminateUtilWorker', 'Terminating worker for getNextEvents');
     }
 }
 //# sourceMappingURL=get-next-event-provider.js.map

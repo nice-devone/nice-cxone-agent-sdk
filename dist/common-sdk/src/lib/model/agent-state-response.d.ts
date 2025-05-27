@@ -88,6 +88,10 @@ export declare class AgentStateResponse extends CXoneEvent {
        */
     isFavorite: boolean;
     /**
+         * @remarks  Represents whether agent can be dialed or not
+         */
+    canDialAgent: boolean;
+    /**
        * This method to parse agent state response
        * @param data - agent state object
        * @example -
@@ -96,6 +100,17 @@ export declare class AgentStateResponse extends CXoneEvent {
        * ```
        */
     parse(data: {
+        [key: string]: string;
+    }): void;
+    /**
+      * This method to parse agent state response from the new API with updated agent state
+      * @param data - new agent state object
+      * @example -
+      * ```
+      * parseUpdatedAgentState(data);
+      * ```
+      */
+    parseUpdatedAgentState(data: {
         [key: string]: string;
     }): void;
 }

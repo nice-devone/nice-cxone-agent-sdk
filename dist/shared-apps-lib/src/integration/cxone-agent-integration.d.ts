@@ -8,6 +8,7 @@ import { CXoneAuthResponseData } from '../interfaces/cxone-auth-response-data';
 import { CXoneAuthRequestData } from '../interfaces/cxone-auth-request-data';
 import { CXonePartnerAccountDetails } from '../interfaces/cxone-partner-account-details';
 import { CXonePartnerPresenceSyncRule } from '../interfaces/cxone-partner-presence-sync-rule';
+import { CXoneContactData } from '../interfaces/cxone-contact-data';
 /**
  * Type alias for click to act callback, to be invoked from intergration apps
  */
@@ -77,4 +78,14 @@ export interface ICXoneAgentIntegration {
      * @param callback - Callback method
      */
     getPartnerAccountDetails(callback: CXonePartnerDetailsCallback): void;
+    /**
+     * Embedded app specific method to send the Voicemail contact data
+     * @param voiceMailContactData - Event Args
+     */
+    handleCXoneVoiceMailContactEvent(voiceMailContactData: CXoneContactData): void;
+    /**
+     * Embedded app specific method to send the WorkItem contact data
+     * @param workItemContactData - Event Args
+     */
+    handleCXoneWorkItemContactEvent(workItemContactData: CXoneContactData): void;
 }

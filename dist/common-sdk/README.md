@@ -70,6 +70,7 @@ import {
   AgentSessionResponse,
   CallContactEvent,
   CoBrowseEvent,
+  LocalPostEvent,
   CXoneApiPerformanceMetrics,
   CXoneAudioVisualNotificationSettings,
   CXoneClientData,

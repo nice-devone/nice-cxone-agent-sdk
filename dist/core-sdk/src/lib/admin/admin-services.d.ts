@@ -15,16 +15,17 @@ import { UIQHubUrl } from './model/uiq-hub-url';
  * Class to perform get admin api
  */
 export declare class AdminService {
+    private accessToken;
+    private acdSessionManager;
+    private agentIndicatorsInfo;
+    private apiParser;
+    private cxOneConfig;
+    private readonly maxClientDataLength;
+    private static singleton;
+    private userInfo;
+    private validationUtils;
     protected logger: Logger;
     protected utilService: HttpUtilService;
-    private apiParser;
-    private agentIndicatorsInfo;
-    private static singleton;
-    private validationUtils;
-    private accessToken;
-    private cxOneConfig;
-    private userInfo;
-    private acdSessionManager;
     /**
      * Method to initialize the user details
      * (i.e) cxoneConfig, userInfo and aceessToken
@@ -106,11 +107,11 @@ export declare class AdminService {
      */
     getClientData(): Promise<string | CXoneSdkError>;
     /**
-     * Method to return client data
+     * Method to update client data
      * @returns - returns the client data
      * ```
      * @example
-     * getClientData()
+     * putClientData(clientData)
      * ```
      */
     putClientData(clientData: {

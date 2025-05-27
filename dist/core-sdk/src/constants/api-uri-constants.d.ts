@@ -21,6 +21,7 @@ export declare class ApiUriConstants {
     static RECORD_CALL_URI: string;
     static END_CONTACT_URI: string;
     static AGENT_STATE_URI: string;
+    static AGENT_STATE_UNIFY_URI: string;
     static SKILL_ACTIVITY_URI: string;
     static CONFERENCE_CALL_URI: string;
     static CONFERENCE_HOLD_URI: string;
@@ -129,4 +130,5 @@ export declare class ApiUriConstants {
     static SELECT_AGENT_LOCATION: string;
     static FEEDBACK_CATEGORIES_AND_PRIORITIES: string;
     static SUBMIT_FEEDBACK: string;
+    static AGENT_LOCALPOST_API: string;
 }

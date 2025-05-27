@@ -75,5 +75,13 @@ export declare enum CXoneAgentEvents {
     /**
      * @remarks - enum for capturing the events when the CRM entity navigation is changed
      */
-    CXONE_CRM_ENTITY_NAVIGATION_CHANGE = "CxoneCRMEntityNavigationChange"
+    CXONE_CRM_ENTITY_NAVIGATION_CHANGE = "CxoneCRMEntityNavigationChange",
+    /**
+     * @remarks - enum for voicemail contact type
+     */
+    CXONE_VOICE_MAIL_CONTACT_EVENT = "VoiceMailContact",
+    /**
+     * @remarks - enum for workitem contact type
+     */
+    CXONE_WORKITEM_CONTACT_EVENT = "WorkItemContact"
 }

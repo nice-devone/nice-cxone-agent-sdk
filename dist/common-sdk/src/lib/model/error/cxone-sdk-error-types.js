@@ -39,5 +39,9 @@ var CXoneSdkErrorType;
      * Error Type to be used for exception while invoking APIs
      */
     CXoneSdkErrorType["UNHANDLED_EXCEPTION"] = "UNHANDLED_EXCEPTION";
+    /**
+     * Error Type to be used when encryption of token fails
+     */
+    CXoneSdkErrorType["TOKEN_ENCRYPTION_ERROR"] = "TOKEN_ENCRYPTION_ERROR";
 })(CXoneSdkErrorType = exports.CXoneSdkErrorType || (exports.CXoneSdkErrorType = {}));
 //# sourceMappingURL=cxone-sdk-error-types.js.map

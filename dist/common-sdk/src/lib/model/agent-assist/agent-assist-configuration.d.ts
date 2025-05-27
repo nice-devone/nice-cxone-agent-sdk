@@ -71,7 +71,9 @@ export declare enum AgentAssistConfigACPParamsKeys {
     JOURNEY_SUMMARY = "journeySummary",
     LEGAL_DISCLOSURE = "legalDisclosure",
     DISCLOSURE_CARD_TITLE = "disclosureCardTitle",
-    DISCLOSURE_DESCRIPTION = "disclosureDescription"
+    DISCLOSURE_DESCRIPTION = "disclosureDescription",
+    ENABLE_INPUT_JSON_FILE = "enableInputJsonFile",
+    KNOWLEDGE_HUB_CONFIG = "knowledgeHubConfig"
 }
 export interface CopilotProfileConfig {
     /**
@@ -82,6 +84,10 @@ export interface CopilotProfileConfig {
      * The ID of the contact.
      */
     ContactId: string;
+    /**
+     * MediaType of the contact
+     */
+    MediaType: string;
     /**
      * Parameters
      */
@@ -170,5 +176,58 @@ export interface CopilotProfileConfig {
          * Indicates if the journey summary detail view is enabled.
          */
         journeySummaryDetailView: boolean;
+        /**
+         * Indicates configuration for the Knowledge Hub in the agent assist app.
+         */
+        knowledgeHubConfig?: KnowledgeHubConfiguration;
     };
+}
+/**
+ * Configuration for the Knowledge Hub in the agent assist app.
+ */
+export interface KnowledgeHubConfiguration {
+    /**
+     * The maximum number of articles that can be returned from the knowledge hub.
+     */
+    articleCount: number;
+    /**
+     * The audience for the content in the knowledge hub.
+     */
+    contentAudience: string;
+    /**
+    * Indicates if feedback for knowledge hub articles is enabled.
+    */
+    feedbackEnabled: boolean;
+    /**
+     * Indicates if images are enabled in the knowledge hub.
+     */
+    kbImagesEnabled: boolean;
+    /**
+     * The maximum number of images that can be returned from the knowledge hub.
+     */
+    kbImagesMaximumCount: number;
+    /**
+     * The unique ID of the knowledge hub.
+     */
+    knowledgeHubId: string;
+    /**
+     * Indicates if process steps are enabled in the knowledge hub.
+     */
+    processStepsEnabled: boolean;
+    /**
+     * The maximum length of responses returned from the knowledge hub.
+     */
+    responseLength: number;
+    /**
+     * Indicates if articles from the knowledge hub are shareable.
+     */
+    shareable: boolean;
+    /**
+    * Indicates if web links are enabled in the knowledge hub.
+    */
+    webLinksEnabled: boolean;
+    /**
+    * The maximum number of web links that can be included in the knowledge hub.
+    */
+    webLinksMaximumCount: number;
 }

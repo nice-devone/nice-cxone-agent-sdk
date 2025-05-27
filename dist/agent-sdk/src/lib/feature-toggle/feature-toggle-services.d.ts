@@ -12,48 +12,58 @@ export declare class FeatureToggleService {
     private featuresRequest;
     /**
      * Create instance of FeatureToggleService
-     * ```
      * @example
+     * ```
      * const ftService = new FeatureToggleService();
      * ```
      */
     constructor();
     /**
      * Method to create singleton object of the class
-     * ```
      * @example
+     * ```
      * const ftService = FeatureToggleService.instance;
      * ```
      */
     static get instance(): FeatureToggleService;
     /**
      * Method to load features
-     * ```
      * @example
+     * ```
      * loadFeatures()
      * ```
      */
     loadFeatures(): Promise<string[]>;
     /**
-     * Method to get feature toggle by Name
-     * ```
+     * Method to load features from storage
      * @example
+     * ```
+     * loadFeaturesFromStorage()
+     * ```
+     */
+    private loadFeaturesFromStorage;
+    /**
+     * Method to get feature toggle by Name
+     * @param featureName - The name of the feature toggle
+     * @example
+     * ```
      * getFeatureToggle('featureToggleName');
      * ```
      */
     getFeatureToggle(featureName: string): Promise<boolean>;
     /**
      * Method to get feature toggle
-     * ```
+     * @param featureName - The name of the feature toggle
      * @example
+     * ```
      * getFeatureToggleSync('featureToggleName')
      * ```
      */
     getFeatureToggleSync(featureName: string): boolean;
     /**
      * Method to get feature toggle by API call
-     * ```
      * @example
+     * ```
      * sendGetToggledFeaturesRequest()
      * ```
      */

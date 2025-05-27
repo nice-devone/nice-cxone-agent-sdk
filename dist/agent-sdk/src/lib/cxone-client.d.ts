@@ -84,7 +84,7 @@ export declare class CXoneClient {
      * this.initAuthDependentModules();
      * ```
      */
-    initAuthDependentModules(): void;
+    initAuthDependentModules(): Promise<void>;
     /**
      * method to initialize AgentIntegrationConfigurationService
      * @example

@@ -22,3 +22,4 @@ export * from './service/voice-service';
 export * from './service/voice-control-service';
 export * from './model/bulk-reply-response';
 export * from './model/bulk-reply-history';
+export * from './enum/page-action';

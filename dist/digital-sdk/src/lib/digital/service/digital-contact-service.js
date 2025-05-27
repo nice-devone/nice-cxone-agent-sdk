@@ -361,11 +361,11 @@ export class DigitalContactService {
         if (search !== '') {
             queryParams.search = search;
         }
-        if (channelId) {
-            queryParams.channelId = channelId;
-        }
         let url = baseUrl + this.DIGITAL_QUICK_REPLIES_OUTBOUND;
         url = this.urlUtilsService.appendQueryString(url, queryParams);
+        if (channelId) {
+            url += `&channelId%5B%5D=${channelId}`;
+        }
         const reqInit = this.utilService.initHeader(authToken);
         return new Promise((resolve, reject) => {
             HttpClient.get(url, reqInit).then((response) => {

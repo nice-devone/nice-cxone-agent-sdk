@@ -82,6 +82,12 @@ export const StorageKeys = {
     VOICE_BIO_HUB_AGENT_ASSIST: 'voiceBioHubAgentAssist',
     SFCRM_NAVIGATION_DATA: 'sfCrmNavigationData',
     FOCUSED_CONTACT_MEDIA_TYPE: 'focused_contact_media_type',
+    FEATURE_TOGGLES: 'feature_toggles',
+    ENCRYPTED_AUTH_TOKEN: 'cxagent.appInfo',
+    ENCRYPTED_KEY: 'cxagent.sk',
+    ENCRYPTION_IV: 'cxagent.userInfo',
+    ORIGINATING_SERVICE_IDENTIFIER: 'originating_service_identifier',
+    FAVORITE_AGENT_STATES: 'favoriteAgentStates',
 };
 export const NotificationSettings = {
     ACCESSIBILITY: 'Accessibility',
@@ -103,6 +109,7 @@ export const NotificationSettings = {
     SECONDARY_DEVICE: 'SecondaryDevice',
     SECONDARY_DEVICE_DELAY: 'SecondaryDeviceDelay',
     SECONDARY_DEVICE_SETTING: 'SecondaryDeviceSetting',
+    SECONDARY_DEVICE_NAME: 'SecondaryDeviceName',
     SOFTPHONE_SETTINGS_MENU: 'SoftphoneSettingsMenu',
     SOFTPHONE_VOLUME: 'SoftPhoneVolume',
     TWENTY_FOUR_HOUR_TIME: 'TwentyFourHourTime',

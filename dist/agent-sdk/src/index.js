@@ -30,4 +30,5 @@ export * from './lib/directory/cxone-directory';
 export * from './lib/directory/provider/cxone-directory-provider';
 export * from './lib/acd/cxone-agent-setting/cxone-agent-setting';
 export * from './lib/commitment/commitment-service';
+export * from './lib/agent-state/enum/unified-agent-state';
 //# sourceMappingURL=index.js.map

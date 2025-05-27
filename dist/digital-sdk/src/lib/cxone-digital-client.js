@@ -1,12 +1,13 @@
 import { __awaiter } from "tslib";
 import { CXoneProductFeature, SkillService, CXoneTenant, CXoneClient, FeatureToggleService } from '@nice-devone/agent-sdk';
-import { CXoneLeaderElector } from '@nice-devone/common-sdk';
+import { CXoneLeaderElector, MessageBus, MessageType, UserSlotsSchema } from '@nice-devone/common-sdk';
 import { LocalStorageHelper, Logger, StorageKeys } from '@nice-devone/core-sdk';
 import { CXoneAuth, CXoneUser } from '@nice-devone/auth-sdk';
 import { CXoneDigitalWebsocket } from './digital/ws/cxone-digital-websocket';
 import { DigitalService } from './digital/service/digital-service';
 import { DigitalContactManager } from './contact/digital-contact-manager';
 import { DigitalMessageNoteService } from './digital/service/digital-message-note-service';
+import { CXoneDigitalUtil } from './digital/util/cxone-digital-util';
 /** This is the base class for Digital */
 export class CXoneDigitalClient {
     /**
@@ -28,26 +29,54 @@ export class CXoneDigitalClient {
         this.auth = {};
         this.digitalMessageNoteService = {};
         /**
+         * Method to subscribe message bus polling response message
+         * @example
+         * ```
+         *  subscribePollingResponseMessage()
+         * ```
+        */
+        this.subscribePollingResponseMessage = () => {
+            var _a, _b;
+            (_b = (_a = MessageBus === null || MessageBus === void 0 ? void 0 : MessageBus.instance) === null || _a === void 0 ? void 0 : _a.onResponseMessage) === null || _b === void 0 ? void 0 : _b.subscribe((msg) => {
+                var _a;
+                if ((msg === null || msg === void 0 ? void 0 : msg.type) === MessageType.START_USER_SLOT_API_POLLING) {
+                    const userSlotResponse = UserSlotsSchema.validateSync(msg === null || msg === void 0 ? void 0 : msg.data, { stripUnknown: true });
+                    (_a = this.digitalContactManager) === null || _a === void 0 ? void 0 : _a.parseUserSlotPollResponse(userSlotResponse, false);
+                }
+            });
+        };
+        /**
          * Subscription for leader change event
          */
         this.onLeaderElectionChange = () => {
-            CXoneLeaderElector.instance.onLeaderChanged.subscribe((isLeader) => {
-                var _a, _b;
+            CXoneLeaderElector.instance.onLeaderChanged.subscribe((isLeader) => __awaiter(this, void 0, void 0, function* () {
+                var _a, _b, _c;
                 if (isLeader) {
                     this.logger.info('onLeaderChanged', 'I AM THE LEADER');
                     // start refresh token flow
-                    const isRefreshTokenFlowStarted = this.auth.startRefreshTokenCheck(this.auth.getAuthToken(), isLeader, this.auth.getAuthState().isTokenValid);
+                    let isRefreshTokenFlowStarted = false;
+                    try {
+                        isRefreshTokenFlowStarted = this.auth.startRefreshTokenCheck(this.auth.getAuthToken(), isLeader, this.auth.getAuthState().isTokenValid);
+                    }
+                    catch (error) {
+                        this.logger.error('onLeaderChanged', 'Error in starting refresh token flow ' + JSON.stringify(error));
+                    }
                     if (isRefreshTokenFlowStarted) {
+                        // Calling manageUserSlotDetails to start polling of user-slot API once leader is elected an FT is on, in-order to avoid leader undefined issue
+                        const isUserSlotFTEnabled = yield CXoneDigitalUtil.instance.isUserSlotFeatureToggleEnabled();
+                        if (isUserSlotFTEnabled) {
+                            (_a = this.digitalContactManager) === null || _a === void 0 ? void 0 : _a.manageUserSlotDetails();
+                        }
                         // Update Digital agent status polling
                         if (!this.isStartedDigitalStatusPolling &&
-                            ((_b = (_a = this.digitalContactManager) === null || _a === void 0 ? void 0 : _a.userSlotProvider) === null || _b === void 0 ? void 0 : _b.updateDigitalStatus))
+                            ((_c = (_b = this.digitalContactManager) === null || _b === void 0 ? void 0 : _b.userSlotProvider) === null || _c === void 0 ? void 0 : _c.updateDigitalStatus))
                             this.digitalContactManager.userSlotProvider.updateDigitalStatus();
                         // Event Hub Subscription on Leader tab (Every 5 mins)
                         if (this.digitalContactManager.subscribeToEventHub)
                             this.digitalContactManager.subscribeToEventHub();
                     }
                 }
-            });
+            }));
         };
         this.auth = CXoneAuth.instance;
         this.onLeaderElectionChange();
@@ -76,47 +105,50 @@ export class CXoneDigitalClient {
      * ```
      */
     initDigitalEngagement() {
-        this.digitalService = new DigitalService();
-        this.digitalMessageNoteService = new DigitalMessageNoteService();
-        this.cxoneTenant = new CXoneTenant();
-        if (!CXoneClient.instance.hasInitModuleInitiated)
-            CXoneClient.instance.initAuthDependentModules();
-        this.digitalContactManager = new DigitalContactManager();
-        this.cxoneTenant = new CXoneTenant();
-        this.cxoneUser = CXoneUser.instance;
-        this.digitalMessageNoteService = new DigitalMessageNoteService();
-        this.logger.info('initDigitalEngagement', 'this.cxoneTenant:' + this.cxoneTenant);
-        this.cxoneTenant
-            .checkProductEnablement([CXoneProductFeature.DIGITAL])
-            .then((resp) => {
-            if (resp) {
-                this.cxoneUser.checkUserDigitalEngagement().then((response) => __awaiter(this, void 0, void 0, function* () {
-                    // @TODO: handled error from console now. will remove this quick fix after fall(AW-3982).
-                    try {
-                        this.digitalService = new DigitalService();
-                        yield this.getDigitalUserDetails();
-                        this.updateDfoWSUrl();
-                        this.digitalContactManager.initializeDigital();
-                        this.cxoneDigitalWebsocket = new CXoneDigitalWebsocket();
-                        yield this.digitalService.getDigitalAgentStatus();
-                        //On initial load we fetch skill details list and store into Indexed DB (customer and agent response time related data we get from this method).
-                        this.skillService.getAllSkillsList();
-                        // on initial load we fetch canEraseMessageContentAndUserNames flag and store into local storage
-                        this.digitalService.getCanEraseMessageContentAndUserNames();
-                        if (CXoneLeaderElector.instance.isLeader) {
-                            this.isStartedDigitalStatusPolling = true;
-                            this.digitalContactManager.userSlotProvider.updateDigitalStatus();
+        return __awaiter(this, void 0, void 0, function* () {
+            this.digitalService = new DigitalService();
+            this.digitalMessageNoteService = new DigitalMessageNoteService();
+            this.cxoneTenant = new CXoneTenant();
+            if (!CXoneClient.instance.hasInitModuleInitiated)
+                yield CXoneClient.instance.initAuthDependentModules();
+            this.digitalContactManager = new DigitalContactManager();
+            this.cxoneTenant = new CXoneTenant();
+            this.cxoneUser = CXoneUser.instance;
+            this.digitalMessageNoteService = new DigitalMessageNoteService();
+            this.logger.info('initDigitalEngagement', 'this.cxoneTenant:' + this.cxoneTenant);
+            this.cxoneTenant
+                .checkProductEnablement([CXoneProductFeature.DIGITAL])
+                .then((resp) => {
+                if (resp) {
+                    this.cxoneUser.checkUserDigitalEngagement().then((response) => __awaiter(this, void 0, void 0, function* () {
+                        // @TODO: handled error from console now. will remove this quick fix after fall(AW-3982).
+                        try {
+                            this.digitalService = new DigitalService();
+                            yield this.getDigitalUserDetails();
+                            this.updateDfoWSUrl();
+                            this.subscribePollingResponseMessage();
+                            this.digitalContactManager.initializeDigital();
+                            this.cxoneDigitalWebsocket = new CXoneDigitalWebsocket();
+                            yield this.digitalService.getDigitalAgentStatus();
+                            //On initial load we fetch skill details list and store into Indexed DB (customer and agent response time related data we get from this method).
+                            this.skillService.getAllSkillsList();
+                            // on initial load we fetch canEraseMessageContentAndUserNames flag and store into local storage
+                            this.digitalService.getCanEraseMessageContentAndUserNames();
+                            if (CXoneLeaderElector.instance.isLeader) {
+                                this.isStartedDigitalStatusPolling = true;
+                                this.digitalContactManager.userSlotProvider.updateDigitalStatus();
+                            }
+                            this.logger.info('initDigitalEngagement', 'Init Digital Engagement success ' + JSON.stringify(response));
                         }
-                        this.logger.info('initDigitalEngagement', 'Init Digital Engagement success ' + JSON.stringify(response));
-                    }
-                    catch (error) {
-                        this.logger.error('initDigitalEngagement', 'Error in initiating digital engagement' +
-                            JSON.stringify(error));
-                    }
-                }), (error) => {
-                    this.logger.error('initDigitalEngagement', 'Init Digital Engagement failed ' + JSON.stringify(error));
-                });
-            }
+                        catch (error) {
+                            this.logger.error('initDigitalEngagement', 'Error in initiating digital engagement' +
+                                JSON.stringify(error));
+                        }
+                    }), (error) => {
+                        this.logger.error('initDigitalEngagement', 'Init Digital Engagement failed ' + JSON.stringify(error));
+                    });
+                }
+            });
         });
     }
     /**

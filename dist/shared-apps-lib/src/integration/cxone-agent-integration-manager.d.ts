@@ -105,4 +105,14 @@ export declare class CXoneAgentIntegrationManager {
    * embedded-app has initialized.
    */
     private dispatchInitializationStatusToHost;
+    /**
+     * Handler of VoiceMail Contact CustomEvent raised from CXone Agent
+     * @example
+     */
+    private handleCXoneVoiceMailContactEvent;
+    /**
+     * Handler of WorkItem Contact CustomEvent raised from CXone Agent
+     * @example
+     */
+    private handleCXoneWorkItemContactEvent;
 }

@@ -1,6 +1,6 @@
 import { CXoneAuth } from '@nice-devone/auth-sdk';
 import { Subject } from 'rxjs';
-import { AgentAssistSubscribe, AgentAssistCommand, AgentAssistConnectedResponse, AgentAssistSubscribedResponse, AgentAssistErrorResponse, CopilotMessageResponse, CXoneLeaderElector, MessageBus, MessageType, } from '@nice-devone/common-sdk';
+import { AgentAssistSubscribe, AgentAssistCommand, AgentAssistConnectedResponse, AgentAssistSubscribedResponse, AgentAssistErrorResponse, CopilotMessageResponse, CXoneLeaderElector, MessageBus, MessageType, AgentAssistConnect, } from '@nice-devone/common-sdk';
 import { AgentAssistNotificationService } from '../agent-assist/agent-assist-notification-service';
 /**
  *  web socket class for agent copilot
@@ -8,6 +8,8 @@ import { AgentAssistNotificationService } from '../agent-assist/agent-assist-not
 export class CopilotNotificationClient extends AgentAssistNotificationService {
     constructor() {
         super(...arguments);
+        this.agentId = '';
+        this.webSocketUri = '';
         this.topic = '';
         this.onMessageNotification = new Subject();
     }
@@ -16,10 +18,13 @@ export class CopilotNotificationClient extends AgentAssistNotificationService {
      * @example -  connect('ws://localhost:8080');
      * @param websocketServerUri - websocketServer uri
      */
-    connect(websocketServerUri) {
+    connect(websocketServerUri, agentId) {
+        this.webSocketUri = websocketServerUri;
+        this.agentId = agentId;
         this.initLogger('agentCopilot');
         this.initWebSocketWorker('agentCopilot');
         super.connect(websocketServerUri, 'Agent-Copilot');
+        this.logger.info('Connect', 'Connecting to WebSocket for Agent-Assist');
         return true;
     }
     /**
@@ -36,16 +41,6 @@ export class CopilotNotificationClient extends AgentAssistNotificationService {
                 const accessToken = CXoneAuth.instance.getAuthToken().accessToken;
                 const req = new AgentAssistSubscribe(accessToken, this.topic);
                 this.sendMessage(req, this.wssWorker);
-                if (this.wssWorker) {
-                    this.wssWorker.onmessage = (response) => {
-                        this.checkWSEvent(response === null || response === void 0 ? void 0 : response.data);
-                    };
-                    this.wssWorker.onerror = (error) => {
-                        this.logger.error('wssWorker-subscribe', 'Error occured on wssWorker' + error);
-                        super.disconnectWebsocket();
-                        super.reconnectWebsocket();
-                    };
-                }
             });
         }
         return true;
@@ -74,7 +69,16 @@ export class CopilotNotificationClient extends AgentAssistNotificationService {
     onMessage(message) {
         const msgResponse = this.parse(message);
         switch (msgResponse.command) {
-            case AgentAssistCommand.connected:
+            case AgentAssistCommand.connected: {
+                const agentCopilotInput = {
+                    webSocketUri: this.webSocketUri,
+                    contactId: `${this.agentId}_agentcopilot`,
+                    providerId: 'agentCopilot',
+                    subscriptions: [`${this.agentId}_agentcopilot`, `${this.agentId}_agentcopilot_health`],
+                };
+                this.subscribe(agentCopilotInput);
+                break;
+            }
             case AgentAssistCommand.message:
             case AgentAssistCommand.subscribed:
                 {
@@ -136,13 +140,20 @@ export class CopilotNotificationClient extends AgentAssistNotificationService {
      * @example - onOpen()
      */
     onOpen() {
-        // TODO: For now we don't want these postResponseMessage() but in future will uncomment.
-        // const postResponseMessage = {
-        //     contactId: ``,
-        //     type: AgentAssistCommand.open,
-        //     data: 'WebSocket connection is ready to send and receive data',
-        // };
-        // this.onMessageNotification.next(postResponseMessage);
+        var _a;
+        this.reconnectAttemptSource = null;
+        const cx1Token = (_a = this.auth) === null || _a === void 0 ? void 0 : _a.getAuthToken().accessToken;
+        const req = new AgentAssistConnect(cx1Token);
+        this.sendMessage(req, this.wssWorker);
+    }
+    /**
+     * Callback method triggered when the WebSocket connection needs to be re-established.
+     * Resets the connection ID and reconnects using the stored WebSocket URI and provider ID.
+     * @example - onReconnect()
+     */
+    onReconnect() {
+        this.connectionId = '';
+        this.connect(this.agentAssistInput.webSocketUri, this.agentId);
     }
 }
 //# sourceMappingURL=copilot-notification-client.js.map

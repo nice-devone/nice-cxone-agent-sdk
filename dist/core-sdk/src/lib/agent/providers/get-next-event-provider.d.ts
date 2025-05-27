@@ -11,6 +11,8 @@ export declare class GetNextEventProvider {
     protected utilService: HttpUtilService;
     private getNextEventAdapter;
     private agentSession;
+    private getNextEventHandler;
+    private isRestartGetNextEventEnabled;
     /**
      * constructor which sets agent session instance
      */

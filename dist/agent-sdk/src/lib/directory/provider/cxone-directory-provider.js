@@ -1,9 +1,11 @@
 import { __awaiter } from "tslib";
 import { ACDSessionManager, ApiUriConstants, HttpUtilService, Logger, IndexDBStoreNames, dbInstance, IndexDBKeyNames, clearIndexDbStore, LocalStorageHelper, StorageKeys, LoadWorker, } from '@nice-devone/core-sdk';
-import { MessageBus, MessageType, DirectoryEntities } from '@nice-devone/common-sdk';
+import { MessageBus, MessageType, DirectoryEntities, } from '@nice-devone/common-sdk';
 import { CXoneDirectoryAdapter } from '../adapter/cxone-directory-adapter';
 import { DirectorySearchFilter } from '../util/utility';
 import { AuthStatus } from '@nice-devone/auth-sdk';
+import { FeatureToggleService } from '../../feature-toggle/feature-toggle-services';
+import { UnifiedDirectoryAgentStates } from '../../agent-state/enum/unified-agent-state';
 const NO_MATCHING_RECORDS_FOUND = 'No Matching Records Found.';
 const OFFSET_AND_LIMIT_VALUES_SHOULD_ALWAYS_BE_GREATER_THAN_ZERO = 'Offset and Limit values should always be greater than zero.';
 const AgentState = {
@@ -18,6 +20,13 @@ const AgentState = {
     'dialerpending': 3,
     'loggedout': 4,
     'unknown': 10,
+};
+const UnifiedAgentStateSortOrder = {
+    [UnifiedDirectoryAgentStates.AGENT_STATE_AWAITING_CONTACTS]: 1,
+    [UnifiedDirectoryAgentStates.AGENT_STATE_UNAVAILABLE]: 2,
+    [UnifiedDirectoryAgentStates.AGENT_STATE_WORKING_CONTACTS]: 3,
+    [UnifiedDirectoryAgentStates.AGENT_STATE_ENDED]: 4,
+    [UnifiedDirectoryAgentStates.AGENT_STATE_UNSPECIFIED]: 5,
 };
 /**
  * Directory Provider Class
@@ -465,21 +474,36 @@ export class CXoneDirectoryProvider {
         this.isFreshRequest = true; // whenever new api request for directory is made that means its an explicit user request to get the directory data as per the entity provided
         this.logger.info('startPolling', 'startPolling in CXoneDirectoryProvider');
         const requests = [];
-        this.baseUri = this.acdSession.cxOneConfig.acdApiBaseUri;
+        const isFTUnifyAgentStateOn = FeatureToggleService.instance.getFeatureToggleSync("release-cx-directory-agent-state-working-digital-AW-28472" /* FeatureToggles.DIRECTORY_AGENT_STATE_WORKING_DIGITAL_FEATURE_TOGGLE */);
+        this.baseUri = isFTUnifyAgentStateOn ? this.acdSession.cxOneConfig.apiFacadeBaseUri : this.acdSession.cxOneConfig.acdApiBaseUri;
         const authToken = this.acdSession.accessToken;
         if (this.baseUri && authToken) {
             if (entity.includes(DirectoryEntities.AGENT_LIST)) {
-                const agentStateUrl = new URL(ApiUriConstants.AGENT_STATE_URI, this.baseUri);
-                agentStateUrl.searchParams.set('fields', 'agentId,agentStateName,contactId,firstName,isActive,isOutbound,lastName,lastPollTime,lastUpdateTime,mediaName,outStateCode,outStateDescription,skillId,skillName,startDate,stationPhoneNumber,teamId,teamName,userName,userId');
-                agentStateUrl.searchParams.set('updatedSince', new Date(0).toISOString());
-                const agentStateRequest = {
-                    headers: this.utilService.initHeader(authToken).headers,
-                };
-                requests.push({
-                    url: agentStateUrl.toString(),
-                    request: agentStateRequest,
-                    id: DirectoryEntities.AGENT_LIST,
-                });
+                if (isFTUnifyAgentStateOn) {
+                    const agentStateUrl = new URL(ApiUriConstants.AGENT_STATE_UNIFY_URI, this.baseUri);
+                    agentStateUrl.searchParams.set('updatedSince', new Date(0).toISOString());
+                    const agentStateRequest = {
+                        headers: this.utilService.initHeader(authToken).headers,
+                    };
+                    requests.push({
+                        url: agentStateUrl.toString(),
+                        request: agentStateRequest,
+                        id: DirectoryEntities.AGENT_LIST,
+                    });
+                }
+                else {
+                    const agentStateUrl = new URL(ApiUriConstants.AGENT_STATE_URI, this.baseUri);
+                    agentStateUrl.searchParams.set('fields', 'agentId,agentStateName,contactId,firstName,isActive,isOutbound,lastName,lastPollTime,lastUpdateTime,mediaName,outStateCode,outStateDescription,skillId,skillName,startDate,stationPhoneNumber,teamId,teamName,userName,userId');
+                    agentStateUrl.searchParams.set('updatedSince', new Date(0).toISOString());
+                    const agentStateRequest = {
+                        headers: this.utilService.initHeader(authToken).headers,
+                    };
+                    requests.push({
+                        url: agentStateUrl.toString(),
+                        request: agentStateRequest,
+                        id: DirectoryEntities.AGENT_LIST,
+                    });
+                }
             }
             if (entity.includes(DirectoryEntities.SKILL_LIST)) {
                 const skillUrl = new URL(ApiUriConstants.SKILL_ACTIVITY_URI, this.baseUri);
@@ -1231,6 +1255,14 @@ export class CXoneDirectoryProvider {
         return AgentState[agentStateName === null || agentStateName === void 0 ? void 0 : agentStateName.toLowerCase()] || AgentState.unavailable;
     }
     /**
+     * @param agentStateName - string
+     * @returns agentState - number
+     * @example getUnifiedAgentStateOrDefault(agentState)
+     */
+    getUnifiedAgentStateOrDefault(agentStateName) {
+        return UnifiedAgentStateSortOrder[agentStateName] || UnifiedAgentStateSortOrder[UnifiedDirectoryAgentStates.AGENT_STATE_UNAVAILABLE];
+    }
+    /**
      *
      * @param agentList - list of agent
      * @param searchText - used to sort data by position of the searchText.
@@ -1238,21 +1270,37 @@ export class CXoneDirectoryProvider {
      * @example sortAgentList(agentlist, searchText)
      */
     sortAgentList(agentList, searchText) {
+        const isDigitalWorkingStateFeatureToggleEnabled = FeatureToggleService.instance.getFeatureToggleSync("release-cx-directory-agent-state-working-digital-AW-28472" /* FeatureToggles.DIRECTORY_AGENT_STATE_WORKING_DIGITAL_FEATURE_TOGGLE */);
         //sort agent list by agent state.
         let sortedAgentList = agentList.sort((agentA, agentB) => {
-            return this.getAgentStateOrDefault(agentA.agentStateName) - this.getAgentStateOrDefault(agentB.agentStateName);
+            if (isDigitalWorkingStateFeatureToggleEnabled) {
+                return this.getUnifiedAgentStateOrDefault(agentA.agentStateName) - this.getUnifiedAgentStateOrDefault(agentB.agentStateName);
+            }
+            else {
+                return this.getAgentStateOrDefault(agentA.agentStateName) - this.getAgentStateOrDefault(agentB.agentStateName);
+            }
         });
         // sort agent list with same state alphabetically.
         sortedAgentList = sortedAgentList.sort((agentA, agentB) => {
-            if (this.getAgentStateOrDefault(agentA.agentStateName) === this.getAgentStateOrDefault(agentB.agentStateName)) {
-                return (agentA.firstName + ' ' + agentA.lastName).toUpperCase().localeCompare((agentB.firstName + ' ' + agentB.lastName).toUpperCase());
+            if ((isDigitalWorkingStateFeatureToggleEnabled &&
+                this.getUnifiedAgentStateOrDefault(agentA.agentStateName) ===
+                    this.getUnifiedAgentStateOrDefault(agentB.agentStateName)) ||
+                (!isDigitalWorkingStateFeatureToggleEnabled &&
+                    this.getAgentStateOrDefault(agentA.agentStateName) === this.getAgentStateOrDefault(agentB.agentStateName))) {
+                return (agentA.firstName + ' ' + agentA.lastName)
+                    .toUpperCase()
+                    .localeCompare((agentB.firstName + ' ' + agentB.lastName).toUpperCase());
             }
             return 0;
         });
         // sort agent list with same state by the position of search term.
         if (searchText) {
             sortedAgentList = sortedAgentList.sort((agentA, agentB) => {
-                if (this.getAgentStateOrDefault(agentA.agentStateName) === this.getAgentStateOrDefault(agentB.agentStateName)) {
+                if ((isDigitalWorkingStateFeatureToggleEnabled &&
+                    this.getUnifiedAgentStateOrDefault(agentA.agentStateName) ===
+                        this.getUnifiedAgentStateOrDefault(agentB.agentStateName)) ||
+                    (!isDigitalWorkingStateFeatureToggleEnabled &&
+                        this.getAgentStateOrDefault(agentA.agentStateName) === this.getAgentStateOrDefault(agentB.agentStateName))) {
                     const searchTermPositionA = (agentA.firstName + ' ' + agentA.lastName).toUpperCase().indexOf(searchText);
                     const searchTermPositionB = (agentB.firstName + ' ' + agentB.lastName).toUpperCase().indexOf(searchText);
                     return searchTermPositionA - searchTermPositionB;

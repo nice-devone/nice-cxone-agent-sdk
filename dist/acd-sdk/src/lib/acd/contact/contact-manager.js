@@ -44,6 +44,7 @@ export class ContactManager {
         // this subject is used to update typing preview for the chat with Events like senderTyping, messagePreview.
         this.onDigitalContactUserTypingPreviewEvent = new Subject();
         this.onCoBrowseEvent = new Subject();
+        this.onLocalPostEvent = new Subject();
         this.dispositionsData = {};
         this.tagsData = {};
         this.viewOnlyCases = [];
@@ -86,6 +87,7 @@ export class ContactManager {
         this.workItemContactEventHandler();
         this.muteEventHandler();
         this.coBrowseEventHandler();
+        this.localPostEventHandler();
         this.dispositionService = new DispositionService();
         this.skillService = new SkillService();
         this.VoiceMailPlayBackEventHandler();
@@ -120,6 +122,16 @@ export class ContactManager {
     coBrowseEventHandler() {
         this.acdSession.coBrowseEvent.subscribe((data) => {
             this.onCoBrowseEvent.next(data);
+        });
+    }
+    /**
+     * initialize localpost event handler
+     * @example localPostEventHandler
+     */
+    localPostEventHandler() {
+        this.acdSession.localPostEvent.subscribe((data) => {
+            this.onLocalPostEvent.next(data);
+            this.contactService.sendLocalPostEventData(data);
         });
     }
     /**

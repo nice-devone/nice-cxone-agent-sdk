@@ -1,6 +1,6 @@
 import { CXoneVoiceContact } from './cxone-voice-contact';
 import { Subject } from 'rxjs';
-import { CXoneDisposition, CXoneSdkError, HttpResponse, CXoneDispositionDetails, TagsResponse, VoiceMailContactEvent, VoiceMailPlayBackEvent, CXoneMessage, WorkItemContactEvent, CXoneTypingMessageContent, CoBrowseEvent, MediaType } from '@nice-devone/common-sdk';
+import { CXoneDisposition, CXoneSdkError, HttpResponse, CXoneDispositionDetails, TagsResponse, VoiceMailContactEvent, VoiceMailPlayBackEvent, CXoneMessage, WorkItemContactEvent, CXoneTypingMessageContent, CoBrowseEvent, MediaType, LocalPostEvent } from '@nice-devone/common-sdk';
 import { CXoneVoiceMailContact } from './cxone-voicemail-contact';
 import { CXoneWorkItemContact } from './cxone-workitem-contact';
 import { DispositionService, PersonalConnectionService, ContactService, VoiceService } from '@nice-devone/agent-sdk';
@@ -41,6 +41,7 @@ export declare class ContactManager {
         message?: CXoneTypingMessageContent;
     }>;
     onCoBrowseEvent: Subject<CoBrowseEvent>;
+    onLocalPostEvent: Subject<LocalPostEvent>;
     private dispositionsData;
     private tagsData;
     private viewOnlyCases;
@@ -66,6 +67,11 @@ export declare class ContactManager {
      * @example coBrowseEventHandler
      */
     coBrowseEventHandler(): void;
+    /**
+     * initialize localpost event handler
+     * @example localPostEventHandler
+     */
+    localPostEventHandler(): void;
     /**
      * subscribe to auto summary event
      */

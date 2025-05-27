@@ -7,7 +7,7 @@ exports.CXoneAuthorEndUserIdentitySchema = (0, yup_1.object)({
     nickname: (0, yup_1.string)(),
     image: (0, yup_1.string)(),
     id: (0, yup_1.string)().required(),
-    fullName: (0, yup_1.string)().required(),
+    fullName: (0, yup_1.string)().nullable().optional(),
     externalPlatformId: (0, yup_1.string)(),
 });
 exports.CXoneAuthorUserSchema = (0, yup_1.object)({

@@ -66,5 +66,17 @@ var AgentCopilotContentType;
     * Represents the copilot disclosure card content type.
     */
     AgentCopilotContentType["DISCLOSURE"] = "disclosure";
+    /**
+     * Represents the Autopilot transfer summary content type.
+     */
+    AgentCopilotContentType["AUTOPILOT_TRANSFER_SUMMARY"] = "autopilotTransferSummary";
+    /**
+     * Represents the copilot custom card content type.
+     */
+    AgentCopilotContentType["CUSTOM_CARD"] = "customCard";
+    /**
+     * Represents the copilot Task asist Request State content type.
+     */
+    AgentCopilotContentType["TASK_ASSIST"] = "taskAssist";
 })(AgentCopilotContentType = exports.AgentCopilotContentType || (exports.AgentCopilotContentType = {}));
 //# sourceMappingURL=agent-copilot-content-type.js.map

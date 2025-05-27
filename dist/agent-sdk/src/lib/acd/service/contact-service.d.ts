@@ -1,5 +1,5 @@
 import { HttpUtilService, Logger } from '@nice-devone/core-sdk';
-import { HttpResponse } from '@nice-devone/common-sdk';
+import { HttpResponse, LocalPostEvent } from '@nice-devone/common-sdk';
 import { amdOverrideType } from '../enum/amd-override-type';
 /**
  * Class to handling contact services
@@ -100,4 +100,11 @@ export declare class ContactService {
      * ```
      */
     answeringMachineOverride(contactId: string, type: amdOverrideType): Promise<HttpResponse>;
+    /**
+       * Method to send payload sent via local post event
+       * @param customData - contains an object containing port, path and payload
+       * @returns - API Returns Response JSON
+       * @example - connectLocalPostapi(customData)
+       */
+    sendLocalPostEventData: (customData: LocalPostEvent) => Promise<unknown>;
 }

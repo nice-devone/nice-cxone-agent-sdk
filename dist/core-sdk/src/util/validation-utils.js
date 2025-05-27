@@ -1,8 +1,12 @@
 import * as linkify from 'linkifyjs';
+import { SecurityHelper } from './security-helper';
 /**
  * This class to provide basic validation methods
  */
 export class ValidationUtils {
+    constructor() {
+        this.securityHelper = new SecurityHelper();
+    }
     /**
      * This method to check value is not null or undefined
      * @param value  - any type of value
@@ -173,7 +177,7 @@ export class ValidationUtils {
      * ```
      */
     validateToken(accessToken) {
-        const decodedTokenPayload = JSON.parse(window.atob(accessToken === null || accessToken === void 0 ? void 0 : accessToken.split('.')[1]));
+        const decodedTokenPayload = this.securityHelper.parseJwt(accessToken);
         const currentTime = Math.floor(Date.now() / 1000);
         return decodedTokenPayload.exp > currentTime;
     }

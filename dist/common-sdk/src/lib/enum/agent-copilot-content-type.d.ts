@@ -61,5 +61,17 @@ export declare enum AgentCopilotContentType {
     /**
     * Represents the copilot disclosure card content type.
     */
-    DISCLOSURE = "disclosure"
+    DISCLOSURE = "disclosure",
+    /**
+     * Represents the Autopilot transfer summary content type.
+     */
+    AUTOPILOT_TRANSFER_SUMMARY = "autopilotTransferSummary",
+    /**
+     * Represents the copilot custom card content type.
+     */
+    CUSTOM_CARD = "customCard",
+    /**
+     * Represents the copilot Task asist Request State content type.
+     */
+    TASK_ASSIST = "taskAssist"
 }

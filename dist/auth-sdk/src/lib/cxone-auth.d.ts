@@ -23,6 +23,7 @@ export declare class CXoneAuth {
     private oidcConfig;
     private isActiveImpersonatedUser;
     onAuthStatusChange: Subject<AuthResponse>;
+    authTokenEmpty: Subject<boolean>;
     authSettings: AuthSettings;
     /**
      * constructor for CXoneAuth
@@ -137,11 +138,15 @@ export declare class CXoneAuth {
      * this.restoreData();
      * ```
      */
-    restoreData(): void;
+    restoreData(authTokenFromLeader?: AuthToken): Promise<void>;
     /**
      * Subscription for response message over broadcast channel
      */
     private subscribeResponseMessage;
+    /**
+     * Subscription for empty auth token
+     */
+    private subscribeEmptyAuthToken;
     /**
      * Method used to parse the auth token, user info and store the values to local storage
      * @param authToken - authToken response
@@ -352,4 +357,101 @@ export declare class CXoneAuth {
      * ```
      */
     private getUserManagementDetails;
+    /**
+     * Encrypts the provided authentication token and stores it in local storage.
+     * @param authToken - The authentication token to be encrypted and stored.
+     * @returns A promise that resolves when the token has been successfully encrypted and stored.
+     * @throws Will log an error to the console if there is an issue during the encryption or storage process.
+     * @example
+     * ```
+     * await this.setEncryptedAuthToken(authToken);
+     * ```
+     */
+    setEncryptedAuthToken(authToken: AuthToken): Promise<void | CXoneSdkError>;
+    /**
+       * Retrieves a CryptoKey by decrypting an encrypted key using a derived key.
+       * @param userId - The user ID used to derive the secondary key.
+       * @param encryptedKey - The encrypted key that needs to be decrypted.
+       * @param iv - The initialization vector used for decryption.
+       * @returns A promise that resolves to a CryptoKey.
+       * @example
+       * ```
+       * const cryptoKey = await this.getCryptoKey('user123', 'encryptedKeyString', 'initializationVector');
+       * ```
+       */
+    private getCryptoKey;
+    /**
+       * Retrieves or generates a cryptographic key for the specified user.
+       * @param userId - The ID of the user for whom the cryptographic key is being retrieved or generated.
+       * @returns A promise that resolves to the cryptographic key.
+       * @example
+       * ```
+       * const cryptoKey = await this.getOrGenerateCryptoKey('user123');
+       * ```
+       */
+    private getOrGenerateCryptoKey;
+    /**
+       * Generates a cryptographic key, encrypts it, and stores it in local storage.
+       * @param userId - The user ID used to derive the secondary encryption key.
+       * @returns A promise that resolves to the generated CryptoKey.
+       * @example
+       * ```
+       * const cryptoKey = await this.generateAndStoreCryptoKey('user123');
+       * ```
+       */
+    private generateAndStoreCryptoKey;
+    /**
+       * Encrypts a given token using the provided CryptoKey.
+       *
+       * @param token - The token to be encrypted.
+       * @param cryptoKey - The CryptoKey used for encryption.
+       * @returns A promise that resolves to a JSONWebKey containing the encrypted token and initialization vector.
+       *
+       * @example
+       * ```
+       * const token = "my-secret-token";
+       * const cryptoKey = await crypto.subtle.generateKey(
+       *   {
+       *     name: "AES-GCM",
+       *     length: 256,
+       *   },
+       *   true,
+       *   ["encrypt", "decrypt"]
+       * );
+       * const encryptedToken = await encryptToken(token, cryptoKey);
+       * this.logger.log(encryptedToken);
+       * // Output: { t: "encryptedText", i: "initializationVector" }
+       * ```
+       */
+    private encryptToken;
+    /**
+     * Retrieves and decrypts the authentication token stored in local storage.
+     * @returns A promise that resolves to the decrypted authentication token, or null if decryption fails.
+     * @throws If an error occurs during the decryption process.
+     * @remarks
+     * This method retrieves the encrypted authentication token, encrypted key, and user information from local storage.
+     * It then attempts to decrypt the token using the retrieved information. If any required information is missing or
+     * decryption fails, the method returns null.
+     *
+     * @example
+     * ```
+     * const decryptedToken = await authSdk.getDecryptedToken();
+     * ```
+     */
+    getDecryptedToken(): Promise<AuthToken | null>;
+    /**
+     * Validates if the feature toggle for token encryption is enabled and retrieves the decrypted token.
+     * @returns A promise that resolves to the decrypted authentication token, or null if decryption fails or the feature toggle is disabled.
+     * @example
+     * ```
+     * const decryptedToken = await this.validateFtAndGetDecryptedToken();
+     * ```
+     */
+    validateFtAndGetDecryptedToken(): Promise<AuthToken | null>;
+    /**
+     * Method to check Ft and save auth token
+     * @param authToken - authToken to be saved
+     * @example validateFTAndSetAuthToken(authToken)
+     */
+    validateFTAndSetAuthToken(authToken: AuthToken, reject?: () => void): Promise<void>;
 }

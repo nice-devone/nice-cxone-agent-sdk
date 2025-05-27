@@ -6,3 +6,4 @@ export * from './copilot-summary';
 export * from './copilot-request-status';
 export * from './copilot-filter-details';
 export * from './contact-history';
+export * from './copilot-task-assist';

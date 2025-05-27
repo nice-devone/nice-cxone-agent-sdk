@@ -1,5 +1,6 @@
 import { __awaiter } from "tslib";
 import { AgentStateResponse, SkillEvent, DirectoryEntities, Team, } from '@nice-devone/common-sdk';
+import { FeatureToggleService } from '../../feature-toggle/feature-toggle-services';
 /**
  * Directory Adapter class to handle the agent api's data response
  */
@@ -14,7 +15,7 @@ export class CXoneDirectoryAdapter {
      * ```
      */
     handleEvent(response) {
-        var _a, _b;
+        var _a, _b, _c, _d;
         return __awaiter(this, void 0, void 0, function* () {
             const agentStateList = [];
             const SkillList = [];
@@ -23,17 +24,29 @@ export class CXoneDirectoryAdapter {
             let addressBookEntriesCount = 0;
             if (response.get(DirectoryEntities.AGENT_LIST)) {
                 const agentStateValue = response.get(DirectoryEntities.AGENT_LIST);
-                if (agentStateValue.status === 'fulfilled' && ((_a = agentStateValue === null || agentStateValue === void 0 ? void 0 : agentStateValue.value.resultSet) === null || _a === void 0 ? void 0 : _a.agentState)) {
-                    agentStateValue.value.resultSet.agentState.forEach((state) => {
-                        const agentList = new AgentStateResponse();
-                        agentList.parse(state);
-                        agentStateList.push(agentList);
-                    });
+                const isFTUnifyAgentStateOn = FeatureToggleService.instance.getFeatureToggleSync("release-cx-directory-agent-state-working-digital-AW-28472" /* FeatureToggles.DIRECTORY_AGENT_STATE_WORKING_DIGITAL_FEATURE_TOGGLE */);
+                if (isFTUnifyAgentStateOn) {
+                    if (agentStateValue.status === 'fulfilled' && ((_a = agentStateValue === null || agentStateValue === void 0 ? void 0 : agentStateValue.value) === null || _a === void 0 ? void 0 : _a.agentStates)) {
+                        (_b = agentStateValue === null || agentStateValue === void 0 ? void 0 : agentStateValue.value) === null || _b === void 0 ? void 0 : _b.agentStates.forEach((state) => {
+                            const agentList = new AgentStateResponse();
+                            agentList.parseUpdatedAgentState(state);
+                            agentStateList.push(agentList);
+                        });
+                    }
+                }
+                else {
+                    if (agentStateValue.status === 'fulfilled' && ((_c = agentStateValue === null || agentStateValue === void 0 ? void 0 : agentStateValue.value.resultSet) === null || _c === void 0 ? void 0 : _c.agentState)) {
+                        agentStateValue.value.resultSet.agentState.forEach((state) => {
+                            const agentList = new AgentStateResponse();
+                            agentList.parse(state);
+                            agentStateList.push(agentList);
+                        });
+                    }
                 }
             }
             if (response.get(DirectoryEntities.SKILL_LIST)) {
                 const skillValue = response.get(DirectoryEntities.SKILL_LIST);
-                if ((skillValue === null || skillValue === void 0 ? void 0 : skillValue.status) === 'fulfilled' && ((_b = skillValue.value) === null || _b === void 0 ? void 0 : _b.skillActivity)) {
+                if ((skillValue === null || skillValue === void 0 ? void 0 : skillValue.status) === 'fulfilled' && ((_d = skillValue.value) === null || _d === void 0 ? void 0 : _d.skillActivity)) {
                     skillValue.value.skillActivity.forEach((skill) => {
                         const skillEvent = new SkillEvent();
                         skillEvent.parse(skill);

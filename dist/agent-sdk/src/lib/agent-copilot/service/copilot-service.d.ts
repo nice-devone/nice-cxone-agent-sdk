@@ -1,5 +1,5 @@
 import { CXoneAuth } from '@nice-devone/auth-sdk';
-import { AgentCopilotSearchRequest, AgentCopilotCacheElement, CopilotMessageData, CustomCopilotFilterTags, GuidanceFeedbackData, ContactFeedbackData, CopilotProfileConfig, ContactHistoryData } from '@nice-devone/common-sdk';
+import { AgentCopilotSearchRequest, CopilotMessageData, CustomCopilotFilterTags, GuidanceFeedbackData, ContactFeedbackData, CopilotProfileConfig, ContactHistoryData, IntentConfig } from '@nice-devone/common-sdk';
 import { Logger, HttpUtilService, HttpRequestInit, ValidationUtils } from '@nice-devone/core-sdk';
 /**
  * Represents a collection of Copilot message data indexed by case ID.
@@ -19,17 +19,19 @@ export declare class CopilotService {
     private AGENT_COPILOT_BASE_URI_V2;
     private AGENT_COPILOT_SEARCH;
     private AGENT_COPILOT_FINAL_SUMMARY;
-    private AGENT_COPILOT_GET_ALL_ADAPTIVE_CARDS_SCHEMAS;
-    private AGENT_COPILOT_GET_ADAPTIVE_CARD_SCHEMA;
     private AGENT_COPILOT_HEALTH_CHECK;
     private AGENT_COPILOT_ENABLEMENT_FOR_CONTACT;
     private AGENT_COPILOT_AGENT_ASSIST_HUB_CONFIG;
+    private AGENT_COPILOT_GET_ADAPTIVE_CARD_SCHEMAS;
     private AGENT_COPILOT_EMAIL_APIS;
     private PATH_GUIDANCE_FEEDBACK;
     private PATH_CONTACT_FEEDBACK;
     private PATH_KB_FILTER_UPDATE;
     private JOURNEY_SUMMARY;
+    private FINAL_SUMMARY;
+    private TASK_ASSIST;
     private aahConfigStore;
+    private AGENT_COPILOT_GET_ALL_ADAPTIVE_CARDS_SCHEMAS;
     /**
      * Create instance of CXoneAuth
      * ```
@@ -77,33 +79,14 @@ export declare class CopilotService {
      */
     search(searchText: string, activeContactId: string): Promise<AgentCopilotSearchRequest>;
     /**
-     * Used to get the copilot adaptive card schema by cardType
-     * @example -
-     * ```
-     * copilotService.fetchCopilotAllAdaptiveCardSchemas();
-     * ```
-     */
-    fetchCopilotAllAdaptiveCardSchemas: () => Promise<unknown>;
-    /**
-     * Used to get the copilot adaptive card schema by cardType
+     * Used to get the copilot adaptive card schema by cardType(all by default) and UI version
+     * @param cxaVersion - branch name indicating UI version
      * @param cardType - type of adaptive card
-     * @param mediaType - type of media channel
-     * @example -
      * ```
-     * copilotService.fetchCopilotAdaptiveCardSchema("sentimentAndReason", "Voice");
+     * copilotService.fetchCopilotAdaptiveCardSchemasFromBucket('24.4.2', 'all');
      * ```
      */
-    fetchCopilotAdaptiveCardSchema: (cardType: string, mediaType: string) => Promise<unknown>;
-    /**
-     * Used to set essential copilot data
-     * @param contactId - contact id to fetch the data from
-     * @param elementToAdd - element to add to the local storage
-     * @example -
-     * ```
-     * copilotService.setLsDataByAgentId("123", { sentimentAndReason: [] });
-     * ```
-     */
-    setLsDataByAgentId(contactId: string, elementToAdd: AgentCopilotCacheElement): void;
+    fetchCopilotAdaptiveCardSchemasFromBucket: (cxaVersion: string, cardType?: string) => Promise<unknown>;
     /**
      * Used to get local storage data by the agentId
      * @example -
@@ -191,7 +174,7 @@ export declare class CopilotService {
      * copilotService.retriveAgentAssistConfig('12321');
      * ```
      */
-    retriveAgentAssistConfig: (contactId: string) => Promise<CopilotProfileConfig>;
+    retriveAgentAssistConfig: (contactId: string, mediaType?: string, agentAssistId?: string) => Promise<CopilotProfileConfig>;
     /**
      * Used to store AAH config for the contactId in browser memory by pulling from redis cache, if not already available
      * @param contactId - contact Id
@@ -200,7 +183,7 @@ export declare class CopilotService {
      * copilotService.storeAgentAssistConfig('12321');
      * ```
      */
-    storeAgentAssistConfig: (contactId: string) => Promise<any>;
+    storeAgentAssistConfig: (contactId: string, mediaType?: string, agentAssistId?: string) => Promise<any>;
     /**
      * Used to get the last generated list of topics for the contact id
      * @param contactId - contact Id
@@ -287,5 +270,47 @@ export declare class CopilotService {
     * ```
     */
     getJourneySummary(contactHistory: ContactHistoryData[], contactId: string, customerUid: string, aahConfiguration: CopilotProfileConfig, customerName: string): Promise<string>;
+    /**
+     * Used to fetch the generated final summary
+     * @param connectionId - connection id to send with the data
+     * @example -
+     * ```
+     * copilotService.fetchGeneratedFinalSummary("1234");
+     * ```
+     */
+    fetchGeneratedFinalSummary(contactId: string): Promise<unknown>;
+    /**
+     * Used to get task response based on the intentName for a given contactId
+     * @param intentConfig - intent config
+     * @param contactId  - contact Id
+     * @example -
+     * ```
+     * copilotService.getTaskResponse('Task intent name here', '12321');
+     * ```
+     */
+    getTaskResponse(intentConfig: IntentConfig, contactId: string): Promise<string>;
+    /**
+     * Used to fetch aah config from ACP backend or get-next- event based on FT
+     * @param agentAssistJson - agent assist json data
+     * @param acpConfig - acp config data
+     * @param isToggleEnabledForConfigFromBackend - toggle to check if config is enabled from backend
+     * @example -
+     * ```
+     * copilotService.fetchConfigFromBackend({ContactId: '1234', MediaType: '4', AgentAssistId;'Acp-profile'}, '{ Params: { providerId: 'agentCopilot }, ContactId: '1234', MediaType: '4',AgentAssistId;'Acp-profile' }', true);
+     * ```
+     */
+    fetchConfigFromBackend(agentAssistJson: {
+        ContactId: string;
+        MediaType?: string;
+        AgentAssistId?: string;
+    }, acpConfig: string, isToggleEnabledForConfigFromBackend: boolean): void;
+    /**
+     * Used to get all copilot adaptive card schemas
+     * @example -
+     * ```
+     * copilotService.fetchCopilotAllAdaptiveCardSchemas();
+     * ```
+     */
+    fetchCopilotAllAdaptiveCardSchemas: () => Promise<unknown>;
 }
 export {};

@@ -40,5 +40,6 @@ var MessageType;
     MessageType["UI_QUEUE_EVENT_RESPONSE"] = "UIQueueEventResponse";
     MessageType["AGENT_ASSIST_WS_RESPONSE"] = "AgentAssistWSResponse";
     MessageType["VOICE_BIO_HUB_RESPONSE"] = "VoiceBioHubResponse";
+    MessageType["START_USER_SLOT_API_POLLING"] = "startUserSlotApiPolling";
 })(MessageType = exports.MessageType || (exports.MessageType = {}));
 //# sourceMappingURL=message-type.js.map

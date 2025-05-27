@@ -20,6 +20,10 @@ export declare class CXoneSoftphoneNotificationSettings {
      */
     secondaryDeviceDelay?: number;
     /**
+     * @remarks  secondary device name
+     */
+    secondaryDeviceName?: number;
+    /**
      * This method to parse softphone settings from client data
      * @param data -
      * @example -
@@ -44,6 +48,7 @@ export declare class CXoneSoftphoneNotificationSettings {
     }, data: Partial<CXoneClientData>): {
         softPhoneVolume: any;
         CXASecondaryDevice: any;
+        CXASecondaryDeviceName: any;
         CXARingtone: any;
         SecondaryDeviceDelay: any;
     };

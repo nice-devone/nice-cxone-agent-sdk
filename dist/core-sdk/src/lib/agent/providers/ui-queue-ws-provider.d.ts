@@ -17,9 +17,9 @@ export declare class UIQueueWsProvider {
     private logger;
     private getkeepAlivePollingisActive;
     protected utilService: HttpUtilService;
-    private isUIQueueDegraded;
     private loader;
     private validationUtils;
+    private isUIQDegraded;
     /**
    * constructor which sets agent session instance
    * @example
@@ -99,7 +99,7 @@ export declare class UIQueueWsProvider {
      * connectAgent(userInfo, invokeSnapshot)
      * ```
      */
-    connectAgent(userInfo: UserInfo, invokeSnapshot?: boolean): void;
+    connectAgent(userInfo: UserInfo, invokeSnapshot?: boolean, sessionId?: string): void;
     /**
      * Method to get new hub connection
      * @param retryOptions  - retry options
@@ -119,7 +119,7 @@ export declare class UIQueueWsProvider {
      * establishSocketConnection(userInfo, invokeSnapshot)
      * ```
      */
-    establishSocketConnection(userInfo: UserInfo, _invokeSnapshot?: boolean): Promise<void>;
+    establishSocketConnection(userInfo: UserInfo, _invokeSnapshot?: boolean, sessionId?: string): Promise<void>;
     /**
       * Method to add event listeners
       * @param events - recieved events

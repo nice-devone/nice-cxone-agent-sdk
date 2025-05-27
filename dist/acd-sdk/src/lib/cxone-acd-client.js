@@ -1,3 +1,4 @@
+import { __awaiter } from "tslib";
 import { AgentSessionStatus, CXoneLeaderElector, MessageBus, MessageType } from '@nice-devone/common-sdk';
 import { Logger } from '@nice-devone/core-sdk';
 import { CXoneSession } from './acd/cxone-session/cxone-session';
@@ -106,15 +107,17 @@ export class CXoneAcdClient {
      * ```
      */
     initAcdEngagement() {
-        if (!CXoneClient.instance.hasInitModuleInitiated)
-            CXoneClient.instance.initAuthDependentModules();
-        this.session = new CXoneSession();
-        this.agentLegService = new AgentLegService();
-        this.indicator = new CXoneIndicatorManager();
-        this.screenPop = new CXoneScreenPop();
-        this.contactManager = new ContactManager();
-        this.notification = new CXoneNotificationManager(CXoneClient.instance.cxoneTenant);
-        this.agentDetailService = new AgentDetailService();
+        return __awaiter(this, void 0, void 0, function* () {
+            if (!CXoneClient.instance.hasInitModuleInitiated)
+                yield CXoneClient.instance.initAuthDependentModules();
+            this.session = new CXoneSession();
+            this.agentLegService = new AgentLegService();
+            this.indicator = new CXoneIndicatorManager();
+            this.screenPop = new CXoneScreenPop();
+            this.contactManager = new ContactManager();
+            this.notification = new CXoneNotificationManager(CXoneClient.instance.cxoneTenant);
+            this.agentDetailService = new AgentDetailService();
+        });
     }
     /**
      * method to return Team Unavailable Codes

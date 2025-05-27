@@ -1,6 +1,6 @@
 import { HttpUtilService } from '../../http/index';
 import { Logger } from '../../../logger/logger';
-import { CXoneIndicator, CustomFormData, StartSessionRequest, CXonePageOpen, CXoneRunApp, CXoneSdkError, HttpResponse, EndSessionRequest, AgentSessionResponse, MCHSetting, CXonePopUrl, CXoneContactScreenpop, AgentWorkflowResponseEvent, AgentWorkflowRequestEvent, UserInfo, CXoneAgentAssist, CommitmentEvent, CommitmentStatusEvent, CoBrowseEvent, AgentAssistWSRequest, MuteEvent, UpdatePermissionsEvent, AgentStateEvent, UpdateUnavailableCodeEvent, AgentLegEvent, DigitalContactEvent, CXoneConfiguration, UpdateNetworkTimeoutEvent, CXoneCustomScreenpop, GetNextAgentAssistEvent } from '@nice-devone/common-sdk';
+import { CXoneIndicator, CustomFormData, StartSessionRequest, CXonePageOpen, CXoneRunApp, CXoneSdkError, HttpResponse, EndSessionRequest, AgentSessionResponse, MCHSetting, CXonePopUrl, CXoneContactScreenpop, AgentWorkflowResponseEvent, AgentWorkflowRequestEvent, UserInfo, CXoneAgentAssist, CommitmentEvent, CommitmentStatusEvent, CoBrowseEvent, LocalPostEvent, AgentAssistWSRequest, MuteEvent, UpdatePermissionsEvent, AgentStateEvent, UpdateUnavailableCodeEvent, AgentLegEvent, DigitalContactEvent, CXoneConfiguration, UpdateNetworkTimeoutEvent, CXoneCustomScreenpop, GetNextAgentAssistEvent } from '@nice-devone/common-sdk';
 import { Subject, ReplaySubject } from 'rxjs';
 import { CXoneGetNextAdapter } from '../../adapter/cxone-get-next-adapter';
 /**
@@ -35,6 +35,7 @@ export declare class ACDSessionManager {
     private _agentWorkflowRequestEvent;
     private _agentWorkflowCreatePayloadEvent;
     private _coBrowseEvent;
+    private _localPostEvent;
     private static singleton;
     userInfo: UserInfo;
     cxOneConfig: CXoneConfiguration;
@@ -128,7 +129,12 @@ export declare class ACDSessionManager {
         screenPopUrlVariables: import("yup/lib/mixed").MixedSchema<any, import("yup/lib/types").AnyObject, any>;
         disconnectCode: import("yup/lib/string").RequiredStringSchema<string, import("yup/lib/types").AnyObject>;
         isLogging: import("yup/lib/boolean").RequiredBooleanSchema<boolean, import("yup/lib/types").AnyObject>;
-        timeout: import("yup/lib/number").RequiredNumberSchema<number, import("yup/lib/types").AnyObject>;
+        timeout: import("yup/lib/number").RequiredNumberSchema<number, import("yup/lib/types").AnyObject>; /**
+         * @example -
+         * ```
+         * const onGetNextEvent = acdSession.onGetNextEvent
+         * ```
+         */
         allowDispositions: import("yup/lib/boolean").RequiredBooleanSchema<boolean, import("yup/lib/types").AnyObject>;
         label: import("yup/lib/string").RequiredStringSchema<string, import("yup/lib/types").AnyObject>;
         isLinked: import("yup/lib/boolean").RequiredBooleanSchema<boolean, import("yup/lib/types").AnyObject>;
@@ -332,6 +338,13 @@ export declare class ACDSessionManager {
     /**
      * @example -
      * ```
+     * const localPostEvent = acdSession.localPostEvent
+     * ```
+     */
+    get localPostEvent(): Subject<LocalPostEvent>;
+    /**
+     * @example -
+     * ```
      * const mchAgentSettingsChangeEvent = agentSession.mchAgentSettingsChangeEvent
      * ```
      */
@@ -422,10 +435,10 @@ export declare class ACDSessionManager {
      * @param sessionId - session id
      * @example
      * ```
-     * this.toggleAgentEventsReceivingMethod(invokeSnapshot, sessionId)
+     * this.toggleACDEventEmitter(invokeSnapshot, sessionId)
      * ```
      */
-    toggleAgentEventsReceivingMethod({ invokeSnapshot, sessionId, isUIQueueEnabled: isUIQueueTMToggleEnabled }: {
+    toggleACDEventEmitter({ invokeSnapshot, sessionId, isUIQueueEnabled: isUIQueueTMToggleEnabled }: {
         invokeSnapshot?: boolean;
         sessionId?: string;
         isUIQueueEnabled?: boolean;
@@ -530,7 +543,7 @@ export declare class ACDSessionManager {
      * const establishUIQSocketConnection = agentSession.establishUIQSocketConnection(true)
      * ```
      */
-    establishUIQSocketConnection(invokeSnapshot?: boolean): void;
+    establishUIQSocketConnection(invokeSnapshot?: boolean, sessionId?: string): void;
     /**
      * Method to initiate adapter to handle events
      * @example -

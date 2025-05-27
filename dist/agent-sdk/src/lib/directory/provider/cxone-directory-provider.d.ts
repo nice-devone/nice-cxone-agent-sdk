@@ -310,6 +310,12 @@ export declare class CXoneDirectoryProvider {
      */
     private getAgentStateOrDefault;
     /**
+     * @param agentStateName - string
+     * @returns agentState - number
+     * @example getUnifiedAgentStateOrDefault(agentState)
+     */
+    private getUnifiedAgentStateOrDefault;
+    /**
      *
      * @param agentList - list of agent
      * @param searchText - used to sort data by position of the searchText.

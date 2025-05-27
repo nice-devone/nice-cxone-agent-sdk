@@ -43,7 +43,7 @@ export declare class CXoneAcdClient {
      * initAcdEngagement();
      * ```
      */
-    initAcdEngagement(): void;
+    initAcdEngagement(): Promise<void>;
     /**
      * Subscription for request message over broadcast channel
      */

@@ -266,4 +266,8 @@ export * from './lib/model/customer-card/cxone-sf-crm-navigation-data';
 export * from './enum/crm';
 export * from './enum/typing-indicator-actions';
 export * from './lib/enum/multimedia-types';
+export * from './lib/model/digital/cxone-search-app-settings';
 export * from './lib/enum/feedback-tags';
+export * from './lib/model/authenticate/encrypted-auth-token';
+export * from './lib/enum/agent-copilot-filter-type';
+export * from './lib/model/agent/localPost-event';

@@ -23,6 +23,7 @@ ApiUriConstants.UNMASK_CALL_URI = '/InContactAPI/services/v23.0/agent-sessions/{
 ApiUriConstants.RECORD_CALL_URI = '/InContactAPI/services/v23.0/agent-sessions/{sessionId}/interactions/{contactId}/record';
 ApiUriConstants.END_CONTACT_URI = '/InContactAPI/services/v23.0/agent-sessions/{sessionId}/interactions/{contactId}/end';
 ApiUriConstants.AGENT_STATE_URI = '/InContactAPI/services/v27.0/cache/agentstate';
+ApiUriConstants.AGENT_STATE_UNIFY_URI = '/acd-apiservices/v1/agents/states';
 ApiUriConstants.SKILL_ACTIVITY_URI = '/InContactAPI/services/v23.0/skills/activity';
 ApiUriConstants.CONFERENCE_CALL_URI = '/InContactAPI/services/v23.0/agent-sessions/{sessionId}/interactions/conference-calls';
 ApiUriConstants.CONFERENCE_HOLD_URI = '/InContactAPI/services/v31.0/agent-sessions/{sessionId}/interactions/conference-hold';
@@ -164,5 +165,7 @@ ApiUriConstants.GET_AGENT_LOCATION = '/user-management/v1/users/location/evaluat
 ApiUriConstants.SELECT_AGENT_LOCATION = '/user-management/v1/users/location/select-location';
 ApiUriConstants.FEEDBACK_CATEGORIES_AND_PRIORITIES = '/incontactapi/services/v23.0/feedback-categories-and-priorities';
 ApiUriConstants.SUBMIT_FEEDBACK = '/incontactapi/services/V23.0/agent-sessions/{sessionId}/submit-feedback';
+// LocalPost custom event api
+ApiUriConstants.AGENT_LOCALPOST_API = 'http://127.0.0.1:{port}/{path}';
 ;
 //# sourceMappingURL=api-uri-constants.js.map

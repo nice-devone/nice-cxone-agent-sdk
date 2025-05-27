@@ -2,6 +2,7 @@
  * This class to provide basic validation methods
  */
 export declare class ValidationUtils {
+    private securityHelper;
     /**
      * This method to check value is not null or undefined
      * @param value  - any type of value
