@@ -62,7 +62,8 @@ Initialize the CXoneAuth instance with your authentication configuration:
 ```
 const authSettings: AuthSettings = {
     cxoneHostname: 'https://cxone.niceincontact.com',
-    clientId: '<ClientIdPlaceholder>'
+    clientId: '<ClientIdPlaceholder>',
+    originatingServiceIdentifier:'CMASDK' //CMA SDK consumers need to pass the meaningful identifier e.g. originatingServiceIdentifier:'CMASDK'.
 };
 
 const auth = CXoneAuth.instance;
