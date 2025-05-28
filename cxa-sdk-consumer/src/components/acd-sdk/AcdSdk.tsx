@@ -72,10 +72,11 @@ const AcdSdk = () => {
   };
 
   useEffect(() => {
-    CXoneAcdClient.instance.initAcdEngagement();
-    setTimeout(() => {
+    CXoneAcdClient.instance.initAcdEngagement().finally(() => {
       setInitEngagement(true);
-    }, 500);
+    })
+    
+   
   },[])
 
   useEffect(() => {

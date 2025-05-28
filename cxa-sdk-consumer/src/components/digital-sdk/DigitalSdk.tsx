@@ -58,8 +58,10 @@ const DigitalSdk = () => {
   const [messages, setMessages] = useState([] as any);
 
   useEffect(() => {
-    CXoneDigitalClient.instance.initDigitalEngagement();
-    setInitEngagement(true);
+    CXoneDigitalClient.instance.initDigitalEngagement().finally(() => { 
+      setInitEngagement(true);
+    })
+   
   },[])
 
     useEffect(() => {
