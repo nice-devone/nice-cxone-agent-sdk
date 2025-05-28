@@ -210,12 +210,12 @@ export default function NavBar() {
  
 
   useEffect(() => {
-    if(localStorage.getItem("auth_token")) {
+    if(localStorage.getItem("auth_token") || localStorage.getItem("cxagent.sk")) {
       setDisableTab(false)
     }
    
     const handleStorageChange = (event: StorageEvent) => {
-      if (event.key === "auth_token") {
+      if (event.key === "auth_token" || event.key === "cxagent.sk") {
         setDisableTab(false)
       }
     };
@@ -223,7 +223,7 @@ export default function NavBar() {
   
     const originalSetItem = localStorage.setItem;
     localStorage.setItem = function (key, value) {
-      if (key === "auth_token") {
+      if (key === "auth_token" || key === "cxagent.sk") {
         setDisableTab(false)
       }
       originalSetItem.apply(this, [key, value]);
