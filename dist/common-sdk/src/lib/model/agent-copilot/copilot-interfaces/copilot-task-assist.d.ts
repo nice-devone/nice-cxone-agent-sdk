@@ -120,7 +120,7 @@ export interface CopilotTaskAssistCardData {
     /**
      * Current status of the task or intent (e.g., 'loading', 'error','success').
      */
-    status?: string;
+    status: string;
     /**
      * Identifier for the virtual agent.
      */
@@ -128,11 +128,19 @@ export interface CopilotTaskAssistCardData {
     /**
      * name of the intent.
      */
-    intentName?: string;
+    intentName: string;
     /**
      * Optional error message (present if an error occurred).
      */
     errorMessage?: string;
+    /**
+     * flag to check for task assist form capture
+     */
+    formCapture?: boolean;
+    /**
+      * A unique identifier for the related object, such as an adaptive card or form instance.
+     */
+    objectId: string;
     /**
      * Only present if the "status" is validationError.
      * Contains details of validation errors.
@@ -147,34 +155,12 @@ export interface CopilotTaskAssistCardData {
     };
 }
 /**
- * Represents prefilled data used for populating adaptive cards or task assist forms.
- */
-export interface PrefilledData {
-    /**
-     * The name of the intent this data is associated with.
-     */
-    intentName: string;
-    /**
-     * The name of the virtual assistant or bot handling the intent.
-     */
-    botName: string;
-    /**
-     * A unique identifier for the related object, such as an adaptive card or form instance.
-     */
-    objectId: string;
-    /**
-     * An optional map of key-value pairs representing prefilled form field data.
-     * Keys are field names, and values are the corresponding default values.
-     */
-    data?: {
-        [key: string]: string;
-    };
-}
-/**
  * Represents the possible statuses for the Task Assist feature.
  */
 export declare const TASK_ASSIST_STATUS: {
     VALIDATION_ERROR: string;
     IN_PROGRESS: string;
+    LOADING: string;
+    SUCCESS: string;
 };
 export {};

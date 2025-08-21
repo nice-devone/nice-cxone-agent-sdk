@@ -984,7 +984,7 @@ export class CXoneAuth {
             const styleString = Object.entries(styleParams)
                 .map(([k, v]) => `${k}:${v}`)
                 .join(';');
-            target.innerHTML = `<iframe id='launchCXAFrame' allow="microphone;" src=${appUrl} style=${styleString}></iframe>`;
+            target.innerHTML = `<iframe id='launchCXAFrame' allow="microphone; hid" src=${appUrl} style=${styleString}></iframe>`;
         }
     }
     /**

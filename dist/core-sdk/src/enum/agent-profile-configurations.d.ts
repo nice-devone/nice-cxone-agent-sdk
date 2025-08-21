@@ -10,5 +10,6 @@ export declare enum AgentProfileConfigurationSettings {
     LAUNCH = "Launch",
     CUSTOM_WORKSPACE = "Custom Workspace",
     REPORTING = "Reporting",
+    CONVERSATIONS = "Conversations",
     DEFAULT_SCREEN_SIZE = "Default screen size"
 }

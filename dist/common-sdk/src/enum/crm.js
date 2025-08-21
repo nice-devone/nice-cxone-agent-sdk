@@ -8,5 +8,6 @@ var Crm;
 (function (Crm) {
     Crm["SALESFORCE"] = "salesforce";
     Crm["SERVICENOW"] = "servicenow";
+    Crm["MSD"] = "msd";
 })(Crm = exports.Crm || (exports.Crm = {}));
 //# sourceMappingURL=crm.js.map

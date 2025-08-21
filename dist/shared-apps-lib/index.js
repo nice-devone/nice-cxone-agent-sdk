@@ -3089,6 +3089,7 @@ var CcfAppType;
   CcfAppType["CXoneAgentSalesforce"] = "cxa_sfdc";
   CcfAppType["CXoneAgentKustomer"] = "cxa_kustomer";
   CcfAppType["LvAppSpace"] = "lv";
+  CcfAppType["CXoneAgentChat"] = "cxac";
 })(CcfAppType || (CcfAppType = {}));
 
 /**
@@ -4252,7 +4253,13 @@ function CcfAppParamHelper(appConfig) {
   const searchParams = new URLSearchParams(window.location.search);
   const app = searchParams.get('app') || searchParams.get('state');
   // in case appType is not provided, use default 'cxa'
-  const appType = app && Object.values(CcfAppType).includes(app) ? app : 'cxa';
+  let appType;
+  if (appConfig.applicationName === 'Agent-Chat') {
+    appType = 'cxac';
+  } else {
+    // in case appType is not provided, use default 'cxa'
+    appType = app && Object.values(CcfAppType).includes(app) ? app : 'cxa';
+  }
   const appParams = appConfig[appType];
   const env = (_a = getEnvironment(appConfig.cxoneSystemIssuer)) === null || _a === void 0 ? void 0 : _a.toLowerCase();
   const envCxoneClientId = (_c = (_b = appConfig[appType]) === null || _b === void 0 ? void 0 : _b.environment[env]) === null || _c === void 0 ? void 0 : _c.cxoneClientId;

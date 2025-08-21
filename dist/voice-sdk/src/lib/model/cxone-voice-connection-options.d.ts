@@ -7,4 +7,6 @@ export interface CXoneVoiceConnectionOptions {
     webRTCServerDomain: string;
     webRTCIceUrls: Array<string>;
     webRTCDnis: string;
+    noiseCancellation?: boolean;
+    echoCancellation?: boolean;
 }

@@ -33,5 +33,6 @@ export declare const enum FeatureToggles {
     USER_SLOT_POLLING_FEATURE_TOGGLE = "release-cx-agent-user-slot-api-aw-24451",
     VOICE_BIO_HUB_FEATURE_TOGGLE = "release-agent-voiceBioHub-AW-24969",
     AUTO_EXPAND_TOGGLE_SETTINGS_FEATURE_TOGGLE = "release-cxa-sf-auto-expand-toggle-settings-CRM-16848",
-    NEW_EMAIL_EDITOR_REVAMP_FEATURE_TOGGLE = "release-cx-agent-Revamped_Email_Editor_CMA-AW-28772"
+    NEW_EMAIL_EDITOR_REVAMP_FEATURE_TOGGLE = "release-cx-agent-Revamped_Email_Editor_CMA-AW-28772",
+    RELATESTO_MSD_CURRENT_INTERACTION = "release-cxa-RelatesTo-MSD-CRM-10029"
 }

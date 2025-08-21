@@ -1,4 +1,7 @@
+import { __awaiter } from "tslib";
+import { CXoneClient } from '../../cxone-client';
 import { FeatureToggleService } from '../../feature-toggle';
+import { LocalStorageHelper, Logger, StorageKeys } from '@nice-devone/core-sdk';
 /**
 * Method to filter, sort and truncate data based on searchText, offset and Limit
 *
@@ -102,4 +105,58 @@ const handleDirectoryPagination = (data, limit, offset) => {
     }
     return data;
 };
+/**
+ * Updates the favorite list in local storage client data when entries are removed from the userhub, typically during login/logout.
+ * @param options - Options for handling directory item deletion:
+ *   - listFromDB: List of items from the database.
+ *   - idName: The key name for the item's ID.
+ *   - favClientList: Favorite client list from local storage.
+ *   - storageKey: Local storage key to update.
+ *   - clientDataKey: Key in client data to update.
+ *   - checkForActive: Flag to filter out inactive items (default: true).
+ * @returns An object containing the updated favorite list and a flag indicating if the client data API call failed.
+ * @example
+ * ```
+ * handleDirectoryItemDeletion({
+ *   listFromDB,
+ *   idName: 'id',
+ *   favClientList,
+ *   storageKey: 'favoriteList',
+ *   clientDataKey: 'favoriteList',
+ *   checkForActive: true
+ * })
+ * ```
+ */
+export function handleDirectoryItemDeletion(options) {
+    return __awaiter(this, void 0, void 0, function* () {
+        let { listFromDB, } = options;
+        const { idName, favClientList, storageKey, clientDataKey, checkForActive = true } = options;
+        if (checkForActive) {
+            listFromDB = listFromDB.filter(item => item.isActive);
+        }
+        const listFromDBIds = new Set(listFromDB.map(item => item[idName])) || new Set();
+        const filteredClientData = favClientList.filter(item => listFromDBIds.has(item)) || [];
+        const noDirectoryItemDeleted = Array.isArray(filteredClientData) &&
+            Array.isArray(favClientList) &&
+            filteredClientData.length === favClientList.length &&
+            filteredClientData.every((val, idx) => val === favClientList[idx]);
+        let clientDataApiFailed = false;
+        if (!noDirectoryItemDeleted) {
+            const clientData = LocalStorageHelper.getItem(StorageKeys.CLIENT_DATA, true);
+            LocalStorageHelper.setItem(StorageKeys.CLIENT_DATA, Object.assign(Object.assign({}, clientData), { [clientDataKey]: filteredClientData }));
+            try {
+                yield CXoneClient.instance.agentSetting.updateAgentClientDataSettings({
+                    [storageKey]: filteredClientData,
+                });
+            }
+            catch (error) {
+                LocalStorageHelper.setItem(StorageKeys.CLIENT_DATA, Object.assign(Object.assign({}, clientData), { [clientDataKey]: favClientList }));
+                clientDataApiFailed = true;
+                const logger = new Logger('SDK', 'CXoneDirectoryProvider');
+                logger.debug('[CXoneDirectoryProvider][updateFavoriteListInLocalStorage]', `Error updating favorite list ${storageKey} in local storage: ${error}`);
+            }
+        }
+        return { currFavListInLS: filteredClientData, clientDataApiFailed };
+    });
+}
 //# sourceMappingURL=utility.js.map

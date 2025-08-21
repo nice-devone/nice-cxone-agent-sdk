@@ -95,6 +95,7 @@ export declare const StorageKeys: {
     DIRECTORY_POLLING_UPDATED_SINCE: string;
     FAVORITE_IDS_TOGGLED: string;
     WEM_WS_CONNECTION_STATUS: string;
+    AGENT_HIVE_CHANNEL_INFO: string;
 };
 export declare const NotificationSettings: {
     ACCESSIBILITY: string;

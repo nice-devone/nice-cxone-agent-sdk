@@ -10,5 +10,7 @@ export declare enum PermissionValues {
     ENABLE = "Enable",
     AGENT_CONFIG = "AgentConfig",
     HIDE = "Hide",
-    DISABLE = "Disable"
+    DISABLE = "Disable",
+    ECHO_CANCELATION = "echoCancelation",
+    NOISE_CANCELATION = "noiseCancelation"
 }

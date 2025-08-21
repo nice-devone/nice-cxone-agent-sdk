@@ -62,6 +62,10 @@ export declare class CXoneClientData {
      **/
     cxaFavSkills?: number[];
     /**
+     * @remarks - Favorite  Digital Skill Activity
+     **/
+    cxaFavDigitalSkills?: number[];
+    /**
        * @remarks - Favorite State Selector
        */
     cxaFavStates?: number[];
@@ -114,7 +118,9 @@ export declare class CXoneClientData {
          * @remarks - Favorite Skill Activity
          **/
         CXASecondaryDeviceName: any;
-        CXARingtone: any;
+        CXARingtone: any; /**
+           * @remarks - Favorite State Selector
+           */
         SecondaryDeviceDelay: any;
         AudioAgentMessage: any;
         AudioEndContact: any;
@@ -144,6 +150,7 @@ export declare class CXoneClientData {
         CXAFavStandAddBook: any;
         CXAFavExtDirectory: any;
         CXAFavSkills: any;
+        CXAFavDigitalSkills: any;
     };
     /**
      * Maps the provided `CXoneClientData` to the current client data object, including search app settings.
@@ -160,7 +167,9 @@ export declare class CXoneClientData {
          * @remarks - Favorite Skill Activity
          **/
         CXASecondaryDeviceName: any;
-        CXARingtone: any;
+        CXARingtone: any; /**
+           * @remarks - Favorite State Selector
+           */
         SecondaryDeviceDelay: any;
         AudioAgentMessage: any;
         AudioEndContact: any;
@@ -190,5 +199,6 @@ export declare class CXoneClientData {
         CXAFavStandAddBook: any;
         CXAFavExtDirectory: any;
         CXAFavSkills: any;
+        CXAFavDigitalSkills: any;
     };
 }

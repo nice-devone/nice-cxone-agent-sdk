@@ -5,6 +5,7 @@ import { HttpUtilService, Logger, HttpClient, ApiUriConstants, UrlUtilsService, 
 import { mergeCustomerCardRequest } from './customer-card-merge';
 import { createCustomerNote, deleteCustomerNote, editCustomerNote, fetchCustomerNotes, } from './customer-card-notes';
 import { getCustomerList } from './customer-card-search';
+import dayjs from 'dayjs';
 /**
  * Enum for Customer Card Workflow Actions
  */
@@ -222,7 +223,9 @@ export class CustomerCardService {
     getAgentDigitalContactHistory(ownerAssignee) {
         const baseUrl = this.auth.getCXoneConfig().dfoApiBaseUri;
         const authToken = this.auth.getAuthToken().accessToken;
-        const url = `${baseUrl}${ApiUriConstants.GET_CONTACT_DETAILS_BY_ID}?ownerAssignee[]=${ownerAssignee}&status[]=resolved&status[]=closed&sorting=createdAt&sortingType=desc`;
+        const toDate = dayjs();
+        const fromDate = toDate.subtract(3, 'day');
+        const url = `${baseUrl}${ApiUriConstants.GET_CONTACT_DETAILS_BY_ID}?ownerAssignee[]=${ownerAssignee}&status[]=resolved&status[]=closed&sorting=createdAt&sortingType=desc&date[from]=${fromDate.format('YYYY-MM-DD')}&date[to]=${toDate.format('YYYY-MM-DD')}`;
         const targetStatus = {
             // eslint-disable-next-line no-restricted-globals
             status: status,
