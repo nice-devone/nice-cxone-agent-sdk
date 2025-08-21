@@ -1,6 +1,6 @@
 {
   "name": "@nice-devone/voice-sdk",
-  "version": "25.2.0",
+  "version": "25.3.0",
   "sideEffects": false,
   "description": "NICE CXone Voice SDK",
   "author": "NICE Ltd.",
@@ -8,21 +8,21 @@
   "homepage": "https://github.com/nice-devone/nice-cxone-agent-sdk/tree/main/dist/voice-sdk",
   "repository": {
     "type": "git",
-    "url": "https://github.com/nice-devone/nice-cxone-agenvt-sdk"
+    "url": "https://github.com/nice-devone/nice-cxone-agent-sdk"
   },
   "main": "./src/index.js",
   "types": "./src/index.d.ts",
   "dependencies": {
-    "@nice-devone/core-sdk": "25.2.0",
-    "@nice-devone/common-sdk": "25.2.0",
+    "@nice-devone/core-sdk": "25.3.0",
+    "@nice-devone/common-sdk": "25.3.0",
     "broadcast-channel": "4.19.1",
     "rxjs": "7.8.1",
     "uuid": "8.3.2",
-    "@nice-devone/shared-apps-lib": "25.2.0",
+    "@nice-devone/shared-apps-lib": "25.3.0",
     "react": "17.0.2",
     "@reduxjs/toolkit": "1.9.1",
     "react-toastify": "9.1.1",
-    "@nice-devone/i18n": "25.2.0",
+    "@nice-devone/i18n": "25.3.0",
     "@testrtc/watchrtc-sdk": "1.38.3",
     "lexical": "0.12.4",
     "@microsoft/signalr": "7.0.14",

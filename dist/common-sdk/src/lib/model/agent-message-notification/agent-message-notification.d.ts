@@ -1,4 +1,10 @@
-export declare type NotificationType = 'WemNotification' | 'AgentNotification';
+export declare enum NotificationTypeEnum {
+    WemNotification = "WemNotification",
+    AgentNotification = "AgentNotification",
+    RecordingNotification = "RecordingNotification",
+    ConversationNotification = "ConversationNotification"
+}
+export declare type NotificationType = keyof typeof NotificationTypeEnum;
 /**
  * model class to display Agent Message notification
  */

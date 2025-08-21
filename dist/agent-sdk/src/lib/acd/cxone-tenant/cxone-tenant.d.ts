@@ -25,6 +25,16 @@ export declare class CXoneTenant {
      */
     checkProductEnablement(productIds: Array<CXoneProductFeature>): Promise<boolean | CXoneSdkError>;
     /**
+     * Method to return Product licenses permissions from tenant data
+     * @param productIds - Array of Product IDs to check for enablement
+     * @returns - returns a boolean indicating either of the specified products are enabled in the tenant data.
+     * ```
+     * @example
+     * checkProductEnablementFromTenantData()
+     * ```
+     */
+    checkProductEnablementFromTenantData(productIds: Array<CXoneProductFeature>): Promise<boolean | CXoneSdkError>;
+    /**
      * Method to return business unit features
      * @returns - returns the business unit features
      * ```

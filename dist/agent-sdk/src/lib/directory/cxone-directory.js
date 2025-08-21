@@ -118,17 +118,62 @@ export class CXoneDirectory {
     }
     /**
      * Method to toggle favorites for Agents
-     * @example
+     * @param agentInfo - agent for which you want to toggle favorite for
+     * @example -
      * ```
-     * this.toggleFavorite();
+     * this.toggleFavorite(agentInfo);
      * ```
      */
     toggleFavoriteForAgent(agentInfo) {
         this.directoryProvider.toggleFavoriteForAgent(agentInfo);
     }
     /**
-     * Method to get favorites for Agents
+   * Method to toggle favorites for Teams
+   * @param teamsInfo - team for which you want to toggle favorite for
+   * @example -
+   * ```
+   * this.toggleFavoriteForTeams(TeamsInfo);
+   * ```
+   */
+    toggleFavoriteForTeams(teamsInfo) {
+        this.directoryProvider.toggleFavoriteForTeam(teamsInfo);
+    }
+    /**
+   * Method to toggle favorites for digital Skills
+   * @example
+   * ```
+   * this.toggleFavoriteForDigitalSkill();
+   * ```
+   */
+    toggleFavoriteForDigitalSkill(skillsInfo) {
+        this.directoryProvider.toggleFavoriteForDigitalSkill(skillsInfo);
+    }
+    /**
+     * Method to toggle favorites for Standard Address Book Entries
+     * @param addressBooksEntries - address book entries for which you want to toggle favorite for
      * @example
+     * ```
+     * this.toggleFavoriteForStandardAddressBookEntries(addressBooksEntries);
+     * ```
+     */
+    toggleFavoriteForStandardAddressBookEntries(addressBooksEntries) {
+        this.directoryProvider.toggleFavoriteForStandardAddressBookEntries(addressBooksEntries);
+    }
+    /**
+   * Method to toggle favorites for External Directory
+   * @param externalDirectoryEntries - external directory entries for which you want to toggle favorite for
+   * @example -
+   * ```
+   * this.toggleFavoriteForExternalDirectories(externalDirectoryEntries);
+   * ```
+   */
+    toggleFavoriteForExternalDirectories(externalDirectoryEntries) {
+        this.dynamicDirectory.toggleFavoriteForExternalDirectory(externalDirectoryEntries);
+    }
+    /**
+     * Method to get favorites for Agents
+     * @param agentName - agent name for filtering the list
+     * @example -
      * ```
      * this.getFavorites(searchText);
      * ```
@@ -136,6 +181,44 @@ export class CXoneDirectory {
     getFavoritesByAgent(agentName) {
         return __awaiter(this, void 0, void 0, function* () {
             return yield this.directoryProvider.getFavoritesByAgent(agentName);
+        });
+    }
+    /**
+       * Method to get favorites for Teams
+       * @param teamName - team name for filtering the list
+       * @example -
+       * ```
+       * this.getFavoritesByTeam(searchText);
+       * ```
+       */
+    getFavoritesByTeam(teamName) {
+        return __awaiter(this, void 0, void 0, function* () {
+            return yield this.directoryProvider.getFavoritesByTeam(teamName);
+        });
+    }
+    /**
+     * Method to get favorites for Address Book entries
+     * @example
+     * ```
+     * this.getFavoritesByAddressBook(searchText);
+     * ```
+     */
+    getFavoritesByAddressBook(AddressBookName) {
+        return __awaiter(this, void 0, void 0, function* () {
+            return yield this.directoryProvider.getFavoritesByAddressBook(AddressBookName);
+        });
+    }
+    /**
+       * Method to get favorites for Digital Skills
+       * @param skillName - skill name for filtering the list
+       * @example -
+       * ```
+       * this.getFavoritesByDigitalSkill(searchText);
+       * ```
+     */
+    getFavoritesByDigitalSkill(skillName) {
+        return __awaiter(this, void 0, void 0, function* () {
+            return yield this.directoryProvider.getFavoritesByDigitalSkill(skillName);
         });
     }
 }

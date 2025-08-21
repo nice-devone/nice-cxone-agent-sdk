@@ -20,6 +20,19 @@ export interface SfCrmNavigationDataResponseEvent {
     mappingFieldName: string;
 }
 /**
+ * Model for the CCF Name Relates Response Event
+ */
+export interface CcfNameRelatesResponseEvent {
+    /**
+        * contactId
+        */
+    contactId: string;
+    /**
+        * navigation entity value
+        */
+    value?: string;
+}
+/**
  * Model for SF CRM Navigation Entity
  */
 export interface SfCrmNavigationEntity {
@@ -48,5 +61,8 @@ export interface SfCrmNavigationBulkDataResponseEvent {
 }
 export interface SfCrmNavigationDataState {
     [key: string]: NavigationData;
+}
+export interface NameRelatesToState {
+    [key: string]: string;
 }
 export {};

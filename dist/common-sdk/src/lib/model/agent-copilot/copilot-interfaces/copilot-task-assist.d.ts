@@ -48,11 +48,15 @@ export interface IntentConfig {
     /**
      * Indicates whether the intent is currently active.
      */
-    status: boolean;
+    isActive: boolean;
     /**
      * Timeout for the intent execution, in seconds.
      */
     timeout: number;
+    /**
+     *  flag indicating whether this element is used for task assist form capture functionality.
+     */
+    formCapture: boolean;
 }
 /**
  * Configuration for task assist, holding agent and task settings.
@@ -88,32 +92,89 @@ export interface TaskAssistConfig {
     virtualAgentId: string;
 }
 /**
+ * Contains detailed validation error information.
+ */
+export interface ValidationInfo {
+    [key: string]: string;
+}
+/**
  * model interface that represents the structure for Copilot task assist  card
  */
 export interface CopilotTaskAssistCardData {
     /**
      * The type of media (e.g., 'chat', 'voice').
      */
-    mediaType: string;
+    mediaType?: string;
     /**
      * Title of the intent.
      */
-    intentTitle: string;
+    intentTitle?: string;
     /**
      * Response  associated with the intent.
      */
-    intentResponse: string;
+    intentResponse?: string;
     /**
      * Unique identifier for the utterance.
      */
-    utteranceId: string;
+    utteranceId?: string;
     /**
      * Current status of the task or intent (e.g., 'loading', 'error','success').
      */
-    status: string;
+    status?: string;
     /**
      * Identifier for the virtual agent.
      */
-    virtualAgentId: string;
+    virtualAgentId?: string;
+    /**
+     * name of the intent.
+     */
+    intentName?: string;
+    /**
+     * Optional error message (present if an error occurred).
+     */
+    errorMessage?: string;
+    /**
+     * Only present if the "status" is validationError.
+     * Contains details of validation errors.
+     */
+    validationInfo?: ValidationInfo;
+    /**
+     * Actual data submitted by the user for this intent card.
+     * Keys represent parameter names, and values are the user-provided inputs.
+     */
+    data?: {
+        [key: string]: string;
+    };
 }
+/**
+ * Represents prefilled data used for populating adaptive cards or task assist forms.
+ */
+export interface PrefilledData {
+    /**
+     * The name of the intent this data is associated with.
+     */
+    intentName: string;
+    /**
+     * The name of the virtual assistant or bot handling the intent.
+     */
+    botName: string;
+    /**
+     * A unique identifier for the related object, such as an adaptive card or form instance.
+     */
+    objectId: string;
+    /**
+     * An optional map of key-value pairs representing prefilled form field data.
+     * Keys are field names, and values are the corresponding default values.
+     */
+    data?: {
+        [key: string]: string;
+    };
+}
+/**
+ * Represents the possible statuses for the Task Assist feature.
+ */
+export declare const TASK_ASSIST_STATUS: {
+    VALIDATION_ERROR: string;
+    IN_PROGRESS: string;
+};
 export {};

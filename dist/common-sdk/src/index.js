@@ -274,4 +274,11 @@ tslib_1.__exportStar(require("./lib/enum/feedback-tags"), exports);
 tslib_1.__exportStar(require("./lib/model/authenticate/encrypted-auth-token"), exports);
 tslib_1.__exportStar(require("./lib/enum/agent-copilot-filter-type"), exports);
 tslib_1.__exportStar(require("./lib/model/agent/localPost-event"), exports);
+tslib_1.__exportStar(require("./lib/model/customer-card/cxone-lv-ecc-uuid-request"), exports);
+tslib_1.__exportStar(require("./lib/model/wem-notification/wem-notification-recording-data"), exports);
+tslib_1.__exportStar(require("./lib/enum/recording-data"), exports);
+tslib_1.__exportStar(require("./lib/enum/event-keys"), exports);
+tslib_1.__exportStar(require("./lib/model/conversations-group-details"), exports);
+tslib_1.__exportStar(require("./lib/model/agent-copilot/copilot-interfaces/copilot-adaptive-card"), exports);
+tslib_1.__exportStar(require("./lib/enum/window-events"), exports);
 //# sourceMappingURL=index.js.map

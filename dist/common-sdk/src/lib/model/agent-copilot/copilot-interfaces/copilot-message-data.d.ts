@@ -1,5 +1,5 @@
 import { OverallContactFeedbackData } from './copilot-feedback-data';
-import { CopilotElement, CopilotFilterDetails, ContactHistoryData } from './index';
+import { CopilotElement, CopilotFilterDetails, ContactHistoryData, PrefilledData } from './index';
 /**
  * model interface for agent assist payload data
  */
@@ -84,4 +84,8 @@ export interface CopilotMessageData {
      * field for storing task assist request status
      */
     currentTaskAssistRequestStatus: string;
+    /**
+     * field for storing task assist form prefill data
+     */
+    taskAssistFormPrefillData: PrefilledData | null;
 }

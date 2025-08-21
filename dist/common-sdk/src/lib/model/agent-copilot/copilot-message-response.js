@@ -45,6 +45,7 @@ class CopilotMessageResponse extends agent_assist_base_response_1.AgentAssistBas
             isJourneySummaryExpanded: false,
             contactHistory: [],
             currentTaskAssistRequestStatus: '',
+            taskAssistFormPrefillData: null,
         };
         acpAppElements === null || acpAppElements === void 0 ? void 0 : acpAppElements.forEach((element) => {
             const elemObj = CopilotMessageResponse.formatCopilotElement(element);

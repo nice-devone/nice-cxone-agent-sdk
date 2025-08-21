@@ -44,3 +44,5 @@ export * from './lib/admin//model/feedback-data';
 export * from './constants/http-request-custom-headers';
 export * from './util/feature-toggle-services';
 export * from './enum/originating-service-identifier';
+export * from './lib/admin/model/agent-profile-settings';
+export * from './enum/agent-profile-configurations';

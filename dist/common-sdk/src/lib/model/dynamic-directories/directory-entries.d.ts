@@ -40,6 +40,21 @@ export interface DirectoryEntry {
      * @remarks - unified status
      */
     unifiedStatus?: string;
+    /**
+     * @remarks - Flag that indicates whether the directory entry is marked as a favorite.
+     */
+    isFavorite?: boolean;
+}
+/**
+ * Interface for Directory entry additional attributes
+ */
+export interface DirectoryAdditionalAtrributes {
+    userMappingId: string;
+    isFavorite?: boolean;
+    lastname: string;
+    email: string;
+    firstname: string;
+    [key: string]: string | boolean | DirectoryEntryAttribute[] | undefined;
 }
 /**
  * Model class for Directory Entries

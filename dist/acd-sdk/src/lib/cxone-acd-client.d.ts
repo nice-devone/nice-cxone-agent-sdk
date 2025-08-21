@@ -83,4 +83,12 @@ export declare class CXoneAcdClient {
      * ```
      */
     getCachedAgentSkills(agentId?: string): import("@nice-devone/common-sdk").AgentSkill[] | Promise<import("@nice-devone/common-sdk").AgentSkill[]>;
+    /**
+     * Method to update the UIQ instance manager URL
+     * @example
+     * ```
+     * updateUIQInstanceManagerURL();
+     * ```
+     */
+    private updateUIQInstanceManagerURL;
 }

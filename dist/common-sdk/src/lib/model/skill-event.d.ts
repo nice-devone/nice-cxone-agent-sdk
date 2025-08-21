@@ -36,6 +36,10 @@ export declare class SkillEvent extends CXoneEvent {
      */
     skillName: string;
     /**
+     * @remarks  Indicates if the skill is a favorite skill of the user
+     */
+    isFavorite?: boolean;
+    /**
      * This method to parse skill data
      * @param data - key value pair data
      * @example -

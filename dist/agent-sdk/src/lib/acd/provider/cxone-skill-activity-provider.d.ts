@@ -1,4 +1,5 @@
 import { CXoneClient } from '../../cxone-client';
+import { SkillActivityEvent } from '../model/skill-activity-event';
 import { SkillActivityPollingRequest } from '../model/skill-activity-polling-request';
 /**
  * skill activity Provider Class
@@ -18,6 +19,8 @@ export declare class CXoneSkillActivityProvider {
     private entityCounts;
     private totalSearchResultCount;
     private skillActivityPollingRequest;
+    private favoriteSkillList;
+    private readonly isFavoritesFTEnabled;
     /**
      * Creates skill activity provider
      * @example - const provider = new CXoneSkillActivityProvider();
@@ -142,4 +145,24 @@ export declare class CXoneSkillActivityProvider {
      * ```
      */
     private sortResponse;
+    /**
+     * Used to toggle the favorite marker for skill and store it in Index DB
+     * @param skill - Information of the skill of whom favorite field needs to be toggled
+     * @example
+     * directoryProvider.toggleFavoriteForSkill(skill);
+     */
+    toggleFavoriteForSkill(skillInfo: SkillActivityEvent[]): Promise<void>;
+    /**
+       * Used to retrieve skill list from index DB and filter out favorites
+       * @param searchText - searchText for filtering the list
+       * @example
+       * skillActivityProvider.getFavoritesBySkill(searchText);
+       */
+    getFavoritesBySkill(skillName: string): Promise<SkillActivityEvent[]>;
+    /**
+     * Used to handle the skillList pagination for the search result if the search text is matched and then returns only the data based on offset and limit
+     * @param searchText - search string
+     * @param skillList - array of skill
+     */
+    private getFilteredSkillList;
 }

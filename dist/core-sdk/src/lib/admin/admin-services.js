@@ -1,3 +1,4 @@
+import { __awaiter } from "tslib";
 import { HttpClient } from '../http/http-client/http-client';
 import { HttpUtilService } from '../http/http-util-service';
 import { Logger } from '../../logger/logger';
@@ -11,6 +12,8 @@ import { ValidationUtils } from '../../util/validation-utils';
 import { CXoneUserDetails } from './model/cxone-user-details';
 import { ACDSessionManager } from '../agent';
 import { UIQHubUrl } from './model/uiq-hub-url';
+import { FeatureToggleService } from '../../util/feature-toggle-services';
+import { CXoneVersionMapping } from './model/CXoneVersionMapping';
 /**
  * Class to perform get admin api
  */
@@ -119,16 +122,56 @@ export class AdminService {
     getAgentSettings() {
         return new Promise((resolve, reject) => {
             const agentSettingFromStorage = LocalStorageHelper.getItem(StorageKeys.AGENT_SETTINGS, true);
+            let isCxssVersionServiceToggleEnabled = false;
+            isCxssVersionServiceToggleEnabled = FeatureToggleService.instance.getFeatureToggleSync("release-cx-agent-cxss-versioning-api-AW-37635" /* FeatureToggles.GET_VERSION_FROM_CXSS_VERSIONING_API */);
             if (!agentSettingFromStorage) {
                 const reqInit = this.utilService.initHeader(this.accessToken, 'application/json');
+                // Dev Note : Till monolith dependency is not removed, this logic should not be changed.
+                // variable 'getAgentSettingsVersionServiceUri' to be used for Versioning Service usage, and variable 'getAgentSettingsUri' for direct Monolith usage
+                const agentSettingAPIURL = isCxssVersionServiceToggleEnabled ? AdminApis.getAgentSettingsVersionServiceUri : AdminApis.getAgentSettingsUri;
                 const permissionUrl = this.cxOneConfig.acdApiBaseUri +
-                    AdminApis.getAgentSettingsUri.replace('{agentId}', this.userInfo.icAgentId);
-                HttpClient.get(permissionUrl, reqInit).then((resp) => {
+                    agentSettingAPIURL.replace('{agentId}', this.userInfo.icAgentId);
+                HttpClient.get(permissionUrl, reqInit).then((resp) => __awaiter(this, void 0, void 0, function* () {
+                    var _a;
                     this.logger.info('getAgentSettings', 'Get Agent settings Success');
                     const agentSettings = this.apiParser.parseAgentSettings(resp);
-                    LocalStorageHelper.setItem(StorageKeys.AGENT_SETTINGS, JSON.stringify(agentSettings));
+                    if (isCxssVersionServiceToggleEnabled && (agentSettings === null || agentSettings === void 0 ? void 0 : agentSettings.selectedCxaVersion) !== undefined) {
+                        try {
+                            const cxoneConfig = LocalStorageHelper.getItem(StorageKeys.CXONE_CONFIG, true) || {};
+                            let finalVersion = '';
+                            switch ((_a = agentSettings === null || agentSettings === void 0 ? void 0 : agentSettings.selectedCxaVersion) === null || _a === void 0 ? void 0 : _a.toString()) {
+                                case '0':
+                                    finalVersion = CXoneVersionMapping.PREVIOUS;
+                                    break;
+                                case '1':
+                                    finalVersion = CXoneVersionMapping.CURRENT;
+                                    break;
+                                case '2':
+                                    finalVersion = CXoneVersionMapping.DEV;
+                                    break;
+                                default:
+                                    finalVersion = CXoneVersionMapping.CURRENT;
+                            }
+                            const versioningAPIURL = this.cxOneConfig.apiFacadeBaseUri +
+                                AdminApis.getAgentVersionUri.replace('{clusterId}', cxoneConfig.cluster).replace('{versionName}', finalVersion);
+                            const reqInit = this.utilService.initHeader(this.accessToken, 'application/json');
+                            try {
+                                const response = yield HttpClient.get(versioningAPIURL, reqInit);
+                                const appConfig = response.data.appUrl;
+                                agentSettings.cxaClientVersion = appConfig === null || appConfig === void 0 ? void 0 : appConfig.url;
+                                LocalStorageHelper.setItem(StorageKeys.AGENT_SETTINGS, agentSettings);
+                            }
+                            catch (innerError) {
+                                this.logger.error('Error processing versioning API response', JSON.stringify(innerError));
+                            }
+                        }
+                        catch (error) {
+                            this.logger.error('Error in versioning API call block', JSON.stringify(error));
+                        }
+                    }
+                    LocalStorageHelper.setItem(StorageKeys.AGENT_SETTINGS, agentSettings);
                     resolve(agentSettings);
-                }, (err) => {
+                }), (err) => {
                     var _a;
                     this.logger.error('getAgentSettings', 'Get Agent settings Failed ' + JSON.stringify(err));
                     reject(new CXoneSdkError(CXoneSdkErrorType.CXONE_API_ERROR, (_a = err === null || err === void 0 ? void 0 : err.data) === null || _a === void 0 ? void 0 : _a.message, err === null || err === void 0 ? void 0 : err.data));
@@ -180,18 +223,25 @@ export class AdminService {
      */
     getTenantData() {
         return new Promise((resolve, reject) => {
-            const reqInit = this.utilService.initHeader(this.accessToken, 'application/json');
-            const url = this.cxOneConfig.userHubBaseUrl + AdminApis.getTenantDataUri;
-            HttpClient.get(url, reqInit).then((response) => {
-                this.logger.info('getTenantManagementData', 'Get Tenant Management Data Success');
-                const data = this.apiParser.parseTenantData(response);
-                LocalStorageHelper.setItem(StorageKeys.TENANT_DATA, data);
-                resolve(data);
-            }, (error) => {
-                var _a;
-                this.logger.error('getTenantManagementData', 'Get Tenant Management Data failed ' + JSON.stringify(error));
-                reject(new CXoneSdkError(CXoneSdkErrorType.CXONE_API_ERROR, (_a = error === null || error === void 0 ? void 0 : error.data) === null || _a === void 0 ? void 0 : _a.message, error === null || error === void 0 ? void 0 : error.data));
-            });
+            const tenantDataFromStorage = LocalStorageHelper.getItem(StorageKeys.TENANT_DATA, true);
+            if (!tenantDataFromStorage) {
+                const reqInit = this.utilService.initHeader(this.accessToken, 'application/json');
+                const url = this.cxOneConfig.userHubBaseUrl + AdminApis.getTenantDataUri;
+                HttpClient.get(url, reqInit).then((response) => {
+                    this.logger.info('getTenantManagementData', 'Get Tenant Management Data Success');
+                    const data = this.apiParser.parseTenantData(response);
+                    LocalStorageHelper.setItem(StorageKeys.TENANT_DATA, data);
+                    resolve(data);
+                }, (error) => {
+                    var _a;
+                    this.logger.error('getTenantManagementData', 'Get Tenant Management Data failed ' + JSON.stringify(error));
+                    reject(new CXoneSdkError(CXoneSdkErrorType.CXONE_API_ERROR, (_a = error === null || error === void 0 ? void 0 : error.data) === null || _a === void 0 ? void 0 : _a.message, error === null || error === void 0 ? void 0 : error.data));
+                });
+            }
+            else {
+                this.logger.info('getTenantManagementData', 'Get tenant data from storage');
+                resolve(tenantDataFromStorage);
+            }
         });
     }
     /**
@@ -658,6 +708,30 @@ export class AdminService {
             }, (error) => {
                 var _a;
                 this.logger.error('selectAgentLocation', 'Select agent location failed' + JSON.stringify(error));
+                reject(new CXoneSdkError(CXoneSdkErrorType.CXONE_API_ERROR, (_a = error === null || error === void 0 ? void 0 : error.data) === null || _a === void 0 ? void 0 : _a.message, error === null || error === void 0 ? void 0 : error.data));
+            });
+        });
+    }
+    /**
+     * Method to return agent profile
+     * @returns - Agent Profile
+     * @example
+     * ```
+     * getAgentProfileDetails()
+     * ```
+     */
+    getAgentProfileDetails() {
+        return new Promise((resolve, reject) => {
+            const reqInit = this.utilService.initHeader(this.accessToken, 'application/json');
+            const url = this.cxOneConfig.apiFacadeBaseUri + ApiUriConstants.AGENT_PROFILE;
+            HttpClient.get(url, reqInit).then((response) => {
+                this.logger.info('getAgentProfileDetails', 'Get Agent Profile Details Successfully');
+                const agentProfileMappedSettings = this.apiParser.parseAgentConfiguration(response);
+                LocalStorageHelper.setItem(StorageKeys.AGENT_PROFILE_CONFIGURATION, JSON.stringify(agentProfileMappedSettings));
+                resolve(agentProfileMappedSettings);
+            }, (error) => {
+                var _a;
+                this.logger.error('getAgentProfileDetails', 'Get agent profile details failed' + JSON.stringify(error));
                 reject(new CXoneSdkError(CXoneSdkErrorType.CXONE_API_ERROR, (_a = error === null || error === void 0 ? void 0 : error.data) === null || _a === void 0 ? void 0 : _a.message, error === null || error === void 0 ? void 0 : error.data));
             });
         });

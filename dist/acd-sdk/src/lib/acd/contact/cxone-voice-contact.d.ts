@@ -83,6 +83,15 @@ export declare class CXoneVoiceContact extends CXoneContact {
      */
     updateMuteState(isAgentMuted: boolean): void;
     /**
+     * Get isLogging value from record event to update record button state
+     * @param isLogging - boolean
+     * @example
+     * ```
+     * this.updateVoiceCallRecordState(true)
+     * ```
+     */
+    updateVoiceCallRecordState(isLogging: boolean): void;
+    /**
      * Method to check the agent has mute, record and mask permission
      * @example
      * ```

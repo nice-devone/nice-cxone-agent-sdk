@@ -32,6 +32,10 @@ export declare class CXoneContact {
    */
     interactionId: string;
     /**
+     * @remarks - Customer id of the customer who has initiated the digital contact.
+     */
+    customerId?: string;
+    /**
       * @remarks - represent model for require disposition value
     */
     requireDisposition?: boolean;

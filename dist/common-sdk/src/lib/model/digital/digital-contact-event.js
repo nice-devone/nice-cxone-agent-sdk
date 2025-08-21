@@ -19,6 +19,7 @@ class DigitalContactEvent extends cxone_agent_event_1.CXoneAgentEvent {
         this.channelType = data.ChannelType;
         this.contactId = data.ContactID;
         this.customerName = data.CustomerName;
+        this.customerId = data.CustomerId;
         this.digitalCaseId = data.DFOContactId;
         this.iisHost = data.IISHost;
         this.refusalTimeout = (0, utility_1.parseInteger)(data.RefusalTimeout);

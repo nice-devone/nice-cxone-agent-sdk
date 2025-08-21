@@ -78,6 +78,7 @@ const workercode = `self.importScripts(
           resetConnectInterval();
           self.postMessage({
             type: 'success',
+            status: 'connected',
             message: 'CXone notification websocket connected successfully',
           });
         }
@@ -104,6 +105,7 @@ const workercode = `self.importScripts(
     } else {
       self.postMessage({
         type: 'error',
+        status: 'connected',
         message:
           'CXone notification Websocket connection is already established',
       });
@@ -213,6 +215,7 @@ const workercode = `self.importScripts(
       resetConnectInterval();
       self.postMessage({
         type: 'success',
+        status: 'disconnected',
         message: 'CXone notification ws connection is terminated',
       });
     } else {

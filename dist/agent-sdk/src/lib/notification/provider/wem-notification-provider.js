@@ -1,5 +1,5 @@
 import { __awaiter } from "tslib";
-import { CXoneSdkError, CXoneSdkErrorType, CXoneLeaderElector, MessageBus, MessageType, WemNotificationDisplayData, NotificationEntities, } from '@nice-devone/common-sdk';
+import { CXoneSdkError, CXoneSdkErrorType, CXoneLeaderElector, MessageBus, MessageType, WemNotificationDisplayData, NotificationEntities, WemNotificationRecordingData, RecordingNotificationTemplate, } from '@nice-devone/common-sdk';
 import { Logger, ValidationUtils, WSEventType, LocalStorageHelper, StorageKeys, WemNotificationCommand, LoadWorker, dbInstance, IndexDBStoreNames } from '@nice-devone/core-sdk';
 import { WemNotificationService } from '../service/wem-notification-service';
 import { CXoneAuth, CXoneUser } from '@nice-devone/auth-sdk';
@@ -58,6 +58,7 @@ export class WemNotificationProvider {
             token: CXoneAuth.instance.getAuthToken().accessToken,
         };
         LocalStorageHelper.setItem(StorageKeys.WEM_NOTIFICATION_POLLING_CONFIG, requestData);
+        LocalStorageHelper.setItem(StorageKeys.WEM_WS_CONNECTION_STATUS, false);
         if (!this.wemWorker) {
             this.initWemNotificationWorker();
             this.wemWorker.onmessage = (response) => {
@@ -119,6 +120,7 @@ export class WemNotificationProvider {
    * ```
    */
     onWemNotificationMessage(message, isPostedFromLeader) {
+        var _a;
         return __awaiter(this, void 0, void 0, function* () {
             if (message.command === WemNotificationCommand.CONNECTED || (isPostedFromLeader && !this.embeddedPageLoaded)) {
                 this.wemNotificationSvc.getEmbeddedPages().then((response) => {
@@ -136,6 +138,9 @@ export class WemNotificationProvider {
                 else {
                     this.notificationMessages.push(message);
                 }
+            }
+            else if (message.command === WemNotificationCommand.MESSAGE && ((_a = message.data) === null || _a === void 0 ? void 0 : _a.notificationTemplate) === RecordingNotificationTemplate.RECORDING_STATUS) {
+                yield this.publishRecordingNotification(message);
             }
         });
     }
@@ -161,6 +166,24 @@ export class WemNotificationProvider {
                 else
                     wemNotifications.push(wemNotificationMessage);
                 yield (db === null || db === void 0 ? void 0 : db.put(IndexDBStoreNames.NOTIFICATIONS, wemNotifications, NotificationEntities.WEM_NOTIFICATIONS));
+                this.notificationBase.onCXoneNotificationEvent.next(wemNotificationMessage);
+            }
+        });
+    }
+    /**
+     * Publishes a recording notification if the message notification template is of type RECORDING_STATUS.
+     * @param message - notification message
+     * @example
+     * ```
+     * publishRecordingNotification(message)
+     * ```
+     */
+    publishRecordingNotification(message) {
+        var _a;
+        return __awaiter(this, void 0, void 0, function* () {
+            if (this.validationUtils.isNullOrEmpty((_a = message === null || message === void 0 ? void 0 : message.data) === null || _a === void 0 ? void 0 : _a.notificationURL)) {
+                const wemNotificationMessage = new WemNotificationRecordingData();
+                wemNotificationMessage.parse(message);
                 this.notificationBase.onCXoneNotificationEvent.next(wemNotificationMessage);
             }
         });
@@ -228,10 +251,13 @@ export class WemNotificationProvider {
                     break;
                 }
                 case WSEventType.ERROR: {
-                    this.notificationBase.onCXoneNotificationEvent.next(message);
+                    LocalStorageHelper.setItem(StorageKeys.WEM_WS_CONNECTION_STATUS, (wsResponse === null || wsResponse === void 0 ? void 0 : wsResponse.status) === 'connected');
+                    const errorMessage = new CXoneSdkError(CXoneSdkErrorType.WEBSOCKET_ERROR, message);
+                    this.notificationBase.onCXoneNotificationEvent.next(errorMessage);
                     break;
                 }
                 case WSEventType.SUCCESS: {
+                    LocalStorageHelper.setItem(StorageKeys.WEM_WS_CONNECTION_STATUS, (wsResponse === null || wsResponse === void 0 ? void 0 : wsResponse.status) === 'connected');
                     const successMessage = { event: 'success', message: message };
                     this.notificationBase.onCXoneNotificationEvent.next(successMessage);
                     break;

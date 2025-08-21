@@ -11,6 +11,7 @@ import { Tenant } from './model/tenant';
 import { feedbackCategoriedAndPrioritiesResponse } from './model/feedback-categories-and-priorities';
 import { FeedbackData } from './model/feedback-data';
 import { UIQHubUrl } from './model/uiq-hub-url';
+import { AgentProfileSettings } from './model/agent-profile-settings';
 /**
  * Class to perform get admin api
  */
@@ -241,6 +242,15 @@ export declare class AdminService {
      * ```
      */
     selectUserLocation(locationId: string): Promise<HttpResponse | CXoneSdkError>;
+    /**
+     * Method to return agent profile
+     * @returns - Agent Profile
+     * @example
+     * ```
+     * getAgentProfileDetails()
+     * ```
+     */
+    getAgentProfileDetails(): Promise<AgentProfileSettings | CXoneSdkError>;
     /**
      * Method to get Categories and priorities for the agent feedback form
      * @returns - object

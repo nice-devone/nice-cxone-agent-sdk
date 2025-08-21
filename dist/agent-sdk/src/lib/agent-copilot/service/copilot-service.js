@@ -37,9 +37,12 @@ export class CopilotService {
         this.PATH_KB_FILTER_UPDATE = '/agent-copilot/v1/kb-filter/update';
         this.JOURNEY_SUMMARY = '/agent-copilot/v1/journey-summary';
         this.FINAL_SUMMARY = '/agent-copilot/v1/final-summary?contactId={contactId}';
+        this.EDITED_SUMMARY = '/agent-copilot/v1/contacts/{contactId}/edited-autosummary';
         this.TASK_ASSIST = '/agent-copilot/v1/contacts/{contactId}/task-assist';
         this.aahConfigStore = {};
         this.AGENT_COPILOT_GET_ALL_ADAPTIVE_CARDS_SCHEMAS = this.AGENT_COPILOT_BASE_URI + 'adaptive-card/get-all-adaptive-cards';
+        this.AGENT_COPILOT_GET_TASK_ASSIST_FORM_PREFILLED_DATA = '/agent-copilot/v1/contacts/{contactId}/taskassist/form-data';
+        this.TASK_ASSIST_FORM_ADAPTIVE_CARD_SCHEMAS_URL = '/agent-copilot/v2/adaptive-cards/taskassist/profiles/{agentAssistId}/bots/{botName}/intents/{intentName}/cards';
         /**
          * @returns base url for ACP backend
          * @example getBaseHttpRequest()
@@ -237,16 +240,18 @@ export class CopilotService {
          */
         this.retriveAgentAssistConfig = (contactId, mediaType, agentAssistId) => {
             return new Promise((resolve, reject) => {
+                const cxaClientVersion = LocalStorageHelper.getItem('agent_settings', true).cxaClientVersion;
                 const reqInit = this.getBaseHttpRequest({
                     contactId,
                     mediaType,
                     agentAssistId,
+                    cxaClientVersion,
                 });
                 const baseUrl = this.getBaseUrlForAcp();
                 const apiUrl = baseUrl + this.AGENT_COPILOT_AGENT_ASSIST_HUB_CONFIG;
                 HttpClient === null || HttpClient === void 0 ? void 0 : HttpClient.post(apiUrl, reqInit).then((response) => {
-                    var _a;
-                    if (response.status === 200 && ((_a = response === null || response === void 0 ? void 0 : response.data) === null || _a === void 0 ? void 0 : _a.success) !== false && !this.aahConfigStore[contactId]) {
+                    var _a, _b, _c, _d, _e;
+                    if (response.status === 200 && ((_a = response === null || response === void 0 ? void 0 : response.data) === null || _a === void 0 ? void 0 : _a.success) !== false && (!this.aahConfigStore[contactId] || ((_c = (_b = this.aahConfigStore[contactId]) === null || _b === void 0 ? void 0 : _b.Params) === null || _c === void 0 ? void 0 : _c.agentAssistId) !== ((_e = (_d = response === null || response === void 0 ? void 0 : response.data) === null || _d === void 0 ? void 0 : _d.Params) === null || _e === void 0 ? void 0 : _e.agentAssistId))) {
                         const aahConfig = JSON.stringify({
                             AppTitle: 'Enlighten Agent Copilot',
                             ContactId: contactId,
@@ -265,14 +270,17 @@ export class CopilotService {
         /**
          * Used to store AAH config for the contactId in browser memory by pulling from redis cache, if not already available
          * @param contactId - contact Id
+         * @param mediaType - media type for the contact
+         * @param agentAssistId - agent assist ID
          * @example -
          * ```
          * copilotService.storeAgentAssistConfig('12321');
          * ```
          */
         this.storeAgentAssistConfig = (contactId, mediaType, agentAssistId) => __awaiter(this, void 0, void 0, function* () {
+            var _a;
             let aahConfig = this.getAgentAssistConfig(contactId, true);
-            if (!aahConfig) {
+            if (!aahConfig || ((_a = aahConfig === null || aahConfig === void 0 ? void 0 : aahConfig.Params) === null || _a === void 0 ? void 0 : _a.agentAssistId) !== agentAssistId) {
                 aahConfig = yield this.retriveAgentAssistConfig(contactId, mediaType, agentAssistId);
             }
             return aahConfig;
@@ -641,20 +649,26 @@ export class CopilotService {
      * Used to get task response based on the intentName for a given contactId
      * @param intentConfig - intent config
      * @param contactId  - contact Id
+     * @param taskSessionUid - task session unique id
      * @example -
      * ```
      * copilotService.getTaskResponse('Task intent name here', '12321');
      * ```
      */
-    getTaskResponse(intentConfig, contactId) {
+    getTaskResponse(contactId, intentConfig, formCapturedata, taskSessionUid) {
         return new Promise((resolve, reject) => {
             var _a;
             const aahConfiguration = this.getAgentAssistConfig && this.getAgentAssistConfig(`${contactId}`, true);
             const taskAssistConfig = (_a = aahConfiguration === null || aahConfiguration === void 0 ? void 0 : aahConfiguration.Params) === null || _a === void 0 ? void 0 : _a.taskAssistConfig;
-            const reqInit = this.getBaseHttpRequest({
-                intentConfig,
-                virtualAgentId: taskAssistConfig.virtualAgentId,
-            });
+            const req = Object.assign(Object.assign({ intentConfig }, (formCapturedata
+                ? {
+                    slots: Object.entries(formCapturedata).map(([key, value]) => ({
+                        slotName: key,
+                        value: value,
+                    })),
+                }
+                : {})), { virtualAgentId: taskAssistConfig.virtualAgentId, taskSessionUid });
+            const reqInit = this.getBaseHttpRequest(req);
             const baseUrl = this.getBaseUrlForAcp();
             const taskResponseUrl = baseUrl + this.TASK_ASSIST.replace('{contactId}', contactId);
             HttpClient === null || HttpClient === void 0 ? void 0 : HttpClient.post(taskResponseUrl, reqInit).then((response) => {
@@ -667,22 +681,124 @@ export class CopilotService {
         });
     }
     /**
-     * Used to fetch aah config from ACP backend or get-next- event based on FT
-     * @param agentAssistJson - agent assist json data
-     * @param acpConfig - acp config data
-     * @param isToggleEnabledForConfigFromBackend - toggle to check if config is enabled from backend
-     * @example -
+   * Used to get task assist form schema based on the intentName
+   * @param intentName - intent name
+   * @param contactId  - contact Id
+   * @example -
+   * ```
+   * copilotService.getTaskAssistFormSchema('Task intent name here','212324);
+   * ```
+   */
+    getTaskAssistFormSchema(intentName, contactId) {
+        return new Promise((resolve, reject) => {
+            var _a, _b;
+            const aahConfiguration = this.getAgentAssistConfig && this.getAgentAssistConfig(`${contactId}`, true);
+            const taskAssistConfig = (_a = aahConfiguration === null || aahConfiguration === void 0 ? void 0 : aahConfiguration.Params) === null || _a === void 0 ? void 0 : _a.taskAssistConfig;
+            const agentAssistId = (_b = aahConfiguration === null || aahConfiguration === void 0 ? void 0 : aahConfiguration.Params) === null || _b === void 0 ? void 0 : _b.agentAssistId;
+            const reqInit = this.getBaseHttpRequest({
+                intentName,
+                virtualAgentId: taskAssistConfig.virtualAgentId,
+            });
+            const baseUrl = this.getBaseUrlForAcp();
+            const schemaUrl = baseUrl +
+                this.TASK_ASSIST_FORM_ADAPTIVE_CARD_SCHEMAS_URL.replace('{agentAssistId}', agentAssistId)
+                    .replace('{intentName}', intentName)
+                    .replace('{botName}', decodeURIComponent(taskAssistConfig.virtualAgentId));
+            HttpClient === null || HttpClient === void 0 ? void 0 : HttpClient.get(schemaUrl, reqInit).then((response) => {
+                const cachedSchemas = LocalStorageHelper.getItem(StorageKeys.AGENT_COPILOT_ADAPTIVE_CARD_SCHEMAS, true);
+                const matchedIntentConfig = taskAssistConfig.intentConfig.find((intent) => intent.intentName === intentName);
+                const apiResponse = response.data;
+                const taskAssistSchema = Object.assign(Object.assign({}, apiResponse['taskAssistFormSchema']), { actions: [
+                        {
+                            type: 'Action.Submit',
+                            title: 'adp_cancel',
+                            associatedInputs: 'none',
+                            data: {
+                                name: 'cancelTask',
+                            },
+                        },
+                        {
+                            type: 'Action.Submit',
+                            title: 'adp_submit',
+                            data: {
+                                name: 'onTaskAssistSumbit',
+                                intentName: intentName,
+                                intentConfig: matchedIntentConfig,
+                            },
+                        }
+                    ] });
+                const mergedSchemas = Object.assign(Object.assign({}, cachedSchemas), { [intentName]: taskAssistSchema });
+                LocalStorageHelper.setItem(StorageKeys.AGENT_COPILOT_ADAPTIVE_CARD_SCHEMAS, mergedSchemas);
+                resolve(response.data);
+            }, (error) => {
+                const errorResponse = new CXoneSdkError(CXoneSdkErrorType.CXONE_API_ERROR, 'Failed to get task assist form schema', error);
+                this.logger.error('getTaskAssistFormSchema', errorResponse.toString());
+                reject(errorResponse);
+            });
+        });
+    }
+    /**
+   * Used to get task assist form pre-filled data based on the intentName
+   * @param intentConfig - intent config
+   * @param contactId  - contact Id
+   * @param objectId - objectId
+   * @example -
+   * ```
+   * copilotService.getTaskAssistFormPreFilledData('Task intent name here');
+   * ```
+   */
+    getTaskAssistFormPreFilledData(intentConfig, contactId, objectId) {
+        return new Promise((resolve, reject) => {
+            var _a;
+            const aahConfiguration = this.getAgentAssistConfig && this.getAgentAssistConfig(`${contactId}`, true);
+            const taskAssistConfig = (_a = aahConfiguration === null || aahConfiguration === void 0 ? void 0 : aahConfiguration.Params) === null || _a === void 0 ? void 0 : _a.taskAssistConfig;
+            const reqInit = this.getBaseHttpRequest({
+                intentConfig,
+                virtualAgentId: taskAssistConfig.virtualAgentId,
+                objectId: objectId,
+            });
+            const baseUrl = this.getBaseUrlForAcp();
+            const schemaUrl = baseUrl + this.AGENT_COPILOT_GET_TASK_ASSIST_FORM_PREFILLED_DATA.replace('{contactId}', contactId);
+            HttpClient === null || HttpClient === void 0 ? void 0 : HttpClient.post(schemaUrl, reqInit).then((response) => {
+                resolve(response.data);
+            }, (error) => {
+                const errorResponse = new CXoneSdkError(CXoneSdkErrorType.CXONE_API_ERROR, 'Failed to get task assist pre-filled data', error);
+                this.logger.error('getTaskAssistFormPreFilledData', errorResponse.toString());
+                reject(errorResponse);
+            });
+        });
+    }
+    /**
+     * Saves the edited summary for a given channel and contact number.
+     * @param channel - The communication channel.
+     * @param contactNumber - The contact number.
+     * @param summary - The edited summary text.
+     * @returns A promise that resolves with the response data.
+     * @example
      * ```
-     * copilotService.fetchConfigFromBackend({ContactId: '1234', MediaType: '4', AgentAssistId;'Acp-profile'}, '{ Params: { providerId: 'agentCopilot }, ContactId: '1234', MediaType: '4',AgentAssistId;'Acp-profile' }', true);
+     * copilotService.saveEditedSummary('Voice', 123456789, 'This is the edited summary text.');
      * ```
      */
-    fetchConfigFromBackend(agentAssistJson, acpConfig, isToggleEnabledForConfigFromBackend) {
-        if (isToggleEnabledForConfigFromBackend) {
-            this.storeAgentAssistConfig(agentAssistJson.ContactId.toString(), agentAssistJson === null || agentAssistJson === void 0 ? void 0 : agentAssistJson.MediaType, agentAssistJson === null || agentAssistJson === void 0 ? void 0 : agentAssistJson.AgentAssistId);
-        }
-        else {
-            this.setAgentAssistConfig(agentAssistJson.ContactId, acpConfig);
-        }
+    saveEditedSummary(channel, contactNumber, summary) {
+        return new Promise((resolve, reject) => {
+            const reqInit = this.getBaseHttpRequest({
+                channel,
+                contactNumber,
+                summary,
+            });
+            const contactId = `${contactNumber}`;
+            const baseUrl = this.getBaseUrlForAcp();
+            const editedSummaryUrl = baseUrl + this.EDITED_SUMMARY.replace('{contactId}', contactId);
+            ;
+            HttpClient === null || HttpClient === void 0 ? void 0 : HttpClient.post(editedSummaryUrl, reqInit).then((response) => {
+                resolve(response.data);
+            }, (error) => {
+                const errorResponse = new CXoneSdkError(CXoneSdkErrorType.CXONE_API_ERROR, 'Failed to Save Edited Summary', error);
+                this.logger.error('saveEditedSummary', errorResponse.toString());
+                reject(errorResponse);
+            });
+        });
     }
+    ;
 }
 //# sourceMappingURL=copilot-service.js.map

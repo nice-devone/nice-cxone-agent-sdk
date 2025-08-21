@@ -598,5 +598,38 @@ export class CustomerCardService {
             });
         });
     }
+    /**
+     * Method to fetch livevox uuid for enhanced customer card
+     * @returns - API Returns Response JSON with UUID as string value
+     * @example -
+     */
+    invokeECCService(ECCPayload) {
+        var _a, _b, _c, _d, _e, _f;
+        const baseUrl = (_b = ((_a = this.auth.getCXoneConfig()) !== null && _a !== void 0 ? _a : {})) === null || _b === void 0 ? void 0 : _b.acdApiBaseUri;
+        const authToken = (_d = ((_c = this.auth.getAuthToken()) !== null && _c !== void 0 ? _c : {})) === null || _d === void 0 ? void 0 : _d.accessToken;
+        const payloadData = {
+            tenantId: ECCPayload === null || ECCPayload === void 0 ? void 0 : ECCPayload.tenantId,
+            saveTranscript: ECCPayload === null || ECCPayload === void 0 ? void 0 : ECCPayload.saveTranscript,
+            payload: ECCPayload === null || ECCPayload === void 0 ? void 0 : ECCPayload.payload,
+            customerId: ECCPayload === null || ECCPayload === void 0 ? void 0 : ECCPayload.customerId,
+        };
+        const url = baseUrl +
+            ApiUriConstants.ENHANCED_CUSTOMER_CARD;
+        const reqInit = {
+            headers: (_f = ((_e = this.utilService.initHeader(authToken, 'application/json')) !== null && _e !== void 0 ? _e : {})) === null || _f === void 0 ? void 0 : _f.headers,
+            body: payloadData,
+        };
+        return new Promise((resolve, reject) => {
+            HttpClient.post(url, reqInit).then((response) => __awaiter(this, void 0, void 0, function* () {
+                var _a, _b, _c, _d;
+                this.logger.info('ecc lambda call', 'ECC lambda call success');
+                resolve(Object.assign(Object.assign({}, ((_a = response === null || response === void 0 ? void 0 : response.data) !== null && _a !== void 0 ? _a : {})), { status: response === null || response === void 0 ? void 0 : response.status, interactionId: ((_b = response === null || response === void 0 ? void 0 : response.data) === null || _b === void 0 ? void 0 : _b.data) ? (_d = (_c = response === null || response === void 0 ? void 0 : response.data) === null || _c === void 0 ? void 0 : _c.data) === null || _d === void 0 ? void 0 : _d.interactionId : '' }));
+            }), (error) => {
+                const errorResponse = new CXoneSdkError(CXoneSdkErrorType.CXONE_API_ERROR, 'ecc lambda call failed', error);
+                this.logger.error('ecc lambda call', errorResponse.toString());
+                reject(errorResponse);
+            });
+        });
+    }
 }
 //# sourceMappingURL=customer-card-service.js.map

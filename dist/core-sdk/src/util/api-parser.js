@@ -1,4 +1,6 @@
 import { PermissionKeys } from '@nice-devone/common-sdk';
+import { AgentProfileConfigurationSettings } from '../enum/agent-profile-configurations';
+import { Logger } from '../logger/logger';
 /**
  * This class to parse api response
  */
@@ -80,6 +82,7 @@ export class ApiParser {
             vqmMonitoringKey: data.VQMMonitoringKey,
             enableUIQueue: data.EnableUIQueue,
             irisNoiseCancellationKey: data.irisNoiseCancellationKey,
+            selectedCxaVersion: data === null || data === void 0 ? void 0 : data.selectedCxaVersion,
         };
         return agentSettings;
     }
@@ -103,6 +106,53 @@ export class ApiParser {
             isUnifiedRoutingEnabled: data.businessUnits[0].isUnifiedRoutingEnabled,
         };
         return businessUnit;
+    }
+    /**
+     * This method to check Agent Profile Data and get desired configuration
+     *
+     * @param settings  - Agent Profile Data
+     * @returns - configuration data
+     * @example -
+     * ```
+     * parseAgentConfiguration(AgentProfileResponse)
+     * ```
+     */
+    parseAgentConfiguration(AgentProfileResponse) {
+        var _a;
+        const logger = new Logger('AgentProfileUtils', 'CXoneSession');
+        const agentProfileResponse = AgentProfileResponse === null || AgentProfileResponse === void 0 ? void 0 : AgentProfileResponse.data;
+        const configuration = {
+            agentScreenSize: '',
+            hideContactHistory: true,
+            hideSearch: true,
+            hideQueueCounter: true,
+            hideSchedule: true,
+            hideWEM: true,
+            hideLaunch: true,
+            hideCustomWorkspace: true,
+            hideReporting: true,
+        };
+        const mapping = {
+            [AgentProfileConfigurationSettings.CONTACT_HISTORY]: (value) => (configuration.hideContactHistory = !JSON.parse(value)),
+            [AgentProfileConfigurationSettings.SEARCH]: (value) => (configuration.hideSearch = !JSON.parse(value)),
+            [AgentProfileConfigurationSettings.QUEUE_COUNTER]: (value) => (configuration.hideQueueCounter = !JSON.parse(value)),
+            [AgentProfileConfigurationSettings.SCHEDULE]: (value) => (configuration.hideSchedule = !JSON.parse(value)),
+            [AgentProfileConfigurationSettings.WEM]: (value) => (configuration.hideWEM = !JSON.parse(value)),
+            [AgentProfileConfigurationSettings.LAUNCH]: (value) => (configuration.hideLaunch = !JSON.parse(value)),
+            [AgentProfileConfigurationSettings.CUSTOM_WORKSPACE]: (value) => (configuration.hideCustomWorkspace = !JSON.parse(value)),
+            [AgentProfileConfigurationSettings.REPORTING]: (value) => (configuration.hideReporting = !JSON.parse(value)),
+            [AgentProfileConfigurationSettings.DEFAULT_SCREEN_SIZE]: (value) => (configuration.agentScreenSize = value),
+        };
+        (_a = agentProfileResponse === null || agentProfileResponse === void 0 ? void 0 : agentProfileResponse.agentProfileConfigurations) === null || _a === void 0 ? void 0 : _a.forEach((config) => {
+            const updateConfig = mapping[config.subCategoryName];
+            if (updateConfig) {
+                updateConfig(config.value[0]);
+            }
+            else {
+                logger.error('Unhandled Agent Profile Configuration: ', config.subCategoryName);
+            }
+        });
+        return configuration;
     }
     /**
      * Method to parse Central Branding Profile response

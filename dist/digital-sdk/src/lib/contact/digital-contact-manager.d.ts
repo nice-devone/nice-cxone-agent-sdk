@@ -39,6 +39,11 @@ export declare class DigitalContactManager {
     private viewOnlyCases;
     onDigitalWsNotificationEvent: Subject<string>;
     private userSlotPollingStarted;
+    onAvailabilityEvent: Subject<any>;
+    onAgentHiveEvent: Subject<{
+        eventType: string;
+        message: CXoneMessage;
+    }>;
     private userSlotSubscribed;
     private isWebSocketFailure;
     /**
@@ -101,6 +106,14 @@ export declare class DigitalContactManager {
      * to validate the event data and publish that message data
      */
     private checkSchemaAndPublishForMessage;
+    /**
+     * checkSchemaAndPublishAvailability.
+     * @param currentContact - cxone Digital contact details
+     * @param eventData - eventData from digitalWebsocket.onMessageReceived subscription
+     * this method will be called in case of MESSAGE_NOTE_CREATED , MESSAGE_NOTE_DELETED , MESSAGE_NOTE_UPDATED , MESSAGE_UPDATED(only for change in message tags), MESSAGE_DELIVERY_STATUS_CHANGED, MESSAGE_SEEN_CHANGED event are updated and
+     * to validate the event data and publish that message data
+     */
+    private checkSchemaAndPublishAvailability;
     /**
      * Method to determine whether to poll user slot api
      * @example
@@ -185,6 +198,10 @@ export declare class DigitalContactManager {
      * Method used to get the CXoneContact
      */
     private publishContact;
+    /**
+     * Method used to get the CXoneContact
+     */
+    private publishAvailabilityState;
     /**
      * subscribe to auto summary event
      */

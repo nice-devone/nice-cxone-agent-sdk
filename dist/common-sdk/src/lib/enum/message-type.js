@@ -41,5 +41,6 @@ var MessageType;
     MessageType["AGENT_ASSIST_WS_RESPONSE"] = "AgentAssistWSResponse";
     MessageType["VOICE_BIO_HUB_RESPONSE"] = "VoiceBioHubResponse";
     MessageType["START_USER_SLOT_API_POLLING"] = "startUserSlotApiPolling";
+    MessageType["START_VOICE_REC_STATUS_API_POLLING"] = "startVoiceRecStatusApiPolling";
 })(MessageType = exports.MessageType || (exports.MessageType = {}));
 //# sourceMappingURL=message-type.js.map

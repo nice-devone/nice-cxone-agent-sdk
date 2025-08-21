@@ -1,5 +1,5 @@
 import { __awaiter } from "tslib";
-import { ACDSessionManager, AdminService, clearIndexDbKey, clearIndexDbStore, FeatureToggleService, HttpUtilService, IndexDBKeyNames, IndexDBStoreNames, LocalStorageHelper, Logger, NotificationSettings, OriginatingServiceIdentifier, SessionStorageHelper, StorageKeys, } from '@nice-devone/core-sdk';
+import { ACDSessionManager, AdminService, clearIndexDbKey, clearIndexDbStore, HttpUtilService, IndexDBKeyNames, IndexDBStoreNames, LocalStorageHelper, Logger, NotificationSettings, OriginatingServiceIdentifier, SessionStorageHelper, StorageKeys, } from '@nice-devone/core-sdk';
 import { CXoneLeaderElector, MessageBus, MessageType, } from '@nice-devone/common-sdk';
 import { CXoneDirectory } from './directory/cxone-directory';
 import { CopilotNotificationClient } from './agent-copilot/copilot-notification-client';
@@ -199,9 +199,8 @@ export class CXoneClient {
                 const acpConfig = (allParams === null || allParams === void 0 ? void 0 : allParams.AgentAssistAppConfigJson) || '{}';
                 const agentAssistJson = JSON.parse(acpConfig);
                 const providerId = (_a = agentAssistJson === null || agentAssistJson === void 0 ? void 0 : agentAssistJson.Params) === null || _a === void 0 ? void 0 : _a.providerId;
-                const isToggleEnabledForConfigFromBackend = FeatureToggleService.instance.getFeatureToggleSync("release-agentcopilot-ILLUM-23604" /* FeatureToggles.COPILOT_CONFIG_FROM_ACP_BACKEND */);
                 if (agentAssistJson && providerId === AgentAssistProvider.AGENT_COPILOT) {
-                    this.copilotService.fetchConfigFromBackend(agentAssistJson, acpConfig, isToggleEnabledForConfigFromBackend);
+                    this.copilotService.storeAgentAssistConfig(agentAssistJson === null || agentAssistJson === void 0 ? void 0 : agentAssistJson.ContactId.toString(), agentAssistJson === null || agentAssistJson === void 0 ? void 0 : agentAssistJson.MediaType, agentAssistJson === null || agentAssistJson === void 0 ? void 0 : agentAssistJson.AgentAssistId);
                 }
             });
         };
@@ -305,7 +304,9 @@ export class CXoneClient {
             StorageKeys.SORT_CRITERIA_DIGITAL,
             StorageKeys.SORT_ORDER_DIGITAL,
             StorageKeys.VOICE_PREFERENCE,
-            StorageKeys.FAVORITE_AGENT_STATES
+            StorageKeys.FAVORITE_AGENT_STATES,
+            StorageKeys.AGENT_SCREEN_SIZE,
+            StorageKeys.CXA_FAV_AGENT_STATES
         ]);
         try {
             const length = localStorage.length;

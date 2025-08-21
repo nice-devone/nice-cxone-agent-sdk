@@ -1,3 +1,4 @@
+import { RecordingNotificationPayload } from './recording-notification-payload';
 /**
  * Model interface for WEM notification messages
  */
@@ -18,6 +19,10 @@ export interface WemNotificationMessage {
         * @remarks list of wem embedded pages
         */
         notificationURL: string;
+        /**
+         * @remarks payload of the recording notification message
+         */
+        payload?: RecordingNotificationPayload;
     };
     displayData: {
         /**

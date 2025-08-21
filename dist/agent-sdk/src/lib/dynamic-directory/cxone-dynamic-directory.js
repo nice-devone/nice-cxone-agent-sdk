@@ -1,8 +1,10 @@
+import { __awaiter } from "tslib";
 import { CXoneAuth } from '@nice-devone/auth-sdk';
 import { CXoneSdkError, CXoneSdkErrorType, DirectoryEntries, Directories, SearchDirectoriesResponse, DirectoryMetadata, WSCommand, } from '@nice-devone/common-sdk';
-import { ApiUriConstants, HttpClient, HttpUtilService, Logger, UrlUtilsService, ValidationUtils, } from '@nice-devone/core-sdk';
+import { ApiUriConstants, dbInstance, HttpClient, HttpUtilService, IndexDBKeyNames, IndexDBStoreNames, LocalStorageHelper, Logger, StorageKeys, UrlUtilsService, ValidationUtils, } from '@nice-devone/core-sdk';
 import { Subject } from 'rxjs';
 import { WSProvider } from './provider/ws-provider';
+import { FeatureToggleService } from '../feature-toggle';
 /** This is the base class for Dynamic Directory*/
 export class CXoneDynamicDirectory {
     /**
@@ -23,6 +25,22 @@ export class CXoneDynamicDirectory {
         this.onMessageReceived = new Subject();
         this.searchDirectoryResult = new Subject();
         this.directory = 'Directory';
+        /** Method used to update favorite directory entries from client data
+         * @example -
+         * ```
+         * updateFavExtDirEntriesFromClientData();
+         * ```
+      */
+        this.updateFavExtDirEntriesFromClientData = () => __awaiter(this, void 0, void 0, function* () {
+            var _a;
+            const clientData = LocalStorageHelper.getItem(StorageKeys.CLIENT_DATA, true) || {};
+            const favExtDirectoryEntries = (clientData === null || clientData === void 0 ? void 0 : clientData.CXAFavExtDirectory) || [];
+            const favExtDirectorySet = new Set(favExtDirectoryEntries);
+            const directoryEntries = ((_a = this.searchDirectoriesResponse) === null || _a === void 0 ? void 0 : _a.directoryEntries) || [];
+            directoryEntries === null || directoryEntries === void 0 ? void 0 : directoryEntries.forEach((entry) => {
+                entry.isFavorite = favExtDirectorySet.has(entry === null || entry === void 0 ? void 0 : entry.userMappingId);
+            });
+        });
         this.auth = CXoneAuth.instance;
     }
     /**
@@ -145,30 +163,118 @@ export class CXoneDynamicDirectory {
         });
     }
     /**
-     * Method is used to serach directories
+     * Used to toggle the favorite marker for external directory and store it in Index DB
+     * @param extDirectoryEntries - Information of the external directory of whom favorite field needs to be toggled
+     * @example -
+     * ```
+     * directoryProvider.toggleFavoriteForExternalDirectory(extDirectoryEntries);
+     * ```
+     */
+    toggleFavoriteForExternalDirectory(extDirectoryEntries) {
+        return __awaiter(this, void 0, void 0, function* () {
+            const db = yield dbInstance();
+            const favExtDirectoryEntriesInDB = (yield (db === null || db === void 0 ? void 0 : db.get(IndexDBStoreNames.DIRECTORY, IndexDBKeyNames.FAVORITE_EXT_DIR_ENTRIES))) || [];
+            const toggledExtDirEntryIds = extDirectoryEntries.map(entry => entry === null || entry === void 0 ? void 0 : entry.userMappingId);
+            const existingExtDirEntryIds = favExtDirectoryEntriesInDB.map(entry => entry === null || entry === void 0 ? void 0 : entry.userMappingId);
+            // Remove toggled entries from favorites
+            const entriesToKeep = favExtDirectoryEntriesInDB.filter(entry => !toggledExtDirEntryIds.includes(entry === null || entry === void 0 ? void 0 : entry.userMappingId));
+            // Add new toggled entries not already in favorites
+            const entriesToAdd = extDirectoryEntries
+                .filter(entry => !existingExtDirEntryIds.includes(entry === null || entry === void 0 ? void 0 : entry.userMappingId))
+                .map(entry => (Object.assign(Object.assign({}, entry), { isFavorite: true })));
+            const updatedExtDirEntries = [...entriesToKeep, ...entriesToAdd];
+            yield (db === null || db === void 0 ? void 0 : db.put(IndexDBStoreNames.DIRECTORY, updatedExtDirEntries, IndexDBKeyNames.FAVORITE_EXT_DIR_ENTRIES));
+        });
+    }
+    ;
+    /**
+   * Used to sort external directory entries based on first name and last name
+   *  @param externalDirectoryEntries - array of external directory entries
+   * @example -
+   * ```
+   * sortExternalDirectory(externalDirectoryEntries)
+   * ```
+   */
+    sortExternalDirectory(externalDirectoryEntries) {
+        return externalDirectoryEntries.sort((directoryEntryA, directoryEntryB) => {
+            var _a, _b, _c;
+            return (_b = (_a = ((directoryEntryA === null || directoryEntryA === void 0 ? void 0 : directoryEntryA.firstname) + ' ' + (directoryEntryA === null || directoryEntryA === void 0 ? void 0 : directoryEntryA.lastname))) === null || _a === void 0 ? void 0 : _a.toUpperCase()) === null || _b === void 0 ? void 0 : _b.localeCompare((_c = ((directoryEntryB === null || directoryEntryB === void 0 ? void 0 : directoryEntryB.firstname) + ' ' + (directoryEntryB === null || directoryEntryB === void 0 ? void 0 : directoryEntryB.lastname))) === null || _c === void 0 ? void 0 : _c.toUpperCase());
+        });
+    }
+    /**
+   * get filtered External Directory List based on search text
+   * @param extDirectories - array of external directory entries
+   * @param searchText - search string
+   * @example -
+   * ```
+   * getFilteredExtDirList(searchText, extDirectories)
+   * ```
+   */
+    getFilteredExtDirList(searchText, extDirectories) {
+        const extDirResultState = extDirectories.filter(extDirectory => {
+            var _a, _b;
+            const firstAndLast = (extDirectory === null || extDirectory === void 0 ? void 0 : extDirectory.firstname) + ' ' + (extDirectory === null || extDirectory === void 0 ? void 0 : extDirectory.lastname);
+            const lastAndFirst = (extDirectory === null || extDirectory === void 0 ? void 0 : extDirectory.lastname) + ' ' + (extDirectory === null || extDirectory === void 0 ? void 0 : extDirectory.firstname);
+            return ((_a = firstAndLast === null || firstAndLast === void 0 ? void 0 : firstAndLast.toUpperCase()) === null || _a === void 0 ? void 0 : _a.includes(searchText)) || ((_b = lastAndFirst === null || lastAndFirst === void 0 ? void 0 : lastAndFirst.toUpperCase()) === null || _b === void 0 ? void 0 : _b.includes(searchText));
+        });
+        return extDirResultState;
+    }
+    /**
+    * Function to add external directory entries favorite in Index DB from store
+    * @param directoryEntries - Array of directory entries to update favorites.
+    * @example -
+    * ```
+    * updateExtDirectoryEntriesFavListInDB(directoryEntries)
+    * ```
+    */
+    updateExtDirectoryEntriesFavListInDB(directoryEntries) {
+        return __awaiter(this, void 0, void 0, function* () {
+            const db = yield dbInstance();
+            const favExtDirectoryEntriesDB = (yield (db === null || db === void 0 ? void 0 : db.get(IndexDBStoreNames.DIRECTORY, IndexDBKeyNames.FAVORITE_EXT_DIR_ENTRIES))) || [];
+            const favExtDirEntryIdsInDB = (favExtDirectoryEntriesDB === null || favExtDirectoryEntriesDB === void 0 ? void 0 : favExtDirectoryEntriesDB.map(extDirectoryEntry => extDirectoryEntry === null || extDirectoryEntry === void 0 ? void 0 : extDirectoryEntry.userMappingId)) || [];
+            const updatedFavExtDirectoryEntries = [];
+            directoryEntries === null || directoryEntries === void 0 ? void 0 : directoryEntries.forEach((directoryEntry) => {
+                if ((directoryEntry === null || directoryEntry === void 0 ? void 0 : directoryEntry.isFavorite) && !(favExtDirEntryIdsInDB.includes(directoryEntry === null || directoryEntry === void 0 ? void 0 : directoryEntry.userMappingId))) {
+                    updatedFavExtDirectoryEntries.push(directoryEntry);
+                }
+            });
+            // maintain existing favorites, add newly added favorites from store
+            yield (db === null || db === void 0 ? void 0 : db.put(IndexDBStoreNames.DIRECTORY, [...favExtDirectoryEntriesDB, ...updatedFavExtDirectoryEntries], IndexDBKeyNames.FAVORITE_EXT_DIR_ENTRIES));
+        });
+    }
+    /**
+   * Used to retrieve external directory entries and filter out favorites
+   * @param directoryEntries - array of directory entries to filter
+   * @param extDirectoryName - external directory name to filter
+   * @returns - returns the filtered favorite external directory entries
+   * @example -
+   * ```
+   * directoryProvider.getFavoritesByExtDirectory(directoryEntries, extDirectoryName);
+   * ```
+   */
+    getFavoritesByExtDirectory(directoryEntries, extDirectoryName) {
+        var _a;
+        return __awaiter(this, void 0, void 0, function* () {
+            this.updateExtDirectoryEntriesFavListInDB(directoryEntries);
+            let favExtDirectoryList = [];
+            const filteredFav = (directoryEntries === null || directoryEntries === void 0 ? void 0 : directoryEntries.filter((entry) => entry === null || entry === void 0 ? void 0 : entry.isFavorite)) || [];
+            favExtDirectoryList = filteredFav;
+            if ((extDirectoryName === null || extDirectoryName === void 0 ? void 0 : extDirectoryName.length) > 0) {
+                favExtDirectoryList = [];
+                const filteredExtDirSearchList = this.getFilteredExtDirList(extDirectoryName.toUpperCase(), directoryEntries);
+                favExtDirectoryList = (_a = this.sortExternalDirectory(filteredExtDirSearchList)) === null || _a === void 0 ? void 0 : _a.filter((entry) => entry === null || entry === void 0 ? void 0 : entry.isFavorite);
+            }
+            return favExtDirectoryList;
+        });
+    }
+    /**
+     * Method is used to search directories
      * @param searchDirectoriesRequest -- pass the SearchDirectoriesRequest type object
      * @returns - return object of type SearchDirectoriesResponse. Containing filtered directories based on search parameter
+     * @example -
      * ```
-     * @example --
-     * const searchDirectoriesRequest:SearchDirectoriesRequest = \{
-     * \{
-     *"subscriptionId": "subscriptionId",
-     *"searchString": "firstname lastname",
-     *"realTimeUpdates": true/false,
-     *"skip": 0,
-     *"top": 50,
-     *"directoryUUID": "directoryUUID"
-     *"filter": \{
-     *    "partnerType": [
-     *     "Zoom"
-     *  ],
-     *   "fieldType": [
-     *        "email"
-     *     ]
-     *\}
-     *\}
-     *\}
-     *```
+     * searchDirectories(searchDirectoriesRequest)
+     * ```
      */
     searchDirectories(searchDirectoriesRequest) {
         this.currentSearchDirectoriesRequest = searchDirectoriesRequest;
@@ -211,6 +317,10 @@ export class CXoneDynamicDirectory {
                         this.searchDirectoriesResponse.subscriptionId;
                     this.wsProvider.connectSocket();
                     this.socketMessageHandler();
+                }
+                const isFavoritesFTEnabled = FeatureToggleService.instance.getFeatureToggleSync("release-cxa-favorites-AW-40314" /* FeatureToggles.CXA_FAVORITES_FEATURE_TOGGLE */);
+                if (isFavoritesFTEnabled) {
+                    this.updateFavExtDirEntriesFromClientData();
                 }
                 this.publishFinalDynamicDirectoryResponse(this.searchDirectoriesResponse);
                 return;

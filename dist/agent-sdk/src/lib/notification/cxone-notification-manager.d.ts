@@ -1,14 +1,16 @@
-import { CXoneSdkError, AgentMessageNotification, WemNotificationDisplayData, WemNotificationRequestData, WemSuccessResponse } from '@nice-devone/common-sdk';
+import { CXoneSdkError, AgentMessageNotification, WemNotificationDisplayData, WemNotificationRequestData, WemSuccessResponse, WemNotificationRecordingData } from '@nice-devone/common-sdk';
 import { Subject } from 'rxjs';
 import { CXoneTenant } from '../acd/cxone-tenant/cxone-tenant';
 import { WemNotificationProvider } from '../notification/provider/wem-notification-provider';
+import { CxOneVoiceRecordingStatusProvider } from '../acd/provider/cxone-voice-recording-status-provider';
 /**
  * This class to manage notification
  */
 export declare class CXoneNotificationManager {
     private tenant;
-    onCXoneNotificationEvent: Subject<WemNotificationDisplayData | CXoneSdkError | WemSuccessResponse>;
+    onCXoneNotificationEvent: Subject<WemNotificationDisplayData | WemNotificationRecordingData | CXoneSdkError | WemSuccessResponse>;
     wemNotificationProvider: WemNotificationProvider;
+    voiceRecordingStatusProvider: CxOneVoiceRecordingStatusProvider;
     private logger;
     private validationUtils;
     private acdSession;

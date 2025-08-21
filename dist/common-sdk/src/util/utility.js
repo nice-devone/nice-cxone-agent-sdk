@@ -1,6 +1,6 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.validatePort = exports.validateURLOrACDStrings = exports.formatDateTime = exports.generateQueryForMultiSelectFilters = exports.generateQueryForFilters = exports.getQueryURLForSearchThreadsTab = exports.getQueryURLForCustomerTab = exports.getQueryURLForSearchMessagesTab = exports.getQueryURLFromObjectKeys = exports.calculatePercentage = exports.getTimeStringFromMS = exports.getMillisecondsFrom8601DurationString = exports.getDurationInSeconds = exports.getElapsedMinutes = exports.parseInteger = exports.parseBooleanString = void 0;
+exports.validatePort = exports.formatTimestamp = exports.getCurrentDate = exports.validateURLOrACDStrings = exports.formatDateTime = exports.generateQueryForMultiSelectFilters = exports.generateQueryForFilters = exports.getQueryURLForSearchThreadsTab = exports.getQueryURLForCustomerTab = exports.getQueryURLForSearchMessagesTab = exports.getQueryURLFromObjectKeys = exports.calculatePercentage = exports.getTimeStringFromMS = exports.getMillisecondsFrom8601DurationString = exports.getDurationInSeconds = exports.getElapsedMinutes = exports.parseInteger = exports.parseBooleanString = void 0;
 const logical_operators_1 = require("../enum/logical-operators");
 const screen_pop_urls_1 = require("../enum/screen-pop-urls");
 /**
@@ -362,6 +362,37 @@ const validateURLOrACDStrings = (inputURL) => {
     return isValidURL;
 };
 exports.validateURLOrACDStrings = validateURLOrACDStrings;
+/**
+ * Method to get current date and time if the string is a valid JSON
+ * @example getCurrentDate()
+ * @returns '2025-04-11T16:08:27.950+05:30'
+ */
+const getCurrentDate = () => {
+    const now = new Date();
+    const isoString = now.toISOString().replace('Z', '');
+    const offset = -now.getTimezoneOffset();
+    const sign = offset >= 0 ? '+' : '-';
+    const hours = Math.abs(Math.floor(offset / 60)).toString().padStart(2, '0');
+    const minutes = Math.abs(offset % 60).toString().padStart(2, '0');
+    // Combine ISO string with the timezone offset
+    return `${isoString}${sign}${hours}:${minutes}`;
+};
+exports.getCurrentDate = getCurrentDate;
+/**
+ * Method to return format the TimeStamp
+ * @param timestamp - '2025-04-11T16:19:59+00:00'
+ * @param locale - 'en-US'
+ * @example - formatTimestamp('en-US', '2025-04-11T16:19:59+00:00');
+ * ```typescript
+ * formatTimestamp('en-US','2025-04-11T16:19:59+00:00');
+ * ```
+ * @returns - '9:49 PM'
+ */
+const formatTimestamp = (locale, timestamp) => {
+    const options = { hour: 'numeric', minute: 'numeric', hour12: true };
+    return new Date(timestamp).toLocaleTimeString(locale, options);
+};
+exports.formatTimestamp = formatTimestamp;
 /**
  * Validate Port
  *

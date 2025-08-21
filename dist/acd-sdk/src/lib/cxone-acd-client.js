@@ -1,8 +1,8 @@
 import { __awaiter } from "tslib";
 import { AgentSessionStatus, CXoneLeaderElector, MessageBus, MessageType } from '@nice-devone/common-sdk';
-import { Logger } from '@nice-devone/core-sdk';
+import { LocalStorageHelper, Logger, StorageKeys } from '@nice-devone/core-sdk';
 import { CXoneSession } from './acd/cxone-session/cxone-session';
-import { CXoneClient, CXoneNotificationManager, SkillService, AgentLegService } from '@nice-devone/agent-sdk';
+import { CXoneClient, CXoneNotificationManager, SkillService, AgentLegService, FeatureToggleService } from '@nice-devone/agent-sdk';
 import { AgentStateService } from './agent-state/service/agent-state-service';
 import { CXoneIndicatorManager } from './acd/contact/cxone-indicator-manager';
 import { CXoneScreenPop } from './acd/contact/cxone-screen-pop';
@@ -117,6 +117,7 @@ export class CXoneAcdClient {
             this.contactManager = new ContactManager();
             this.notification = new CXoneNotificationManager(CXoneClient.instance.cxoneTenant);
             this.agentDetailService = new AgentDetailService();
+            this.updateUIQInstanceManagerURL();
         });
     }
     /**
@@ -155,6 +156,22 @@ export class CXoneAcdClient {
      */
     getCachedAgentSkills(agentId) {
         return this.skillService.getCachedAgentSkills(agentId);
+    }
+    /**
+     * Method to update the UIQ instance manager URL
+     * @example
+     * ```
+     * updateUIQInstanceManagerURL();
+     * ```
+     */
+    updateUIQInstanceManagerURL() {
+        const isUiqInstanceManagerURLToggleEnabled = FeatureToggleService.instance.getFeatureToggleSync("release-cxa-uiq-instance-manager-AW-38678" /* FeatureToggles.UIQ_INSTANCE_MANAGER_FEATURE_TOGGLE */) || false;
+        if (isUiqInstanceManagerURLToggleEnabled) {
+            const cxoneConfig = CXoneClient.instance.auth.getCXoneConfig();
+            cxoneConfig.uiQueueWSBaseUri = cxoneConfig === null || cxoneConfig === void 0 ? void 0 : cxoneConfig.uiQueueWSBaseUri.replace('/ui-queue/du01/manager/node', '/ui-queue-common/instance-manager/get-du-node');
+            CXoneClient.instance.auth.setCXoneConfig(cxoneConfig);
+            LocalStorageHelper.setItem(StorageKeys.CXONE_CONFIG, cxoneConfig);
+        }
     }
 }
 //# sourceMappingURL=cxone-acd-client.js.map

@@ -32,6 +32,10 @@ export interface SAB2AddressBook {
  * @remarks address book updated by
  */
     updatedBy: string;
+    /**
+    * @remarks indicates address book is marked as favorite or not
+    */
+    isFavorite?: boolean;
 }
 export interface AddressBooks {
     /**
@@ -50,4 +54,12 @@ export interface AddressBooks {
     * @remarks address book entries
     */
     addressBooksEntries?: Array<AddressBooksEntries>;
+    /**
+    * @remarks indicates address book is marked as favorite or not
+    */
+    isFavorite?: boolean;
+    /**
+    * @remarks  address book is active or not
+    */
+    isActive?: boolean;
 }

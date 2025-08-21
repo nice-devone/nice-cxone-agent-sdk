@@ -73,7 +73,10 @@ export declare enum AgentAssistConfigACPParamsKeys {
     DISCLOSURE_CARD_TITLE = "disclosureCardTitle",
     DISCLOSURE_DESCRIPTION = "disclosureDescription",
     ENABLE_INPUT_JSON_FILE = "enableInputJsonFile",
-    KNOWLEDGE_HUB_CONFIG = "knowledgeHubConfig"
+    KNOWLEDGE_HUB_CONFIG = "knowledgeHubConfig",
+    AUTOSUMMARY_TO_OUTCOME_PANEL = "autoSummaryToOutcomePanel",
+    SHOW_AUTOSUMMARY_CARD = "showAutoSummaryCard",
+    AUTOSUMMARY_CARD_FEATURES = "autoSummaryCardFeatures"
 }
 export interface CopilotProfileConfig {
     /**
@@ -92,6 +95,7 @@ export interface CopilotProfileConfig {
      * Parameters
      */
     Params: {
+        agentAssistId?: string;
         /**
          * Id of event provider like agentCopilot
          */
@@ -180,7 +184,27 @@ export interface CopilotProfileConfig {
          * Indicates configuration for the Knowledge Hub in the agent assist app.
          */
         knowledgeHubConfig?: KnowledgeHubConfiguration;
+        /**
+         * Indicates if the auto summary should be shown in the outcome panel.
+         */
+        autoSummaryToOutcomePanel: boolean;
+        /**
+         * Indicates if the auto summary card should be shown.
+         */
+        showAutoSummaryCard: boolean;
+        /**
+         * Features available for the auto summary card.
+         */
+        autoSummaryCardFeatures: AutoSummaryCardFeature[] | [];
     };
+}
+/**
+ * Interface for Auto Summary Card Features
+ */
+export interface AutoSummaryCardFeature {
+    value: string;
+    name: string;
+    disabled?: boolean;
 }
 /**
  * Configuration for the Knowledge Hub in the agent assist app.

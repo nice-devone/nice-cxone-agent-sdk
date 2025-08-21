@@ -51,6 +51,9 @@ export class DigitalContactManager {
         // Added new subject for handling WebSocket connection status notification display on UI
         this.onDigitalWsNotificationEvent = new Subject();
         this.userSlotPollingStarted = false;
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        this.onAvailabilityEvent = new Subject();
+        this.onAgentHiveEvent = new Subject();
         this.userSlotSubscribed = null;
         this.isWebSocketFailure = false;
         /**
@@ -61,6 +64,17 @@ export class DigitalContactManager {
                 case ContactType.DIGITAL_CONTACT:
                     this.onDigitalContactEvent.next(contact);
                     this.logger.debug('publishContact', 'DIGITAL_CONTACT ' + contact);
+                    break;
+            }
+        };
+        /**
+         * Method used to get the CXoneContact
+         */
+        this.publishAvailabilityState = (contact) => {
+            switch (contact.eventType) {
+                case CXoneDigitalEventType.CONVERSATIONS_AVAILABILITY:
+                    this.onAvailabilityEvent.next(contact); // eslint-disable-line @typescript-eslint/no-explicit-any
+                    this.logger.debug('publishAvailabilityState', 'CONVERSATIONS_AVAILABILITY ' + contact);
                     break;
             }
         };
@@ -156,8 +170,9 @@ export class DigitalContactManager {
         var _a, _b;
         let currentContact;
         this.currentUserId = (_a = CXoneUser.instance.getUserInfo()) === null || _a === void 0 ? void 0 : _a.userId;
+        const isConversationsFTEnabled = FeatureToggleService.instance.getFeatureToggleSync("release-agent-chat-AW-30672" /* FeatureToggles.AGENT_CHAT_FEATURE_TOGGLE */);
         (_b = this.digitalWebsocket.onMessageReceived) === null || _b === void 0 ? void 0 : _b.subscribe((eventData) => __awaiter(this, void 0, void 0, function* () {
-            var _c, _d, _e, _f, _g, _h, _j, _k, _l, _m, _o, _p, _q, _r, _s, _t, _u, _v, _w, _x, _y, _z, _0, _1, _2, _3, _4, _5, _6, _7, _8;
+            var _c, _d, _e, _f, _g, _h, _j, _k, _l, _m, _o, _p, _q, _r, _s, _t, _u, _v, _w, _x, _y, _z, _0, _1, _2, _3, _4, _5, _6, _7, _8, _9, _10, _11;
             let eventTypeToPublish;
             if ((eventData === null || eventData === void 0 ? void 0 : eventData.eventType) === CXoneDigitalEventType.CASE_INBOX_ASSIGNEE_CHANGED) {
                 if (((_d = (_c = eventData === null || eventData === void 0 ? void 0 : eventData.data) === null || _c === void 0 ? void 0 : _c.inboxAssignee) === null || _d === void 0 ? void 0 : _d.incontactId) !== this.currentUserId ||
@@ -195,6 +210,9 @@ export class DigitalContactManager {
                     return;
                 }
             }
+            else if (isConversationsFTEnabled && eventDetailsToPublish.eventType === CXoneDigitalEventType.MESSAGE_CREATED && ((_q = (_p = eventData === null || eventData === void 0 ? void 0 : eventData.data) === null || _p === void 0 ? void 0 : _p.channel) === null || _q === void 0 ? void 0 : _q.hasAgentsAsRecipients)) {
+                this.onAgentHiveEvent.next({ eventType: eventDetailsToPublish.eventType, message: (_r = eventData === null || eventData === void 0 ? void 0 : eventData.data) === null || _r === void 0 ? void 0 : _r.message });
+            }
             else {
                 // validate raw event data against predefined schema
                 const eventDetailsToValidate = Object.assign(Object.assign({}, eventData), eventDetailsToPublish);
@@ -203,16 +221,16 @@ export class DigitalContactManager {
                 if (eventDetailsToPublish.eventType === CXoneDigitalEventType.SENDER_TYPING_START ||
                     eventDetailsToPublish.eventType === CXoneDigitalEventType.SENDER_TYPING_END || eventDetailsToPublish.eventType === CXoneDigitalEventType.MESSAGE_PREVIEW) {
                     // subscribe to onDigitalContactUserTypingPreviewEvent Only if threadId found
-                    if (((_q = (_p = eventData.data) === null || _p === void 0 ? void 0 : _p.thread) === null || _q === void 0 ? void 0 : _q.id) && schemaValidatedResponse) {
+                    if (((_t = (_s = eventData.data) === null || _s === void 0 ? void 0 : _s.thread) === null || _t === void 0 ? void 0 : _t.id) && schemaValidatedResponse) {
                         this.onDigitalContactUserTypingPreviewEvent.next({
                             eventType: schemaValidatedResponse.eventType,
-                            threadId: (_s = (_r = schemaValidatedResponse.data) === null || _r === void 0 ? void 0 : _r.thread) === null || _s === void 0 ? void 0 : _s.id,
-                            message: (_t = schemaValidatedResponse.data) === null || _t === void 0 ? void 0 : _t.messagePreview,
+                            threadId: (_v = (_u = schemaValidatedResponse.data) === null || _u === void 0 ? void 0 : _u.thread) === null || _v === void 0 ? void 0 : _v.id,
+                            message: (_w = schemaValidatedResponse.data) === null || _w === void 0 ? void 0 : _w.messagePreview,
                         });
                     }
                 }
                 if (schemaValidatedResponse) {
-                    const contactInMap = this.digitalContactMap.get((_v = (_u = schemaValidatedResponse === null || schemaValidatedResponse === void 0 ? void 0 : schemaValidatedResponse.data) === null || _u === void 0 ? void 0 : _u.case) === null || _v === void 0 ? void 0 : _v.id);
+                    const contactInMap = this.digitalContactMap.get((_y = (_x = schemaValidatedResponse === null || schemaValidatedResponse === void 0 ? void 0 : schemaValidatedResponse.data) === null || _x === void 0 ? void 0 : _x.case) === null || _y === void 0 ? void 0 : _y.id);
                     if (contactInMap) {
                         currentContact = contactInMap;
                         // Dev Note: Change added for visual indicators
@@ -222,15 +240,15 @@ export class DigitalContactManager {
                         yield currentContact.parse(schemaValidatedResponse);
                         // set or delete the contact from map based on inboxAssigneeUser change
                         // publish individual received message for public channel
-                        if (!((_x = (_w = schemaValidatedResponse === null || schemaValidatedResponse === void 0 ? void 0 : schemaValidatedResponse.data) === null || _w === void 0 ? void 0 : _w.channel) === null || _x === void 0 ? void 0 : _x.isPrivate) &&
-                            ((_y = schemaValidatedResponse === null || schemaValidatedResponse === void 0 ? void 0 : schemaValidatedResponse.data) === null || _y === void 0 ? void 0 : _y.message))
-                            this.publishNewMessageForContact((_0 = (_z = schemaValidatedResponse === null || schemaValidatedResponse === void 0 ? void 0 : schemaValidatedResponse.data) === null || _z === void 0 ? void 0 : _z.case) === null || _0 === void 0 ? void 0 : _0.id, (_1 = schemaValidatedResponse === null || schemaValidatedResponse === void 0 ? void 0 : schemaValidatedResponse.data) === null || _1 === void 0 ? void 0 : _1.message, (_3 = (_2 = schemaValidatedResponse === null || schemaValidatedResponse === void 0 ? void 0 : schemaValidatedResponse.data) === null || _2 === void 0 ? void 0 : _2.case) === null || _3 === void 0 ? void 0 : _3.interactionId);
+                        if (!((_0 = (_z = schemaValidatedResponse === null || schemaValidatedResponse === void 0 ? void 0 : schemaValidatedResponse.data) === null || _z === void 0 ? void 0 : _z.channel) === null || _0 === void 0 ? void 0 : _0.isPrivate) &&
+                            ((_1 = schemaValidatedResponse === null || schemaValidatedResponse === void 0 ? void 0 : schemaValidatedResponse.data) === null || _1 === void 0 ? void 0 : _1.message))
+                            this.publishNewMessageForContact((_3 = (_2 = schemaValidatedResponse === null || schemaValidatedResponse === void 0 ? void 0 : schemaValidatedResponse.data) === null || _2 === void 0 ? void 0 : _2.case) === null || _3 === void 0 ? void 0 : _3.id, (_4 = schemaValidatedResponse === null || schemaValidatedResponse === void 0 ? void 0 : schemaValidatedResponse.data) === null || _4 === void 0 ? void 0 : _4.message, (_6 = (_5 = schemaValidatedResponse === null || schemaValidatedResponse === void 0 ? void 0 : schemaValidatedResponse.data) === null || _5 === void 0 ? void 0 : _5.case) === null || _6 === void 0 ? void 0 : _6.interactionId);
                         this.updatePublishDigitalContactMap(currentContact);
                     }
                 }
                 if (schemaValidatedResponse) {
-                    const status = (_5 = (_4 = schemaValidatedResponse === null || schemaValidatedResponse === void 0 ? void 0 : schemaValidatedResponse.data) === null || _4 === void 0 ? void 0 : _4.case) === null || _5 === void 0 ? void 0 : _5.status;
-                    const contactIdToUnsubscribe = (_8 = (_7 = (_6 = schemaValidatedResponse === null || schemaValidatedResponse === void 0 ? void 0 : schemaValidatedResponse.data) === null || _6 === void 0 ? void 0 : _6.case) === null || _7 === void 0 ? void 0 : _7.id) === null || _8 === void 0 ? void 0 : _8.toString();
+                    const status = (_8 = (_7 = schemaValidatedResponse === null || schemaValidatedResponse === void 0 ? void 0 : schemaValidatedResponse.data) === null || _7 === void 0 ? void 0 : _7.case) === null || _8 === void 0 ? void 0 : _8.status;
+                    const contactIdToUnsubscribe = (_11 = (_10 = (_9 = schemaValidatedResponse === null || schemaValidatedResponse === void 0 ? void 0 : schemaValidatedResponse.data) === null || _9 === void 0 ? void 0 : _9.case) === null || _10 === void 0 ? void 0 : _10.id) === null || _11 === void 0 ? void 0 : _11.toString();
                     // unsubscribing from web socket even on UnAssign and Dismiss as we get get-next on every Assign to Me
                     if (contactIdToUnsubscribe) {
                         if ((eventDetailsToPublish.eventType === CXoneDigitalEventType.CASE_STATUS_CHANGED && status === DigitalContactStatus.CLOSED) ||
@@ -239,6 +257,9 @@ export class DigitalContactManager {
                         }
                     }
                 }
+            }
+            if (isConversationsFTEnabled && eventDetailsToPublish.eventType === CXoneDigitalEventType.CONVERSATIONS_AVAILABILITY) {
+                this.checkSchemaAndPublishAvailability(eventData);
             }
         }));
     }
@@ -315,6 +336,21 @@ export class DigitalContactManager {
         }
         catch (error) {
             this.logger.info('checkSchemaAndPublishForMessage', JSON.stringify(error));
+        }
+    }
+    /**
+     * checkSchemaAndPublishAvailability.
+     * @param currentContact - cxone Digital contact details
+     * @param eventData - eventData from digitalWebsocket.onMessageReceived subscription
+     * this method will be called in case of MESSAGE_NOTE_CREATED , MESSAGE_NOTE_DELETED , MESSAGE_NOTE_UPDATED , MESSAGE_UPDATED(only for change in message tags), MESSAGE_DELIVERY_STATUS_CHANGED, MESSAGE_SEEN_CHANGED event are updated and
+     * to validate the event data and publish that message data
+     */
+    checkSchemaAndPublishAvailability(eventData) {
+        try {
+            this.publishAvailabilityState(eventData);
+        }
+        catch (error) {
+            this.logger.info('checkSchemaAndPublishAvailability', JSON.stringify(error));
         }
     }
     /**

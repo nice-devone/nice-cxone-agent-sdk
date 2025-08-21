@@ -70,15 +70,23 @@ export declare class ValidationUtils {
     isJSON(target: any): boolean;
     /**
      * Checks the value is valid email address or not
-     * @param value  - accepts string
-     * @example -
-     * ```
-     * validateEmail(test@test.com);
-     * ```
-     *
+     * @param emailAddress  - accepts string
+     * @example - validateEmail(test\@test.com);
      * @returns  - true/false
+     *
+     * * REGEX Explanation:
+     *
+     * Local Part (before the \@ symbol):
+     * - ^[a-zA-Z0-9!#$%&'*+/=?^_`{|}~-]+ // Must start with an alphanumeric character or special character (e.g., !#$%&'*+/=?^_`\{|\}~-).
+     * - (\.[a-zA-Z0-9!#$%&'*+/=?^_\`\{|\}~-]+)* --- Optional additional parts separated by periods.
+     * - \@ // The required \@ symbol separating local and domain parts.
+     
+     * Domain Part (after the \@ symbol):
+     * - ((\[[0-9]\{1,3\}\.[0-9]\{1,3\}\.[0-9]\{1,3\}\.[0-9]\{1,3\}\])| // Allows for an IP address in square brackets.
+     * - (([a-zA-Z0-9-])+\.)+ // Must start with an alphanumeric character and can contain hyphens and periods.
+     * - ([a-zA-Z0-9]\{2,4\})+$/ // TLD (top-level domain) must be 2 to 4 alphanumeric characters long.
      */
-    validateEmail(value: string): boolean;
+    validateEmail(emailAddress: string): boolean;
     /**
      * Checks the value is number or not for Directory search
      * @param value  - accepts string

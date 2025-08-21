@@ -1,5 +1,5 @@
 import { CXoneDirectory } from '../cxone-directory';
-import { AgentStateResponse, DirectoryResponse, PollingOptions, DirectoryEntities } from '@nice-devone/common-sdk';
+import { AddressBooksEntries, AgentStateResponse, DirectoryResponse, SkillEvent, PollingOptions, Team, DirectoryEntities } from '@nice-devone/common-sdk';
 export interface AgentName {
     firstName: boolean;
     lastName: boolean;
@@ -34,6 +34,10 @@ export declare class CXoneDirectoryProvider {
     private pollingOptions;
     private entity;
     private favroiteAgentList;
+    private favoriteTeamList;
+    private favoriteSkillList;
+    private favoriteAddressBookList;
+    private readonly isFavoritesFTEnabled;
     /**
      * Create a directory provider.
      * @example -- Const provider = new CXoneDirectoryProvider();
@@ -234,12 +238,14 @@ export declare class CXoneDirectoryProvider {
      * @example
      * directoryProvider.toggleFavorite(agent);
      */
-    toggleFavoriteForAgent(agentInfo: AgentStateResponse): Promise<void>;
+    toggleFavoriteForAgent(agentInfo: AgentStateResponse | AgentStateResponse[]): Promise<void>;
     /**
      * Used to retrieve agent list from index DB and filter out favorites
-     * @param searchText - searchText for filtering the list
-     * @example
-     * directoryProvider.getFavorites(searchText);
+     * @param agentName - agent name for filtering the list
+     * @example -
+     * ```
+     * directoryProvider.getFavoritesByAgent(agentName);
+     * ```
      */
     getFavoritesByAgent(agentName: string): Promise<AgentStateResponse[]>;
     /**
@@ -248,10 +254,59 @@ export declare class CXoneDirectoryProvider {
      */
     private updateAgentListInDB;
     /**
+     * Used to retrieve team list from index DB and filter out favorites
+     * @param teamName - team name for filtering the list
+     * @example -
+     * ```
+     * directoryProvider.getFavoritesByTeam(teamName);
+     * ```
+     */
+    getFavoritesByTeam(teamName: string): Promise<Team[]>;
+    /**
+     * Used to retrieve agent list from index DB and filter out favorites
+     * @param searchText - searchText for filtering the list
+     * @example
+     * directoryProvider.getFavorites(searchText);
+     */
+    getFavoritesByDigitalSkill(skillName: string): Promise<SkillEvent[]>;
+    /**
+   * Used to toggle the favorite marker for team and store it in Index DB
+   * @param teamInfo - Information of the team of whom favorite field needs to be toggled
+   * @example -
+   * ```
+   * directoryProvider.toggleFavoriteForTeam(team);
+   * ```
+   */
+    toggleFavoriteForTeam(teamInfo: Team[]): Promise<void>;
+    /**
+   * Used to toggle the favorite marker for skill and store it in Index DB
+   * @param skill - Information of the skill of whom favorite field needs to be toggled
+   * @example
+   * directoryProvider.toggleFavoriteForDigitalSkill(skill);
+   */
+    toggleFavoriteForDigitalSkill(skillInfo: SkillEvent[]): Promise<void>;
+    /**
      * Used to update the team list in index DB as per the new list
      * @param teamList - new team list response
      */
     private updateTeamListInDB;
+    /**
+     * Used to retrieve address book entries from index DB and filter out favorites
+     * @example
+     * ```
+     * directoryProvider.getFavoritesByAddressBook();
+     * ```
+     */
+    getFavoritesByAddressBook(addressBookName: string): Promise<AddressBooksEntries[]>;
+    /**
+     * Used to toggle the favorite marker for standard address book entries in Index DB
+     * @param addressBookEntries - Array of address book entries for which favorite field needs to be toggled
+     * @example
+     * ```
+     * directoryProvider.toggleFavoriteForStandardAddressBookEntries(addressBookEntries);
+     * ```
+     */
+    toggleFavoriteForStandardAddressBookEntries(addressBookEntries: AddressBooksEntries[]): Promise<void>;
     /**
      * Used to update the address list in index DB as per the new list
      * @param addressBookList - new address book list response

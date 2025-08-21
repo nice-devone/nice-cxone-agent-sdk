@@ -1,9 +1,10 @@
 import { __awaiter } from "tslib";
-import { ACDSessionManager, ApiUriConstants, dbInstance, HttpUtilService, IndexDBStoreNames, LoadWorker, LocalStorageHelper, Logger, StorageKeys, } from '@nice-devone/core-sdk';
+import { ACDSessionManager, ApiUriConstants, dbInstance, HttpUtilService, IndexDBStoreNames, LoadWorker, LocalStorageHelper, Logger, StorageKeys, IndexDBKeyNames, } from '@nice-devone/core-sdk';
 import { SkillActivityEvent } from '../model/skill-activity-event';
 import { DirectoryEntities, MediaTypeId, MessageBus, MessageType, } from '@nice-devone/common-sdk';
 import { DirectorySearchFilter } from '../../directory/util/utility';
 import { AuthStatus } from '@nice-devone/auth-sdk';
+import { FeatureToggleService } from '../../feature-toggle/feature-toggle-services';
 /**
  * skill activity Provider Class
  */
@@ -31,6 +32,8 @@ export class CXoneSkillActivityProvider {
             skillList: 0,
         };
         this.skillActivityPollingRequest = {};
+        this.favoriteSkillList = [];
+        this.isFavoritesFTEnabled = FeatureToggleService.instance.getFeatureToggleSync("release-cxa-favorites-AW-40314" /* FeatureToggles.CXA_FAVORITES_FEATURE_TOGGLE */);
         /**
          * Checks if skill activity polling is running
          * @returns - local storage key for skill activity polling
@@ -70,6 +73,7 @@ export class CXoneSkillActivityProvider {
                 skillActivityData: [],
                 totalRecords: 0,
                 totalSearchResultCount: 0,
+                favoriteSkills: [],
             };
             const db = yield dbInstance();
             let currentSkillList = (yield (db === null || db === void 0 ? void 0 : db.get(IndexDBStoreNames.DIRECTORY, DirectoryEntities.SKILL_ACTIVITY)));
@@ -159,6 +163,7 @@ export class CXoneSkillActivityProvider {
      * ```
      */
     handleSkillActivityResponse(response) {
+        var _a;
         return __awaiter(this, void 0, void 0, function* () {
             if (response) {
                 let skillActivityEvent = this.formatSkillActivityResponse(response);
@@ -166,12 +171,24 @@ export class CXoneSkillActivityProvider {
                     skillActivityData: [],
                     totalRecords: 0,
                     totalSearchResultCount: 0,
+                    favoriteSkills: [],
                 };
+                if (this.isFavoritesFTEnabled) {
+                    this.favoriteSkillList = (_a = this.favoriteSkillList) === null || _a === void 0 ? void 0 : _a.filter(skill => skill.isActive); // filter out the skills which are not active
+                }
                 if (skillActivityEvent.length) {
                     if (this.mediaTypeId) {
                         skillActivityEvent = this.filterSkillwithMediatype(skillActivityEvent);
                     }
-                    skillActivityEvent = yield this.updateSkillListInDB(skillActivityEvent);
+                    if (this.isFavoritesFTEnabled) {
+                        const { currentSkillList, currentFavSkillActivityList } = yield this.updateSkillListInDB(skillActivityEvent);
+                        paginationSkillResponse.skillActivityData = currentSkillList;
+                        paginationSkillResponse.favoriteSkills = currentFavSkillActivityList;
+                    }
+                    else {
+                        const { currentSkillList } = yield this.updateSkillListInDB(skillActivityEvent);
+                        skillActivityEvent = currentSkillList;
+                    }
                     if ((this.offset > 0 && this.limit > 0) || this.searchText.length > 1) {
                         paginationSkillResponse = yield this.handleDirectoryPagination();
                         //We receive offset and limit to display skill list in directory for pagination.
@@ -256,15 +273,29 @@ export class CXoneSkillActivityProvider {
         return __awaiter(this, void 0, void 0, function* () {
             const db = yield dbInstance();
             let currentSkillList = (yield (db === null || db === void 0 ? void 0 : db.get(IndexDBStoreNames.DIRECTORY, DirectoryEntities.SKILL_ACTIVITY))) || [];
+            let currentFavSkillActivityList = (yield (db === null || db === void 0 ? void 0 : db.get(IndexDBStoreNames.DIRECTORY, IndexDBKeyNames.FAVORITE_SKILLS))) || [];
             if (currentSkillList === null || currentSkillList === void 0 ? void 0 : currentSkillList.length) {
                 SkillList.forEach((skill, index) => {
                     const matchedSkillIndex = currentSkillList.findIndex((currentSkill) => currentSkill.skillId == skill.skillId);
                     if (matchedSkillIndex >= 0) {
-                        if (skill.isActive) { // If skills are active, add into SKILL_ACTIVITY DB else remove. 
-                            currentSkillList[matchedSkillIndex] = SkillList[index];
-                        }
+                        if (this.isFavoritesFTEnabled)
+                            if (currentSkillList[matchedSkillIndex].isFavorite) {
+                                SkillList[index].isFavorite =
+                                    currentSkillList[matchedSkillIndex].isFavorite;
+                                const favIndex = currentFavSkillActivityList.findIndex((fav) => fav.skillId === SkillList[index].skillId);
+                                if (favIndex >= 0)
+                                    currentFavSkillActivityList[favIndex] = SkillList[index];
+                            }
+                            else {
+                                SkillList[index].isFavorite = false;
+                            }
                         else {
-                            currentSkillList.splice(matchedSkillIndex, 1);
+                            if (skill.isActive) { // If skills are active, add into SKILL_ACTIVITY DB else remove. 
+                                currentSkillList[matchedSkillIndex] = SkillList[index];
+                            }
+                            else {
+                                currentSkillList.splice(matchedSkillIndex, 1);
+                            }
                         }
                     }
                     else
@@ -273,12 +304,35 @@ export class CXoneSkillActivityProvider {
             }
             else {
                 currentSkillList = SkillList;
+                if (this.isFavoritesFTEnabled) {
+                    const clientData = LocalStorageHelper.getItem(StorageKeys.CLIENT_DATA, true) || {};
+                    // updating IDB from client data api response stored in local storage
+                    currentSkillList.forEach((skillState, index) => {
+                        var _a;
+                        if ((_a = clientData === null || clientData === void 0 ? void 0 : clientData.CXAFavSkills) === null || _a === void 0 ? void 0 : _a.includes(skillState === null || skillState === void 0 ? void 0 : skillState.skillId)) {
+                            currentSkillList[index].isFavorite = true;
+                            currentFavSkillActivityList.push(skillState);
+                        }
+                    });
+                }
             }
             currentSkillList = this.sortResponse(currentSkillList);
+            if (this.isFavoritesFTEnabled) {
+                currentFavSkillActivityList = this.sortResponse(currentFavSkillActivityList);
+            }
+            currentSkillList = currentSkillList.filter(skill => skill.isActive);
             db === null || db === void 0 ? void 0 : db.put(IndexDBStoreNames.DIRECTORY, currentSkillList, DirectoryEntities.SKILL_ACTIVITY);
+            if (this.isFavoritesFTEnabled) {
+                db === null || db === void 0 ? void 0 : db.put(IndexDBStoreNames.DIRECTORY, currentFavSkillActivityList, IndexDBKeyNames.FAVORITE_SKILLS);
+            }
             if (!this.searchText)
                 this.entityCounts.skillList = (currentSkillList === null || currentSkillList === void 0 ? void 0 : currentSkillList.length) || 0; // to keep track of skill list records count
-            return currentSkillList;
+            if (this.isFavoritesFTEnabled) {
+                return { currentSkillList, currentFavSkillActivityList };
+            }
+            else {
+                return { currentSkillList, currentFavSkillActivityList: [] };
+            }
         });
     }
     /**
@@ -287,7 +341,7 @@ export class CXoneSkillActivityProvider {
      */
     handleDirectoryPagination() {
         return __awaiter(this, void 0, void 0, function* () {
-            const skillPaginationResponse = { skillActivityData: [], totalRecords: 0, totalSearchResultCount: 0 };
+            const skillPaginationResponse = { skillActivityData: [], totalRecords: 0, totalSearchResultCount: 0, favoriteSkills: [] };
             const db = yield dbInstance();
             skillPaginationResponse.skillActivityData = (yield (db === null || db === void 0 ? void 0 : db.get(IndexDBStoreNames.DIRECTORY, DirectoryEntities.SKILL_ACTIVITY)));
             [skillPaginationResponse.skillActivityData, skillPaginationResponse.totalSearchResultCount] = DirectorySearchFilter(Object.assign(Object.assign({ searchText: this.searchText, data: skillPaginationResponse.skillActivityData, filterType: 'skillName' }, (this.mediaTypeId && { mediaTypeIds: this.mediaTypeId === MediaTypeId.PhoneCall ? [this.mediaTypeId] : [this.mediaTypeId, MediaTypeId.PhoneCall] })), { limit: this.limit, offset: this.offset, isOutbound: this.isOutbound }));
@@ -340,6 +394,87 @@ export class CXoneSkillActivityProvider {
             return 0;
         });
         return skillList;
+    }
+    /**
+     * Used to toggle the favorite marker for skill and store it in Index DB
+     * @param skill - Information of the skill of whom favorite field needs to be toggled
+     * @example
+     * directoryProvider.toggleFavoriteForSkill(skill);
+     */
+    toggleFavoriteForSkill(skillInfo) {
+        var _a, _b;
+        return __awaiter(this, void 0, void 0, function* () {
+            const db = yield dbInstance();
+            const favSkillList = [];
+            const skillActivityFromDB = (yield (db === null || db === void 0 ? void 0 : db.get(IndexDBStoreNames.DIRECTORY, DirectoryEntities.SKILL_ACTIVITY))) || [];
+            const directorySearchResponse = (yield (db === null || db === void 0 ? void 0 : db.get(IndexDBStoreNames.DIRECTORY, IndexDBKeyNames.DIRECTORY_SEARCH_RESPONSE)));
+            const skillActivityResponse = {
+                skillActivityData: [],
+                favoriteSkills: [],
+            };
+            const favSkillListFromDB = (yield (db === null || db === void 0 ? void 0 : db.get(IndexDBStoreNames.DIRECTORY, IndexDBKeyNames.FAVORITE_SKILLS)));
+            const skillIdsToToggle = skillInfo.map((skill) => skill.skillId);
+            if ((_a = skillActivityResponse === null || skillActivityResponse === void 0 ? void 0 : skillActivityResponse.skillActivityData) === null || _a === void 0 ? void 0 : _a.length) {
+                skillActivityResponse.skillActivityData = (_b = skillActivityResponse.skillActivityData) === null || _b === void 0 ? void 0 : _b.map((skill) => {
+                    if (skillIdsToToggle.includes(Number(skill.skillId))) {
+                        return Object.assign(Object.assign({}, skill), { isFavorite: skill.isFavorite === undefined ? true : !skill.isFavorite });
+                    }
+                    return skill;
+                });
+            }
+            if (skillActivityFromDB === null || skillActivityFromDB === void 0 ? void 0 : skillActivityFromDB.length) {
+                favSkillList.length = 0;
+                skillActivityFromDB.forEach((skill) => {
+                    if (skillIdsToToggle.includes(skill.skillId)) {
+                        skill.isFavorite = skill.isFavorite === undefined ? true : !skill.isFavorite;
+                    }
+                    if (skill.isFavorite) {
+                        favSkillList.push(skill);
+                    }
+                });
+            }
+            db === null || db === void 0 ? void 0 : db.put(IndexDBStoreNames.DIRECTORY, skillActivityFromDB, DirectoryEntities.SKILL_ACTIVITY);
+            db === null || db === void 0 ? void 0 : db.put(IndexDBStoreNames.DIRECTORY, favSkillList, IndexDBKeyNames.FAVORITE_SKILLS);
+            db === null || db === void 0 ? void 0 : db.put(IndexDBStoreNames.DIRECTORY, directorySearchResponse, IndexDBKeyNames.DIRECTORY_SEARCH_RESPONSE);
+            if (skillActivityResponse) {
+                skillActivityResponse.skillActivityData = skillActivityResponse.skillActivityData ? skillActivityResponse.skillActivityData : [];
+                skillActivityResponse.favoriteSkills = (favSkillListFromDB || []).map(skill => (Object.assign(Object.assign({}, skill), { skillId: skill.skillId })));
+            }
+        });
+    }
+    /**
+       * Used to retrieve skill list from index DB and filter out favorites
+       * @param searchText - searchText for filtering the list
+       * @example
+       * skillActivityProvider.getFavoritesBySkill(searchText);
+       */
+    getFavoritesBySkill(skillName) {
+        var _a;
+        return __awaiter(this, void 0, void 0, function* () {
+            const db = yield dbInstance();
+            let favSkillList = [];
+            const skillListFromDB = (yield (db === null || db === void 0 ? void 0 : db.get(IndexDBStoreNames.DIRECTORY, DirectoryEntities.SKILL_ACTIVITY))) || [];
+            if (skillListFromDB === null || skillListFromDB === void 0 ? void 0 : skillListFromDB.length) {
+                favSkillList = (_a = (skillListFromDB)) === null || _a === void 0 ? void 0 : _a.filter((skill) => skill.isFavorite === true && skill.isActive);
+                if (skillName.length > 0) {
+                    favSkillList = this.getFilteredSkillList(skillName.toUpperCase(), favSkillList).map(skill => (Object.assign(Object.assign({}, skill), { skillId: Number(skill.skillId) })));
+                }
+            }
+            this.favoriteSkillList = favSkillList;
+            db === null || db === void 0 ? void 0 : db.put(IndexDBStoreNames.DIRECTORY, favSkillList, IndexDBKeyNames.FAVORITE_SKILLS);
+            return favSkillList;
+        });
+    }
+    /**
+     * Used to handle the skillList pagination for the search result if the search text is matched and then returns only the data based on offset and limit
+     * @param searchText - search string
+     * @param skillList - array of skill
+     */
+    getFilteredSkillList(searchText, skillList) {
+        const [skillResultState, searchMatchedCount] = DirectorySearchFilter(Object.assign(Object.assign({ searchText: searchText, data: skillList, filterType: 'skillName' }, (this.mediaTypeId && { mediaTypeIds: [this.mediaTypeId] })), { limit: this.limit, offset: this.offset }));
+        this.entityCounts.skillList = skillList.length || 0;
+        this.totalSearchResultCount.skillList = searchMatchedCount || 0;
+        return skillResultState;
     }
 }
 //# sourceMappingURL=cxone-skill-activity-provider.js.map

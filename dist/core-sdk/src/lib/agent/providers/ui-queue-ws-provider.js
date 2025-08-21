@@ -59,6 +59,7 @@ export class UIQueueWsProvider {
         this.loader = new LoadWorker();
         this.validationUtils = new ValidationUtils();
         this.isUIQDegraded = false;
+        this.internetCheckTimer = undefined; // to store the internet check timer
         this.agentSession = ACDSessionManager.instance;
         this.adminService = AdminService.instance;
         window.addEventListener('RefreshTokenSuccess', () => {
@@ -232,10 +233,7 @@ export class UIQueueWsProvider {
      */
     connectAgent(userInfo, invokeSnapshot, sessionId) {
         this.establishSocketConnection(userInfo, invokeSnapshot, sessionId).catch((error) => {
-            this.logger.error('connectAgent', 'establishSocketConnection failed:-' + error);
-            this.logger.error('connectAgent', 'Switching to get-next polling as websocket connection failed');
-            this.terminatePolling();
-            this.agentSession.startGetNextEvents(sessionId);
+            this.failoverToGetNext(error);
         });
     }
     /**
@@ -250,30 +248,41 @@ export class UIQueueWsProvider {
     getNewHubConnection(userInfo, retryOptions) {
         return __awaiter(this, void 0, void 0, function* () {
             const accessToken = this.getValidAccessToken();
-            try {
-                if (!this.hubConnection || this.hubConnection.state !== HubConnectionState.Connected) {
+            let attempt = 0;
+            /**
+             * Attempts to establish a new hub connection with retry logic.
+             * @returns A promise that resolves when the connection is successfully established.
+             * @example
+             * ```
+             * await establishHubConnectionWithRetry();
+             * ```
+             */
+            const establishHubConnectionWithRetry = () => __awaiter(this, void 0, void 0, function* () {
+                var _a;
+                if (((_a = this.hubConnection) === null || _a === void 0 ? void 0 : _a.state) === HubConnectionState.Connected)
+                    return;
+                try {
                     yield this.getHubUrl();
                     this.hubConnection = new HubConnectionBuilder()
                         .withUrl(this.hubUrl, { httpClient: new CustomHttpClient(accessToken), accessTokenFactory: () => `Bearer ${accessToken}` })
-                        .withAutomaticReconnect([1000])
+                        .withAutomaticReconnect([0])
                         .build();
                     this.hubConnection.serverTimeoutInMilliseconds = 60000;
                     yield this.startConnection(userInfo);
                 }
-            }
-            catch (error) {
-                if ((retryOptions === null || retryOptions === void 0 ? void 0 : retryOptions.maxRetryAttempts) > 0) {
-                    retryOptions.maxRetryAttempts--;
-                    this.logger.error('getNewHubConnection', 'getNewHubConnection failed:-' + error);
-                    this.logger.info('getNewHubConnection', `Retrying to establish socket connection. Attempts left: ${retryOptions.maxRetryAttempts}`);
-                    setTimeout(() => this.getNewHubConnection(userInfo, retryOptions).catch((error) => {
-                        this.logger.error('getNewHubConnection', 'getNewHubConnection failed:-' + error);
-                    }), retryOptions === null || retryOptions === void 0 ? void 0 : retryOptions.retryInterval);
+                catch (error) {
+                    if (++attempt <= retryOptions.maxRetryAttempts) {
+                        this.logger.error('getNewHubConnection', `Attempt ${attempt} failed: ${error}`);
+                        this.logger.info('getNewHubConnection', `Retrying... Attempts left: ${retryOptions.maxRetryAttempts - attempt}`);
+                        yield new Promise(resolve => setTimeout(resolve, retryOptions.retryInterval));
+                        yield establishHubConnectionWithRetry();
+                    }
+                    else {
+                        throw new CXoneSdkError(CXoneSdkErrorType.WEBSOCKET_ERROR, 'Max retry attempts reached. Failed to establish socket connection.');
+                    }
                 }
-                else {
-                    throw new CXoneSdkError(CXoneSdkErrorType.WEBSOCKET_ERROR, 'Max retry attempts reached. Failed to establish socket connection.');
-                }
-            }
+            });
+            yield establishHubConnectionWithRetry();
         });
     }
     /**
@@ -287,18 +296,19 @@ export class UIQueueWsProvider {
      */
     establishSocketConnection(userInfo, _invokeSnapshot = false, sessionId) {
         return __awaiter(this, void 0, void 0, function* () {
-            const retryOptions = RetryOptions.default();
-            this.getNewHubConnection(userInfo, retryOptions).then(() => __awaiter(this, void 0, void 0, function* () {
+            try {
+                const retryOptions = RetryOptions.default();
+                yield this.getNewHubConnection(userInfo, retryOptions);
                 this.logger.info('establishSocketConnection', 'UIQ Connection established');
                 yield this.getInitialGetNextEvent(sessionId);
                 this.addEventListeners(userInfo);
                 this.startKeepAlivePolling();
-            })).catch((error) => {
-                this.logger.error('establishSocketConnection', 'establishSocketConnection failed:-' + error);
-                this.logger.error('establishSocketConnection', 'Switching to get-next polling as websocket connection failed');
-                this.terminatePolling();
-                this.agentSession.startGetNextEvents(sessionId);
-            });
+            }
+            catch (error) {
+                this.logger.error('establishSocketConnection', `Failed to establish connection: ${error}`);
+                throw new CXoneSdkError(CXoneSdkErrorType.WEBSOCKET_ERROR, 'Failed to establish socket connection.');
+            }
+            ;
             // TODO: Removing temporarily as it is not required for now, will enable it in next release when UIQ is ready
             // if(invokeSnapshot) {
             //   this.invokeUIQEventSnapshotRequest();
@@ -343,9 +353,7 @@ export class UIQueueWsProvider {
                 this.hubConnection.stop();
                 setTimeout(() => { this.logger.info('On ReconnectWhenPossible', 'Waiting for connection to stop.'); }, 5000);
                 this.establishSocketConnection(userInfo, true).catch((error) => {
-                    this.agentSession.startGetNextEvents();
-                    this.logger.error('addEventListeners', 'establishSocketConnection failed:-' + error);
-                    this.logger.error('addEventListeners', 'Switching to get-next polling as websocket connection failed');
+                    this.failoverToGetNext(error);
                 });
             }
         });
@@ -365,19 +373,33 @@ export class UIQueueWsProvider {
                 this.getInitialGetNextEvent();
             }
         });
-        this.hubConnection.onclose(() => {
-            this.logger.info('onclose', 'UIQ Connection state closed event triggered.');
-            clearInterval(this.hearbeatPoller);
-            this.disconnectConsumerAgent();
-            if (this.agentSession.getSessionId() && !this.isUIQDegraded) {
-                this.establishSocketConnection(userInfo, true).catch((error) => {
-                    this.terminatePolling();
-                    this.agentSession.startGetNextEvents();
-                    this.logger.error('onclose', 'establishSocketConnection failed:-' + error);
-                    this.logger.error('onclose', 'Switching to get-next polling as websocket connection closed');
-                });
-            }
-        });
+        this.hubConnection.onclose(() => this.closeHandler(userInfo));
+    }
+    /**
+         * Method to handle close event
+         * @param userInfo - current logged in user information
+         * @example
+         * ```
+         * closeHandler(userInfo)
+         * ```
+         */
+    closeHandler(userInfo) {
+        this.logger.info('onclose', 'UIQ Connection state closed event triggered.');
+        if (!(navigator === null || navigator === void 0 ? void 0 : navigator.onLine)) {
+            this.handleInternetDisruption();
+            // send custom event to show network error message
+            const networkErrorEvent = {
+                Type: UIQEventType.NETWORK_OFFLINE_EVENT,
+                totalNetworkRequestExecuted: String(1),
+                retryStatus: CXoneSdkErrorType.WEBSOCKET_ERROR,
+            };
+            this.handleReceivedEvents(networkErrorEvent);
+        }
+        else if (this.agentSession.getSessionId() && !this.isUIQDegraded) {
+            this.establishSocketConnection(userInfo, true).catch((error) => {
+                this.failoverToGetNext(error);
+            });
+        }
     }
     /**
          * Method to send heartbeat
@@ -394,17 +416,53 @@ export class UIQueueWsProvider {
                 .then(() => {
                 this.logger.info('startSocketHeartBeat', 'UIQ Heartbeat successful');
             }).catch((err) => {
-                this.disconnectConsumerAgent();
-                clearInterval(this.hearbeatPoller);
-                this.agentSession.startGetNextEvents();
-                this.logger.error('startSocketHeartBeat', 'Switching to get-next polling as heartbeat failed');
                 if (err instanceof Error) {
+                    this.disconnectConsumerAgent();
                     this.logger.error('startSocketHeartBeat', 'Error while sending heartbeat' + new CXoneSdkError(CXoneSdkErrorType.WEBSOCKET_ERROR, err.message));
                 }
             });
         }
     }
     ;
+    /**
+     *  Method to check the internet connection and handle the disruption
+     * This method will start a timer to check the internet connection every 10 seconds.
+     * @example
+     * ```
+     * this.handleInternetDisruption();
+     * ```
+     */
+    handleInternetDisruption() {
+        if (this.hearbeatPoller)
+            clearInterval(this.hearbeatPoller);
+        if (this.internetCheckTimer)
+            clearInterval(this.internetCheckTimer);
+        // will start the internet connection check 
+        const startTime = Date.now();
+        this.internetCheckTimer = setInterval(() => {
+            if (Date.now() - startTime > 10 * 60 * 1000) { // 10 minutes in milliseconds
+                this.logger.error('handleInternetDisruption', 'Internet check exceeded 10 minutes. Stopping the timer.');
+                const networkErrorEvent = {
+                    Type: UIQEventType.NETWORK_OFFLINE_EVENT,
+                    totalNetworkRequestExecuted: String(0),
+                    retryStatus: CXoneSdkErrorType.WEBSOCKET_ERROR,
+                };
+                this.handleReceivedEvents(networkErrorEvent);
+                clearInterval(this.internetCheckTimer);
+                return;
+            }
+            if (navigator === null || navigator === void 0 ? void 0 : navigator.onLine) {
+                this.logger.info('handleInternetDisruption', 'Internet connection is back online.');
+                const networkEvent = {
+                    Type: UIQEventType.NETWORK_OFFLINE_EVENT,
+                    retryStatus: '',
+                };
+                this.handleReceivedEvents(networkEvent);
+                this.agentSession.establishUIQSocketConnection();
+                clearInterval(this.internetCheckTimer);
+            }
+        }, 10000);
+    }
     /**
          * Method to start connection
          * @param userInfo - current logged in user information
@@ -420,7 +478,7 @@ export class UIQueueWsProvider {
         });
     }
     /**
-         * Method to invoke snapshot request
+         * Method to send refresh token
          * @example
          * ```
          * sendRefreshToken()
@@ -464,6 +522,7 @@ export class UIQueueWsProvider {
          */
     disconnectConsumerAgent() {
         if (this.hubConnection) {
+            clearInterval(this.hearbeatPoller);
             this.hubConnection.stop();
             this.terminatePolling();
             this.logger.info('disconnectConsumerAgent', 'UIQ Disconnected');
@@ -496,6 +555,19 @@ export class UIQueueWsProvider {
         if (!ifRestart) {
             this.getkeepAlivePollingisActive = false;
         }
+    }
+    /**
+     * Method to failover to get-next polling
+     * @param error - error object
+     * @example
+     * ```
+     * failoverToGetNext(error)
+     * ```
+     */
+    failoverToGetNext(error) {
+        this.terminatePolling();
+        this.agentSession.startGetNextEvents();
+        this.logger.error('failoverToGetNext', 'Switching to get-next polling as websocket connection failed' + error.toString());
     }
 }
 //# sourceMappingURL=ui-queue-ws-provider.js.map

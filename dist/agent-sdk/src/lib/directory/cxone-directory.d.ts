@@ -1,5 +1,5 @@
 import { Subject } from 'rxjs';
-import { DirectoryResponse, DirectoryRequest, AgentSkill, AgentStateResponse, AddressBookEntriesResponse, AddressBooks, SAB2AddressBook } from '@nice-devone/common-sdk';
+import { DirectoryResponse, DirectoryRequest, AgentSkill, AgentStateResponse, AddressBookEntriesResponse, AddressBooks, SAB2AddressBook, Team, AddressBooksEntries, DirectoryAdditionalAtrributes, SkillEvent } from '@nice-devone/common-sdk';
 import { AddressBookService } from './service/address-book-service';
 import { SkillService } from './service/skill-service';
 import { CXoneDirectoryProvider } from './provider/cxone-directory-provider';
@@ -75,18 +75,81 @@ export declare class CXoneDirectory {
     getAgentSkills(): void;
     /**
      * Method to toggle favorites for Agents
-     * @example
+     * @param agentInfo - agent for which you want to toggle favorite for
+     * @example -
      * ```
-     * this.toggleFavorite();
+     * this.toggleFavorite(agentInfo);
      * ```
      */
-    toggleFavoriteForAgent(agentInfo: AgentStateResponse): void;
+    toggleFavoriteForAgent(agentInfo: AgentStateResponse | AgentStateResponse[]): void;
+    /**
+   * Method to toggle favorites for Teams
+   * @param teamsInfo - team for which you want to toggle favorite for
+   * @example -
+   * ```
+   * this.toggleFavoriteForTeams(TeamsInfo);
+   * ```
+   */
+    toggleFavoriteForTeams(teamsInfo: Team[]): void;
+    /**
+   * Method to toggle favorites for digital Skills
+   * @example
+   * ```
+   * this.toggleFavoriteForDigitalSkill();
+   * ```
+   */
+    toggleFavoriteForDigitalSkill(skillsInfo: SkillEvent[]): void;
+    /**
+     * Method to toggle favorites for Standard Address Book Entries
+     * @param addressBooksEntries - address book entries for which you want to toggle favorite for
+     * @example
+     * ```
+     * this.toggleFavoriteForStandardAddressBookEntries(addressBooksEntries);
+     * ```
+     */
+    toggleFavoriteForStandardAddressBookEntries(addressBooksEntries: AddressBooksEntries[]): void;
+    /**
+   * Method to toggle favorites for External Directory
+   * @param externalDirectoryEntries - external directory entries for which you want to toggle favorite for
+   * @example -
+   * ```
+   * this.toggleFavoriteForExternalDirectories(externalDirectoryEntries);
+   * ```
+   */
+    toggleFavoriteForExternalDirectories(externalDirectoryEntries: DirectoryAdditionalAtrributes[]): void;
     /**
      * Method to get favorites for Agents
-     * @example
+     * @param agentName - agent name for filtering the list
+     * @example -
      * ```
      * this.getFavorites(searchText);
      * ```
      */
     getFavoritesByAgent(agentName: string): Promise<AgentStateResponse[]>;
+    /**
+       * Method to get favorites for Teams
+       * @param teamName - team name for filtering the list
+       * @example -
+       * ```
+       * this.getFavoritesByTeam(searchText);
+       * ```
+       */
+    getFavoritesByTeam(teamName: string): Promise<Team[]>;
+    /**
+     * Method to get favorites for Address Book entries
+     * @example
+     * ```
+     * this.getFavoritesByAddressBook(searchText);
+     * ```
+     */
+    getFavoritesByAddressBook(AddressBookName: string): Promise<AddressBooksEntries[]>;
+    /**
+       * Method to get favorites for Digital Skills
+       * @param skillName - skill name for filtering the list
+       * @example -
+       * ```
+       * this.getFavoritesByDigitalSkill(searchText);
+       * ```
+     */
+    getFavoritesByDigitalSkill(skillName: string): Promise<SkillEvent[]>;
 }

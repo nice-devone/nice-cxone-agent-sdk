@@ -10,4 +10,5 @@ export interface feedbackCategories {
 }
 export interface feedbackPriorities {
     name: string;
+    translatedName?: string;
 }

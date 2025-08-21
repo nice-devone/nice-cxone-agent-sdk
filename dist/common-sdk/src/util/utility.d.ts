@@ -138,6 +138,23 @@ export declare const formatDateTime: (dateString: string, locale?: string, hour1
  */
 export declare const validateURLOrACDStrings: (inputURL: string) => boolean;
 /**
+ * Method to get current date and time if the string is a valid JSON
+ * @example getCurrentDate()
+ * @returns '2025-04-11T16:08:27.950+05:30'
+ */
+export declare const getCurrentDate: () => string;
+/**
+ * Method to return format the TimeStamp
+ * @param timestamp - '2025-04-11T16:19:59+00:00'
+ * @param locale - 'en-US'
+ * @example - formatTimestamp('en-US', '2025-04-11T16:19:59+00:00');
+ * ```typescript
+ * formatTimestamp('en-US','2025-04-11T16:19:59+00:00');
+ * ```
+ * @returns - '9:49 PM'
+ */
+export declare const formatTimestamp: (locale: string, timestamp: string | Date) => string;
+/**
  * Validate Port
  *
  * @param port - port to validate

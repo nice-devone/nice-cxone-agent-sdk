@@ -128,7 +128,10 @@ export declare class ApiUriConstants {
     static GET_PRESENCE_SYNC_RULE: string;
     static GET_AGENT_LOCATION: string;
     static SELECT_AGENT_LOCATION: string;
+    static AGENT_PROFILE: string;
     static FEEDBACK_CATEGORIES_AND_PRIORITIES: string;
     static SUBMIT_FEEDBACK: string;
     static AGENT_LOCALPOST_API: string;
+    static ENHANCED_CUSTOMER_CARD: string;
+    static GET_RECORDING_STATUS: string;
 }

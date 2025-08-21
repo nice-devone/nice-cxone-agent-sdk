@@ -78,6 +78,10 @@ export class CXoneDirectoryProvider {
         this.pollingOptions = undefined;
         this.entity = [];
         this.favroiteAgentList = [];
+        this.favoriteTeamList = [];
+        this.favoriteSkillList = [];
+        this.favoriteAddressBookList = [];
+        this.isFavoritesFTEnabled = FeatureToggleService.instance.getFeatureToggleSync("release-cxa-favorites-AW-40314" /* FeatureToggles.CXA_FAVORITES_FEATURE_TOGGLE */);
         this.getDirectoryPollingConfig = () => {
             return LocalStorageHelper.getItem(StorageKeys.DIRECTORY_POLLING_CONFIG, true);
         };
@@ -148,7 +152,7 @@ export class CXoneDirectoryProvider {
                 const isNewSearchRequest = this.isNewSearchedRequest(searchText, offset, limit, entity, teamId, mediaType);
                 this.offset = offset || -1;
                 this.limit = limit || -1;
-                this.searchText = searchText || '';
+                this.searchText = searchText;
                 this.currentEntities = entity; // to keep track of the current search entities which will be needed while update
                 const currentPollingNeededEntities = this.isPollingNeeded(entity);
                 if (currentPollingNeededEntities === null || currentPollingNeededEntities === void 0 ? void 0 : currentPollingNeededEntities.length) { // if the polling need any of the entity requested for the search then we will first poll the data first and then send the response for the search
@@ -378,9 +382,10 @@ export class CXoneDirectoryProvider {
             agentList = this.filterAgentDataByTeamId(agentList, this.teamId);
         }
         agentResultState = agentList.filter(agent => {
-            const firstAndLast = agent.firstName + ' ' + agent.lastName;
-            const lastAndFirst = agent.lastName + ' ' + agent.firstName;
-            return firstAndLast.toUpperCase().includes(searchText) || lastAndFirst.toUpperCase().includes(searchText);
+            var _a, _b;
+            const firstAndLast = (agent === null || agent === void 0 ? void 0 : agent.firstName) + ' ' + (agent === null || agent === void 0 ? void 0 : agent.lastName);
+            const lastAndFirst = (agent === null || agent === void 0 ? void 0 : agent.lastName) + ' ' + (agent === null || agent === void 0 ? void 0 : agent.firstName);
+            return ((_a = firstAndLast === null || firstAndLast === void 0 ? void 0 : firstAndLast.toUpperCase()) === null || _a === void 0 ? void 0 : _a.includes(searchText)) || ((_b = lastAndFirst === null || lastAndFirst === void 0 ? void 0 : lastAndFirst.toUpperCase()) === null || _b === void 0 ? void 0 : _b.includes(searchText));
         });
         agentResultState = this.sortAgentList(agentResultState, searchText);
         this.totalSearchResultCount.agentList = agentResultState.length || 0;
@@ -433,12 +438,15 @@ export class CXoneDirectoryProvider {
             var _a, _b;
             if ((_a = addressBook === null || addressBook === void 0 ? void 0 : addressBook.addressBooksEntries) === null || _a === void 0 ? void 0 : _a.length) {
                 const newAddressBook = Object.assign(Object.assign({}, addressBook), { addressBooksEntries: [] });
-                const filteredAddressBookEntries = (_b = addressBook.addressBooksEntries) === null || _b === void 0 ? void 0 : _b.filter(list => (list.firstName.toUpperCase() + ' ' + list.lastName.toUpperCase()).includes(searchText) ||
-                    (list.firstName.toUpperCase() + ' ' + list.middleName.toUpperCase() + ' ' + list.lastName.toUpperCase()).includes(searchText) ||
-                    list.lastName.toUpperCase().includes(searchText) ||
-                    list.mobile.includes(searchText) ||
-                    list.phone.includes(searchText) ||
-                    list.email.toUpperCase().includes(searchText));
+                const filteredAddressBookEntries = (_b = addressBook.addressBooksEntries) === null || _b === void 0 ? void 0 : _b.filter(list => {
+                    var _a, _b, _c, _d, _e, _f, _g, _h, _j, _k;
+                    return ((_c = (((_a = list === null || list === void 0 ? void 0 : list.firstName) === null || _a === void 0 ? void 0 : _a.toUpperCase()) + ' ' + ((_b = list === null || list === void 0 ? void 0 : list.lastName) === null || _b === void 0 ? void 0 : _b.toUpperCase()))) === null || _c === void 0 ? void 0 : _c.includes(searchText)) ||
+                        (((_d = list === null || list === void 0 ? void 0 : list.firstName) === null || _d === void 0 ? void 0 : _d.toUpperCase()) + ' ' + ((_e = list === null || list === void 0 ? void 0 : list.middleName) === null || _e === void 0 ? void 0 : _e.toUpperCase()) + ' ' + ((_f = list === null || list === void 0 ? void 0 : list.lastName) === null || _f === void 0 ? void 0 : _f.toUpperCase())).includes(searchText) ||
+                        ((_g = list === null || list === void 0 ? void 0 : list.lastName) === null || _g === void 0 ? void 0 : _g.toUpperCase().includes(searchText)) ||
+                        ((_h = list === null || list === void 0 ? void 0 : list.mobile) === null || _h === void 0 ? void 0 : _h.includes(searchText)) ||
+                        ((_j = list === null || list === void 0 ? void 0 : list.phone) === null || _j === void 0 ? void 0 : _j.includes(searchText)) ||
+                        ((_k = list === null || list === void 0 ? void 0 : list.email) === null || _k === void 0 ? void 0 : _k.toUpperCase().includes(searchText));
+                });
                 searchCount = searchCount + filteredAddressBookEntries.length;
                 newAddressBook.addressBooksEntries = filteredAddressBookEntries;
                 if (filteredAddressBookEntries.length) {
@@ -470,6 +478,7 @@ export class CXoneDirectoryProvider {
         DirectoryEntities.ADDRESS_BOOK_LIST
     ], shouldFetchAllAgents) {
         this.pollingOptions = pollingOptions;
+        let updatedSinceValue = LocalStorageHelper.getItem(StorageKeys.DIRECTORY_POLLING_UPDATED_SINCE) || new Date(0).toISOString();
         this.entity = entity;
         this.isFreshRequest = true; // whenever new api request for directory is made that means its an explicit user request to get the directory data as per the entity provided
         this.logger.info('startPolling', 'startPolling in CXoneDirectoryProvider');
@@ -481,7 +490,10 @@ export class CXoneDirectoryProvider {
             if (entity.includes(DirectoryEntities.AGENT_LIST)) {
                 if (isFTUnifyAgentStateOn) {
                     const agentStateUrl = new URL(ApiUriConstants.AGENT_STATE_UNIFY_URI, this.baseUri);
-                    agentStateUrl.searchParams.set('updatedSince', new Date(0).toISOString());
+                    if (updatedSinceValue) {
+                        // if updatedSinceValue is present then we will use that value to get the agent state
+                        agentStateUrl.searchParams.set('updatedSince', updatedSinceValue);
+                    }
                     const agentStateRequest = {
                         headers: this.utilService.initHeader(authToken).headers,
                     };
@@ -494,7 +506,9 @@ export class CXoneDirectoryProvider {
                 else {
                     const agentStateUrl = new URL(ApiUriConstants.AGENT_STATE_URI, this.baseUri);
                     agentStateUrl.searchParams.set('fields', 'agentId,agentStateName,contactId,firstName,isActive,isOutbound,lastName,lastPollTime,lastUpdateTime,mediaName,outStateCode,outStateDescription,skillId,skillName,startDate,stationPhoneNumber,teamId,teamName,userName,userId');
-                    agentStateUrl.searchParams.set('updatedSince', new Date(0).toISOString());
+                    if (updatedSinceValue) {
+                        agentStateUrl.searchParams.set('updatedSince', updatedSinceValue);
+                    }
                     const agentStateRequest = {
                         headers: this.utilService.initHeader(authToken).headers,
                     };
@@ -546,7 +560,20 @@ export class CXoneDirectoryProvider {
             if (!this.pollingWorker) {
                 this.initUtilWorker();
                 this.pollingWorker.onmessage = (response) => {
+                    var _a, _b, _c, _d;
                     this.handleDirectoryResponse(response.data, shouldFetchAllAgents);
+                    if (entity.includes(DirectoryEntities.AGENT_LIST)) {
+                        const agentListWrapper = (_a = response === null || response === void 0 ? void 0 : response.data) === null || _a === void 0 ? void 0 : _a.get('agentList');
+                        if (isFTUnifyAgentStateOn && ((_b = agentListWrapper === null || agentListWrapper === void 0 ? void 0 : agentListWrapper.value) === null || _b === void 0 ? void 0 : _b.lastPollTime)) {
+                            const agentList = agentListWrapper === null || agentListWrapper === void 0 ? void 0 : agentListWrapper.value;
+                            updatedSinceValue = agentList === null || agentList === void 0 ? void 0 : agentList.lastPollTime;
+                        }
+                        else if ((_c = agentListWrapper === null || agentListWrapper === void 0 ? void 0 : agentListWrapper.value) === null || _c === void 0 ? void 0 : _c.resultSet) {
+                            const agentList = (_d = agentListWrapper === null || agentListWrapper === void 0 ? void 0 : agentListWrapper.value) === null || _d === void 0 ? void 0 : _d.resultSet;
+                            updatedSinceValue = agentList === null || agentList === void 0 ? void 0 : agentList.lastPollTime;
+                        }
+                        LocalStorageHelper.setItem(StorageKeys.DIRECTORY_POLLING_UPDATED_SINCE, updatedSinceValue);
+                    }
                 };
             }
             this.pollingWorker.postMessage({
@@ -585,21 +612,42 @@ export class CXoneDirectoryProvider {
      * ```
      */
     handleDirectoryResponse(response, shouldFetchAllAgents) {
-        var _a, _b, _c, _d, _e, _f, _g, _h, _j, _k, _l, _m, _o, _p, _q;
+        var _a, _b, _c, _d, _e, _f, _g, _h, _j, _k, _l, _m, _o, _p, _q, _r, _s, _t, _u, _v, _w, _x, _y, _z, _0, _1, _2, _3, _4;
         return __awaiter(this, void 0, void 0, function* () {
             const db = yield dbInstance();
             let isUpdate = true; // this flag will let us know if the data is for updation or for the first time response after initial polling response
             if (response) {
                 let directoryEvent = yield this.directoryAdapter.handleEvent(response);
-                if ((directoryEvent === null || directoryEvent === void 0 ? void 0 : directoryEvent.agentList.data.length) || directoryEvent.addressBookList.data.length || directoryEvent.skillList.data.length
-                    || directoryEvent.teamList.data.length || this.isFreshRequest) { // if data is present for the entity or its a fresh user request
+                if (((_b = (_a = directoryEvent === null || directoryEvent === void 0 ? void 0 : directoryEvent.agentList) === null || _a === void 0 ? void 0 : _a.data) === null || _b === void 0 ? void 0 : _b.length) || ((_d = (_c = directoryEvent === null || directoryEvent === void 0 ? void 0 : directoryEvent.addressBookList) === null || _c === void 0 ? void 0 : _c.data) === null || _d === void 0 ? void 0 : _d.length) || ((_f = (_e = directoryEvent === null || directoryEvent === void 0 ? void 0 : directoryEvent.skillList) === null || _e === void 0 ? void 0 : _e.data) === null || _f === void 0 ? void 0 : _f.length)
+                    || ((_h = (_g = directoryEvent === null || directoryEvent === void 0 ? void 0 : directoryEvent.teamList) === null || _g === void 0 ? void 0 : _g.data) === null || _h === void 0 ? void 0 : _h.length) || this.isFreshRequest) { // if data is present for the entity or its a fresh user request
                     this.isFreshRequest = false;
                     const { skillList, agentList, addressBookList, teamList } = Object.assign({}, directoryEvent);
                     const updatedDirectoryResponse = { skillList: { data: [] }, agentList: { data: [], favoriteAgents: [] }, addressBookList: { data: [] }, teamList: { data: [] } };
                     //Reset previous entity count
                     this.entityCounts = { addressBookList: 0, skillList: 0, agentList: 0, teamList: 0, totalAgentCount: 0, totalTeamCount: 0, totalSkillCount: 0, totalAddressBookCount: 0 };
-                    //to update the new directory values in indexDB
-                    updatedDirectoryResponse.skillList.data = (skillList.data.length) ? yield this.updateSkillListInDB(skillList.data) : yield (db === null || db === void 0 ? void 0 : db.get(IndexDBStoreNames.DIRECTORY, DirectoryEntities.SKILL_LIST));
+                    if (this.isFavoritesFTEnabled) {
+                        if (((_j = skillList === null || skillList === void 0 ? void 0 : skillList.data) === null || _j === void 0 ? void 0 : _j.length) > 0) { //if skillList is present then update skill list and favorite list with latest data
+                            const { currentSkillList, currentFavSkillList } = yield this.updateSkillListInDB(skillList.data);
+                            updatedDirectoryResponse.skillList.data = currentSkillList;
+                            updatedDirectoryResponse.skillList.favoriteDigitalSkills = currentFavSkillList;
+                        }
+                        else { // if there is no response in skillList then directory push latest values of index db in response data
+                            updatedDirectoryResponse.skillList.data = (yield (db === null || db === void 0 ? void 0 : db.get(IndexDBStoreNames.DIRECTORY, DirectoryEntities.SKILL_LIST)));
+                            updatedDirectoryResponse.skillList.favoriteDigitalSkills = (yield (db === null || db === void 0 ? void 0 : db.get(IndexDBStoreNames.DIRECTORY, IndexDBKeyNames.FAVORITE_SKILLS)));
+                        }
+                        ;
+                        this.favoriteSkillList = updatedDirectoryResponse.skillList.favoriteDigitalSkills;
+                    }
+                    else {
+                        //to update the new directory values in indexDB
+                        if ((_k = skillList === null || skillList === void 0 ? void 0 : skillList.data) === null || _k === void 0 ? void 0 : _k.length) {
+                            const { currentSkillList } = yield this.updateSkillListInDB(skillList.data);
+                            updatedDirectoryResponse.skillList.data = currentSkillList;
+                        }
+                        else {
+                            updatedDirectoryResponse.skillList.data = (yield (db === null || db === void 0 ? void 0 : db.get(IndexDBStoreNames.DIRECTORY, DirectoryEntities.SKILL_LIST)));
+                        }
+                    }
                     if (agentList.data.length > 0) { //if agentList is present then update agent list and favorite list with latest data 
                         const { currentAgentList, currentFavAgentList } = yield this.updateAgentListInDB(agentList.data);
                         updatedDirectoryResponse.agentList.data = currentAgentList;
@@ -611,13 +659,52 @@ export class CXoneDirectoryProvider {
                     }
                     ;
                     this.favroiteAgentList = updatedDirectoryResponse.agentList.favoriteAgents;
-                    updatedDirectoryResponse.addressBookList.data = (addressBookList.data.length) ? yield this.updateAddressBookListInDB(addressBookList.data) : yield (db === null || db === void 0 ? void 0 : db.get(IndexDBStoreNames.DIRECTORY, DirectoryEntities.ADDRESS_BOOK_LIST));
-                    updatedDirectoryResponse.teamList.data = (teamList.data.length) ? yield this.updateTeamListInDB(teamList.data) : yield (db === null || db === void 0 ? void 0 : db.get(IndexDBStoreNames.DIRECTORY, DirectoryEntities.TEAM_LIST));
-                    this.entityCounts.totalAgentCount = ((_a = updatedDirectoryResponse.agentList.data) === null || _a === void 0 ? void 0 : _a.length) || 0;
-                    this.entityCounts.totalTeamCount = ((_b = updatedDirectoryResponse.teamList.data) === null || _b === void 0 ? void 0 : _b.length) || 0;
-                    this.entityCounts.totalSkillCount = ((_c = updatedDirectoryResponse.skillList.data) === null || _c === void 0 ? void 0 : _c.length) || 0;
-                    this.entityCounts.totalAddressBookCount = (_e = (_d = updatedDirectoryResponse.addressBookList) === null || _d === void 0 ? void 0 : _d.data) === null || _e === void 0 ? void 0 : _e.reduce((sum, elem) => { var _a; return sum + ((elem === null || elem === void 0 ? void 0 : elem.addressBooksEntries) ? (_a = elem === null || elem === void 0 ? void 0 : elem.addressBooksEntries) === null || _a === void 0 ? void 0 : _a.length : 0); }, 0);
-                    if (this.searchText && ((_f = this.currentEntities) === null || _f === void 0 ? void 0 : _f.length)) { //if searchText is present then the directory response for search
+                    if (this.isFavoritesFTEnabled) {
+                        if (((_l = addressBookList === null || addressBookList === void 0 ? void 0 : addressBookList.data) === null || _l === void 0 ? void 0 : _l.length) > 0) { // If there is a response, update lists in IDB and assign both lists
+                            const { currentAddressBookList, currentFavAddressBookList } = yield this.updateAddressBookListInDB(addressBookList.data);
+                            updatedDirectoryResponse.addressBookList.data = currentAddressBookList;
+                            updatedDirectoryResponse.addressBookList.favoriteStandardAddressBooks = currentFavAddressBookList;
+                        }
+                        else { // If no response, use latest values from IDB
+                            updatedDirectoryResponse.addressBookList.data = (yield (db === null || db === void 0 ? void 0 : db.get(IndexDBStoreNames.DIRECTORY, DirectoryEntities.ADDRESS_BOOK_LIST)));
+                            updatedDirectoryResponse.addressBookList.favoriteStandardAddressBooks = (yield (db === null || db === void 0 ? void 0 : db.get(IndexDBStoreNames.DIRECTORY, IndexDBKeyNames.FAVORITE_STANDARD_ADDRESS_BOOK)));
+                        }
+                        this.favoriteAddressBookList = updatedDirectoryResponse.addressBookList.favoriteStandardAddressBooks;
+                    }
+                    else if ((_m = addressBookList === null || addressBookList === void 0 ? void 0 : addressBookList.data) === null || _m === void 0 ? void 0 : _m.length) {
+                        const { currentAddressBookList } = yield this.updateAddressBookListInDB(addressBookList.data);
+                        updatedDirectoryResponse.addressBookList.data = currentAddressBookList;
+                    }
+                    else {
+                        updatedDirectoryResponse.addressBookList.data = (yield (db === null || db === void 0 ? void 0 : db.get(IndexDBStoreNames.DIRECTORY, DirectoryEntities.ADDRESS_BOOK_LIST)));
+                    }
+                    if (this.isFavoritesFTEnabled) {
+                        if (((_o = teamList === null || teamList === void 0 ? void 0 : teamList.data) === null || _o === void 0 ? void 0 : _o.length) > 0) { //if teamList is present then update team list and favorite list with latest data 
+                            const { currentTeamList, currentFavTeamList } = yield this.updateTeamListInDB(teamList.data);
+                            updatedDirectoryResponse.teamList.data = currentTeamList;
+                            updatedDirectoryResponse.teamList.favoriteTeams = currentFavTeamList;
+                        }
+                        else { // if there is no response in teamlist then directory push latest values of index db in response data
+                            updatedDirectoryResponse.teamList.data = (yield (db === null || db === void 0 ? void 0 : db.get(IndexDBStoreNames.DIRECTORY, DirectoryEntities.TEAM_LIST)));
+                            updatedDirectoryResponse.teamList.favoriteTeams = (yield (db === null || db === void 0 ? void 0 : db.get(IndexDBStoreNames.DIRECTORY, IndexDBKeyNames.FAVORITE_TEAMS)));
+                        }
+                        ;
+                        this.favoriteTeamList = updatedDirectoryResponse.teamList.favoriteTeams;
+                    }
+                    else {
+                        if ((_p = teamList === null || teamList === void 0 ? void 0 : teamList.data) === null || _p === void 0 ? void 0 : _p.length) {
+                            const { currentTeamList } = yield this.updateTeamListInDB(teamList.data);
+                            updatedDirectoryResponse.teamList.data = currentTeamList;
+                        }
+                        else {
+                            updatedDirectoryResponse.teamList.data = (yield (db === null || db === void 0 ? void 0 : db.get(IndexDBStoreNames.DIRECTORY, DirectoryEntities.TEAM_LIST)));
+                        }
+                    }
+                    this.entityCounts.totalAgentCount = ((_q = updatedDirectoryResponse.agentList.data) === null || _q === void 0 ? void 0 : _q.length) || 0;
+                    this.entityCounts.totalTeamCount = ((_r = updatedDirectoryResponse.teamList.data) === null || _r === void 0 ? void 0 : _r.length) || 0;
+                    this.entityCounts.totalSkillCount = ((_s = updatedDirectoryResponse.skillList.data) === null || _s === void 0 ? void 0 : _s.length) || 0;
+                    this.entityCounts.totalAddressBookCount = (_u = (_t = updatedDirectoryResponse.addressBookList) === null || _t === void 0 ? void 0 : _t.data) === null || _u === void 0 ? void 0 : _u.reduce((sum, elem) => { var _a; return sum + ((elem === null || elem === void 0 ? void 0 : elem.addressBooksEntries) ? (_a = elem === null || elem === void 0 ? void 0 : elem.addressBooksEntries) === null || _a === void 0 ? void 0 : _a.length : 0); }, 0);
+                    if (this.searchText && ((_v = this.currentEntities) === null || _v === void 0 ? void 0 : _v.length)) { //if searchText is present then the directory response for search
                         const currentSearchData = yield (db === null || db === void 0 ? void 0 : db.get(IndexDBStoreNames.DIRECTORY, IndexDBKeyNames.DIRECTORY_SEARCH_RESPONSE));
                         if (!currentSearchData) { // if no searchData is present in the indexDB that means its the first time we are searching for the searchText due to polling not been done earlier
                             directoryEvent = yield this.searchDirectoryData(this.searchText, this.currentEntities, shouldFetchAllAgents);
@@ -627,7 +714,7 @@ export class CXoneDirectoryProvider {
                         else { // else searchData is already their so we will just update the data in index DB
                             const newSearchData = { skillList: { data: [] }, agentList: { data: [], favoriteAgents: [] }, addressBookList: { data: [] }, teamList: { data: [] } };
                             this.currentEntities.forEach(entity => {
-                                var _a, _b, _c, _d, _e, _f, _g, _h;
+                                var _a, _b, _c, _d, _e, _f, _g, _h, _j, _k, _l, _m, _o, _p, _q, _r;
                                 if (entity === DirectoryEntities.AGENT_LIST && ((_b = (_a = directoryEvent === null || directoryEvent === void 0 ? void 0 : directoryEvent.agentList) === null || _a === void 0 ? void 0 : _a.data) === null || _b === void 0 ? void 0 : _b.length)) {
                                     const { currentSearchAgentList, currentFavAgentList } = this.updateSearchAgentList(currentSearchData.agentList.data, directoryEvent.agentList.data);
                                     newSearchData.agentList.data = currentSearchAgentList;
@@ -635,53 +722,77 @@ export class CXoneDirectoryProvider {
                                     this.favroiteAgentList = newSearchData.agentList.favoriteAgents;
                                 }
                                 if (entity === DirectoryEntities.SKILL_LIST && ((_d = (_c = directoryEvent === null || directoryEvent === void 0 ? void 0 : directoryEvent.skillList) === null || _c === void 0 ? void 0 : _c.data) === null || _d === void 0 ? void 0 : _d.length)) {
-                                    newSearchData.skillList.data = this.updateSearchSkillList(currentSearchData.skillList.data, directoryEvent.skillList.data);
+                                    if (this.isFavoritesFTEnabled) {
+                                        const { currentSearchSkillList, currentFavSkillList } = this.updateSearchSkillList((_e = currentSearchData === null || currentSearchData === void 0 ? void 0 : currentSearchData.skillList) === null || _e === void 0 ? void 0 : _e.data, (_f = directoryEvent === null || directoryEvent === void 0 ? void 0 : directoryEvent.skillList) === null || _f === void 0 ? void 0 : _f.data);
+                                        newSearchData.skillList.data = currentSearchSkillList;
+                                        newSearchData.skillList.favoriteDigitalSkills = currentFavSkillList;
+                                        this.favoriteSkillList = newSearchData.skillList.favoriteDigitalSkills;
+                                    }
+                                    else {
+                                        const { currentSearchSkillList } = this.updateSearchSkillList((_g = currentSearchData === null || currentSearchData === void 0 ? void 0 : currentSearchData.skillList) === null || _g === void 0 ? void 0 : _g.data, (_h = directoryEvent === null || directoryEvent === void 0 ? void 0 : directoryEvent.skillList) === null || _h === void 0 ? void 0 : _h.data);
+                                        newSearchData.skillList.data = currentSearchSkillList;
+                                    }
                                 }
-                                if (entity === DirectoryEntities.ADDRESS_BOOK_LIST && ((_f = (_e = directoryEvent === null || directoryEvent === void 0 ? void 0 : directoryEvent.addressBookList) === null || _e === void 0 ? void 0 : _e.data) === null || _f === void 0 ? void 0 : _f.length)) {
+                                if (entity === DirectoryEntities.ADDRESS_BOOK_LIST && ((_k = (_j = directoryEvent === null || directoryEvent === void 0 ? void 0 : directoryEvent.addressBookList) === null || _j === void 0 ? void 0 : _j.data) === null || _k === void 0 ? void 0 : _k.length)) {
                                     newSearchData.addressBookList.data = this.updateAddressBookList(directoryEvent.addressBookList.data);
                                 }
-                                if (entity === DirectoryEntities.TEAM_LIST && ((_h = (_g = directoryEvent === null || directoryEvent === void 0 ? void 0 : directoryEvent.teamList) === null || _g === void 0 ? void 0 : _g.data) === null || _h === void 0 ? void 0 : _h.length)) {
-                                    newSearchData.teamList.data = this.updateSearchTeamList(currentSearchData.teamList.data, directoryEvent.teamList.data);
+                                if (entity === DirectoryEntities.TEAM_LIST && ((_m = (_l = directoryEvent === null || directoryEvent === void 0 ? void 0 : directoryEvent.teamList) === null || _l === void 0 ? void 0 : _l.data) === null || _m === void 0 ? void 0 : _m.length)) {
+                                    if (this.isFavoritesFTEnabled) {
+                                        const { currentSearchTeamList, currentFavTeamList } = this.updateSearchTeamList((_o = currentSearchData === null || currentSearchData === void 0 ? void 0 : currentSearchData.teamList) === null || _o === void 0 ? void 0 : _o.data, (_p = directoryEvent === null || directoryEvent === void 0 ? void 0 : directoryEvent.teamList) === null || _p === void 0 ? void 0 : _p.data);
+                                        newSearchData.teamList.data = currentSearchTeamList;
+                                        newSearchData.teamList.favoriteTeams = currentFavTeamList;
+                                        this.favoriteTeamList = newSearchData.teamList.favoriteTeams;
+                                    }
+                                    else {
+                                        const { currentSearchTeamList } = this.updateSearchTeamList((_q = currentSearchData === null || currentSearchData === void 0 ? void 0 : currentSearchData.teamList) === null || _q === void 0 ? void 0 : _q.data, (_r = directoryEvent === null || directoryEvent === void 0 ? void 0 : directoryEvent.teamList) === null || _r === void 0 ? void 0 : _r.data);
+                                        newSearchData.teamList.data = currentSearchTeamList;
+                                    }
                                 }
                             });
                             yield (db === null || db === void 0 ? void 0 : db.put(IndexDBStoreNames.DIRECTORY, currentSearchData, IndexDBKeyNames.DIRECTORY_SEARCH_RESPONSE));
                             directoryEvent = currentSearchData;
-                            this.entityCounts.agentList = ((_g = directoryEvent.agentList.data) === null || _g === void 0 ? void 0 : _g.length) || 0;
-                            this.entityCounts.skillList = ((_h = directoryEvent.skillList.data) === null || _h === void 0 ? void 0 : _h.length) || 0;
-                            this.entityCounts.addressBookList = ((_j = directoryEvent.addressBookList.data) === null || _j === void 0 ? void 0 : _j.length) || 0;
-                            this.entityCounts.teamList = ((_k = directoryEvent.teamList.data) === null || _k === void 0 ? void 0 : _k.length) || 0;
+                            this.entityCounts.agentList = ((_w = directoryEvent.agentList.data) === null || _w === void 0 ? void 0 : _w.length) || 0;
+                            this.entityCounts.skillList = ((_x = directoryEvent.skillList.data) === null || _x === void 0 ? void 0 : _x.length) || 0;
+                            this.entityCounts.addressBookList = ((_y = directoryEvent.addressBookList.data) === null || _y === void 0 ? void 0 : _y.length) || 0;
+                            this.entityCounts.teamList = ((_z = directoryEvent.teamList.data) === null || _z === void 0 ? void 0 : _z.length) || 0;
                         }
                     }
                     else { // if search text is not present that means then the response should be for all the data set
-                        if ((_l = this.currentEntities) === null || _l === void 0 ? void 0 : _l.length) {
+                        if ((_0 = this.currentEntities) === null || _0 === void 0 ? void 0 : _0.length) {
                             isUpdate = false;
                             this.currentEntities.forEach(e => {
+                                var _a, _b, _c;
                                 if (e === DirectoryEntities.AGENT_LIST) {
                                     directoryEvent.agentList.data = updatedDirectoryResponse.agentList.data;
                                     directoryEvent.agentList.favoriteAgents = updatedDirectoryResponse.agentList.favoriteAgents;
                                     this.favroiteAgentList = updatedDirectoryResponse.agentList.favoriteAgents;
+                                    if (this.isFavoritesFTEnabled) {
+                                        this.favoriteTeamList = updatedDirectoryResponse.teamList.favoriteTeams;
+                                        this.favoriteAddressBookList = updatedDirectoryResponse.addressBookList.favoriteStandardAddressBooks;
+                                        this.favoriteSkillList = updatedDirectoryResponse.skillList.favoriteDigitalSkills;
+                                    }
                                 }
                                 if (e === DirectoryEntities.ADDRESS_BOOK_LIST)
-                                    directoryEvent.addressBookList.data = updatedDirectoryResponse.addressBookList.data;
+                                    directoryEvent.addressBookList.data = (_a = updatedDirectoryResponse === null || updatedDirectoryResponse === void 0 ? void 0 : updatedDirectoryResponse.addressBookList) === null || _a === void 0 ? void 0 : _a.data;
                                 if (e === DirectoryEntities.SKILL_LIST)
-                                    directoryEvent.skillList.data = updatedDirectoryResponse.skillList.data;
+                                    directoryEvent.skillList.data = (_b = updatedDirectoryResponse === null || updatedDirectoryResponse === void 0 ? void 0 : updatedDirectoryResponse.skillList) === null || _b === void 0 ? void 0 : _b.data;
                                 if (e === DirectoryEntities.TEAM_LIST)
-                                    directoryEvent.teamList.data = updatedDirectoryResponse.teamList.data;
+                                    directoryEvent.teamList.data = (_c = updatedDirectoryResponse === null || updatedDirectoryResponse === void 0 ? void 0 : updatedDirectoryResponse.teamList) === null || _c === void 0 ? void 0 : _c.data;
                             });
                         }
-                        else if ((_m = directoryEvent.agentList.data) === null || _m === void 0 ? void 0 : _m.length) {
+                        else if ((_1 = directoryEvent.agentList.data) === null || _1 === void 0 ? void 0 : _1.length) {
                             directoryEvent.agentList.data = this.sortAgentList(directoryEvent.agentList.data);
                         }
                         const user = this.acdSession.userInfo;
                         //based on shouldFetchAllAgents flag, fetching all agents here which includes current logged-in user as well
                         if (!shouldFetchAllAgents) {
-                            directoryEvent.agentList.data = (_o = directoryEvent.agentList.data) === null || _o === void 0 ? void 0 : _o.filter(agent => agent.agentId.toString() !== user.icAgentId);
+                            directoryEvent.agentList.data = (_2 = directoryEvent.agentList.data) === null || _2 === void 0 ? void 0 : _2.filter(agent => agent.agentId.toString() !== user.icAgentId);
                         }
                         if (this.offset > 0 && this.limit > 0) { // to handle pagination
-                            directoryEvent = yield this.handleDirectoryPagination(directoryEvent);
+                            directoryEvent = yield this.handleDirectoryPagination(directoryEvent, this.currentEntities);
                         }
                     }
-                    if ((_q = (_p = directoryEvent.addressBookList) === null || _p === void 0 ? void 0 : _p.data) === null || _q === void 0 ? void 0 : _q.length) {
+                    if ((_4 = (_3 = directoryEvent.addressBookList) === null || _3 === void 0 ? void 0 : _3.data) === null || _4 === void 0 ? void 0 : _4.length) {
                         directoryEvent.addressBookList.allAddressBookEntries = this.handleAddressBookList(directoryEvent.addressBookList.data);
                     }
                     this.publishDirectoryData(directoryEvent, isUpdate);
@@ -749,11 +860,18 @@ export class CXoneDirectoryProvider {
      * @param isUpdate - this boolean flag will help us to identify if the request is for update or not
      */
     publishDirectoryData(directoryResponse, isUpdate = false) {
-        var _a, _b, _c, _d, _e, _f, _g, _h, _j, _k, _l, _m, _o, _p, _q, _r, _s, _t;
+        var _a, _b, _c, _d, _e, _f, _g, _h, _j, _k, _l, _m, _o, _p, _q, _r, _s, _t, _u, _v, _w, _x;
         if (!isUpdate || ((_b = (_a = directoryResponse === null || directoryResponse === void 0 ? void 0 : directoryResponse.agentList) === null || _a === void 0 ? void 0 : _a.data) === null || _b === void 0 ? void 0 : _b.length) || ((_d = (_c = directoryResponse === null || directoryResponse === void 0 ? void 0 : directoryResponse.addressBookList) === null || _c === void 0 ? void 0 : _c.data) === null || _d === void 0 ? void 0 : _d.length)
             || ((_f = (_e = directoryResponse === null || directoryResponse === void 0 ? void 0 : directoryResponse.skillList) === null || _e === void 0 ? void 0 : _e.data) === null || _f === void 0 ? void 0 : _f.length) || ((_h = (_g = directoryResponse === null || directoryResponse === void 0 ? void 0 : directoryResponse.teamList) === null || _g === void 0 ? void 0 : _g.data) === null || _h === void 0 ? void 0 : _h.length)) {
-            directoryResponse.agentList.data = directoryResponse.agentList.data.filter(agent => agent.isActive); // filter out the agents which are not active
-            this.favroiteAgentList = (_j = this.favroiteAgentList) === null || _j === void 0 ? void 0 : _j.filter(agent => agent.isActive); // filter out the agents which are not active
+            if ((_j = directoryResponse === null || directoryResponse === void 0 ? void 0 : directoryResponse.agentList) === null || _j === void 0 ? void 0 : _j.data) {
+                directoryResponse.agentList.data = directoryResponse.agentList.data.filter(agent => agent.isActive); // filter out the agents which are not active
+            }
+            this.favroiteAgentList = (_k = this.favroiteAgentList) === null || _k === void 0 ? void 0 : _k.filter(agent => agent.isActive); // filter out the agents which are not active
+            if (this.isFavoritesFTEnabled) {
+                this.favoriteTeamList = (_l = this.favoriteTeamList) === null || _l === void 0 ? void 0 : _l.filter(team => team.isActive); // filter out the teams which are not active
+                this.favoriteAddressBookList = (_m = this.favoriteAddressBookList) === null || _m === void 0 ? void 0 : _m.filter(entry => entry.isActive);
+                this.favoriteSkillList = (_o = this.favoriteSkillList) === null || _o === void 0 ? void 0 : _o.filter(skill => skill.isActive);
+            }
             directoryResponse.agentList.totalRecords = this.entityCounts.agentList;
             directoryResponse.skillList.totalRecords = this.entityCounts.skillList;
             directoryResponse.agentList.allAgentCount = this.entityCounts.totalAgentCount;
@@ -767,14 +885,19 @@ export class CXoneDirectoryProvider {
             directoryResponse.teamList.totalSearchMatchRecords = this.totalSearchResultCount.teamList;
             directoryResponse.addressBookList.totalSearchMatchRecords = this.totalSearchResultCount.addressBookList;
             directoryResponse.agentList.favoriteAgents = this.favroiteAgentList || [];
-            if ((_k = this.currentEntities) === null || _k === void 0 ? void 0 : _k.length) {
-                if (this.currentEntities.includes(DirectoryEntities.ADDRESS_BOOK_LIST) && !((_m = (_l = directoryResponse === null || directoryResponse === void 0 ? void 0 : directoryResponse.addressBookList) === null || _l === void 0 ? void 0 : _l.data) === null || _m === void 0 ? void 0 : _m.length))
+            if (this.isFavoritesFTEnabled) {
+                directoryResponse.teamList.favoriteTeams = this.favoriteTeamList || [];
+                directoryResponse.addressBookList.favoriteStandardAddressBooks = this.favoriteAddressBookList || [];
+                directoryResponse.skillList.favoriteDigitalSkills = this.favoriteSkillList || [];
+            }
+            if ((_p = this.currentEntities) === null || _p === void 0 ? void 0 : _p.length) {
+                if (this.currentEntities.includes(DirectoryEntities.ADDRESS_BOOK_LIST) && !((_r = (_q = directoryResponse === null || directoryResponse === void 0 ? void 0 : directoryResponse.addressBookList) === null || _q === void 0 ? void 0 : _q.data) === null || _r === void 0 ? void 0 : _r.length))
                     directoryResponse.addressBookList.errorMsg = NO_MATCHING_RECORDS_FOUND;
-                if (this.currentEntities.includes(DirectoryEntities.AGENT_LIST) && !((_p = (_o = directoryResponse === null || directoryResponse === void 0 ? void 0 : directoryResponse.agentList) === null || _o === void 0 ? void 0 : _o.data) === null || _p === void 0 ? void 0 : _p.length))
+                if (this.currentEntities.includes(DirectoryEntities.AGENT_LIST) && !((_t = (_s = directoryResponse === null || directoryResponse === void 0 ? void 0 : directoryResponse.agentList) === null || _s === void 0 ? void 0 : _s.data) === null || _t === void 0 ? void 0 : _t.length))
                     directoryResponse.agentList.errorMsg = NO_MATCHING_RECORDS_FOUND;
-                if (this.currentEntities.includes(DirectoryEntities.SKILL_LIST) && !((_r = (_q = directoryResponse === null || directoryResponse === void 0 ? void 0 : directoryResponse.skillList) === null || _q === void 0 ? void 0 : _q.data) === null || _r === void 0 ? void 0 : _r.length))
+                if (this.currentEntities.includes(DirectoryEntities.SKILL_LIST) && !((_v = (_u = directoryResponse === null || directoryResponse === void 0 ? void 0 : directoryResponse.skillList) === null || _u === void 0 ? void 0 : _u.data) === null || _v === void 0 ? void 0 : _v.length))
                     directoryResponse.skillList.errorMsg = NO_MATCHING_RECORDS_FOUND;
-                if (this.currentEntities.includes(DirectoryEntities.TEAM_LIST) && !((_t = (_s = directoryResponse === null || directoryResponse === void 0 ? void 0 : directoryResponse.teamList) === null || _s === void 0 ? void 0 : _s.data) === null || _t === void 0 ? void 0 : _t.length))
+                if (this.currentEntities.includes(DirectoryEntities.TEAM_LIST) && !((_x = (_w = directoryResponse === null || directoryResponse === void 0 ? void 0 : directoryResponse.teamList) === null || _w === void 0 ? void 0 : _w.data) === null || _x === void 0 ? void 0 : _x.length))
                     directoryResponse.teamList.errorMsg = NO_MATCHING_RECORDS_FOUND;
                 if (!this.searchText)
                     this.currentEntities = [];
@@ -832,12 +955,31 @@ export class CXoneDirectoryProvider {
      * @param newSkillList - new response for the updated skill data
      */
     updateSearchSkillList(currentSearchSkillList, newSkillList) {
+        const currentFavSkillList = [];
         newSkillList.forEach(newSkill => {
             const matchSkillIndex = currentSearchSkillList === null || currentSearchSkillList === void 0 ? void 0 : currentSearchSkillList.findIndex(currentAgent => currentAgent.skillId == newSkill.skillId);
-            if (matchSkillIndex >= 0)
+            if (this.isFavoritesFTEnabled) {
+                if (matchSkillIndex >= 0) {
+                    /*
+                    Before polled data overrides the Index DB data, we check if an instance of agent in Index DB has
+                    the favorite field marked to true. If it is, we mark the respective field to true in the polled data too(at the matched index),
+                   before we finally override and perform the PUT operation.
+                   */
+                    if (currentSearchSkillList[matchSkillIndex].isFavorite) {
+                        newSkill.isFavorite = currentSearchSkillList[matchSkillIndex].isFavorite;
+                        currentFavSkillList.push(currentSearchSkillList[matchSkillIndex]);
+                    }
+                }
+            }
+            else if (matchSkillIndex >= 0)
                 currentSearchSkillList[matchSkillIndex] = newSkill;
         });
-        return currentSearchSkillList;
+        if (this.isFavoritesFTEnabled) {
+            return { currentSearchSkillList, currentFavSkillList };
+        }
+        else {
+            return { currentSearchSkillList, currentFavSkillList: [] };
+        }
     }
     /**
     * Used to update the search team list for search response matching new Response from the polling update with the existing search response saved in the index db
@@ -845,19 +987,41 @@ export class CXoneDirectoryProvider {
     * @param newSkillList - new response for the updated team data
     */
     updateSearchTeamList(currentSearchTeamList, newTeamList) {
+        const currentFavTeamList = [];
         newTeamList.forEach(newTeam => {
             const matchTeamIndex = currentSearchTeamList === null || currentSearchTeamList === void 0 ? void 0 : currentSearchTeamList.findIndex(currentTeam => currentTeam.teamId == newTeam.teamId);
-            if (matchTeamIndex >= 0)
-                currentSearchTeamList[matchTeamIndex] = newTeam;
+            if (this.isFavoritesFTEnabled) {
+                if (matchTeamIndex >= 0) {
+                    /*
+                    Before polled data overrides the Index DB data, we check if an instance of agent in Index DB has
+                    the favorite field marked to true. If it is, we mark the respective field to true in the polled data too(at the matched index),
+                   before we finally override and perform the PUT operation.
+                   */
+                    if (currentSearchTeamList[matchTeamIndex].isFavorite) {
+                        newTeam.isFavorite = currentSearchTeamList[matchTeamIndex].isFavorite;
+                        currentFavTeamList.push(currentSearchTeamList[matchTeamIndex]);
+                    }
+                    currentSearchTeamList[matchTeamIndex] = newTeam;
+                }
+            }
+            else {
+                if (matchTeamIndex >= 0)
+                    currentSearchTeamList[matchTeamIndex] = newTeam;
+            }
         });
-        return currentSearchTeamList;
+        if (this.isFavoritesFTEnabled) {
+            return { currentSearchTeamList, currentFavTeamList };
+        }
+        else {
+            return { currentSearchTeamList, currentFavTeamList: [] };
+        }
     }
     /**
      * Used to handle the pagination based on the offset and limit in case of normal directory request flow without search request
      * @param directoryResponse - directory response object
      */
-    handleDirectoryPagination(directoryResponse) {
-        var _a, _b, _c, _d, _e, _f, _g, _h, _j, _k, _l, _m, _o, _p, _q, _r, _s, _t, _u, _v, _w, _x;
+    handleDirectoryPagination(directoryResponse, currentEntities) {
+        var _a, _b, _c, _d, _e, _f, _g, _h, _j, _k, _l, _m, _o, _p, _q, _r, _s, _t, _u, _v, _w, _x, _y, _z, _0, _1, _2;
         return __awaiter(this, void 0, void 0, function* () {
             const db = yield dbInstance();
             let currentAgentList = yield (db === null || db === void 0 ? void 0 : db.get(IndexDBStoreNames.DIRECTORY, DirectoryEntities.AGENT_LIST));
@@ -896,8 +1060,10 @@ export class CXoneDirectoryProvider {
                 skillList = newSkillList;
             }
             if (((_r = (_q = directoryResponse.teamList) === null || _q === void 0 ? void 0 : _q.data) === null || _r === void 0 ? void 0 : _r.length) && (currentTeamList === null || currentTeamList === void 0 ? void 0 : currentTeamList.length) && (teamList === null || teamList === void 0 ? void 0 : teamList.length)) { // in case of team list updation we will check if the updated data is present in the search option if so then only we will publish that data
+                if ((currentEntities === null || currentEntities === void 0 ? void 0 : currentEntities.length) === 0)
+                    directoryResponse.teamList.data = this.sortResponse((_s = directoryResponse === null || directoryResponse === void 0 ? void 0 : directoryResponse.teamList) === null || _s === void 0 ? void 0 : _s.data, DirectoryEntities.TEAM_LIST);
                 const newTeamList = [];
-                (_t = (_s = directoryResponse.teamList) === null || _s === void 0 ? void 0 : _s.data) === null || _t === void 0 ? void 0 : _t.forEach(agent => {
+                (_u = (_t = directoryResponse.teamList) === null || _t === void 0 ? void 0 : _t.data) === null || _u === void 0 ? void 0 : _u.forEach(agent => {
                     const matchedTeamIndex = teamList.findIndex(e => e.teamId == agent.teamId);
                     if (matchedTeamIndex >= 0)
                         newTeamList.push(agent);
@@ -908,10 +1074,10 @@ export class CXoneDirectoryProvider {
             directoryResponse.skillList.data = skillList;
             directoryResponse.teamList.data = teamList;
             //update entity count after pagination 
-            this.entityCounts.agentList = ((_u = directoryResponse.agentList.data) === null || _u === void 0 ? void 0 : _u.length) || 0;
-            this.entityCounts.skillList = ((_v = directoryResponse.skillList.data) === null || _v === void 0 ? void 0 : _v.length) || 0;
-            this.entityCounts.addressBookList = ((_w = directoryResponse.addressBookList.data) === null || _w === void 0 ? void 0 : _w.length) || 0;
-            this.entityCounts.teamList = ((_x = directoryResponse.teamList.data) === null || _x === void 0 ? void 0 : _x.length) || 0;
+            this.entityCounts.agentList = ((_w = (_v = directoryResponse.agentList) === null || _v === void 0 ? void 0 : _v.data) === null || _w === void 0 ? void 0 : _w.length) || 0;
+            this.entityCounts.skillList = ((_y = (_x = directoryResponse.skillList) === null || _x === void 0 ? void 0 : _x.data) === null || _y === void 0 ? void 0 : _y.length) || 0;
+            this.entityCounts.addressBookList = ((_0 = (_z = directoryResponse.addressBookList) === null || _z === void 0 ? void 0 : _z.data) === null || _0 === void 0 ? void 0 : _0.length) || 0;
+            this.entityCounts.teamList = ((_2 = (_1 = directoryResponse.teamList) === null || _1 === void 0 ? void 0 : _1.data) === null || _2 === void 0 ? void 0 : _2.length) || 0;
             return directoryResponse;
         });
     }
@@ -923,25 +1089,69 @@ export class CXoneDirectoryProvider {
         return __awaiter(this, void 0, void 0, function* () {
             const db = yield dbInstance();
             let currentSkillList = (yield (db === null || db === void 0 ? void 0 : db.get(IndexDBStoreNames.DIRECTORY, DirectoryEntities.SKILL_LIST))) || [];
+            let currentFavSkillList = (yield (db === null || db === void 0 ? void 0 : db.get(IndexDBStoreNames.DIRECTORY, IndexDBKeyNames.FAVORITE_DIGITAL_SKILLS))) || [];
             if (currentSkillList === null || currentSkillList === void 0 ? void 0 : currentSkillList.length) {
                 SkillList.forEach((skill, index) => {
-                    const matchedSkillIndex = currentSkillList.findIndex((currentSkill) => currentSkill.skillId == skill.skillId);
-                    if (matchedSkillIndex >= 0)
+                    var _a;
+                    const matchedSkillIndex = currentSkillList.findIndex((currentSkill) => (currentSkill === null || currentSkill === void 0 ? void 0 : currentSkill.skillId) === (skill === null || skill === void 0 ? void 0 : skill.skillId));
+                    if (matchedSkillIndex >= 0) {
+                        if (this.isFavoritesFTEnabled) {
+                            if (currentSkillList[matchedSkillIndex].isFavorite) {
+                                SkillList[index].isFavorite =
+                                    (_a = currentSkillList[matchedSkillIndex]) === null || _a === void 0 ? void 0 : _a.isFavorite;
+                                const favIndex = currentFavSkillList.findIndex((fav) => fav.skillId === SkillList[index].skillId);
+                                if (favIndex >= 0)
+                                    currentFavSkillList[favIndex] = SkillList[index];
+                            }
+                            else {
+                                SkillList[index].isFavorite = false;
+                            }
+                        }
+                        else {
+                            SkillList[index].isFavorite = false;
+                        }
                         currentSkillList[matchedSkillIndex] = SkillList[index];
-                    else
+                    }
+                    else {
                         currentSkillList.push(skill);
+                    }
                 });
             }
             else {
                 currentSkillList = SkillList;
+                if (this.isFavoritesFTEnabled) {
+                    const clientData = LocalStorageHelper.getItem(StorageKeys.CLIENT_DATA, true) || {};
+                    // updating IDB from client data api response stored in local storage
+                    currentSkillList.forEach((skillState, index) => {
+                        var _a;
+                        if ((_a = clientData === null || clientData === void 0 ? void 0 : clientData.CXAFavSkills) === null || _a === void 0 ? void 0 : _a.includes(skillState === null || skillState === void 0 ? void 0 : skillState.skillId)) {
+                            currentSkillList[index].isFavorite = true;
+                            currentFavSkillList.push(skillState);
+                        }
+                        else {
+                            currentSkillList[index].isFavorite = false;
+                        }
+                    });
+                }
             }
             currentSkillList = this.sortResponse(currentSkillList, DirectoryEntities.SKILL_LIST);
+            if (this.isFavoritesFTEnabled) {
+                currentFavSkillList = this.sortResponse(currentFavSkillList, DirectoryEntities.SKILL_LIST);
+            }
             db === null || db === void 0 ? void 0 : db.put(IndexDBStoreNames.DIRECTORY, currentSkillList, DirectoryEntities.SKILL_LIST);
+            if (this.isFavoritesFTEnabled) {
+                db === null || db === void 0 ? void 0 : db.put(IndexDBStoreNames.DIRECTORY, currentFavSkillList, IndexDBKeyNames.FAVORITE_DIGITAL_SKILLS);
+            }
             if (this.mediaType)
                 currentSkillList = this.filterSkillByMediaType(currentSkillList); // in case of result requested based on media type we will filter out the skills and publish the filtered list
             if (!this.searchText)
                 this.entityCounts.skillList = (currentSkillList === null || currentSkillList === void 0 ? void 0 : currentSkillList.length) || 0; // to keep track of skill list records count
-            return currentSkillList;
+            if (this.isFavoritesFTEnabled) {
+                return { currentSkillList, currentFavSkillList };
+            }
+            else {
+                return { currentSkillList, currentFavSkillList: [] };
+            }
         });
     }
     /**
@@ -951,33 +1161,60 @@ export class CXoneDirectoryProvider {
      * directoryProvider.toggleFavorite(agent);
      */
     toggleFavoriteForAgent(agentInfo) {
+        var _a, _b, _c, _d, _e, _f;
         return __awaiter(this, void 0, void 0, function* () {
             const db = yield dbInstance();
             let agentListSearchResponse;
             const favList = [];
             const agentListFromDB = (yield (db === null || db === void 0 ? void 0 : db.get(IndexDBStoreNames.DIRECTORY, DirectoryEntities.AGENT_LIST))) || [];
             const directorySearchResponse = (yield (db === null || db === void 0 ? void 0 : db.get(IndexDBStoreNames.DIRECTORY, IndexDBKeyNames.DIRECTORY_SEARCH_RESPONSE)));
-            if (directorySearchResponse && directorySearchResponse.agentList) {
-                agentListSearchResponse = directorySearchResponse.agentList
-                    .data;
-                if (agentListSearchResponse === null || agentListSearchResponse === void 0 ? void 0 : agentListSearchResponse.length) {
-                    agentListSearchResponse.find((agent) => {
-                        if (agent.agentId === agentInfo.agentId) {
+            const favTeamListFromDB = (yield (db === null || db === void 0 ? void 0 : db.get(IndexDBStoreNames.DIRECTORY, IndexDBKeyNames.FAVORITE_TEAMS)));
+            const favAddressBookListFromDB = (yield (db === null || db === void 0 ? void 0 : db.get(IndexDBStoreNames.DIRECTORY, IndexDBKeyNames.FAVORITE_STANDARD_ADDRESS_BOOK)));
+            if (Array.isArray(agentInfo)) {
+                const agentIdsToToggle = agentInfo.map((agent) => agent.agentId);
+                if ((_b = (_a = directorySearchResponse === null || directorySearchResponse === void 0 ? void 0 : directorySearchResponse.agentList) === null || _a === void 0 ? void 0 : _a.data) === null || _b === void 0 ? void 0 : _b.length) {
+                    directorySearchResponse.agentList.data = directorySearchResponse.agentList.data.map((agent) => {
+                        if (agentIdsToToggle.includes(agent.agentId)) {
+                            return Object.assign(Object.assign({}, agent), { isFavorite: !agent.isFavorite });
+                        }
+                        return agent;
+                    });
+                }
+                if (agentListFromDB === null || agentListFromDB === void 0 ? void 0 : agentListFromDB.length) {
+                    favList.length = 0;
+                    agentListFromDB.forEach((agent) => {
+                        if (agentIdsToToggle.includes(agent.agentId)) {
                             agent.isFavorite = !agent.isFavorite;
+                        }
+                        if (agent.isFavorite) {
+                            favList.push(agent);
                         }
                     });
                 }
-                directorySearchResponse.agentList.data = agentListSearchResponse;
             }
-            if (agentListFromDB === null || agentListFromDB === void 0 ? void 0 : agentListFromDB.length) {
-                agentListFromDB.find((agent) => {
-                    if (agent.agentId === agentInfo.agentId) {
-                        agent.isFavorite = !agent.isFavorite;
+            else {
+                if (directorySearchResponse && (directorySearchResponse === null || directorySearchResponse === void 0 ? void 0 : directorySearchResponse.agentList)) {
+                    agentListSearchResponse = directorySearchResponse.agentList
+                        .data;
+                    if (agentListSearchResponse === null || agentListSearchResponse === void 0 ? void 0 : agentListSearchResponse.length) {
+                        agentListSearchResponse.forEach((agent) => {
+                            if (agent.agentId === agentInfo.agentId) {
+                                agent.isFavorite = !agent.isFavorite;
+                            }
+                        });
                     }
-                    if (agent.isFavorite) {
-                        favList.push(agent);
-                    }
-                });
+                    directorySearchResponse.agentList.data = agentListSearchResponse;
+                }
+                if (agentListFromDB === null || agentListFromDB === void 0 ? void 0 : agentListFromDB.length) {
+                    agentListFromDB.forEach((agent) => {
+                        if (agent.agentId === agentInfo.agentId) {
+                            agent.isFavorite = !agent.isFavorite;
+                        }
+                        if (agent.isFavorite) {
+                            favList.push(agent);
+                        }
+                    });
+                }
             }
             db === null || db === void 0 ? void 0 : db.put(IndexDBStoreNames.DIRECTORY, agentListFromDB, DirectoryEntities.AGENT_LIST);
             db === null || db === void 0 ? void 0 : db.put(IndexDBStoreNames.DIRECTORY, directorySearchResponse, IndexDBKeyNames.DIRECTORY_SEARCH_RESPONSE);
@@ -989,10 +1226,12 @@ export class CXoneDirectoryProvider {
                 teamList: { data: [] },
             };
             if (directorySearchResponse) {
-                directoryResponse.skillList.data = directorySearchResponse.skillList ? directorySearchResponse.skillList.data : [];
-                directoryResponse.teamList.data = directorySearchResponse.teamList ? directorySearchResponse.teamList.data : [];
-                directoryResponse.addressBookList.data = directorySearchResponse.addressBookList ? directorySearchResponse.addressBookList.data : [];
-                directoryResponse.agentList.data = directorySearchResponse.agentList ? directorySearchResponse.agentList.data : [];
+                directoryResponse.skillList.data = directorySearchResponse.skillList ? (_c = directorySearchResponse === null || directorySearchResponse === void 0 ? void 0 : directorySearchResponse.skillList) === null || _c === void 0 ? void 0 : _c.data : [];
+                directoryResponse.teamList.data = directorySearchResponse.teamList ? (_d = directorySearchResponse === null || directorySearchResponse === void 0 ? void 0 : directorySearchResponse.teamList) === null || _d === void 0 ? void 0 : _d.data : [];
+                directoryResponse.addressBookList.data = directorySearchResponse.addressBookList ? (_e = directorySearchResponse === null || directorySearchResponse === void 0 ? void 0 : directorySearchResponse.addressBookList) === null || _e === void 0 ? void 0 : _e.data : [];
+                directoryResponse.agentList.data = directorySearchResponse.agentList ? (_f = directorySearchResponse === null || directorySearchResponse === void 0 ? void 0 : directorySearchResponse.agentList) === null || _f === void 0 ? void 0 : _f.data : [];
+                directoryResponse.teamList.favoriteTeams = favTeamListFromDB || [];
+                directoryResponse.addressBookList.favoriteStandardAddressBooks = favAddressBookListFromDB || [];
                 directoryResponse.agentList.favoriteAgents = favList;
             }
             //publish directory search response with updated fav toggle information
@@ -1002,9 +1241,11 @@ export class CXoneDirectoryProvider {
     }
     /**
      * Used to retrieve agent list from index DB and filter out favorites
-     * @param searchText - searchText for filtering the list
-     * @example
-     * directoryProvider.getFavorites(searchText);
+     * @param agentName - agent name for filtering the list
+     * @example -
+     * ```
+     * directoryProvider.getFavoritesByAgent(agentName);
+     * ```
      */
     getFavoritesByAgent(agentName) {
         return __awaiter(this, void 0, void 0, function* () {
@@ -1055,6 +1296,17 @@ export class CXoneDirectoryProvider {
             }
             else {
                 currentAgentList = agentList;
+                if (this.isFavoritesFTEnabled) {
+                    const clientData = LocalStorageHelper.getItem(StorageKeys.CLIENT_DATA, true) || {};
+                    // updating IDB from client data api response stored in local storage
+                    currentAgentList.forEach((agentState, index) => {
+                        var _a;
+                        if ((_a = clientData === null || clientData === void 0 ? void 0 : clientData.CXAFavAgents) === null || _a === void 0 ? void 0 : _a.includes(agentState === null || agentState === void 0 ? void 0 : agentState.agentId)) {
+                            currentAgentList[index].isFavorite = true;
+                            currentFavAgentList.push(agentState);
+                        }
+                    });
+                }
             }
             currentAgentList = this.sortAgentList(currentAgentList);
             currentFavAgentList = this.sortAgentList(currentFavAgentList);
@@ -1066,6 +1318,165 @@ export class CXoneDirectoryProvider {
         });
     }
     /**
+     * Used to retrieve team list from index DB and filter out favorites
+     * @param teamName - team name for filtering the list
+     * @example -
+     * ```
+     * directoryProvider.getFavoritesByTeam(teamName);
+     * ```
+     */
+    getFavoritesByTeam(teamName) {
+        return __awaiter(this, void 0, void 0, function* () {
+            const db = yield dbInstance();
+            let favTeamList = [];
+            const teamListFromDB = (yield (db === null || db === void 0 ? void 0 : db.get(IndexDBStoreNames.DIRECTORY, DirectoryEntities.TEAM_LIST))) || [];
+            if (teamListFromDB === null || teamListFromDB === void 0 ? void 0 : teamListFromDB.length) {
+                favTeamList = teamListFromDB === null || teamListFromDB === void 0 ? void 0 : teamListFromDB.filter((team) => team.isFavorite === true && team.isActive);
+                if (teamName.length > 0) {
+                    favTeamList = this.getFilteredTeamList(teamName.toUpperCase(), favTeamList);
+                }
+            }
+            this.favoriteTeamList = favTeamList;
+            db === null || db === void 0 ? void 0 : db.put(IndexDBStoreNames.DIRECTORY, favTeamList, IndexDBKeyNames.FAVORITE_TEAMS);
+            return favTeamList;
+        });
+    }
+    /**
+     * Used to retrieve agent list from index DB and filter out favorites
+     * @param searchText - searchText for filtering the list
+     * @example
+     * directoryProvider.getFavorites(searchText);
+     */
+    getFavoritesByDigitalSkill(skillName) {
+        return __awaiter(this, void 0, void 0, function* () {
+            const db = yield dbInstance();
+            let favSkillList = [];
+            const skillListFromDB = (yield (db === null || db === void 0 ? void 0 : db.get(IndexDBStoreNames.DIRECTORY, DirectoryEntities.SKILL_LIST))) || [];
+            if (skillListFromDB === null || skillListFromDB === void 0 ? void 0 : skillListFromDB.length) {
+                favSkillList = skillListFromDB.filter((skill) => skill.isFavorite === true && skill.isActive);
+                if (skillName.length > 0) {
+                    favSkillList = this.getFilteredSkillList(skillName.toUpperCase(), favSkillList);
+                }
+            }
+            this.favoriteSkillList = favSkillList;
+            db === null || db === void 0 ? void 0 : db.put(IndexDBStoreNames.DIRECTORY, favSkillList, IndexDBKeyNames.FAVORITE_DIGITAL_SKILLS);
+            return favSkillList;
+        });
+    }
+    /**
+   * Used to toggle the favorite marker for team and store it in Index DB
+   * @param teamInfo - Information of the team of whom favorite field needs to be toggled
+   * @example -
+   * ```
+   * directoryProvider.toggleFavoriteForTeam(team);
+   * ```
+   */
+    toggleFavoriteForTeam(teamInfo) {
+        var _a, _b, _c, _d, _e, _f, _g, _h, _j;
+        return __awaiter(this, void 0, void 0, function* () {
+            const db = yield dbInstance();
+            const teamsFavList = [];
+            const teamListFromDB = (yield (db === null || db === void 0 ? void 0 : db.get(IndexDBStoreNames.DIRECTORY, DirectoryEntities.TEAM_LIST))) || [];
+            const directorySearchResponse = (yield (db === null || db === void 0 ? void 0 : db.get(IndexDBStoreNames.DIRECTORY, IndexDBKeyNames.DIRECTORY_SEARCH_RESPONSE)));
+            const favAgentListFromDB = (yield (db === null || db === void 0 ? void 0 : db.get(IndexDBStoreNames.DIRECTORY, IndexDBKeyNames.FAVORITE_AGENTS)));
+            const teamIdsToToggle = teamInfo.map((team) => team.teamId);
+            if ((_b = (_a = directorySearchResponse === null || directorySearchResponse === void 0 ? void 0 : directorySearchResponse.teamList) === null || _a === void 0 ? void 0 : _a.data) === null || _b === void 0 ? void 0 : _b.length) {
+                directorySearchResponse.teamList.data = (_c = directorySearchResponse === null || directorySearchResponse === void 0 ? void 0 : directorySearchResponse.teamList) === null || _c === void 0 ? void 0 : _c.data.map((team) => {
+                    if (teamIdsToToggle.includes(team.teamId)) {
+                        return Object.assign(Object.assign({}, team), { isFavorite: !team.isFavorite });
+                    }
+                    return team;
+                });
+            }
+            if (teamListFromDB === null || teamListFromDB === void 0 ? void 0 : teamListFromDB.length) {
+                teamsFavList.length = 0;
+                teamListFromDB.forEach((team) => {
+                    if (teamIdsToToggle.includes(team.teamId)) {
+                        team.isFavorite = !team.isFavorite;
+                    }
+                    if (team.isFavorite) {
+                        teamsFavList.push(team);
+                    }
+                });
+            }
+            db === null || db === void 0 ? void 0 : db.put(IndexDBStoreNames.DIRECTORY, teamListFromDB, DirectoryEntities.TEAM_LIST);
+            db === null || db === void 0 ? void 0 : db.put(IndexDBStoreNames.DIRECTORY, teamsFavList, IndexDBKeyNames.FAVORITE_TEAMS);
+            db === null || db === void 0 ? void 0 : db.put(IndexDBStoreNames.DIRECTORY, directorySearchResponse, IndexDBKeyNames.DIRECTORY_SEARCH_RESPONSE);
+            const directoryResponse = {
+                skillList: { data: [] },
+                agentList: { data: [], favoriteAgents: [] },
+                addressBookList: { data: [] },
+                teamList: { data: [], favoriteTeams: [] },
+            };
+            if (directorySearchResponse) {
+                directoryResponse.skillList.data = directorySearchResponse.skillList ? (_d = directorySearchResponse === null || directorySearchResponse === void 0 ? void 0 : directorySearchResponse.skillList) === null || _d === void 0 ? void 0 : _d.data : [];
+                directoryResponse.teamList.data = directorySearchResponse.teamList ? (_e = directorySearchResponse === null || directorySearchResponse === void 0 ? void 0 : directorySearchResponse.teamList) === null || _e === void 0 ? void 0 : _e.data : [];
+                directoryResponse.addressBookList.data = directorySearchResponse.addressBookList ? (_f = directorySearchResponse === null || directorySearchResponse === void 0 ? void 0 : directorySearchResponse.addressBookList) === null || _f === void 0 ? void 0 : _f.data : [];
+                directoryResponse.agentList.data = directorySearchResponse.agentList ? (_g = directorySearchResponse === null || directorySearchResponse === void 0 ? void 0 : directorySearchResponse.agentList) === null || _g === void 0 ? void 0 : _g.data : [];
+                directoryResponse.agentList.favoriteAgents = favAgentListFromDB || [];
+                directoryResponse.teamList.favoriteTeams = teamsFavList || [];
+            }
+            //publish directory search response with updated fav toggle information
+            if ((_j = (_h = directoryResponse === null || directoryResponse === void 0 ? void 0 : directoryResponse.teamList) === null || _h === void 0 ? void 0 : _h.data) === null || _j === void 0 ? void 0 : _j.length)
+                this.directoryBase.directoryEvent.next(directoryResponse);
+        });
+    }
+    /**
+   * Used to toggle the favorite marker for skill and store it in Index DB
+   * @param skill - Information of the skill of whom favorite field needs to be toggled
+   * @example
+   * directoryProvider.toggleFavoriteForDigitalSkill(skill);
+   */
+    toggleFavoriteForDigitalSkill(skillInfo) {
+        var _a, _b;
+        return __awaiter(this, void 0, void 0, function* () {
+            const db = yield dbInstance();
+            const favDigitalSkillList = [];
+            const digitalSkillListFromDB = (yield (db === null || db === void 0 ? void 0 : db.get(IndexDBStoreNames.DIRECTORY, DirectoryEntities.SKILL_LIST))) || [];
+            const directorySearchResponse = (yield (db === null || db === void 0 ? void 0 : db.get(IndexDBStoreNames.DIRECTORY, IndexDBKeyNames.DIRECTORY_SEARCH_RESPONSE)));
+            const favAgentListFromDB = (yield (db === null || db === void 0 ? void 0 : db.get(IndexDBStoreNames.DIRECTORY, IndexDBKeyNames.FAVORITE_AGENTS)));
+            const favTeamListFromDB = (yield (db === null || db === void 0 ? void 0 : db.get(IndexDBStoreNames.DIRECTORY, IndexDBKeyNames.FAVORITE_TEAMS))) || [];
+            const skillIdsToToggle = skillInfo.map((skill) => skill.skillId);
+            if ((_b = (_a = directorySearchResponse === null || directorySearchResponse === void 0 ? void 0 : directorySearchResponse.skillList) === null || _a === void 0 ? void 0 : _a.data) === null || _b === void 0 ? void 0 : _b.length) {
+                directorySearchResponse.skillList.data = directorySearchResponse.skillList.data.map((skill) => {
+                    if (skillIdsToToggle.includes(skill.skillId)) {
+                        return Object.assign(Object.assign({}, skill), { isFavorite: !skill.isFavorite });
+                    }
+                    return skill;
+                });
+            }
+            if (digitalSkillListFromDB === null || digitalSkillListFromDB === void 0 ? void 0 : digitalSkillListFromDB.length) {
+                favDigitalSkillList.length = 0;
+                digitalSkillListFromDB.forEach((skill) => {
+                    if (skillIdsToToggle.includes(skill.skillId)) {
+                        skill.isFavorite = !skill.isFavorite;
+                    }
+                    if (skill.isFavorite) {
+                        favDigitalSkillList.push(skill);
+                    }
+                });
+            }
+            db === null || db === void 0 ? void 0 : db.put(IndexDBStoreNames.DIRECTORY, digitalSkillListFromDB, DirectoryEntities.SKILL_LIST);
+            db === null || db === void 0 ? void 0 : db.put(IndexDBStoreNames.DIRECTORY, favDigitalSkillList, IndexDBKeyNames.FAVORITE_DIGITAL_SKILLS);
+            db === null || db === void 0 ? void 0 : db.put(IndexDBStoreNames.DIRECTORY, directorySearchResponse, IndexDBKeyNames.DIRECTORY_SEARCH_RESPONSE);
+            const directoryResponse = {
+                skillList: { data: [], favoriteDigitalSkills: [] },
+                agentList: { data: [], favoriteAgents: [] },
+                addressBookList: { data: [] },
+                teamList: { data: [] },
+            };
+            if (directorySearchResponse) {
+                directoryResponse.skillList.data = directorySearchResponse.skillList ? directorySearchResponse.skillList.data : [];
+                directoryResponse.addressBookList.data = directorySearchResponse.addressBookList ? directorySearchResponse.addressBookList.data : [];
+                directoryResponse.agentList.data = directorySearchResponse.agentList ? directorySearchResponse.agentList.data : [];
+                directoryResponse.teamList.data = directorySearchResponse.teamList ? directorySearchResponse.teamList.data : [];
+                directoryResponse.agentList.favoriteAgents = favAgentListFromDB || [];
+                directoryResponse.teamList.favoriteTeams = favTeamListFromDB || [];
+                directoryResponse.skillList.favoriteDigitalSkills = favDigitalSkillList || [];
+            }
+        });
+    }
+    /**
      * Used to update the team list in index DB as per the new list
      * @param teamList - new team list response
      */
@@ -1073,24 +1484,185 @@ export class CXoneDirectoryProvider {
         return __awaiter(this, void 0, void 0, function* () {
             const db = yield dbInstance();
             let currentTeamList = (yield (db === null || db === void 0 ? void 0 : db.get(IndexDBStoreNames.DIRECTORY, DirectoryEntities.TEAM_LIST))) || [];
+            let currentFavTeamList = (yield (db === null || db === void 0 ? void 0 : db.get(IndexDBStoreNames.DIRECTORY, IndexDBKeyNames.FAVORITE_TEAMS))) || [];
             if (currentTeamList === null || currentTeamList === void 0 ? void 0 : currentTeamList.length) {
                 teamList.forEach((team, index) => {
-                    const matchedTeamIndex = currentTeamList.findIndex((currentTeam) => currentTeam.teamId == team.teamId);
-                    if (matchedTeamIndex >= 0)
+                    var _a;
+                    const matchedTeamIndex = currentTeamList.findIndex((currentTeam) => (currentTeam === null || currentTeam === void 0 ? void 0 : currentTeam.teamId) === (team === null || team === void 0 ? void 0 : team.teamId));
+                    if (matchedTeamIndex >= 0) {
+                        if (this.isFavoritesFTEnabled) {
+                            if (currentTeamList[matchedTeamIndex].isFavorite) {
+                                teamList[index].isFavorite =
+                                    (_a = currentTeamList[matchedTeamIndex]) === null || _a === void 0 ? void 0 : _a.isFavorite;
+                                const favIndex = currentFavTeamList.findIndex((fav) => fav.teamId === teamList[index].teamId);
+                                if (favIndex >= 0)
+                                    currentFavTeamList[favIndex] = teamList[index];
+                            }
+                            else {
+                                teamList[index].isFavorite = false;
+                            }
+                        }
+                        else {
+                            teamList[index].isFavorite = false;
+                        }
                         currentTeamList[matchedTeamIndex] = teamList[index];
-                    else
+                    }
+                    else {
                         currentTeamList.push(team);
+                    }
                 });
             }
             else {
                 currentTeamList = teamList;
+                if (this.isFavoritesFTEnabled) {
+                    const clientData = LocalStorageHelper.getItem(StorageKeys.CLIENT_DATA, true) || {};
+                    // updating IDB from client data api response stored in local storage
+                    currentTeamList.forEach((teamState, index) => {
+                        var _a;
+                        if ((_a = clientData === null || clientData === void 0 ? void 0 : clientData.CXAFavTeams) === null || _a === void 0 ? void 0 : _a.includes(teamState === null || teamState === void 0 ? void 0 : teamState.teamId)) {
+                            currentTeamList[index].isFavorite = true;
+                            currentFavTeamList.push(teamState);
+                        }
+                        else {
+                            currentTeamList[index].isFavorite = false;
+                        }
+                    });
+                }
             }
             currentTeamList = this.sortResponse(currentTeamList, DirectoryEntities.TEAM_LIST);
+            if (this.isFavoritesFTEnabled) {
+                currentFavTeamList = this.sortResponse(currentFavTeamList, DirectoryEntities.TEAM_LIST);
+            }
             currentTeamList = currentTeamList.filter(team => team.isActive);
             db === null || db === void 0 ? void 0 : db.put(IndexDBStoreNames.DIRECTORY, currentTeamList, DirectoryEntities.TEAM_LIST);
+            if (this.isFavoritesFTEnabled) {
+                db === null || db === void 0 ? void 0 : db.put(IndexDBStoreNames.DIRECTORY, currentFavTeamList, IndexDBKeyNames.FAVORITE_TEAMS);
+            }
             if (!this.searchText)
                 this.entityCounts.teamList = (currentTeamList === null || currentTeamList === void 0 ? void 0 : currentTeamList.length) || 0; // to keep track of team list records count
-            return currentTeamList;
+            if (this.isFavoritesFTEnabled) {
+                return { currentTeamList, currentFavTeamList };
+            }
+            else {
+                return { currentTeamList, currentFavTeamList: [] };
+            }
+        });
+    }
+    /**
+     * Used to retrieve address book entries from index DB and filter out favorites
+     * @example
+     * ```
+     * directoryProvider.getFavoritesByAddressBook();
+     * ```
+     */
+    getFavoritesByAddressBook(addressBookName) {
+        return __awaiter(this, void 0, void 0, function* () {
+            const db = yield dbInstance();
+            let favEntryList = [];
+            const entryListFromDB = (yield (db === null || db === void 0 ? void 0 : db.get(IndexDBStoreNames.DIRECTORY, DirectoryEntities.ADDRESS_BOOK_LIST))) || [];
+            if (entryListFromDB === null || entryListFromDB === void 0 ? void 0 : entryListFromDB.length) {
+                // Flatten all favorite, active entries from all address books
+                entryListFromDB.forEach(addressBook => {
+                    var _a;
+                    const favEntries = (_a = addressBook.addressBooksEntries) === null || _a === void 0 ? void 0 : _a.filter(entry => entry.isFavorite === true);
+                    if (favEntries && (favEntries === null || favEntries === void 0 ? void 0 : favEntries.length)) {
+                        favEntryList.push(...favEntries);
+                    }
+                    if ((addressBookName === null || addressBookName === void 0 ? void 0 : addressBookName.length) > 0) {
+                        favEntryList = [];
+                        const filteredAddressBook = this.filterAddressBook(addressBookName.toUpperCase(), entryListFromDB);
+                        filteredAddressBook.forEach(addressBook => {
+                            var _a;
+                            const favFilteredEntries = (_a = addressBook === null || addressBook === void 0 ? void 0 : addressBook.addressBooksEntries) === null || _a === void 0 ? void 0 : _a.filter(entry => (entry === null || entry === void 0 ? void 0 : entry.isFavorite) === true);
+                            if (favFilteredEntries && (favFilteredEntries === null || favFilteredEntries === void 0 ? void 0 : favFilteredEntries.length)) {
+                                favEntryList.push(...favFilteredEntries);
+                            }
+                        });
+                    }
+                });
+            }
+            this.favoriteAddressBookList = favEntryList;
+            db === null || db === void 0 ? void 0 : db.put(IndexDBStoreNames.DIRECTORY, favEntryList, IndexDBKeyNames.FAVORITE_STANDARD_ADDRESS_BOOK);
+            return favEntryList;
+        });
+    }
+    /**
+     * Used to toggle the favorite marker for standard address book entries in Index DB
+     * @param addressBookEntries - Array of address book entries for which favorite field needs to be toggled
+     * @example
+     * ```
+     * directoryProvider.toggleFavoriteForStandardAddressBookEntries(addressBookEntries);
+     * ```
+     */
+    toggleFavoriteForStandardAddressBookEntries(addressBookEntries) {
+        var _a, _b, _c, _d, _e, _f, _g, _h;
+        return __awaiter(this, void 0, void 0, function* () {
+            const db = yield dbInstance();
+            const favAddressBookEntriesList = [];
+            const addressBookListFromDB = (yield (db === null || db === void 0 ? void 0 : db.get(IndexDBStoreNames.DIRECTORY, DirectoryEntities.ADDRESS_BOOK_LIST))) || [];
+            const directorySearchResponse = (yield (db === null || db === void 0 ? void 0 : db.get(IndexDBStoreNames.DIRECTORY, IndexDBKeyNames.DIRECTORY_SEARCH_RESPONSE)));
+            const favAgentListFromDB = (yield (db === null || db === void 0 ? void 0 : db.get(IndexDBStoreNames.DIRECTORY, IndexDBKeyNames.FAVORITE_AGENTS)));
+            const favTeamListFromDB = (yield (db === null || db === void 0 ? void 0 : db.get(IndexDBStoreNames.DIRECTORY, IndexDBKeyNames.FAVORITE_TEAMS)));
+            const entryIdsToToggle = addressBookEntries.map(entry => entry.addressBookEntryId);
+            if ((_b = (_a = directorySearchResponse === null || directorySearchResponse === void 0 ? void 0 : directorySearchResponse.addressBookList) === null || _a === void 0 ? void 0 : _a.data) === null || _b === void 0 ? void 0 : _b.length) {
+                directorySearchResponse.addressBookList.data = directorySearchResponse.addressBookList.data.map((entry) => {
+                    if (entryIdsToToggle.includes(entry.addressBookId)) {
+                        return Object.assign(Object.assign({}, entry), { isFavorite: !entry.isFavorite });
+                    }
+                    return entry;
+                });
+            }
+            if (addressBookListFromDB === null || addressBookListFromDB === void 0 ? void 0 : addressBookListFromDB.length) {
+                favAddressBookEntriesList.length = 0;
+                addressBookListFromDB.forEach((bookList) => {
+                    var _a;
+                    bookList.addressBooksEntries = (_a = bookList === null || bookList === void 0 ? void 0 : bookList.addressBooksEntries) === null || _a === void 0 ? void 0 : _a.map((entry) => {
+                        if (entryIdsToToggle.includes(entry.addressBookEntryId)) {
+                            const isFavorite = entry.isFavorite || false;
+                            const updatedEntry = Object.assign(Object.assign({}, entry), { isFavorite: !isFavorite });
+                            if (updatedEntry.isFavorite) {
+                                favAddressBookEntriesList.push(updatedEntry);
+                            }
+                            return updatedEntry;
+                        }
+                        if (entry.isFavorite) {
+                            favAddressBookEntriesList.push(entry);
+                        }
+                        else {
+                            entry.isFavorite = false;
+                        }
+                        return entry;
+                    });
+                });
+            }
+            db === null || db === void 0 ? void 0 : db.put(IndexDBStoreNames.DIRECTORY, addressBookListFromDB, DirectoryEntities.ADDRESS_BOOK_LIST);
+            db === null || db === void 0 ? void 0 : db.put(IndexDBStoreNames.DIRECTORY, favAddressBookEntriesList, IndexDBKeyNames.FAVORITE_STANDARD_ADDRESS_BOOK);
+            db === null || db === void 0 ? void 0 : db.put(IndexDBStoreNames.DIRECTORY, directorySearchResponse, IndexDBKeyNames.DIRECTORY_SEARCH_RESPONSE);
+            // Rebuild DirectoryResponse and publish event
+            const directoryResponse = {
+                skillList: { data: [] },
+                agentList: { data: [], favoriteAgents: [] },
+                addressBookList: { data: [] },
+                teamList: { data: [], favoriteTeams: [] },
+            };
+            if (directorySearchResponse) {
+                directoryResponse.skillList.data = (directorySearchResponse === null || directorySearchResponse === void 0 ? void 0 : directorySearchResponse.skillList) ? (_c = directorySearchResponse === null || directorySearchResponse === void 0 ? void 0 : directorySearchResponse.skillList) === null || _c === void 0 ? void 0 : _c.data : [];
+                directoryResponse.teamList.data = (directorySearchResponse === null || directorySearchResponse === void 0 ? void 0 : directorySearchResponse.teamList) ? (_d = directorySearchResponse === null || directorySearchResponse === void 0 ? void 0 : directorySearchResponse.teamList) === null || _d === void 0 ? void 0 : _d.data : [];
+                directoryResponse.addressBookList.data = (directorySearchResponse === null || directorySearchResponse === void 0 ? void 0 : directorySearchResponse.addressBookList) ? (_e = directorySearchResponse === null || directorySearchResponse === void 0 ? void 0 : directorySearchResponse.addressBookList) === null || _e === void 0 ? void 0 : _e.data : [];
+                directoryResponse.agentList.data = (directorySearchResponse === null || directorySearchResponse === void 0 ? void 0 : directorySearchResponse.agentList) ? (_f = directorySearchResponse === null || directorySearchResponse === void 0 ? void 0 : directorySearchResponse.agentList) === null || _f === void 0 ? void 0 : _f.data : [];
+                if (Array.isArray(favAgentListFromDB) && favAgentListFromDB.length > 0) {
+                    directoryResponse.agentList.favoriteAgents = favAgentListFromDB;
+                }
+                if (Array.isArray(favTeamListFromDB) && favTeamListFromDB.length > 0) {
+                    directoryResponse.teamList.favoriteTeams = favTeamListFromDB;
+                }
+                if (Array.isArray(favAddressBookEntriesList) && favAddressBookEntriesList.length > 0) {
+                    directoryResponse.addressBookList.favoriteStandardAddressBooks = favAddressBookEntriesList;
+                }
+            }
+            // publish directory search response with updated fav toggle information
+            if ((_h = (_g = directoryResponse === null || directoryResponse === void 0 ? void 0 : directoryResponse.addressBookList) === null || _g === void 0 ? void 0 : _g.data) === null || _h === void 0 ? void 0 : _h.length)
+                this.directoryBase.directoryEvent.next(directoryResponse);
         });
     }
     /**
@@ -1103,9 +1675,10 @@ export class CXoneDirectoryProvider {
             const db = yield dbInstance();
             this.lastAddressBookEntriesArray = [];
             let currentAddressBookList = (yield (db === null || db === void 0 ? void 0 : db.get(IndexDBStoreNames.DIRECTORY, DirectoryEntities.ADDRESS_BOOK_LIST))) || [];
+            const currentFavAddressBookList = (yield (db === null || db === void 0 ? void 0 : db.get(IndexDBStoreNames.DIRECTORY, IndexDBKeyNames.FAVORITE_STANDARD_ADDRESS_BOOK))) || [];
             if (currentAddressBookList === null || currentAddressBookList === void 0 ? void 0 : currentAddressBookList.length) {
                 addressBookList.forEach((addressBook) => {
-                    var _a;
+                    var _a, _b;
                     const addressBookEntries = (addressBook === null || addressBook === void 0 ? void 0 : addressBook.addressBooksEntries) || [];
                     const matchedAddressBookIndex = currentAddressBookList.findIndex((currentAddressBook) => currentAddressBook.addressBookId === addressBook.addressBookId);
                     if (matchedAddressBookIndex >= 0) {
@@ -1113,35 +1686,71 @@ export class CXoneDirectoryProvider {
                             let currentAddressBookEntries = ((_a = currentAddressBookList[matchedAddressBookIndex]) === null || _a === void 0 ? void 0 : _a.addressBooksEntries) || [];
                             // Remove entries present in currentAddressBookEntries but not in addressBookEntries
                             currentAddressBookEntries = currentAddressBookEntries.filter((currentAddressBookEntry) => addressBookEntries.some((addressBookEntry) => addressBookEntry.addressBookEntryId === currentAddressBookEntry.addressBookEntryId));
-                            if (currentAddressBookList === null || currentAddressBookList === void 0 ? void 0 : currentAddressBookList.length) {
-                                addressBookEntries.forEach((addressBookEntry, index) => {
-                                    addressBookEntry.addressBookName = addressBook.addressBookName;
-                                    const matchedAddressBookEntryIndex = currentAddressBookEntries.findIndex((currentAddressBookEntry) => currentAddressBookEntry.addressBookEntryId === addressBookEntry.addressBookEntryId);
-                                    if (matchedAddressBookEntryIndex >= 0)
-                                        currentAddressBookEntries[matchedAddressBookEntryIndex] = addressBookEntries[index];
-                                    else
-                                        currentAddressBookEntries.push(addressBookEntry);
-                                });
-                                currentAddressBookList[matchedAddressBookIndex].addressBooksEntries = currentAddressBookEntries;
-                            }
-                            else {
-                                currentAddressBookList[matchedAddressBookIndex].addressBooksEntries = addressBookEntries;
-                            }
+                            addressBookEntries.forEach((addressBookEntry, entryIndex) => {
+                                addressBookEntry.addressBookName = addressBook.addressBookName;
+                                const matchedEntryIndex = currentAddressBookEntries.findIndex((currentAddressBookEntry) => currentAddressBookEntry.addressBookEntryId === addressBookEntry.addressBookEntryId);
+                                // FAVORITES SYNC LOGIC
+                                if (this.isFavoritesFTEnabled) {
+                                    // Check if this entry is currently a favorite
+                                    const favIndex = currentFavAddressBookList.findIndex((fav) => fav.addressBookEntryId === addressBookEntry.addressBookEntryId);
+                                    if (favIndex >= 0) {
+                                        addressBookEntry.isFavorite = true;
+                                        // Update favorite entry in the favorites list
+                                        currentFavAddressBookList[favIndex] = addressBookEntry;
+                                    }
+                                    else {
+                                        addressBookEntry.isFavorite = false;
+                                    }
+                                }
+                                if (matchedEntryIndex >= 0)
+                                    currentAddressBookEntries[matchedEntryIndex] = addressBookEntries[entryIndex];
+                                else
+                                    currentAddressBookEntries.push(addressBookEntry);
+                            });
+                            currentAddressBookList[matchedAddressBookIndex].addressBooksEntries = currentAddressBookEntries;
                         }
                     }
                     else {
+                        (_b = addressBook.addressBooksEntries) === null || _b === void 0 ? void 0 : _b.forEach((addressBookEntry) => {
+                            // FAVORITES SYNC LOGIC for new book
+                            if (this.isFavoritesFTEnabled) {
+                                const favIndex = currentFavAddressBookList.findIndex((fav) => fav.addressBookEntryId === addressBookEntry.addressBookEntryId);
+                                addressBookEntry.isFavorite = favIndex >= 0;
+                                if (favIndex >= 0)
+                                    currentFavAddressBookList[favIndex] = addressBookEntry;
+                            }
+                        });
                         currentAddressBookList.push(addressBook);
                     }
                 });
             }
             else {
+                // First-time load: sync favorites from client data/local storage
                 currentAddressBookList = addressBookList;
+                if (this.isFavoritesFTEnabled) {
+                    const clientData = LocalStorageHelper.getItem(StorageKeys.CLIENT_DATA, true) || {};
+                    // updating IDB from client data api response stored in local storage
+                    const favEntryIds = (clientData === null || clientData === void 0 ? void 0 : clientData.CXAFavStandAddBook) || [];
+                    currentAddressBookList.forEach((addressBook) => {
+                        var _a;
+                        (_a = addressBook.addressBooksEntries) === null || _a === void 0 ? void 0 : _a.forEach((entry) => {
+                            entry.isFavorite = favEntryIds.includes(entry.addressBookEntryId);
+                            if (entry.isFavorite) {
+                                currentFavAddressBookList.push(entry);
+                            }
+                        });
+                    });
+                }
             }
             addressBookList.forEach(addressBook => {
                 var _a;
                 (_a = addressBook === null || addressBook === void 0 ? void 0 : addressBook.addressBooksEntries) === null || _a === void 0 ? void 0 : _a.forEach(addressBookEntry => {
-                    this.lastAddressBookEntriesArray.push({ firstName: addressBookEntry.firstName, lastName: addressBookEntry.lastName,
-                        addressBookEntryId: addressBookEntry.addressBookEntryId, addressBookId: addressBook.addressBookId });
+                    this.lastAddressBookEntriesArray.push({
+                        firstName: addressBookEntry.firstName,
+                        lastName: addressBookEntry.lastName,
+                        addressBookEntryId: addressBookEntry.addressBookEntryId,
+                        addressBookId: addressBook.addressBookId,
+                    });
                 });
             });
             const sortedEntries = this.lastAddressBookEntriesArray.slice().sort((a, b) => {
@@ -1156,7 +1765,13 @@ export class CXoneDirectoryProvider {
             if (!this.searchText)
                 this.entityCounts.addressBookList = ((_a = this.lastAddressBookEntriesArray) === null || _a === void 0 ? void 0 : _a.length) || 0; // to keep track of addressBook list records count
             db === null || db === void 0 ? void 0 : db.put(IndexDBStoreNames.DIRECTORY, currentAddressBookList, DirectoryEntities.ADDRESS_BOOK_LIST);
-            return currentAddressBookList;
+            if (this.isFavoritesFTEnabled) {
+                db === null || db === void 0 ? void 0 : db.put(IndexDBStoreNames.DIRECTORY, currentFavAddressBookList, IndexDBKeyNames.FAVORITE_STANDARD_ADDRESS_BOOK);
+                return { currentAddressBookList, currentFavAddressBookList };
+            }
+            else {
+                return { currentAddressBookList, currentFavAddressBookList: [] };
+            }
         });
     }
     /**

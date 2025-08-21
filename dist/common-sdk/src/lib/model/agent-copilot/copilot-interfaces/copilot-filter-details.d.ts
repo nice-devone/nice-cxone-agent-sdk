@@ -11,6 +11,10 @@ export interface CopilotFilterDetails {
      */
     isFilterCardShown?: boolean;
     /**
+     * flag for checking if popover should open
+     */
+    shouldOpenFilterPopover?: boolean;
+    /**
      * Object containing filter values
      */
     filters?: FilterValueSets;
