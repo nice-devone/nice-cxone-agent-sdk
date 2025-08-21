@@ -3,6 +3,8 @@ import { AgentAssistSubscribe, AgentAssistUnsubscribe, AgentAssistCommand, } fro
 import { CXoneAuth } from '@nice-devone/auth-sdk';
 import { AgentAssistProvider } from '../enum/agent-assist-provider';
 const empytyAgentAssistInput = { webSocketUri: '', contactId: '0', providerId: '', subscriptions: [] };
+const MAX_RETRY_ATTEMPTS = 10;
+const RETRY_INTERVAL = 2000;
 /**
  *  web socket base class for Agent assist notification
  */
@@ -102,6 +104,7 @@ export class AgentAssistNotificationService extends WebsocketClient {
      * @example -  onClosed();
     */
     onClosed() {
+        this.wssWorker.postMessage({ type: 'close' });
         if (this.reconnectAttemptSource === 'fromOnError') {
             return;
         }
@@ -183,8 +186,8 @@ export class AgentAssistNotificationService extends WebsocketClient {
         var _a;
         const reConnect = {
             retryOptions: {
-                maxRetryAttempts: 30,
-                retryInterval: 10000,
+                maxRetryAttempts: MAX_RETRY_ATTEMPTS,
+                retryInterval: RETRY_INTERVAL,
             },
             url: (_a = this.agentAssistInput) === null || _a === void 0 ? void 0 : _a.webSocketUri,
         };

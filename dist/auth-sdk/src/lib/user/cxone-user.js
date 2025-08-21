@@ -265,6 +265,17 @@ export class CXoneUser {
         return this.adminService.getUserLocations();
     }
     /**
+     * Method to get agent profile details
+     * @returns - It returns the agent profile details
+     * @example
+     * ```
+     * getAgentProfileDetails();
+     * ```
+     */
+    getAgentProfileDetails() {
+        return this.adminService.getAgentProfileDetails();
+    }
+    /**
      * Method to set user location
      * @param locationId - location id
      * @returns  - It returns the user location

@@ -58,5 +58,9 @@ export declare enum CXoneDigitalEventType {
     /**
     * @remarks - websocket event type to publish to UI for message seen changed
     */
-    MESSAGE_SEEN_CHANGED = "MessageSeenChanged"
+    MESSAGE_SEEN_CHANGED = "MessageSeenChanged",
+    /**
+    * @remarks - websocket event type to publish to UI for message seen changed
+    */
+    CONVERSATIONS_AVAILABILITY = "Availability"
 }

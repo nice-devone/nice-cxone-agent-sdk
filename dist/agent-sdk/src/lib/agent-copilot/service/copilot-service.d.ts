@@ -29,9 +29,12 @@ export declare class CopilotService {
     private PATH_KB_FILTER_UPDATE;
     private JOURNEY_SUMMARY;
     private FINAL_SUMMARY;
+    private EDITED_SUMMARY;
     private TASK_ASSIST;
     private aahConfigStore;
     private AGENT_COPILOT_GET_ALL_ADAPTIVE_CARDS_SCHEMAS;
+    private AGENT_COPILOT_GET_TASK_ASSIST_FORM_PREFILLED_DATA;
+    private TASK_ASSIST_FORM_ADAPTIVE_CARD_SCHEMAS_URL;
     /**
      * Create instance of CXoneAuth
      * ```
@@ -178,6 +181,8 @@ export declare class CopilotService {
     /**
      * Used to store AAH config for the contactId in browser memory by pulling from redis cache, if not already available
      * @param contactId - contact Id
+     * @param mediaType - media type for the contact
+     * @param agentAssistId - agent assist ID
      * @example -
      * ```
      * copilotService.storeAgentAssistConfig('12321');
@@ -283,27 +288,13 @@ export declare class CopilotService {
      * Used to get task response based on the intentName for a given contactId
      * @param intentConfig - intent config
      * @param contactId  - contact Id
+     * @param taskSessionUid - task session unique id
      * @example -
      * ```
      * copilotService.getTaskResponse('Task intent name here', '12321');
      * ```
      */
-    getTaskResponse(intentConfig: IntentConfig, contactId: string): Promise<string>;
-    /**
-     * Used to fetch aah config from ACP backend or get-next- event based on FT
-     * @param agentAssistJson - agent assist json data
-     * @param acpConfig - acp config data
-     * @param isToggleEnabledForConfigFromBackend - toggle to check if config is enabled from backend
-     * @example -
-     * ```
-     * copilotService.fetchConfigFromBackend({ContactId: '1234', MediaType: '4', AgentAssistId;'Acp-profile'}, '{ Params: { providerId: 'agentCopilot }, ContactId: '1234', MediaType: '4',AgentAssistId;'Acp-profile' }', true);
-     * ```
-     */
-    fetchConfigFromBackend(agentAssistJson: {
-        ContactId: string;
-        MediaType?: string;
-        AgentAssistId?: string;
-    }, acpConfig: string, isToggleEnabledForConfigFromBackend: boolean): void;
+    getTaskResponse(contactId: string, intentConfig: IntentConfig, formCapturedata?: Record<string, unknown>, taskSessionUid?: string): Promise<string>;
     /**
      * Used to get all copilot adaptive card schemas
      * @example -
@@ -312,5 +303,38 @@ export declare class CopilotService {
      * ```
      */
     fetchCopilotAllAdaptiveCardSchemas: () => Promise<unknown>;
+    /**
+   * Used to get task assist form schema based on the intentName
+   * @param intentName - intent name
+   * @param contactId  - contact Id
+   * @example -
+   * ```
+   * copilotService.getTaskAssistFormSchema('Task intent name here','212324);
+   * ```
+   */
+    getTaskAssistFormSchema(intentName: string, contactId: string): Promise<string>;
+    /**
+   * Used to get task assist form pre-filled data based on the intentName
+   * @param intentConfig - intent config
+   * @param contactId  - contact Id
+   * @param objectId - objectId
+   * @example -
+   * ```
+   * copilotService.getTaskAssistFormPreFilledData('Task intent name here');
+   * ```
+   */
+    getTaskAssistFormPreFilledData(intentConfig: IntentConfig, contactId: string, objectId: string): Promise<string>;
+    /**
+     * Saves the edited summary for a given channel and contact number.
+     * @param channel - The communication channel.
+     * @param contactNumber - The contact number.
+     * @param summary - The edited summary text.
+     * @returns A promise that resolves with the response data.
+     * @example
+     * ```
+     * copilotService.saveEditedSummary('Voice', 123456789, 'This is the edited summary text.');
+     * ```
+     */
+    saveEditedSummary(channel: string, contactNumber: number, summary: string): Promise<string>;
 }
 export {};

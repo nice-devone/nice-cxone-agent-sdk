@@ -1,4 +1,4 @@
-import { CXoneSdkError, DirectoryEntries, Directories, SearchDirectoriesResponse, SearchDirectoriesRequest, DirectoryMetadata, DynamicDirectoyMessage } from '@nice-devone/common-sdk';
+import { CXoneSdkError, DirectoryEntries, Directories, SearchDirectoriesResponse, SearchDirectoriesRequest, DirectoryMetadata, DynamicDirectoyMessage, DirectoryAdditionalAtrributes } from '@nice-devone/common-sdk';
 import { Logger } from '@nice-devone/core-sdk';
 import { Subject } from 'rxjs';
 /** This is the base class for Dynamic Directory*/
@@ -62,30 +62,68 @@ export declare class CXoneDynamicDirectory {
      */
     getDirectoryMetadata(directoryId: string, agentId: string): Promise<DirectoryMetadata | CXoneSdkError>;
     /**
-     * Method is used to serach directories
+     * Used to toggle the favorite marker for external directory and store it in Index DB
+     * @param extDirectoryEntries - Information of the external directory of whom favorite field needs to be toggled
+     * @example -
+     * ```
+     * directoryProvider.toggleFavoriteForExternalDirectory(extDirectoryEntries);
+     * ```
+     */
+    toggleFavoriteForExternalDirectory(extDirectoryEntries: DirectoryAdditionalAtrributes[]): Promise<void>;
+    /** Method used to update favorite directory entries from client data
+     * @example -
+     * ```
+     * updateFavExtDirEntriesFromClientData();
+     * ```
+  */
+    updateFavExtDirEntriesFromClientData: () => Promise<void>;
+    /**
+   * Used to sort external directory entries based on first name and last name
+   *  @param externalDirectoryEntries - array of external directory entries
+   * @example -
+   * ```
+   * sortExternalDirectory(externalDirectoryEntries)
+   * ```
+   */
+    private sortExternalDirectory;
+    /**
+   * get filtered External Directory List based on search text
+   * @param extDirectories - array of external directory entries
+   * @param searchText - search string
+   * @example -
+   * ```
+   * getFilteredExtDirList(searchText, extDirectories)
+   * ```
+   */
+    private getFilteredExtDirList;
+    /**
+    * Function to add external directory entries favorite in Index DB from store
+    * @param directoryEntries - Array of directory entries to update favorites.
+    * @example -
+    * ```
+    * updateExtDirectoryEntriesFavListInDB(directoryEntries)
+    * ```
+    */
+    private updateExtDirectoryEntriesFavListInDB;
+    /**
+   * Used to retrieve external directory entries and filter out favorites
+   * @param directoryEntries - array of directory entries to filter
+   * @param extDirectoryName - external directory name to filter
+   * @returns - returns the filtered favorite external directory entries
+   * @example -
+   * ```
+   * directoryProvider.getFavoritesByExtDirectory(directoryEntries, extDirectoryName);
+   * ```
+   */
+    getFavoritesByExtDirectory(directoryEntries: DirectoryAdditionalAtrributes[], extDirectoryName: string): Promise<DirectoryAdditionalAtrributes[]>;
+    /**
+     * Method is used to search directories
      * @param searchDirectoriesRequest -- pass the SearchDirectoriesRequest type object
      * @returns - return object of type SearchDirectoriesResponse. Containing filtered directories based on search parameter
+     * @example -
      * ```
-     * @example --
-     * const searchDirectoriesRequest:SearchDirectoriesRequest = \{
-     * \{
-     *"subscriptionId": "subscriptionId",
-     *"searchString": "firstname lastname",
-     *"realTimeUpdates": true/false,
-     *"skip": 0,
-     *"top": 50,
-     *"directoryUUID": "directoryUUID"
-     *"filter": \{
-     *    "partnerType": [
-     *     "Zoom"
-     *  ],
-     *   "fieldType": [
-     *        "email"
-     *     ]
-     *\}
-     *\}
-     *\}
-     *```
+     * searchDirectories(searchDirectoriesRequest)
+     * ```
      */
     searchDirectories(searchDirectoriesRequest: SearchDirectoriesRequest): void;
     /**

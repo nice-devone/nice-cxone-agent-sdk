@@ -30,6 +30,10 @@ export declare class CXoneClientData {
        */
     panelPopout?: boolean;
     /**
+       * @remarks - Indicates whether to enable PAGE action popout
+       */
+    pageActionPopout?: boolean;
+    /**
        * @remarks - Indicates whether to send message on enter key press
        */
     sendOnEnter?: string;
@@ -37,6 +41,46 @@ export declare class CXoneClientData {
        * @remarks - Logging level for the application
        */
     loggingLevel?: number;
+    /**
+       * @remarks - Expand the agent softphone when receives new interaction
+       */
+    expandSoftphone?: boolean;
+    /**
+     * @remarks - Favorite quick replies for inbound
+     */
+    cxaFavInQuickRep?: number[];
+    /**
+     * @remarks - Favorite quick replies for outbound
+     */
+    cxaFavOutQuickRep?: number[];
+    /**
+       * @remarks - Favorite agents
+       */
+    cxaFavAgents?: number[];
+    /**
+     * @remarks - Favorite Skill Activity
+     **/
+    cxaFavSkills?: number[];
+    /**
+       * @remarks - Favorite State Selector
+       */
+    cxaFavStates?: number[];
+    /**
+   * @remarks - Favorite teams
+   **/
+    cxaFavTeams?: number[];
+    /**
+     * @remarks - Favorite external directory entries
+     */
+    cxaFavExtDirectory?: string[];
+    /**
+     * @remarks - Email message sort order
+     */
+    emailMessageSortOrder?: string;
+    /**
+     * @remarks - Favorite Address Book
+     */
+    cxaFavStandAddBook?: number[];
     /**
      * The parse method will take the data object and assign the values to the CXoneClientData class properties
      * @param data - Data object received
@@ -66,7 +110,9 @@ export declare class CXoneClientData {
      */
     mapper(currentClientDataObj: any, data: CXoneClientData): {
         softPhoneVolume: any;
-        CXASecondaryDevice: any;
+        CXASecondaryDevice: any; /**
+         * @remarks - Favorite Skill Activity
+         **/
         CXASecondaryDeviceName: any;
         CXARingtone: any;
         SecondaryDeviceDelay: any;
@@ -85,8 +131,19 @@ export declare class CXoneClientData {
         AutoAccept: any;
         Use24HourTime: any;
         Panels: any;
+        PageActionPopout: any;
         SendOnEnter: any;
         LoggingLevel: any;
+        ExpandSoftphone: any;
+        CXAFavStates: any;
+        CXAFavAgents: any;
+        CXAFavInQuickRep: any;
+        CXAFavOutQuickRep: any;
+        emailMessageSortOrder: any;
+        CXAFavTeams: any;
+        CXAFavStandAddBook: any;
+        CXAFavExtDirectory: any;
+        CXAFavSkills: any;
     };
     /**
      * Maps the provided `CXoneClientData` to the current client data object, including search app settings.
@@ -99,7 +156,9 @@ export declare class CXoneClientData {
     mapperIncludingSearchAppSettings(currentClientDataObj: Record<string, unknown>, data: CXoneClientData): {
         CxaSearchAppSettings: unknown;
         softPhoneVolume: any;
-        CXASecondaryDevice: any;
+        CXASecondaryDevice: any; /**
+         * @remarks - Favorite Skill Activity
+         **/
         CXASecondaryDeviceName: any;
         CXARingtone: any;
         SecondaryDeviceDelay: any;
@@ -118,7 +177,18 @@ export declare class CXoneClientData {
         AutoAccept: any;
         Use24HourTime: any;
         Panels: any;
+        PageActionPopout: any;
         SendOnEnter: any;
         LoggingLevel: any;
+        ExpandSoftphone: any;
+        CXAFavStates: any;
+        CXAFavAgents: any;
+        CXAFavInQuickRep: any;
+        CXAFavOutQuickRep: any;
+        emailMessageSortOrder: any;
+        CXAFavTeams: any;
+        CXAFavStandAddBook: any;
+        CXAFavExtDirectory: any;
+        CXAFavSkills: any;
     };
 }

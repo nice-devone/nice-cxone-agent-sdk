@@ -56,6 +56,26 @@ export class CXoneAuth {
                 }
             });
         };
+        /**
+         * Event handler to receive message event from auth callback popup
+         * @example
+         * ```
+         * postAuthCodeMessage(eventData)
+         * ```
+         */
+        this.postAuthCodeMessage = (event) => {
+            var _a;
+            if (event.data['messageType'] === 'Loaded') {
+                const msg = {
+                    issuer: 'CXA',
+                    messageType: 'Token',
+                    token: this.getAuthToken().accessToken,
+                };
+                const iFrame = document.getElementById('launchCXAFrame');
+                if (iFrame)
+                    (_a = iFrame === null || iFrame === void 0 ? void 0 : iFrame.contentWindow) === null || _a === void 0 ? void 0 : _a.postMessage(msg, '*');
+            }
+        };
         this.cxoneUser = CXoneUser.instance;
         this.adminService = AdminService.instance;
         this.subscribeResponseMessage();
@@ -965,26 +985,6 @@ export class CXoneAuth {
                 .map(([k, v]) => `${k}:${v}`)
                 .join(';');
             target.innerHTML = `<iframe id='launchCXAFrame' allow="microphone;" src=${appUrl} style=${styleString}></iframe>`;
-        }
-    }
-    /**
-     * Event handler to receive message event from auth callback popup
-     * @example
-     * ```
-     * postAuthCodeMessage(eventData)
-     * ```
-     */
-    postAuthCodeMessage(event) {
-        var _a;
-        if (event.data['messageType'] === 'Loaded') {
-            const msg = {
-                issuer: 'CXA',
-                messageType: 'Token',
-                token: this.getAuthToken().accessToken,
-            };
-            const iFrame = document.getElementById('launchCXAFrame');
-            if (iFrame)
-                (_a = iFrame === null || iFrame === void 0 ? void 0 : iFrame.contentWindow) === null || _a === void 0 ? void 0 : _a.postMessage(msg, '*');
         }
     }
     /**

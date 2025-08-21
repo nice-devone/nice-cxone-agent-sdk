@@ -38,6 +38,27 @@ export class CXoneTenant {
         });
     }
     /**
+     * Method to return Product licenses permissions from tenant data
+     * @param productIds - Array of Product IDs to check for enablement
+     * @returns - returns a boolean indicating either of the specified products are enabled in the tenant data.
+     * ```
+     * @example
+     * checkProductEnablementFromTenantData()
+     * ```
+     */
+    checkProductEnablementFromTenantData(productIds) {
+        return new Promise((resolve, reject) => {
+            this.adminService.getTenantData().then((resp) => {
+                const tenantData = resp;
+                const isProductEnabled = tenantData.licenses.some((license) => license.featureIds.some((featureId) => productIds.includes(featureId)));
+                resolve(isProductEnabled ? true : false);
+            }, (error) => {
+                this.logger.error('checkProductEnablementFromTenantData', 'CheckProduct Enablement from Tenant Data failed ' + JSON.stringify(error));
+                reject(error);
+            });
+        });
+    }
+    /**
      * Method to return business unit features
      * @returns - returns the business unit features
      * ```

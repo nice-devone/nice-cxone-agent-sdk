@@ -45,6 +45,7 @@ export class CXoneDigitalContact extends CXoneContact {
         this.caseId = contact.digitalCaseId;
         this.channelType = contact.channelType;
         this.customerName = contact.customerName;
+        this.customerId = contact.customerId;
         this.contactID = contact.contactId;
         this.startTime = contact.startTime;
         this.status = contact.status;
@@ -265,6 +266,7 @@ export class CXoneDigitalContact extends CXoneContact {
                 this.interactionId = (_z = data === null || data === void 0 ? void 0 : data.case) === null || _z === void 0 ? void 0 : _z.interactionId;
                 this.channelType = (_0 = data === null || data === void 0 ? void 0 : data.channel) === null || _0 === void 0 ? void 0 : _0.realExternalPlatformId;
                 this.customerName = ((_1 = data === null || data === void 0 ? void 0 : data.case) === null || _1 === void 0 ? void 0 : _1.direction) === 'outbound' ? ((_4 = (_3 = (_2 = data === null || data === void 0 ? void 0 : data.case) === null || _2 === void 0 ? void 0 : _2.authorEndUserIdentity) === null || _3 === void 0 ? void 0 : _3.fullName) !== null && _4 !== void 0 ? _4 : (((_5 = data === null || data === void 0 ? void 0 : data.channel) === null || _5 === void 0 ? void 0 : _5.name) || ((_6 = data === null || data === void 0 ? void 0 : data.channel) === null || _6 === void 0 ? void 0 : _6.idOnExternalPlatform))) : (_8 = (_7 = data === null || data === void 0 ? void 0 : data.case) === null || _7 === void 0 ? void 0 : _7.authorEndUserIdentity) === null || _8 === void 0 ? void 0 : _8.fullName;
+                this.customerId = data === null || data === void 0 ? void 0 : data.customerId;
                 this.skill = (_9 = data === null || data === void 0 ? void 0 : data.routingQueue) === null || _9 === void 0 ? void 0 : _9.name;
                 this.status = (_10 = data === null || data === void 0 ? void 0 : data.case) === null || _10 === void 0 ? void 0 : _10.status;
                 this.startTime = (_11 = data === null || data === void 0 ? void 0 : data.case) === null || _11 === void 0 ? void 0 : _11.createdAt;

@@ -58,5 +58,13 @@ export declare enum CXoneProductFeature {
     /**
      * @remarks - Product feature Id for UI Queue
      */
-    UI_QUEUE_WS = 30254
+    UI_QUEUE_WS = 30254,
+    /**
+     * @remarks - Product feature Id for Real-Time Recording Status Update
+     */
+    REAL_TIME_RECORDING_STATUS_UPDATE = 194,
+    /**
+     * @remarks - Product feature Id for Interaction Hub data policies
+     */
+    INTERACTION_HUB_DATA_POLICIES = 901
 }

@@ -19,6 +19,10 @@ export class CopilotNotificationClient extends AgentAssistNotificationService {
      * @param websocketServerUri - websocketServer uri
      */
     connect(websocketServerUri, agentId) {
+        if (this.agentAssistInput.webSocketUri === websocketServerUri && this.connectionId) {
+            this.logger.info('Already connected', ' skipping reconnect.');
+            return true;
+        }
         this.webSocketUri = websocketServerUri;
         this.agentId = agentId;
         this.initLogger('agentCopilot');

@@ -17,6 +17,10 @@ export declare class DigitalContactEvent extends CXoneAgentEvent {
      */
     customerName: string;
     /**
+     * @remarks - Customer id of the customer who has initiated the digital contact.
+     */
+    customerId?: string;
+    /**
      * @remarks - The identifier of case in digital platform of a digital contact.
      * This is id field in case object (case`->`id) in Digital and `DFOContactId` in ACD getNextEvent.
      */

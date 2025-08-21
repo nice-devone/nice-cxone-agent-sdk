@@ -88,6 +88,14 @@ export const StorageKeys = {
     ENCRYPTION_IV: 'cxagent.userInfo',
     ORIGINATING_SERVICE_IDENTIFIER: 'originating_service_identifier',
     FAVORITE_AGENT_STATES: 'favoriteAgentStates',
+    CXA_FAV_AGENT_STATES: 'cxaFavStates',
+    AGENT_PROFILE_CONFIGURATION: 'agent_profile_configuration',
+    // This key is used to store the agent's current Screen Size, only if Agent Profile Configuration has Default Screen Size as Defined by Agent
+    AGENT_SCREEN_SIZE: 'agent_screen_size',
+    FAV_QR_ID_TOGGLED: 'favQuickReplyIdToggled',
+    DIRECTORY_POLLING_UPDATED_SINCE: 'directoryUpdatedSince',
+    FAVORITE_IDS_TOGGLED: 'favIdsToggled',
+    WEM_WS_CONNECTION_STATUS: 'wemWsConnectionStatus',
 };
 export const NotificationSettings = {
     ACCESSIBILITY: 'Accessibility',
@@ -104,6 +112,7 @@ export const NotificationSettings = {
     DISPLAY: 'Display',
     ENABLE_VISUAL_NOTIFICATIONS: 'EnableVisualNotifications',
     PANEL_POPOUT: 'PanelPopout',
+    PAGE_ACTION_POPOUT: 'PageActionPopout',
     RINGTONE: 'Ringtone',
     RINGTONE_SETTING: 'RingtoneSetting',
     SECONDARY_DEVICE: 'SecondaryDevice',
@@ -123,5 +132,7 @@ export const NotificationSettings = {
     NOISE_CANCELLATION_MIC_TOGGLE: 'noiseCancellationMicCheckToggle',
     NOISE_CANCELLATION_SPEAKER_TOGGLE: 'noiseCancellationSpeakerCheckToggle',
     SEND_WITH_ENTER: 'sendWithEnter',
+    EXPAND_SOFTPHONE: 'expand_softphone',
+    EMAIL_MESSAGE_SORT_ORDER: 'emailMessageSortOrder',
 };
 //# sourceMappingURL=storage-key.js.map

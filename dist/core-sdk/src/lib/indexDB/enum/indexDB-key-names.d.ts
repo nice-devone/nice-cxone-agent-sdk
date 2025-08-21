@@ -8,9 +8,15 @@ export declare enum IndexDBKeyNames {
     ALL_CHANNELS = "allChannels",
     ALL_SKILLS = "allSkills",
     FAVORITE_AGENTS = "favoriteAgents",
+    FAVORITE_STANDARD_ADDRESS_BOOK = "favoriteStandardAddressBook",
     COPILOT = "copilot",
     INTERACTION_FAILED_MESSAGES = "interactionFailedMessages",
     WEM_NOTIFICATIONS = "wemNotifications",
     SKILL_ACTIVITY = "SkillActivity",
-    ACD_CONTACT_HISTORY = "acdContactHistory"
+    ACD_CONTACT_HISTORY = "acdContactHistory",
+    FAVORITE_TEAMS = "favoriteTeams",
+    FAVORITE_SKILLS = "favoriteSkills",
+    FAVORITE_DIGITAL_SKILLS = "favoriteDigitalSkills",
+    FAVORITE_EXT_DIR_ENTRIES = "favoriteExtDirectoryEntries",
+    CONVERSATIONS_GROUPS = "conversationsGroups"
 }

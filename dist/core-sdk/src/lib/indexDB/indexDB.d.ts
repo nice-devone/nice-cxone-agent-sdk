@@ -1,5 +1,5 @@
 import { DBSchema, IDBPDatabase } from 'idb';
-import { AddressBooks, AgentMessageNotification, AgentStateResponse, CXoneAudioVisualNotificationSettings, CXoneDigitalChannel, DirectoryEntities, DirectoryResponse, FavQuickReply, NotificationEntities, SkillEvent, Team, CXoneRoutingQueue, WemNotificationDisplayData, Skills, CopilotMessageData, InteractionFailedMessages, AgentAssistWSRequest, agentCompletedContactsResponse } from '@nice-devone/common-sdk';
+import { AddressBooks, AgentMessageNotification, AgentStateResponse, CXoneAudioVisualNotificationSettings, CXoneDigitalChannel, DirectoryEntities, DirectoryResponse, FavQuickReply, NotificationEntities, SkillEvent, Team, CXoneRoutingQueue, WemNotificationDisplayData, Skills, CopilotMessageData, InteractionFailedMessages, AgentAssistWSRequest, agentCompletedContactsResponse, AddressBooksEntries, DirectoryAdditionalAtrributes, ConversationsGroupDetails } from '@nice-devone/common-sdk';
 import { IndexDBStoreNames } from './enum/indexDB-store-names';
 import { IndexDBKeyNames } from './enum/indexDB-key-names';
 import { SkillActivityEvent } from './models/skill-activity-event';
@@ -8,8 +8,8 @@ declare type CcfCopilotData = {
 };
 export interface storeSchema extends DBSchema {
     Directory: {
-        key: DirectoryEntities | IndexDBKeyNames.DIRECTORY_SEARCH_RESPONSE | IndexDBKeyNames.ALL_SKILLS | IndexDBKeyNames.FAVORITE_AGENTS | IndexDBKeyNames.WEM_NOTIFICATIONS;
-        value: Array<AgentStateResponse | SkillEvent | AddressBooks | Team | SkillActivityEvent> | DirectoryResponse | Array<Skills>;
+        key: DirectoryEntities | IndexDBKeyNames.DIRECTORY_SEARCH_RESPONSE | IndexDBKeyNames.ALL_SKILLS | IndexDBKeyNames.FAVORITE_AGENTS | IndexDBKeyNames.FAVORITE_TEAMS | IndexDBKeyNames.FAVORITE_STANDARD_ADDRESS_BOOK | IndexDBKeyNames.FAVORITE_SKILLS | IndexDBKeyNames.FAVORITE_DIGITAL_SKILLS | IndexDBKeyNames.FAVORITE_EXT_DIR_ENTRIES | IndexDBKeyNames.WEM_NOTIFICATIONS;
+        value: Array<AgentStateResponse | SkillEvent | AddressBooks | Team | SkillActivityEvent | DirectoryAdditionalAtrributes> | DirectoryResponse | Array<AddressBooksEntries> | Array<Skills>;
     };
     Digital: {
         key: IndexDBKeyNames.OB_CHANNEL_LIST | IndexDBKeyNames.ROUTING_QUEUE | IndexDBKeyNames.ALL_CHANNELS | IndexDBKeyNames.INTERACTION_FAILED_MESSAGES;
@@ -44,6 +44,10 @@ export interface storeSchema extends DBSchema {
         value: {
             [contactId: string]: agentCompletedContactsResponse;
         };
+    };
+    Conversations: {
+        key: IndexDBKeyNames.CONVERSATIONS_GROUPS;
+        value: Array<ConversationsGroupDetails>;
     };
 }
 /**

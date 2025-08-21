@@ -104,16 +104,24 @@ export class ValidationUtils {
     }
     /**
      * Checks the value is valid email address or not
-     * @param value  - accepts string
-     * @example -
-     * ```
-     * validateEmail(test@test.com);
-     * ```
-     *
+     * @param emailAddress  - accepts string
+     * @example - validateEmail(test\@test.com);
      * @returns  - true/false
+     *
+     * * REGEX Explanation:
+     *
+     * Local Part (before the \@ symbol):
+     * - ^[a-zA-Z0-9!#$%&'*+/=?^_`{|}~-]+ // Must start with an alphanumeric character or special character (e.g., !#$%&'*+/=?^_`\{|\}~-).
+     * - (\.[a-zA-Z0-9!#$%&'*+/=?^_\`\{|\}~-]+)* --- Optional additional parts separated by periods.
+     * - \@ // The required \@ symbol separating local and domain parts.
+     
+     * Domain Part (after the \@ symbol):
+     * - ((\[[0-9]\{1,3\}\.[0-9]\{1,3\}\.[0-9]\{1,3\}\.[0-9]\{1,3\}\])| // Allows for an IP address in square brackets.
+     * - (([a-zA-Z0-9-])+\.)+ // Must start with an alphanumeric character and can contain hyphens and periods.
+     * - ([a-zA-Z0-9]\{2,4\})+$/ // TLD (top-level domain) must be 2 to 4 alphanumeric characters long.
      */
-    validateEmail(value) {
-        return (/^([a-zA-Z0-9_.-])+@(([a-zA-Z0-9-])+\.)+([a-zA-Z0-9]{2,4})+$/.test(value));
+    validateEmail(emailAddress) {
+        return (/^[a-zA-Z0-9!#$%&'*+/=?^_`{|}~-]+(\.[a-zA-Z0-9!#$%&'*+/=?^_`{|}~-]+)*@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z0-9][a-zA-Z0-9-.]*[a-zA-Z0-9])+\.)+([a-zA-Z0-9]{2,15})+)$/).test(emailAddress);
     }
     /**
      * Checks the value is number or not for Directory search

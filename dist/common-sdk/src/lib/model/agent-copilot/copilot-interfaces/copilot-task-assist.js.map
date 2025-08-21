@@ -1,1 +1,1 @@
-{"version":3,"file":"copilot-task-assist.js","sourceRoot":"","sources":["../../../../../../../../../libs/common/common-sdk/src/lib/model/agent-copilot/copilot-interfaces/copilot-task-assist.ts"],"names":[],"mappings":""}
+{"version":3,"file":"copilot-task-assist.js","sourceRoot":"","sources":["../../../../../../../../../libs/common/common-sdk/src/lib/model/agent-copilot/copilot-interfaces/copilot-task-assist.ts"],"names":[],"mappings":";;;AAwMA;;GAEG;AACU,QAAA,kBAAkB,GAAG;IAChC,gBAAgB,EAAE,iBAAiB;IACnC,WAAW,EAAE,YAAY;CAC1B,CAAC"}

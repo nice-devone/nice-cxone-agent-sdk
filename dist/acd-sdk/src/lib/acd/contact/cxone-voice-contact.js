@@ -63,6 +63,17 @@ export class CXoneVoiceContact extends CXoneContact {
         this.agentMuted = isAgentMuted;
     }
     /**
+     * Get isLogging value from record event to update record button state
+     * @param isLogging - boolean
+     * @example
+     * ```
+     * this.updateVoiceCallRecordState(true)
+     * ```
+     */
+    updateVoiceCallRecordState(isLogging) {
+        this.isLogging = isLogging;
+    }
+    /**
      * Method to check the agent has mute, record and mask permission
      * @example
      * ```
@@ -172,6 +183,7 @@ export class CXoneVoiceContact extends CXoneContact {
         this.callControlButton.mask.controlText = ControlButtonText.UNMASK;
         this.callControlButton.end.isEnable = false;
         this.callControlButton.hold.isEnable = false;
+        this.callControlButton.record.isEnable = false;
     }
     /**
      * Method to set state of the Record button when isLogging is true

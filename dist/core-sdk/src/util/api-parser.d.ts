@@ -5,6 +5,7 @@ import { BrandingProfile } from '../lib/admin/model/branding-profile';
 import { HttpResponse } from '@nice-devone/common-sdk';
 import { AgentSettings } from '../lib/admin/model/agent-settings';
 import { Tenant } from '../lib/admin/model/tenant';
+import { AgentProfileSettings } from '../lib/admin/model/agent-profile-settings';
 /**
  * This class to parse api response
  */
@@ -42,6 +43,17 @@ export declare class ApiParser {
      * ```
      */
     parseBusinessUnit(businessUnitResponse: HttpResponse): BusinessUnit;
+    /**
+     * This method to check Agent Profile Data and get desired configuration
+     *
+     * @param settings  - Agent Profile Data
+     * @returns - configuration data
+     * @example -
+     * ```
+     * parseAgentConfiguration(AgentProfileResponse)
+     * ```
+     */
+    parseAgentConfiguration(AgentProfileResponse: HttpResponse): AgentProfileSettings;
     /**
      * Method to parse Central Branding Profile response
      *

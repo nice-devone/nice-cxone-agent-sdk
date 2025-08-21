@@ -1,4 +1,4 @@
-import { CXoneCustomerCardCustomFields, CXoneCustomerDetails, CXoneCustomerDetailRequest, HttpResponse, CustomField, CXoneSdkError, CXoneCustomerDetail, CXoneAgentVoiceContactHistoryRequest, CXoneCase, agentCompletedContactsResponse, AgentWorkflowResponseEvent, CXoneMergeCustomerCardArguments, CXoneCustomerList, CXoneWorkflowRequest, CXoneDeleteCustomField, CXoneWorkflowCreateRequest } from '@nice-devone/common-sdk';
+import { CXoneCustomerCardCustomFields, CXoneCustomerDetails, CXoneCustomerDetailRequest, HttpResponse, CustomField, CXoneSdkError, CXoneCustomerDetail, CXoneAgentVoiceContactHistoryRequest, CXoneCase, agentCompletedContactsResponse, AgentWorkflowResponseEvent, CXoneMergeCustomerCardArguments, CXoneCustomerList, CXoneWorkflowRequest, CXoneDeleteCustomField, CXoneWorkflowCreateRequest, ECCRequest, CreateInteractionResponse, UpdateInteractionResponse } from '@nice-devone/common-sdk';
 import { HttpUtilService, Logger } from '@nice-devone/core-sdk';
 /**
  * Class to handle Customer Card API calls
@@ -142,4 +142,10 @@ export declare class CustomerCardService {
      * @example getCRMDataForTransferedContactFromPolling(crmInteractionId)
      */
     getCRMDataForTransferedContactFromPolling(crmInteractionId: string): Promise<unknown>;
+    /**
+     * Method to fetch livevox uuid for enhanced customer card
+     * @returns - API Returns Response JSON with UUID as string value
+     * @example -
+     */
+    invokeECCService(ECCPayload: ECCRequest): Promise<CreateInteractionResponse | UpdateInteractionResponse>;
 }

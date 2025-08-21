@@ -63,5 +63,9 @@ var CXoneDigitalEventType;
     * @remarks - websocket event type to publish to UI for message seen changed
     */
     CXoneDigitalEventType["MESSAGE_SEEN_CHANGED"] = "MessageSeenChanged";
+    /**
+    * @remarks - websocket event type to publish to UI for message seen changed
+    */
+    CXoneDigitalEventType["CONVERSATIONS_AVAILABILITY"] = "Availability";
 })(CXoneDigitalEventType = exports.CXoneDigitalEventType || (exports.CXoneDigitalEventType = {}));
 //# sourceMappingURL=cxone-digital-event-type.js.map

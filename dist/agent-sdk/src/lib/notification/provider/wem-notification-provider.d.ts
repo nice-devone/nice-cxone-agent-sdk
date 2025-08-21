@@ -71,6 +71,15 @@ export declare class WemNotificationProvider {
   */
     private publishWemNotification;
     /**
+     * Publishes a recording notification if the message notification template is of type RECORDING_STATUS.
+     * @param message - notification message
+     * @example
+     * ```
+     * publishRecordingNotification(message)
+     * ```
+     */
+    private publishRecordingNotification;
+    /**
    * This method to check notification url is supported by embedded pages
    * @param notificationURL - notification url
    * @returns - boolean

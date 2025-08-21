@@ -9,6 +9,7 @@ const userSlotWorkerCode = `self.importScripts(
   self.onmessage = function (input) {
     switch (input.data.type) {
       case 'startUserSlotApiPolling':
+      case 'startVoiceRecStatusApiPolling':
         startUserSlotApiPolling(input.data);
         break; 
       case 'updateDigitalUserStatusPolling':

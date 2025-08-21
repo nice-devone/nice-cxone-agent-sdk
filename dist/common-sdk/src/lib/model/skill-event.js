@@ -22,6 +22,7 @@ class SkillEvent extends cxone_event_1.CXoneEvent {
         this.isActive = (0, utility_1.parseBooleanString)(data.isActive);
         this.skillId = data.skillId;
         this.skillName = data.skillName;
+        this.isFavorite = (0, utility_1.parseBooleanString)(data.isFavorite);
     }
 }
 exports.SkillEvent = SkillEvent;

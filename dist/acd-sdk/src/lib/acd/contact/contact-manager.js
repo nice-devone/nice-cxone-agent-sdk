@@ -49,6 +49,7 @@ export class ContactManager {
         this.tagsData = {};
         this.viewOnlyCases = [];
         this.allContacts = {};
+        this.voiceCallRecordServicePollingEvent = new Subject();
         /**
          * Method used to get the CXoneContact
          */
@@ -266,6 +267,7 @@ export class ContactManager {
                     };
                     this.acdSession.screenPopSubject.next(screenPop);
                 }
+                this.voiceCallRecordServicePollingEvent.next(true);
             }
             else {
                 voiceContact = existContact;
@@ -310,6 +312,7 @@ export class ContactManager {
                         LocalStorageHelper.removeItem(StorageKeys.VOICE_BIO_HUB_DATA);
                     }
                 }
+                (contactKeys.length === 1) && this.voiceCallRecordServicePollingEvent.next(false);
             }
         });
     }
@@ -489,6 +492,38 @@ export class ContactManager {
                 this.publishContact(voiceContact);
             }
         });
+    }
+    /**
+     * Update the record state for voice contacts
+     * @param isRecording - boolean value to indicate if the call is being recorded
+     * @example
+     * ```
+     * contactManager.updateVoiceCallRecordState(true);
+     * ```
+     */
+    updateVoiceCallRecordState(isRecording) {
+        for (const voiceContact of this.voiceContactMap.values()) {
+            if (!voiceContact)
+                continue;
+            voiceContact.updateVoiceCallRecordState(isRecording);
+            const isMainCall = voiceContact.contactID === voiceContact.masterID ||
+                (this.voiceContactMap.size === 1 &&
+                    voiceContact.masterID !== voiceContact.contactID &&
+                    [
+                        CallType.REGULAR,
+                        CallType.PERSONAL_QUEUE,
+                        CallType.RESKILL_PROXY,
+                        CallType.CONSULT
+                    ].includes(voiceContact.callType));
+            if (isMainCall) {
+                voiceContact.updateCallControls();
+            }
+            else {
+                this.updateControlsWithNewConsultCall(voiceContact.masterID);
+                voiceContact.updateConsultCallControls();
+            }
+            this.publishContact(voiceContact);
+        }
     }
     /**
      * set / delete / find the voicemail contacts in map using contactID.

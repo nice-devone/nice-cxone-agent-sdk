@@ -9,10 +9,16 @@ export var IndexDBKeyNames;
     IndexDBKeyNames["ALL_CHANNELS"] = "allChannels";
     IndexDBKeyNames["ALL_SKILLS"] = "allSkills";
     IndexDBKeyNames["FAVORITE_AGENTS"] = "favoriteAgents";
+    IndexDBKeyNames["FAVORITE_STANDARD_ADDRESS_BOOK"] = "favoriteStandardAddressBook";
     IndexDBKeyNames["COPILOT"] = "copilot";
     IndexDBKeyNames["INTERACTION_FAILED_MESSAGES"] = "interactionFailedMessages";
     IndexDBKeyNames["WEM_NOTIFICATIONS"] = "wemNotifications";
     IndexDBKeyNames["SKILL_ACTIVITY"] = "SkillActivity";
     IndexDBKeyNames["ACD_CONTACT_HISTORY"] = "acdContactHistory";
+    IndexDBKeyNames["FAVORITE_TEAMS"] = "favoriteTeams";
+    IndexDBKeyNames["FAVORITE_SKILLS"] = "favoriteSkills";
+    IndexDBKeyNames["FAVORITE_DIGITAL_SKILLS"] = "favoriteDigitalSkills";
+    IndexDBKeyNames["FAVORITE_EXT_DIR_ENTRIES"] = "favoriteExtDirectoryEntries";
+    IndexDBKeyNames["CONVERSATIONS_GROUPS"] = "conversationsGroups";
 })(IndexDBKeyNames || (IndexDBKeyNames = {}));
 //# sourceMappingURL=indexDB-key-names.js.map

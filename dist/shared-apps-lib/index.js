@@ -2881,6 +2881,7 @@ function getAgentRemoteEntryUrl(cxaVersion) {
 /**
  * Method to get remote entry URL for Embedded App
  * @param appType - type of remote embedded app
+ * @param cxaVersion - version of CXone Agent
  * @example getRemoteEntryUrl(appType)
  */
 function getRemoteEntryUrl(appType, cxaVersion) {
@@ -2896,11 +2897,39 @@ function getRemoteEntryUrl(appType, cxaVersion) {
  * @example - loadModule(url);
  */
 function loadModule(url) {
-  return import( /* webpackIgnore:true */url);
+  try {
+    return import( /* webpackIgnore:true */url);
+  } catch (error) {
+    console.error(`Failed to load module from ${url}`, error);
+    throw error;
+  }
+}
+/**
+ * Helper method to load the container in the DOM, used in loadRemoteModule & loadIntegrationModule
+ *
+ * @param container - container of the module to load
+ * @param appType - type of remote embedded app
+ * @param remoteModuleKey - key to store remote module in map
+ * @param moduleName - exported module name from remote entry
+ * @example
+ * ```
+ * initContainer(container, appType, remoteModuleKey, moduleName);
+ * ```
+ */
+function initContainer(container, appType, remoteModuleKey, moduleName) {
+  return __awaiter(this, void 0, void 0, function* () {
+    yield container.init(__webpack_share_scopes__.default);
+    const factory = yield container.get(moduleName);
+    const Module = factory();
+    remoteContainerMap.set(appType, container);
+    remoteModuleMap.set(remoteModuleKey, Module);
+    return Module;
+  });
 }
 /**
  * Method to load remote Integration Module from remoteEntry.js file
  * @param appType - type of remote embedded app
+ * @param remoteEntryUrl - url of the remote entry
  * @example loadIntegrationModule(appType)
  */
 function loadIntegrationModule(appType, remoteEntryUrl) {
@@ -2914,14 +2943,38 @@ function loadIntegrationModule(appType, remoteEntryUrl) {
       yield __webpack_init_sharing__('default');
     }
     const container = remoteEntryUrl ? yield loadModule(remoteEntryUrl) : null;
-    if (container) {
-      yield container.init(__webpack_share_scopes__.default);
-      remoteContainerMap.set(appType, container);
-      const factory = yield container.get(defaultModuleName);
-      const Module = factory();
-      remoteModuleMap.set(remoteModuleKey, Module);
-      return Module;
+    return container ? initContainer(container, appType, remoteModuleKey, defaultModuleName) : null;
+  });
+}
+/**
+ * Method to load remote Integration Module from remoteEntry.js file
+ * IMPORTANT: This method should only be used after useScript method is called to load remoteEntry.js file
+ *
+ * @param appType - type of remote embedded app
+ * @param remoteName - module federation defined remote name
+ * @param moduleName - exported module name from remote entry
+ * @example
+ * ```
+ * const { ready, failed } = useScript({
+ *   scriptSrc: REMOTE_ENTRY,
+ *   scriptType: 'text/javascript',
+ * });
+ *
+ * const Component = lazy(loadRemoteModule(CcfAppType.LvAppSpace, REMOTE_NAME, `./${moduleName}`));
+ * ```
+ */
+function loadRemoteModule(appType, remoteName, moduleName) {
+  return () => __awaiter(this, void 0, void 0, function* () {
+    const remoteModuleKey = `${appType}:${remoteName}${moduleName}`;
+    if (remoteModuleMap.has(remoteModuleKey)) return remoteModuleMap.get(remoteModuleKey);
+    if (!initialSharingScopeCreated) {
+      initialSharingScopeCreated = true;
+      yield __webpack_init_sharing__('default');
     }
+    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+    // @ts-ignore
+    const container = window[remoteName];
+    return container ? initContainer(container, appType, remoteModuleKey, moduleName) : null;
   });
 }
 
@@ -3035,6 +3088,7 @@ var CcfAppType;
   CcfAppType["CXoneAgentMsTeams"] = "cxa_msteams";
   CcfAppType["CXoneAgentSalesforce"] = "cxa_sfdc";
   CcfAppType["CXoneAgentKustomer"] = "cxa_kustomer";
+  CcfAppType["LvAppSpace"] = "lv";
 })(CcfAppType || (CcfAppType = {}));
 
 /**
@@ -5311,4 +5365,4 @@ class Embeddedappsfeaturetoggleservice {
   }
 }
 
-export { AgentStates, CXoneAgentEvents, CXoneAgentIntegrationManager, CXoneCallContactStatus, CXoneDigitalContactStatus, CXoneDigitalEventType, CcfAppParamHelper, CcfAppType, CcfGenericConstants, CcfMessageType, CcfRegexPatterns, CcfValidationHelper, CxaExtensionAdapter, Embeddedappsfeaturetoggleservice, IntegrationComponentLoader, WatchRTCService, cxs, getAgentRemoteEntryUrl, getRemoteEntryUrl, loadIntegrationModule, triggerCRMScreenPop, useScript };
+export { AgentStates, CXoneAgentEvents, CXoneAgentIntegrationManager, CXoneCallContactStatus, CXoneDigitalContactStatus, CXoneDigitalEventType, CcfAppParamHelper, CcfAppType, CcfGenericConstants, CcfMessageType, CcfRegexPatterns, CcfValidationHelper, CxaExtensionAdapter, Embeddedappsfeaturetoggleservice, IntegrationComponentLoader, WatchRTCService, cxs, getAgentRemoteEntryUrl, getRemoteEntryUrl, loadIntegrationModule, loadRemoteModule, triggerCRMScreenPop, useScript };

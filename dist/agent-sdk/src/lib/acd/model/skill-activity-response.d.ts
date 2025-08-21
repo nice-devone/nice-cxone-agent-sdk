@@ -3,4 +3,5 @@ export interface SkillActivityResponse {
     skillActivityData: SkillActivityEvent[];
     totalRecords?: number;
     totalSearchResultCount?: number;
+    favoriteSkills: SkillActivityEvent[];
 }

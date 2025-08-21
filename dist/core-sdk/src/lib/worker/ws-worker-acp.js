@@ -7,7 +7,9 @@ const wsWorkerACPCode = `self.importScripts(
     let wsSubject;
     let reconnectTimer;// to hold the timeout for reconnect attempt
     let heartbeatSubscription = null;
-    const HEARTBEAT_INTERVAL = 8000;
+    const HEARTBEAT_INTERVAL = 20000;
+    const DEFAULT_RETRY_INTERVAL = 2000;
+    const DEFAULT_MAX_RETRY_ATTEMPTS = 10;
   
     self.onmessage = function (input) {
       switch (input.data.type) {
@@ -18,7 +20,7 @@ const wsWorkerACPCode = `self.importScripts(
           attemptReconnect(input.data);
           break;
         case 'close':
-          close(input.data);
+          close();
           break;
         case 'send':
           send(input.data);
@@ -50,8 +52,7 @@ const wsWorkerACPCode = `self.importScripts(
      * 
      */
     function connect(input) {
-      if(isConnectionOpen) return;// if connection is established then no need to connect again
-      close();
+      if(isConnectionOpen) return;// if connection is established then no need to connect again      
       wsSubject = self.rxjs.webSocket.webSocket({
         url: input.websocketUrl,
         openObserver: {
@@ -64,6 +65,7 @@ const wsWorkerACPCode = `self.importScripts(
         },
         closeObserver: {
           next: (closeEvent) => {
+            isConnectionOpen = false;
             self.postMessage({
               type: WSEventType.CLOSE,
               message: {
@@ -127,22 +129,23 @@ const wsWorkerACPCode = `self.importScripts(
      */
       function attemptReconnect (input) {
         if(reconnectTimer)clearTimeout(reconnectTimer);// before attempting a new reconnect attempt we should cancel the previous timer if already present to avoid multiple connection overlap
-        isConnectionOpen = input.isConnectionOpen || false; // if isConnection is false that means websocket is not connected then only we will try the reconnect attempt
         let reconnectInfo = input.reconnectInfo;
+        const baseInterval = reconnectInfo.retryOptions.retryInterval || DEFAULT_RETRY_INTERVAL;
+        const maxAttempts = reconnectInfo.retryOptions.maxRetryAttempts || DEFAULT_MAX_RETRY_ATTEMPTS;
         if (wsReconnectAttempt < reconnectInfo.retryOptions.maxRetryAttempts && !isConnectionOpen) {
           wsReconnectAttempt++;
+          const backoffDelay = Math.min(baseInterval * Math.pow(2, wsReconnectAttempt - 1), 60000); // max 60s
           const message = 'Websocket reconnect attempt ' + wsReconnectAttempt + ' of ' + reconnectInfo.retryOptions.maxRetryAttempts;
           console.log('[ACP-web-worker] ', message);
           const reconnectResponse = {
-            maxAttempts: reconnectInfo.retryOptions.maxRetryAttempts,
+            maxAttempts: maxAttempts,
             currentAttempt: wsReconnectAttempt
           }
             reconnectTimer = setTimeout(() => {
             self.postMessage({ type: WSEventType.RECONNECT, message: reconnectResponse  });
-          }, reconnectInfo.retryOptions.retryInterval);
+          }, backoffDelay);
         } else {
-          self.postMessage({ type: WSEventType.RECONNECT_COMPLETE });
-          isConnectionOpen = true;// after reconnect attempt completes then we will set this flag to true
+          self.postMessage({ type: WSEventType.RECONNECT_COMPLETE });          
         }
     }
   
@@ -153,6 +156,7 @@ const wsWorkerACPCode = `self.importScripts(
      */
      function close() {
       wsSubject?.complete();
+      wsSubject = null;
       isConnectionOpen = false;
       stopHeartbeat();
      }

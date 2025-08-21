@@ -10,6 +10,7 @@ export interface DirectoryResponse {
         errorMsg?: string;
         totalSearchMatchRecords?: number;
         allSkillCount?: number;
+        favoriteDigitalSkills?: SkillEvent[];
     };
     /**
      * @remarks  totalRecords - Count of total records based on pagination value set(In set of 5)
@@ -31,6 +32,7 @@ export interface DirectoryResponse {
         allAddressBookCount?: number;
         totalSearchMatchRecords?: number;
         allAddressBookEntries?: AddressBooksEntries[];
+        favoriteStandardAddressBooks?: AddressBooksEntries[];
     };
     /**
      * @remarks  totalRecords - Count of total records based on pagination value set(In set of 5)
@@ -43,5 +45,6 @@ export interface DirectoryResponse {
         allTeamCount?: number;
         errorMsg?: string;
         totalSearchMatchRecords?: number;
+        favoriteTeams?: Team[];
     };
 }

@@ -6,6 +6,7 @@ import { ACDSessionManager, AdminService, dbInstance, IndexDBStoreNames, LocalSt
 import { CXoneProductFeature } from '../acd/enum/cxone-product-feature';
 import { AgentMessageNotificationService } from './service/agent-message-notification-service';
 import { CXoneAuth } from '@nice-devone/auth-sdk';
+import { CxOneVoiceRecordingStatusProvider } from '../acd/provider/cxone-voice-recording-status-provider';
 /**
  * This class to manage notification
  */
@@ -21,6 +22,7 @@ export class CXoneNotificationManager {
         this.tenant = {};
         this.onCXoneNotificationEvent = new Subject();
         this.wemNotificationProvider = {};
+        this.voiceRecordingStatusProvider = {};
         this.logger = new Logger('agent-sdk', 'CXoneNotificationManager');
         this.validationUtils = new ValidationUtils();
         this.acdSession = {};
@@ -29,6 +31,7 @@ export class CXoneNotificationManager {
         this.tenant = tenant;
         this.acdSession = ACDSessionManager.instance;
         this.wemNotificationProvider = new WemNotificationProvider(this);
+        this.voiceRecordingStatusProvider = new CxOneVoiceRecordingStatusProvider(this);
         this.agentMessageNotificationSvc = new AgentMessageNotificationService();
         this.acdSession.updateMessageEvent.subscribe(() => {
             this.getAgentMessageNotification();

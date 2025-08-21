@@ -1,7 +1,14 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.AgentMessageNotification = void 0;
+exports.AgentMessageNotification = exports.NotificationTypeEnum = void 0;
 const utility_1 = require("../../../util/utility");
+var NotificationTypeEnum;
+(function (NotificationTypeEnum) {
+    NotificationTypeEnum["WemNotification"] = "WemNotification";
+    NotificationTypeEnum["AgentNotification"] = "AgentNotification";
+    NotificationTypeEnum["RecordingNotification"] = "RecordingNotification";
+    NotificationTypeEnum["ConversationNotification"] = "ConversationNotification";
+})(NotificationTypeEnum = exports.NotificationTypeEnum || (exports.NotificationTypeEnum = {}));
 /**
  * model class to display Agent Message notification
  */

@@ -163,9 +163,14 @@ ApiUriConstants.CONTINUE_RESKILL = '/inContactapi/services/v23.0/agent-sessions/
 ApiUriConstants.GET_PRESENCE_SYNC_RULE = '/adapter-apis/v1/{partnerName}/rule/{partnerId}';
 ApiUriConstants.GET_AGENT_LOCATION = '/user-management/v1/users/location/evaluate';
 ApiUriConstants.SELECT_AGENT_LOCATION = '/user-management/v1/users/location/select-location';
+//Agent Profile API
+ApiUriConstants.AGENT_PROFILE = '/agent-profiles/v1/assigned';
 ApiUriConstants.FEEDBACK_CATEGORIES_AND_PRIORITIES = '/incontactapi/services/v23.0/feedback-categories-and-priorities';
 ApiUriConstants.SUBMIT_FEEDBACK = '/incontactapi/services/V23.0/agent-sessions/{sessionId}/submit-feedback';
 // LocalPost custom event api
 ApiUriConstants.AGENT_LOCALPOST_API = 'http://127.0.0.1:{port}/{path}';
+ApiUriConstants.ENHANCED_CUSTOMER_CARD = '/inContactAPI/services/v33.0/enhancedcustomercard';
+//Recording Management Service
+ApiUriConstants.GET_RECORDING_STATUS = '/interaction-recording-management-service/v1/interactions/get-recording-status?userId={userId}';
 ;
 //# sourceMappingURL=api-uri-constants.js.map

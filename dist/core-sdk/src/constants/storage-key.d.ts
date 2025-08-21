@@ -88,6 +88,13 @@ export declare const StorageKeys: {
     ENCRYPTION_IV: string;
     ORIGINATING_SERVICE_IDENTIFIER: string;
     FAVORITE_AGENT_STATES: string;
+    CXA_FAV_AGENT_STATES: string;
+    AGENT_PROFILE_CONFIGURATION: string;
+    AGENT_SCREEN_SIZE: string;
+    FAV_QR_ID_TOGGLED: string;
+    DIRECTORY_POLLING_UPDATED_SINCE: string;
+    FAVORITE_IDS_TOGGLED: string;
+    WEM_WS_CONNECTION_STATUS: string;
 };
 export declare const NotificationSettings: {
     ACCESSIBILITY: string;
@@ -104,6 +111,7 @@ export declare const NotificationSettings: {
     DISPLAY: string;
     ENABLE_VISUAL_NOTIFICATIONS: string;
     PANEL_POPOUT: string;
+    PAGE_ACTION_POPOUT: string;
     RINGTONE: string;
     RINGTONE_SETTING: string;
     SECONDARY_DEVICE: string;
@@ -123,4 +131,6 @@ export declare const NotificationSettings: {
     NOISE_CANCELLATION_MIC_TOGGLE: string;
     NOISE_CANCELLATION_SPEAKER_TOGGLE: string;
     SEND_WITH_ENTER: string;
+    EXPAND_SOFTPHONE: string;
+    EMAIL_MESSAGE_SORT_ORDER: string;
 };

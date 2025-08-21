@@ -1,4 +1,4 @@
-import { AgentSettings, Logger } from '@nice-devone/core-sdk';
+import { AgentSettings, Logger, AgentProfileSettings } from '@nice-devone/core-sdk';
 import { CXoneConfiguration, CXoneSdkError, UserInfo, CXoneDigitalSearchTabPermissions, AuthToken } from '@nice-devone/common-sdk';
 import { UserCustomAttributes } from '../enum/user/custom-attributes';
 /**
@@ -136,6 +136,15 @@ export declare class CXoneUser {
      * ```
      */
     getUserLocation(): Promise<CXoneSdkError | import("@nice-devone/common-sdk").UserLocation>;
+    /**
+     * Method to get agent profile details
+     * @returns - It returns the agent profile details
+     * @example
+     * ```
+     * getAgentProfileDetails();
+     * ```
+     */
+    getAgentProfileDetails(): Promise<AgentProfileSettings | CXoneSdkError>;
     /**
      * Method to set user location
      * @param locationId - location id

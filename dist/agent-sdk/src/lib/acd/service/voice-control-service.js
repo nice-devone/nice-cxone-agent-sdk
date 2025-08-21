@@ -1,4 +1,8 @@
+import { CXoneSdkError, CXoneSdkErrorType } from '@nice-devone/common-sdk';
 import { HttpUtilService, Logger, HttpClient, ACDSessionManager, ApiUriConstants, } from '@nice-devone/core-sdk';
+const DEBOUNCE_TIMEOUT = 200;
+const endContactIds = new Set();
+let debounceTimeoutId = null;
 /**
  * Class to handling voice controls
  */
@@ -203,15 +207,27 @@ export class VoiceControlService {
         const reqInit = this.utilService.initHeader(authToken);
         const url = baseUrl +
             ApiUriConstants.END_CONTACT_URI.replace('{sessionId}', sessionId).replace('{contactId}', contactId);
-        return new Promise((resolve, reject) => {
-            HttpClient.post(url, reqInit).then((response) => {
-                this.logger.debug('endContact', 'end contact success:-' + response.toString());
-                resolve(response);
-            }, (error) => {
-                this.logger.error('endContact', 'end contact failed:-' + error.toString());
-                reject(error);
+        if (debounceTimeoutId === null || !endContactIds.has(contactId)) {
+            endContactIds.add(contactId);
+            return new Promise((resolve, reject) => {
+                debounceTimeoutId = setTimeout(() => {
+                    HttpClient.post(url, reqInit).then((response) => {
+                        this.logger.debug('endContact', 'end contact success:-' + response.toString());
+                        debounceTimeoutId = null;
+                        endContactIds.delete(contactId);
+                        resolve(response);
+                    }, (error) => {
+                        this.logger.error('endContact', 'end contact failed:-' + error.toString());
+                        debounceTimeoutId = null;
+                        endContactIds.delete(contactId);
+                        reject(error);
+                    });
+                }, DEBOUNCE_TIMEOUT);
             });
-        });
+        }
+        else {
+            return Promise.reject(new CXoneSdkError(CXoneSdkErrorType.CXONE_API_ERROR, 'Waiting on endContact debounce'));
+        }
     }
     /**
      *  Method to transfer voicemail

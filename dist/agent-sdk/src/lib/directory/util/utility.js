@@ -1,3 +1,4 @@
+import { FeatureToggleService } from '../../feature-toggle';
 /**
 * Method to filter, sort and truncate data based on searchText, offset and Limit
 *
@@ -92,7 +93,11 @@ const sortDirectoryData = (data, filterType, searchText) => {
 * ```
 */
 const handleDirectoryPagination = (data, limit, offset) => {
-    if (offset && limit) {
+    const isFavoritesFTEnabled = FeatureToggleService.instance.getFeatureToggleSync("release-cxa-favorites-AW-40314" /* FeatureToggles.CXA_FAVORITES_FEATURE_TOGGLE */);
+    if (isFavoritesFTEnabled && offset && offset > 0 && limit && limit > 0) {
+        return data === null || data === void 0 ? void 0 : data.slice(offset - 1, offset + limit - 1);
+    }
+    else if (!isFavoritesFTEnabled && offset && limit) {
         return data === null || data === void 0 ? void 0 : data.slice(offset - 1, offset + limit - 1);
     }
     return data;

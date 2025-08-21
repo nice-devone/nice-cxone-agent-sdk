@@ -25,6 +25,10 @@ export declare class Team extends CXoneEvent {
      */
     agents?: AgentStateResponse[];
     /**
+     * @remarks  field to check if team is favorite or not
+    */
+    isFavorite?: boolean;
+    /**
   * This method to parse team response
   * @param data - team object
   * @example -

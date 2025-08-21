@@ -92,6 +92,10 @@ export declare class SkillActivityEvent extends CXoneEvent {
      */
     workItemQueueType: string;
     /**
+     * @remarks  - Indicates if the Skill is a favorite
+    */
+    isFavorite?: boolean;
+    /**
      * @remarks isRestricted
      */
     /**

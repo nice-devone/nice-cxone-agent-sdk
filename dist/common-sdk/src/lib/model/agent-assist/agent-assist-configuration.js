@@ -79,5 +79,8 @@ var AgentAssistConfigACPParamsKeys;
     AgentAssistConfigACPParamsKeys["DISCLOSURE_DESCRIPTION"] = "disclosureDescription";
     AgentAssistConfigACPParamsKeys["ENABLE_INPUT_JSON_FILE"] = "enableInputJsonFile";
     AgentAssistConfigACPParamsKeys["KNOWLEDGE_HUB_CONFIG"] = "knowledgeHubConfig";
+    AgentAssistConfigACPParamsKeys["AUTOSUMMARY_TO_OUTCOME_PANEL"] = "autoSummaryToOutcomePanel";
+    AgentAssistConfigACPParamsKeys["SHOW_AUTOSUMMARY_CARD"] = "showAutoSummaryCard";
+    AgentAssistConfigACPParamsKeys["AUTOSUMMARY_CARD_FEATURES"] = "autoSummaryCardFeatures";
 })(AgentAssistConfigACPParamsKeys = exports.AgentAssistConfigACPParamsKeys || (exports.AgentAssistConfigACPParamsKeys = {}));
 //# sourceMappingURL=agent-assist-configuration.js.map

@@ -67,4 +67,8 @@ export interface AgentSettings {
     * @remarks - IRIS Noise Cancellation Key
     */
     irisNoiseCancellationKey: string;
+    /**
+     * @remarks - Selected Version of CXA Client
+     *  */
+    selectedCxaVersion?: string;
 }

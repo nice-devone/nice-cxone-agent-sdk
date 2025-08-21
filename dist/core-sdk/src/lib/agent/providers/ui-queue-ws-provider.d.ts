@@ -20,6 +20,7 @@ export declare class UIQueueWsProvider {
     private loader;
     private validationUtils;
     private isUIQDegraded;
+    private internetCheckTimer;
     /**
    * constructor which sets agent session instance
    * @example
@@ -140,6 +141,15 @@ export declare class UIQueueWsProvider {
        */
     private addEventListeners;
     /**
+         * Method to handle close event
+         * @param userInfo - current logged in user information
+         * @example
+         * ```
+         * closeHandler(userInfo)
+         * ```
+         */
+    private closeHandler;
+    /**
          * Method to send heartbeat
          * @param agentId - Agent ID
          * @param tenantId - tenant ID
@@ -150,6 +160,15 @@ export declare class UIQueueWsProvider {
         */
     private startSocketHeartBeat;
     /**
+     *  Method to check the internet connection and handle the disruption
+     * This method will start a timer to check the internet connection every 10 seconds.
+     * @example
+     * ```
+     * this.handleInternetDisruption();
+     * ```
+     */
+    handleInternetDisruption(): void;
+    /**
          * Method to start connection
          * @param userInfo - current logged in user information
          * @example
@@ -159,7 +178,7 @@ export declare class UIQueueWsProvider {
          */
     startConnection(userInfo: UserInfo): Promise<void>;
     /**
-         * Method to invoke snapshot request
+         * Method to send refresh token
          * @example
          * ```
          * sendRefreshToken()
@@ -198,4 +217,13 @@ export declare class UIQueueWsProvider {
      * ```
      */
     terminatePolling(ifRestart?: boolean): void;
+    /**
+     * Method to failover to get-next polling
+     * @param error - error object
+     * @example
+     * ```
+     * failoverToGetNext(error)
+     * ```
+     */
+    private failoverToGetNext;
 }

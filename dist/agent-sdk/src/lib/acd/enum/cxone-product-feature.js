@@ -60,5 +60,13 @@ export var CXoneProductFeature;
      * @remarks - Product feature Id for UI Queue
      */
     CXoneProductFeature[CXoneProductFeature["UI_QUEUE_WS"] = 30254] = "UI_QUEUE_WS";
+    /**
+     * @remarks - Product feature Id for Real-Time Recording Status Update
+     */
+    CXoneProductFeature[CXoneProductFeature["REAL_TIME_RECORDING_STATUS_UPDATE"] = 194] = "REAL_TIME_RECORDING_STATUS_UPDATE";
+    /**
+     * @remarks - Product feature Id for Interaction Hub data policies
+     */
+    CXoneProductFeature[CXoneProductFeature["INTERACTION_HUB_DATA_POLICIES"] = 901] = "INTERACTION_HUB_DATA_POLICIES";
 })(CXoneProductFeature || (CXoneProductFeature = {}));
 //# sourceMappingURL=cxone-product-feature.js.map

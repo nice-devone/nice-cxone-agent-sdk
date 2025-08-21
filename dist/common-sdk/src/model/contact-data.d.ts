@@ -9,6 +9,7 @@ export interface ContactData {
     isSelected: boolean;
     contactMode: string;
     customerName?: string;
+    customerId?: string;
     contactStatus: string;
     skillOrQueueId?: string;
     skillOrQueueName: string;
@@ -42,4 +43,6 @@ export interface ContactData {
     isAudioRecordingRemoved?: boolean;
     isRecordingInProgress?: boolean;
     finalState?: boolean;
+    otherInformationNewFormat?: string;
+    receivedInInboxTime: string;
 }

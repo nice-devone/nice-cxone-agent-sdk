@@ -46,6 +46,7 @@ export declare class ContactManager {
     private tagsData;
     private viewOnlyCases;
     private allContacts;
+    voiceCallRecordServicePollingEvent: Subject<boolean>;
     /**
      * @example
      * ```
@@ -177,6 +178,15 @@ export declare class ContactManager {
      * Update Mute button state for voice contacts
      */
     private updateMuteState;
+    /**
+     * Update the record state for voice contacts
+     * @param isRecording - boolean value to indicate if the call is being recorded
+     * @example
+     * ```
+     * contactManager.updateVoiceCallRecordState(true);
+     * ```
+     */
+    updateVoiceCallRecordState(isRecording: boolean): void;
     /**
      * Method used to get the CXoneContact
      */

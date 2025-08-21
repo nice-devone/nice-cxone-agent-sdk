@@ -128,4 +128,11 @@ export interface JSInteractionsData {
     status: string;
     channelType: string;
 }
+export interface CopilotAutoSummaryCardData {
+    icon: string;
+    title: string;
+    description: string;
+    showEditIcon: boolean;
+    showCopyIcon: boolean;
+}
 export {};

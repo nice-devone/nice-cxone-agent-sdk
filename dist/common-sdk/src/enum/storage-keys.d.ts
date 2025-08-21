@@ -6,4 +6,5 @@ export declare const UIStorageKeys: {
        * This key is used to store SLA Contact Details
        */
     SLA_CONTACT_DETAILS: string;
+    LV_EXPERIENCE_RECORDS: string;
 };

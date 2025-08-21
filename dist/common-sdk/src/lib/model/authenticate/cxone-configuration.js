@@ -222,8 +222,8 @@ class CXoneConfiguration {
      * getUIQueueWSBaseUri('na2', 'staging.niceincontact.com', 'du01');
      * ```
      */
-    getUIQueueWSBaseUri(userHubArea, domain, du = 'du01') {
-        return 'https://websocket-' + userHubArea + '.' + domain + '/ui-queue/' + du + '/manager/node';
+    getUIQueueWSBaseUri(userHubArea, domain) {
+        return 'https://websocket-' + userHubArea + '.' + domain + '/ui-queue/du01/manager/node';
     }
 }
 exports.CXoneConfiguration = CXoneConfiguration;

@@ -51,4 +51,12 @@ export interface AddressBooksEntries {
     * @remarks used for dynamic address book
     */
     isDeleted: boolean;
+    /**
+    * @remarks  Represents whether Standard Address Book is marked as favorite or not on UI
+    */
+    isFavorite?: boolean;
+    /**
+     * @remarks  address book is active or not
+     */
+    isActive?: boolean;
 }
