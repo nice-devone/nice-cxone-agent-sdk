@@ -9,3 +9,9 @@
 - `[Added]`: Added changes to handle local post event
 - `[Added]`: Added changes to restart get-next-events polling, controlled by a feature toggle, if it was terminated unexpectedly.
 - `[Updated]`: Added changes to close the WS connection on 'Custom Degradation' and switch back to get-next polling
+
+
+## 25.3 - 2025-08-21 ##
+
+- `[Updated]`: Updated storage key to be used for Email Revamp sorting feature through client data API
+- `[Added]:` Upgraded the Agent Settings API  to v33 & Added new versioning service API (FT Controlled)
