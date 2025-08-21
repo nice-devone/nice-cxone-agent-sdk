@@ -85,6 +85,10 @@ export interface CXoneWorkflowRequest {
         * */
         name: string;
         /**
+        * @remarks - related entity type
+        * */
+        entityType?: string;
+        /**
          * @remarks - related entity value
         * */
         value: string;

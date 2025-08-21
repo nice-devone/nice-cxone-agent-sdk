@@ -57,5 +57,9 @@ var PermissionKeys;
      * permission key whether Agent soft phone login allow auto accept of contacts
      */
     PermissionKeys["HIDE_CALLER_PHONE_NUMBER"] = "HideCallerPhoneNumber";
+    /**
+     * permission key whether disable integrated softphone settings options are enabled
+     */
+    PermissionKeys["DISABLE_INTEGRATED_SOFTPHONE_SETTINGS"] = "DisableIntegratedSoftphoneSettings";
 })(PermissionKeys = exports.PermissionKeys || (exports.PermissionKeys = {}));
 //# sourceMappingURL=permission-keys.js.map

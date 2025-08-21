@@ -11,4 +11,5 @@ export interface AgentProfileSettings {
     hideLaunch: boolean;
     hideCustomWorkspace: boolean;
     hideReporting: boolean;
+    hideConversations: boolean;
 }

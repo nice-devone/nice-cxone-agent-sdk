@@ -3,5 +3,6 @@
  */
 export declare enum Crm {
     SALESFORCE = "salesforce",
-    SERVICENOW = "servicenow"
+    SERVICENOW = "servicenow",
+    MSD = "msd"
 }

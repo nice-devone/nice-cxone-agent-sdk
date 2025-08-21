@@ -284,6 +284,7 @@ class ACWebRtcService {
        * ```
        */
     loginAudioCodeServer() {
+        var _a, _b;
         this.logger.debug('loginAudioCodeServer', `[Init] AudioCodesUA initializing for the agent id:${this.acdAgentId}`);
         try {
             this.onConnectionStatusChanged.next({
@@ -330,14 +331,29 @@ class ACWebRtcService {
                     },
                     // Set browser constraints.
                     constraints: {
-                        chrome: {
-                            audio: { echoCancellation: true, noiseSuppression: true },
-                        },
-                        firefox: { audio: { echoCancellation: true } },
-                        ios_safari: { audio: { echoCancellation: true } },
+                        chrome: { audio: { echoCancellation: true, noiseSuppression: true } },
+                        firefox: { audio: { echoCancellation: true, noiseSuppression: true } },
+                        ios_safari: { audio: { echoCancellation: true, noiseSuppression: true } },
+                        safari: { audio: { echoCancellation: true, noiseSuppression: true } },
+                        other: { audio: { echoCancellation: true, noiseSuppression: true } },
                     },
                     version: '13-Apr-2022',
                 };
+                //update echo and noise cancelation settings based on values from roles and permissions
+                if (((_a = this.options) === null || _a === void 0 ? void 0 : _a.noiseCancellation) === false) {
+                    phoneConfig.constraints.chrome.audio.noiseSuppression = false;
+                    phoneConfig.constraints.firefox.audio.noiseSuppression = false;
+                    phoneConfig.constraints.safari.audio.noiseSuppression = false;
+                    phoneConfig.constraints.ios_safari.audio.noiseSuppression = false;
+                    phoneConfig.constraints.other.audio.noiseSuppression = false;
+                }
+                if (((_b = this.options) === null || _b === void 0 ? void 0 : _b.echoCancellation) === false) {
+                    phoneConfig.constraints.chrome.audio.echoCancellation = false;
+                    phoneConfig.constraints.firefox.audio.echoCancellation = false;
+                    phoneConfig.constraints.safari.audio.echoCancellation = false;
+                    phoneConfig.constraints.ios_safari.audio.echoCancellation = false;
+                    phoneConfig.constraints.other.audio.echoCancellation = false;
+                }
                 // Phone parameters tuning.
                 this.audioCode = new AudioCodesUA();
                 this.audioCode.setServerConfig(acServers, this.options.webRTCServerDomain, this.options.webRTCIceUrls);

@@ -7,5 +7,7 @@ exports.TASK_ASSIST_STATUS = void 0;
 exports.TASK_ASSIST_STATUS = {
     VALIDATION_ERROR: 'validationError',
     IN_PROGRESS: 'inProgress',
+    LOADING: 'loading',
+    SUCCESS: 'success',
 };
 //# sourceMappingURL=copilot-task-assist.js.map

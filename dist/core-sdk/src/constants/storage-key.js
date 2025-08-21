@@ -96,6 +96,8 @@ export const StorageKeys = {
     DIRECTORY_POLLING_UPDATED_SINCE: 'directoryUpdatedSince',
     FAVORITE_IDS_TOGGLED: 'favIdsToggled',
     WEM_WS_CONNECTION_STATUS: 'wemWsConnectionStatus',
+    //Conversation related keys
+    AGENT_HIVE_CHANNEL_INFO: 'agentHiveChannelInfo',
 };
 export const NotificationSettings = {
     ACCESSIBILITY: 'Accessibility',

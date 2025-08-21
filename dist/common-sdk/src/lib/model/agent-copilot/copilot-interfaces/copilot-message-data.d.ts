@@ -1,5 +1,5 @@
 import { OverallContactFeedbackData } from './copilot-feedback-data';
-import { CopilotElement, CopilotFilterDetails, ContactHistoryData, PrefilledData } from './index';
+import { CopilotElement, CopilotFilterDetails, ContactHistoryData, CopilotTaskAssistCardData } from './index';
 /**
  * model interface for agent assist payload data
  */
@@ -85,7 +85,15 @@ export interface CopilotMessageData {
      */
     currentTaskAssistRequestStatus: string;
     /**
-     * field for storing task assist form prefill data
+     * field for storing task assist form  data
      */
-    taskAssistFormPrefillData: PrefilledData | null;
+    copilotTaskAssistCardData: CopilotTaskAssistCardData;
+    /**
+     * flag for checking if final summary is regenerating
+     */
+    isFinalSummaryRegenerating: boolean;
+    /**
+     * flag for checking if auto summary is expanded
+     */
+    isAutoSummaryExpanded?: boolean;
 }

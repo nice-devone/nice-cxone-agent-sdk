@@ -14,5 +14,9 @@ var AgentCopilotCardType;
      * Represents a Text card type.
      */
     AgentCopilotCardType["TEXT"] = "Text";
+    /**
+     * Represents a finalSummary card type.
+     */
+    AgentCopilotCardType["FINAL_SUMMARY"] = "finalSummary";
 })(AgentCopilotCardType = exports.AgentCopilotCardType || (exports.AgentCopilotCardType = {}));
 //# sourceMappingURL=agent-copilot-card-type.js.map

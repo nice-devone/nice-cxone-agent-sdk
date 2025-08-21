@@ -134,5 +134,6 @@ export interface CopilotAutoSummaryCardData {
     description: string;
     showEditIcon: boolean;
     showCopyIcon: boolean;
+    showExpandIcon: boolean;
 }
 export {};

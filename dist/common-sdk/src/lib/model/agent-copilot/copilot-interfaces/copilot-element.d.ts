@@ -14,7 +14,7 @@ export interface CopilotElement {
     /**
      * card type of element
      */
-    cardType: AgentCopilotCardType.ADAPTIVE_CARD | AgentCopilotCardType.TEXT;
+    cardType: AgentCopilotCardType.ADAPTIVE_CARD | AgentCopilotCardType.TEXT | AgentCopilotCardType.FINAL_SUMMARY;
     /**
      * object id of element
      */

@@ -2,7 +2,7 @@ import { __awaiter } from "tslib";
 import { ACDSessionManager, ApiUriConstants, dbInstance, HttpUtilService, IndexDBStoreNames, LoadWorker, LocalStorageHelper, Logger, StorageKeys, IndexDBKeyNames, } from '@nice-devone/core-sdk';
 import { SkillActivityEvent } from '../model/skill-activity-event';
 import { DirectoryEntities, MediaTypeId, MessageBus, MessageType, } from '@nice-devone/common-sdk';
-import { DirectorySearchFilter } from '../../directory/util/utility';
+import { DirectorySearchFilter, handleDirectoryItemDeletion } from '../../directory/util/utility';
 import { AuthStatus } from '@nice-devone/auth-sdk';
 import { FeatureToggleService } from '../../feature-toggle/feature-toggle-services';
 /**
@@ -270,16 +270,22 @@ export class CXoneSkillActivityProvider {
      * @param SkillList - new skill list response
      */
     updateSkillListInDB(SkillList) {
+        var _a;
         return __awaiter(this, void 0, void 0, function* () {
             const db = yield dbInstance();
             let currentSkillList = (yield (db === null || db === void 0 ? void 0 : db.get(IndexDBStoreNames.DIRECTORY, DirectoryEntities.SKILL_ACTIVITY))) || [];
             let currentFavSkillActivityList = (yield (db === null || db === void 0 ? void 0 : db.get(IndexDBStoreNames.DIRECTORY, IndexDBKeyNames.FAVORITE_SKILLS))) || [];
+            const clientData = LocalStorageHelper.getItem(StorageKeys.CLIENT_DATA, true) || {};
             if (currentSkillList === null || currentSkillList === void 0 ? void 0 : currentSkillList.length) {
+                /* below flow will be executed in case when skill list is already present in indexDB which happens in case user is already logged in
+                or user logged in again without deleting browser history */
                 SkillList.forEach((skill, index) => {
+                    var _a, _b;
                     const matchedSkillIndex = currentSkillList.findIndex((currentSkill) => currentSkill.skillId == skill.skillId);
                     if (matchedSkillIndex >= 0) {
                         if (this.isFavoritesFTEnabled)
-                            if (currentSkillList[matchedSkillIndex].isFavorite) {
+                            if (((_a = currentSkillList[matchedSkillIndex]) === null || _a === void 0 ? void 0 : _a.isFavorite)
+                                && ((_b = clientData === null || clientData === void 0 ? void 0 : clientData.CXAFavSkills) === null || _b === void 0 ? void 0 : _b.includes(currentSkillList[matchedSkillIndex].skillId))) {
                                 SkillList[index].isFavorite =
                                     currentSkillList[matchedSkillIndex].isFavorite;
                                 const favIndex = currentFavSkillActivityList.findIndex((fav) => fav.skillId === SkillList[index].skillId);
@@ -303,15 +309,22 @@ export class CXoneSkillActivityProvider {
                 });
             }
             else {
+                /* below flow will be executed when skill list is not present in indexDB which happens in case user logs in
+                 after deleting browser history */
                 currentSkillList = SkillList;
                 if (this.isFavoritesFTEnabled) {
-                    const clientData = LocalStorageHelper.getItem(StorageKeys.CLIENT_DATA, true) || {};
-                    // updating IDB from client data api response stored in local storage
+                    currentFavSkillActivityList = [];
+                    let currFavListInLS = (clientData === null || clientData === void 0 ? void 0 : clientData.CXAFavSkills) || [];
+                    if ((_a = clientData === null || clientData === void 0 ? void 0 : clientData.CXAFavSkills) === null || _a === void 0 ? void 0 : _a.length) {
+                        ({ currFavListInLS } = yield handleDirectoryItemDeletion({ listFromDB: SkillList, idName: 'skillId', favClientList: clientData.CXAFavSkills, storageKey: 'cxaFavSkills', clientDataKey: 'CXAFavSkills' }));
+                    }
                     currentSkillList.forEach((skillState, index) => {
-                        var _a;
-                        if ((_a = clientData === null || clientData === void 0 ? void 0 : clientData.CXAFavSkills) === null || _a === void 0 ? void 0 : _a.includes(skillState === null || skillState === void 0 ? void 0 : skillState.skillId)) {
+                        if (currFavListInLS === null || currFavListInLS === void 0 ? void 0 : currFavListInLS.includes(skillState === null || skillState === void 0 ? void 0 : skillState.skillId)) {
                             currentSkillList[index].isFavorite = true;
                             currentFavSkillActivityList.push(skillState);
+                        }
+                        else {
+                            currentSkillList[index].isFavorite = false;
                         }
                     });
                 }

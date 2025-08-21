@@ -721,7 +721,7 @@ export class CopilotService {
                             type: 'Action.Submit',
                             title: 'adp_submit',
                             data: {
-                                name: 'onTaskAssistSumbit',
+                                name: 'onTaskAssistSubmit',
                                 intentName: intentName,
                                 intentConfig: matchedIntentConfig,
                             },

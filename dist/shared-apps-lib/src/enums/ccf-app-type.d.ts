@@ -12,5 +12,6 @@ export declare enum CcfAppType {
     CXoneAgentMsTeams = "cxa_msteams",
     CXoneAgentSalesforce = "cxa_sfdc",
     CXoneAgentKustomer = "cxa_kustomer",
-    LvAppSpace = "lv"
+    LvAppSpace = "lv",
+    CXoneAgentChat = "cxac"
 }

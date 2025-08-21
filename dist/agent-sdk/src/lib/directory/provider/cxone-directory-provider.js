@@ -2,7 +2,7 @@ import { __awaiter } from "tslib";
 import { ACDSessionManager, ApiUriConstants, HttpUtilService, Logger, IndexDBStoreNames, dbInstance, IndexDBKeyNames, clearIndexDbStore, LocalStorageHelper, StorageKeys, LoadWorker, } from '@nice-devone/core-sdk';
 import { MessageBus, MessageType, DirectoryEntities, } from '@nice-devone/common-sdk';
 import { CXoneDirectoryAdapter } from '../adapter/cxone-directory-adapter';
-import { DirectorySearchFilter } from '../util/utility';
+import { DirectorySearchFilter, handleDirectoryItemDeletion } from '../util/utility';
 import { AuthStatus } from '@nice-devone/auth-sdk';
 import { FeatureToggleService } from '../../feature-toggle/feature-toggle-services';
 import { UnifiedDirectoryAgentStates } from '../../agent-state/enum/unified-agent-state';
@@ -633,7 +633,7 @@ export class CXoneDirectoryProvider {
                         }
                         else { // if there is no response in skillList then directory push latest values of index db in response data
                             updatedDirectoryResponse.skillList.data = (yield (db === null || db === void 0 ? void 0 : db.get(IndexDBStoreNames.DIRECTORY, DirectoryEntities.SKILL_LIST)));
-                            updatedDirectoryResponse.skillList.favoriteDigitalSkills = (yield (db === null || db === void 0 ? void 0 : db.get(IndexDBStoreNames.DIRECTORY, IndexDBKeyNames.FAVORITE_SKILLS)));
+                            updatedDirectoryResponse.skillList.favoriteDigitalSkills = (yield (db === null || db === void 0 ? void 0 : db.get(IndexDBStoreNames.DIRECTORY, IndexDBKeyNames.FAVORITE_DIGITAL_SKILLS)));
                         }
                         ;
                         this.favoriteSkillList = updatedDirectoryResponse.skillList.favoriteDigitalSkills;
@@ -1086,19 +1086,27 @@ export class CXoneDirectoryProvider {
     * @param SkillList - new skill list response
     */
     updateSkillListInDB(SkillList) {
+        var _a, _b;
         return __awaiter(this, void 0, void 0, function* () {
             const db = yield dbInstance();
             let currentSkillList = (yield (db === null || db === void 0 ? void 0 : db.get(IndexDBStoreNames.DIRECTORY, DirectoryEntities.SKILL_LIST))) || [];
             let currentFavSkillList = (yield (db === null || db === void 0 ? void 0 : db.get(IndexDBStoreNames.DIRECTORY, IndexDBKeyNames.FAVORITE_DIGITAL_SKILLS))) || [];
+            const clientData = LocalStorageHelper.getItem(StorageKeys.CLIENT_DATA, true) || {};
+            let currFavListInLS = (clientData === null || clientData === void 0 ? void 0 : clientData.CXAFavDigitalSkills) || []; // has current favorites digital skill list in local storage
+            let clientDataApiFailed = false; // has current favorites acd skill list in local storage
             if (currentSkillList === null || currentSkillList === void 0 ? void 0 : currentSkillList.length) {
+                /* below flow will be executed in case when skill list is already present in indexDB which happens in case user is already logged in
+                or user logged in again without deleting browser history */
                 SkillList.forEach((skill, index) => {
-                    var _a;
+                    var _a, _b, _c;
                     const matchedSkillIndex = currentSkillList.findIndex((currentSkill) => (currentSkill === null || currentSkill === void 0 ? void 0 : currentSkill.skillId) === (skill === null || skill === void 0 ? void 0 : skill.skillId));
                     if (matchedSkillIndex >= 0) {
                         if (this.isFavoritesFTEnabled) {
-                            if (currentSkillList[matchedSkillIndex].isFavorite) {
+                            // check in currFavListInLS to avoid marking skill favorite in case it is deleted from userhub
+                            if (currentSkillList[matchedSkillIndex].isFavorite
+                                && ((_a = String(currFavListInLS)) === null || _a === void 0 ? void 0 : _a.includes((_b = currentSkillList[matchedSkillIndex]) === null || _b === void 0 ? void 0 : _b.skillId))) {
                                 SkillList[index].isFavorite =
-                                    (_a = currentSkillList[matchedSkillIndex]) === null || _a === void 0 ? void 0 : _a.isFavorite;
+                                    (_c = currentSkillList[matchedSkillIndex]) === null || _c === void 0 ? void 0 : _c.isFavorite;
                                 const favIndex = currentFavSkillList.findIndex((fav) => fav.skillId === SkillList[index].skillId);
                                 if (favIndex >= 0)
                                     currentFavSkillList[favIndex] = SkillList[index];
@@ -1116,15 +1124,32 @@ export class CXoneDirectoryProvider {
                         currentSkillList.push(skill);
                     }
                 });
+                if (((_a = clientData === null || clientData === void 0 ? void 0 : clientData.CXAFavDigitalSkills) === null || _a === void 0 ? void 0 : _a.length) && this.isFavoritesFTEnabled) {
+                    ({ currFavListInLS, clientDataApiFailed } = yield handleDirectoryItemDeletion({
+                        listFromDB: currentSkillList,
+                        idName: 'skillId',
+                        favClientList: clientData.CXAFavDigitalSkills,
+                        storageKey: 'cxaFavDigitalSkills',
+                        clientDataKey: 'CXAFavDigitalSkills',
+                    }));
+                }
             }
             else {
+                /* below flow will be executed when skill list is not present in indexDB which happens in case user logs in
+                after deleting browser history */
                 currentSkillList = SkillList;
                 if (this.isFavoritesFTEnabled) {
-                    const clientData = LocalStorageHelper.getItem(StorageKeys.CLIENT_DATA, true) || {};
-                    // updating IDB from client data api response stored in local storage
+                    if ((_b = clientData === null || clientData === void 0 ? void 0 : clientData.CXAFavDigitalSkills) === null || _b === void 0 ? void 0 : _b.length) {
+                        ({ currFavListInLS, clientDataApiFailed } = yield handleDirectoryItemDeletion({
+                            listFromDB: SkillList,
+                            idName: 'skillId',
+                            favClientList: clientData.CXAFavDigitalSkills,
+                            storageKey: 'cxaFavDigitalSkills',
+                            clientDataKey: 'CXAFavDigitalSkills',
+                        }));
+                    }
                     currentSkillList.forEach((skillState, index) => {
-                        var _a;
-                        if ((_a = clientData === null || clientData === void 0 ? void 0 : clientData.CXAFavSkills) === null || _a === void 0 ? void 0 : _a.includes(skillState === null || skillState === void 0 ? void 0 : skillState.skillId)) {
+                        if (currFavListInLS === null || currFavListInLS === void 0 ? void 0 : currFavListInLS.includes(Number(skillState === null || skillState === void 0 ? void 0 : skillState.skillId))) {
                             currentSkillList[index].isFavorite = true;
                             currentFavSkillList.push(skillState);
                         }
@@ -1139,7 +1164,9 @@ export class CXoneDirectoryProvider {
                 currentFavSkillList = this.sortResponse(currentFavSkillList, DirectoryEntities.SKILL_LIST);
             }
             db === null || db === void 0 ? void 0 : db.put(IndexDBStoreNames.DIRECTORY, currentSkillList, DirectoryEntities.SKILL_LIST);
-            if (this.isFavoritesFTEnabled) {
+            if (this.isFavoritesFTEnabled && !clientDataApiFailed) {
+                const favDigitalSkillIdSet = new Set(currFavListInLS);
+                currentFavSkillList = currentFavSkillList.filter(skill => favDigitalSkillIdSet.has(Number(skill.skillId)));
                 db === null || db === void 0 ? void 0 : db.put(IndexDBStoreNames.DIRECTORY, currentFavSkillList, IndexDBKeyNames.FAVORITE_DIGITAL_SKILLS);
             }
             if (this.mediaType)
@@ -1268,12 +1295,19 @@ export class CXoneDirectoryProvider {
      * @param agentList - new agent list response
      */
     updateAgentListInDB(agentList) {
+        var _a, _b;
         return __awaiter(this, void 0, void 0, function* () {
             const db = yield dbInstance();
             let currentAgentList = (yield (db === null || db === void 0 ? void 0 : db.get(IndexDBStoreNames.DIRECTORY, DirectoryEntities.AGENT_LIST))) || [];
             let currentFavAgentList = (yield (db === null || db === void 0 ? void 0 : db.get(IndexDBStoreNames.DIRECTORY, IndexDBKeyNames.FAVORITE_AGENTS))) || [];
+            const clientData = LocalStorageHelper.getItem(StorageKeys.CLIENT_DATA, true) || {};
+            let currFavListInLS = clientData === null || clientData === void 0 ? void 0 : clientData.CXAFavAgents; // has current favorites team list in local storage
+            let clientDataApiFailed = false; // indicates if client data api call failed
             if (currentAgentList === null || currentAgentList === void 0 ? void 0 : currentAgentList.length) {
+                /* below flow will be executed in case when agent list is already present in indexDB which happens in case user is already logged in
+                or user logged in again without deleting browser history */
                 agentList.forEach((agentState, index) => {
+                    var _a;
                     const matchedAgentStateIndex = currentAgentList.findIndex((currentAgentState) => currentAgentState.agentId == agentState.agentId);
                     if (matchedAgentStateIndex >= 0) {
                         /*
@@ -1281,7 +1315,9 @@ export class CXoneDirectoryProvider {
                       the favorite field marked to true. If it is, we mark the respective field to true in the polled data too(at the matched index),
                       before we finally override and perform the PUT operation.
                       */
-                        if (currentAgentList[matchedAgentStateIndex].isFavorite) {
+                        if (this.isFavoritesFTEnabled ? currentAgentList[matchedAgentStateIndex].isFavorite
+                            && (currFavListInLS === null || currFavListInLS === void 0 ? void 0 : currFavListInLS.includes((_a = currentAgentList[matchedAgentStateIndex]) === null || _a === void 0 ? void 0 : _a.agentId))
+                            : currentAgentList[matchedAgentStateIndex].isFavorite) {
                             agentList[index].isFavorite =
                                 currentAgentList[matchedAgentStateIndex].isFavorite;
                             const favIndex = currentFavAgentList.findIndex((fav) => fav.agentId === agentList[index].agentId);
@@ -1293,20 +1329,43 @@ export class CXoneDirectoryProvider {
                     else
                         currentAgentList.push(agentState);
                 });
+                if (((_a = clientData === null || clientData === void 0 ? void 0 : clientData.CXAFavAgents) === null || _a === void 0 ? void 0 : _a.length) && this.isFavoritesFTEnabled) {
+                    ({ currFavListInLS, clientDataApiFailed } = yield handleDirectoryItemDeletion({
+                        listFromDB: currentAgentList,
+                        idName: 'agentId',
+                        favClientList: clientData.CXAFavAgents,
+                        storageKey: 'cxaFavAgents',
+                        clientDataKey: 'CXAFavAgents',
+                    }));
+                }
             }
             else {
+                /* below flow will be executed when agent list is not present in indexDB which happens in case user logs in
+                after deleting browser history */
                 currentAgentList = agentList;
                 if (this.isFavoritesFTEnabled) {
-                    const clientData = LocalStorageHelper.getItem(StorageKeys.CLIENT_DATA, true) || {};
+                    if ((_b = clientData === null || clientData === void 0 ? void 0 : clientData.CXAFavAgents) === null || _b === void 0 ? void 0 : _b.length) {
+                        ({ currFavListInLS, clientDataApiFailed } = yield handleDirectoryItemDeletion({
+                            listFromDB: agentList,
+                            idName: 'agentId',
+                            favClientList: clientData.CXAFavAgents,
+                            storageKey: 'cxaFavAgents',
+                            clientDataKey: 'CXAFavAgents',
+                        }));
+                    }
                     // updating IDB from client data api response stored in local storage
                     currentAgentList.forEach((agentState, index) => {
-                        var _a;
-                        if ((_a = clientData === null || clientData === void 0 ? void 0 : clientData.CXAFavAgents) === null || _a === void 0 ? void 0 : _a.includes(agentState === null || agentState === void 0 ? void 0 : agentState.agentId)) {
+                        if (currFavListInLS === null || currFavListInLS === void 0 ? void 0 : currFavListInLS.includes(agentState === null || agentState === void 0 ? void 0 : agentState.agentId)) {
                             currentAgentList[index].isFavorite = true;
                             currentFavAgentList.push(agentState);
                         }
                     });
                 }
+            }
+            if (this.isFavoritesFTEnabled && !clientDataApiFailed) {
+                const favAgentIdSet = new Set(currFavListInLS);
+                // in case fav entry is deleted from userhub, we will remove it from currentFavAgentList
+                currentFavAgentList = currentFavAgentList.filter(agent => favAgentIdSet.has(agent.agentId));
             }
             currentAgentList = this.sortAgentList(currentAgentList);
             currentFavAgentList = this.sortAgentList(currentFavAgentList);
@@ -1481,19 +1540,27 @@ export class CXoneDirectoryProvider {
      * @param teamList - new team list response
      */
     updateTeamListInDB(teamList) {
+        var _a, _b;
         return __awaiter(this, void 0, void 0, function* () {
             const db = yield dbInstance();
             let currentTeamList = (yield (db === null || db === void 0 ? void 0 : db.get(IndexDBStoreNames.DIRECTORY, DirectoryEntities.TEAM_LIST))) || [];
             let currentFavTeamList = (yield (db === null || db === void 0 ? void 0 : db.get(IndexDBStoreNames.DIRECTORY, IndexDBKeyNames.FAVORITE_TEAMS))) || [];
+            const clientData = LocalStorageHelper.getItem(StorageKeys.CLIENT_DATA, true) || {};
+            let currFavListInLS = clientData === null || clientData === void 0 ? void 0 : clientData.CXAFavTeams; // has current favorites team list in local storage
+            let clientDataApiFailed = false; // indicates if client data api call failed
             if (currentTeamList === null || currentTeamList === void 0 ? void 0 : currentTeamList.length) {
+                /* below flow will be executed in case when team list is already present in indexDB which happens in case user is already logged in
+                or user logged in again without deleting browser history */
                 teamList.forEach((team, index) => {
-                    var _a;
+                    var _a, _b, _c;
                     const matchedTeamIndex = currentTeamList.findIndex((currentTeam) => (currentTeam === null || currentTeam === void 0 ? void 0 : currentTeam.teamId) === (team === null || team === void 0 ? void 0 : team.teamId));
                     if (matchedTeamIndex >= 0) {
                         if (this.isFavoritesFTEnabled) {
-                            if (currentTeamList[matchedTeamIndex].isFavorite) {
+                            // check in currFavListInLS to avoid marking team favorite in case it is deleted from userhub
+                            if (((_a = currentTeamList[matchedTeamIndex]) === null || _a === void 0 ? void 0 : _a.isFavorite)
+                                && (currFavListInLS === null || currFavListInLS === void 0 ? void 0 : currFavListInLS.includes((_b = currentTeamList[matchedTeamIndex]) === null || _b === void 0 ? void 0 : _b.teamId))) {
                                 teamList[index].isFavorite =
-                                    (_a = currentTeamList[matchedTeamIndex]) === null || _a === void 0 ? void 0 : _a.isFavorite;
+                                    (_c = currentTeamList[matchedTeamIndex]) === null || _c === void 0 ? void 0 : _c.isFavorite;
                                 const favIndex = currentFavTeamList.findIndex((fav) => fav.teamId === teamList[index].teamId);
                                 if (favIndex >= 0)
                                     currentFavTeamList[favIndex] = teamList[index];
@@ -1511,15 +1578,32 @@ export class CXoneDirectoryProvider {
                         currentTeamList.push(team);
                     }
                 });
+                if (((_a = clientData === null || clientData === void 0 ? void 0 : clientData.CXAFavTeams) === null || _a === void 0 ? void 0 : _a.length) && this.isFavoritesFTEnabled) {
+                    ({ currFavListInLS, clientDataApiFailed } = yield handleDirectoryItemDeletion({
+                        listFromDB: currentTeamList,
+                        idName: 'teamId',
+                        favClientList: clientData.CXAFavTeams,
+                        storageKey: 'cxaFavTeams',
+                        clientDataKey: 'CXAFavTeams',
+                    }));
+                }
             }
             else {
+                /* below flow will be executed when team list is not present in indexDB which happens in case user logs in
+                after deleting browser history */
                 currentTeamList = teamList;
                 if (this.isFavoritesFTEnabled) {
-                    const clientData = LocalStorageHelper.getItem(StorageKeys.CLIENT_DATA, true) || {};
-                    // updating IDB from client data api response stored in local storage
+                    if ((_b = clientData === null || clientData === void 0 ? void 0 : clientData.CXAFavTeams) === null || _b === void 0 ? void 0 : _b.length) {
+                        ({ currFavListInLS, clientDataApiFailed } = yield handleDirectoryItemDeletion({
+                            listFromDB: teamList,
+                            idName: 'teamId',
+                            favClientList: clientData.CXAFavTeams,
+                            storageKey: 'cxaFavTeams',
+                            clientDataKey: 'CXAFavTeams',
+                        }));
+                    }
                     currentTeamList.forEach((teamState, index) => {
-                        var _a;
-                        if ((_a = clientData === null || clientData === void 0 ? void 0 : clientData.CXAFavTeams) === null || _a === void 0 ? void 0 : _a.includes(teamState === null || teamState === void 0 ? void 0 : teamState.teamId)) {
+                        if (currFavListInLS === null || currFavListInLS === void 0 ? void 0 : currFavListInLS.includes(teamState === null || teamState === void 0 ? void 0 : teamState.teamId)) {
                             currentTeamList[index].isFavorite = true;
                             currentFavTeamList.push(teamState);
                         }
@@ -1535,7 +1619,10 @@ export class CXoneDirectoryProvider {
             }
             currentTeamList = currentTeamList.filter(team => team.isActive);
             db === null || db === void 0 ? void 0 : db.put(IndexDBStoreNames.DIRECTORY, currentTeamList, DirectoryEntities.TEAM_LIST);
-            if (this.isFavoritesFTEnabled) {
+            if (this.isFavoritesFTEnabled && !clientDataApiFailed) {
+                const favTeamIdSet = new Set(currFavListInLS);
+                // in case fav entry is deleted from userhub, we will remove it from currentFavTeamList
+                currentFavTeamList = currentFavTeamList.filter(team => favTeamIdSet.has(team.teamId));
                 db === null || db === void 0 ? void 0 : db.put(IndexDBStoreNames.DIRECTORY, currentFavTeamList, IndexDBKeyNames.FAVORITE_TEAMS);
             }
             if (!this.searchText)
@@ -1670,13 +1757,18 @@ export class CXoneDirectoryProvider {
      * @param addressBookList - new address book list response
      */
     updateAddressBookListInDB(addressBookList) {
-        var _a;
+        var _a, _b, _c;
         return __awaiter(this, void 0, void 0, function* () {
             const db = yield dbInstance();
             this.lastAddressBookEntriesArray = [];
             let currentAddressBookList = (yield (db === null || db === void 0 ? void 0 : db.get(IndexDBStoreNames.DIRECTORY, DirectoryEntities.ADDRESS_BOOK_LIST))) || [];
-            const currentFavAddressBookList = (yield (db === null || db === void 0 ? void 0 : db.get(IndexDBStoreNames.DIRECTORY, IndexDBKeyNames.FAVORITE_STANDARD_ADDRESS_BOOK))) || [];
+            let currentFavAddressBookList = (yield (db === null || db === void 0 ? void 0 : db.get(IndexDBStoreNames.DIRECTORY, IndexDBKeyNames.FAVORITE_STANDARD_ADDRESS_BOOK))) || [];
+            const clientData = LocalStorageHelper.getItem(StorageKeys.CLIENT_DATA, true) || {};
+            let currFavListInLS = clientData === null || clientData === void 0 ? void 0 : clientData.CXAFavStandAddBook; // has current favorites team list in local storage
+            let clientDataApiFailed = false; // indicates if client data api call failed
             if (currentAddressBookList === null || currentAddressBookList === void 0 ? void 0 : currentAddressBookList.length) {
+                /* below flow will be executed in case when address book list is already present in indexDB which happens in case user is already logged in
+                or user logged in again without deleting browser history */
                 addressBookList.forEach((addressBook) => {
                     var _a, _b;
                     const addressBookEntries = (addressBook === null || addressBook === void 0 ? void 0 : addressBook.addressBooksEntries) || [];
@@ -1723,18 +1815,47 @@ export class CXoneDirectoryProvider {
                         currentAddressBookList.push(addressBook);
                     }
                 });
+                if (this.isFavoritesFTEnabled) {
+                    if (((_a = clientData === null || clientData === void 0 ? void 0 : clientData.CXAFavStandAddBook) === null || _a === void 0 ? void 0 : _a.length) && this.isFavoritesFTEnabled) {
+                        const allAddressBookList = [];
+                        currentAddressBookList.forEach((addressBook) => {
+                            allAddressBookList.push(...((addressBook === null || addressBook === void 0 ? void 0 : addressBook.addressBooksEntries) || []));
+                        });
+                        ({ currFavListInLS, clientDataApiFailed } = yield handleDirectoryItemDeletion({
+                            listFromDB: allAddressBookList,
+                            idName: 'addressBookEntryId',
+                            favClientList: clientData.CXAFavStandAddBook,
+                            storageKey: 'cxaFavStandAddBook',
+                            clientDataKey: 'CXAFavStandAddBook',
+                            checkForActive: false,
+                        }));
+                    }
+                }
             }
             else {
-                // First-time load: sync favorites from client data/local storage
+                /* below flow will be executed when address book list is not present in indexDB which happens in case user logs in
+                 after deleting browser history */
                 currentAddressBookList = addressBookList;
                 if (this.isFavoritesFTEnabled) {
-                    const clientData = LocalStorageHelper.getItem(StorageKeys.CLIENT_DATA, true) || {};
-                    // updating IDB from client data api response stored in local storage
-                    const favEntryIds = (clientData === null || clientData === void 0 ? void 0 : clientData.CXAFavStandAddBook) || [];
+                    // First-time load: sync favorites from client data/local storage
+                    if ((_b = clientData === null || clientData === void 0 ? void 0 : clientData.CXAFavStandAddBook) === null || _b === void 0 ? void 0 : _b.length) {
+                        const allAddressBookList = [];
+                        addressBookList.forEach((addressBook) => {
+                            allAddressBookList.push(...((addressBook === null || addressBook === void 0 ? void 0 : addressBook.addressBooksEntries) || []));
+                        });
+                        ({ currFavListInLS, clientDataApiFailed } = yield handleDirectoryItemDeletion({
+                            listFromDB: allAddressBookList,
+                            idName: 'addressBookEntryId',
+                            favClientList: clientData.CXAFavStandAddBook,
+                            storageKey: 'cxaFavStandAddBook',
+                            clientDataKey: 'CXAFavStandAddBook',
+                            checkForActive: false,
+                        }));
+                    }
                     currentAddressBookList.forEach((addressBook) => {
                         var _a;
                         (_a = addressBook.addressBooksEntries) === null || _a === void 0 ? void 0 : _a.forEach((entry) => {
-                            entry.isFavorite = favEntryIds.includes(entry.addressBookEntryId);
+                            entry.isFavorite = currFavListInLS === null || currFavListInLS === void 0 ? void 0 : currFavListInLS.includes(entry.addressBookEntryId);
                             if (entry.isFavorite) {
                                 currentFavAddressBookList.push(entry);
                             }
@@ -1761,9 +1882,14 @@ export class CXoneDirectoryProvider {
                     return -1;
                 }
             });
+            if (this.isFavoritesFTEnabled && !clientDataApiFailed) {
+                const favAddressBookIdSet = new Set(currFavListInLS);
+                // in case fav entry is deleted from userhub, we will remove it from currentFavAddressBookList
+                currentFavAddressBookList = currentFavAddressBookList.filter(addressBook => favAddressBookIdSet.has(addressBook.addressBookEntryId));
+            }
             this.lastAddressBookEntriesArray = sortedEntries;
             if (!this.searchText)
-                this.entityCounts.addressBookList = ((_a = this.lastAddressBookEntriesArray) === null || _a === void 0 ? void 0 : _a.length) || 0; // to keep track of addressBook list records count
+                this.entityCounts.addressBookList = ((_c = this.lastAddressBookEntriesArray) === null || _c === void 0 ? void 0 : _c.length) || 0; // to keep track of addressBook list records count
             db === null || db === void 0 ? void 0 : db.put(IndexDBStoreNames.DIRECTORY, currentAddressBookList, DirectoryEntities.ADDRESS_BOOK_LIST);
             if (this.isFavoritesFTEnabled) {
                 db === null || db === void 0 ? void 0 : db.put(IndexDBStoreNames.DIRECTORY, currentFavAddressBookList, IndexDBKeyNames.FAVORITE_STANDARD_ADDRESS_BOOK);

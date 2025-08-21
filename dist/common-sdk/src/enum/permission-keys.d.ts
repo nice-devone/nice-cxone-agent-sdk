@@ -52,5 +52,9 @@ export declare enum PermissionKeys {
     /**
      * permission key whether Agent soft phone login allow auto accept of contacts
      */
-    HIDE_CALLER_PHONE_NUMBER = "HideCallerPhoneNumber"
+    HIDE_CALLER_PHONE_NUMBER = "HideCallerPhoneNumber",
+    /**
+     * permission key whether disable integrated softphone settings options are enabled
+     */
+    DISABLE_INTEGRATED_SOFTPHONE_SETTINGS = "DisableIntegratedSoftphoneSettings"
 }

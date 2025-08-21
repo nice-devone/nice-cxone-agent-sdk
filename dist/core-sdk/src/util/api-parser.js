@@ -16,10 +16,11 @@ export class ApiParser {
        * ```
        */
     parsePermissions(response) {
-        var _a, _b, _c;
+        var _a, _b, _c, _d;
         const data = (_a = response === null || response === void 0 ? void 0 : response.data) === null || _a === void 0 ? void 0 : _a.permissions;
         const ACS_PERMISSION = (_b = PermissionKeys.ACS) === null || _b === void 0 ? void 0 : _b.toLowerCase();
         const HIDE_CALLER_NUMBER_PERMISSION = (_c = PermissionKeys.HIDE_CALLER_PHONE_NUMBER) === null || _c === void 0 ? void 0 : _c.toLowerCase();
+        const DISABLE_INTEGRATED_SOFTPHONE_SETTINGS = (_d = PermissionKeys.DISABLE_INTEGRATED_SOFTPHONE_SETTINGS) === null || _d === void 0 ? void 0 : _d.toLowerCase();
         const keys = [
             'agentsfsoftphone',
             'recordcontact',
@@ -41,7 +42,8 @@ export class ApiParser {
             'desearchcustomers',
             'desearchposts',
             ACS_PERMISSION,
-            HIDE_CALLER_NUMBER_PERMISSION
+            HIDE_CALLER_NUMBER_PERMISSION,
+            DISABLE_INTEGRATED_SOFTPHONE_SETTINGS
         ];
         const permission = [];
         for (let i = 0; i < keys.length; i++) {
@@ -131,6 +133,7 @@ export class ApiParser {
             hideLaunch: true,
             hideCustomWorkspace: true,
             hideReporting: true,
+            hideConversations: true,
         };
         const mapping = {
             [AgentProfileConfigurationSettings.CONTACT_HISTORY]: (value) => (configuration.hideContactHistory = !JSON.parse(value)),
@@ -141,6 +144,7 @@ export class ApiParser {
             [AgentProfileConfigurationSettings.LAUNCH]: (value) => (configuration.hideLaunch = !JSON.parse(value)),
             [AgentProfileConfigurationSettings.CUSTOM_WORKSPACE]: (value) => (configuration.hideCustomWorkspace = !JSON.parse(value)),
             [AgentProfileConfigurationSettings.REPORTING]: (value) => (configuration.hideReporting = !JSON.parse(value)),
+            [AgentProfileConfigurationSettings.CONVERSATIONS]: (value) => (configuration.hideConversations = !JSON.parse(value)),
             [AgentProfileConfigurationSettings.DEFAULT_SCREEN_SIZE]: (value) => (configuration.agentScreenSize = value),
         };
         (_a = agentProfileResponse === null || agentProfileResponse === void 0 ? void 0 : agentProfileResponse.agentProfileConfigurations) === null || _a === void 0 ? void 0 : _a.forEach((config) => {

@@ -9,5 +9,9 @@ export declare enum AgentCopilotCardType {
     /**
      * Represents a Text card type.
      */
-    TEXT = "Text"
+    TEXT = "Text",
+    /**
+     * Represents a finalSummary card type.
+     */
+    FINAL_SUMMARY = "finalSummary"
 }

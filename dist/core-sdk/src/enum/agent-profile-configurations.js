@@ -11,6 +11,7 @@ export var AgentProfileConfigurationSettings;
     AgentProfileConfigurationSettings["LAUNCH"] = "Launch";
     AgentProfileConfigurationSettings["CUSTOM_WORKSPACE"] = "Custom Workspace";
     AgentProfileConfigurationSettings["REPORTING"] = "Reporting";
+    AgentProfileConfigurationSettings["CONVERSATIONS"] = "Conversations";
     AgentProfileConfigurationSettings["DEFAULT_SCREEN_SIZE"] = "Default screen size";
 })(AgentProfileConfigurationSettings || (AgentProfileConfigurationSettings = {}));
 //# sourceMappingURL=agent-profile-configurations.js.map
