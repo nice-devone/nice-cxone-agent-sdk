@@ -1,0 +1,37 @@
+export var GetNextEventType;
+(function (GetNextEventType) {
+    GetNextEventType["CALL_CONTACT_EVENT"] = "CallContactEvent";
+    GetNextEventType["MUTE_EVENT"] = "Mute";
+    GetNextEventType["UPDATE_PERMISSIONS_EVENT"] = "UpdatePermissions";
+    GetNextEventType["AGENT_SESSION_START_EVENT"] = "AgentSessionStart";
+    GetNextEventType["AGENT_SESSION_END_EVENT"] = "AgentSessionEnd";
+    GetNextEventType["REMOTE_AGENT_SESSION_END_EVENT"] = "RemoteAgentSessionEnd";
+    GetNextEventType["AGENT_STATE_EVENT"] = "AgentState";
+    GetNextEventType["UPDATE_UNAVAILABLE_CODE_EVENT"] = "UpdateUnavailableCodes";
+    GetNextEventType["AGENT_LEG_EVENT"] = "AgentLeg";
+    GetNextEventType["UPDATE_INDICATORS"] = "UpdateIndicators";
+    GetNextEventType["INDICATOR"] = "Indicator";
+    GetNextEventType["DIGITAL_CONTACT_EVENT"] = "DigitalContactEvent";
+    GetNextEventType["RUNAPP"] = "RunApp";
+    GetNextEventType["PAGEOPEN"] = "PageOpen";
+    GetNextEventType["UPDATE_AGENT_MESSAGE"] = "UpdateMessages";
+    GetNextEventType["MCH_AGENT_SETTINGS_CHANGE_EVENT"] = "MchAgentSettingsChangeEvent";
+    GetNextEventType["UPDATE_AGENT_SKILLS"] = "UpdateSkills";
+    GetNextEventType["POPURL"] = "PopURL";
+    GetNextEventType["CUSTOM_EVENT"] = "CustomEvent";
+    GetNextEventType["VOICEMAIL_CONTACT_EVENT"] = "VoiceMailContactEvent";
+    GetNextEventType["AGENT_ASSIST"] = "AgentAssist";
+    GetNextEventType["UPDATE_CALLBACKS"] = "UpdateCallbacks";
+    GetNextEventType["PROMISE_KEEPER"] = "PromiseKeeper";
+    GetNextEventType["PROMISE_KEEPER_STATUS"] = "PromiseKeeperStatus";
+    GetNextEventType["VOICEMAIL_PLAY_BACK"] = "VoiceMailPlayBackEvent";
+    GetNextEventType["NETWORK_OFFLINE_EVENT"] = "NetworkOfflineEvent";
+    GetNextEventType["AGENT_WORKFLOW_CONFIGURATION"] = "AgentWorkflowConfiguration";
+    GetNextEventType["WORKITEM_CONTACT_EVENT"] = "WorkItemContactEvent";
+    GetNextEventType["UPDATE_DIALER_CAMPAIGN"] = "UpdateDialerCampaigns";
+    GetNextEventType["NATURAL_CALLING_SKILL_LIST"] = "NaturalCallingSkillList";
+    GetNextEventType["CONFERENCE"] = "Conference";
+    GetNextEventType["HOURS_OF_OPERATION"] = "HoursOfOperation";
+    GetNextEventType["AGENT_WORKFLOW_CREATE_PAYLOAD"] = "AgentWorkflowCreatePayload";
+})(GetNextEventType || (GetNextEventType = {}));
+//# sourceMappingURL=get-next-event-type.js.map
