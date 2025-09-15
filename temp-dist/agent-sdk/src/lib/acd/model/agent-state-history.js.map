@@ -1,1 +1,0 @@
-{"version":3,"file":"agent-state-history.js","sourceRoot":"","sources":["../../../../../../../../libs/common/agent-sdk/src/lib/acd/model/agent-state-history.ts"],"names":[],"mappings":"AAgGA;;GAEG;AACH,MAAM,OAAO,yBAAyB;IAAtC;QACS,sBAAiB,IAAE,KAAwB,EAAC;IAYrD,CAAC;IAXC;;;;;;;OAOG;IACI,KAAK,CAAC,IAA8B;QACzC,IAAI,CAAC,iBAAiB,GAAG,IAAI,CAAC,iBAAiB,CAAC;IAClD,CAAC;IAAA,CAAC;CACH"}
