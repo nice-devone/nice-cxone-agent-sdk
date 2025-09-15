@@ -1,0 +1,17 @@
+{
+  "name": "@nice-devone/i18n",
+  "version": "25.3.1",
+  "sideEffects": false,
+  "description": "NICE CXone i18n SDK",
+  "author": "NICE Ltd.",
+  "license": "UNLICENSED",
+  "homepage": "https://github.com/nice-devone/nice-cxone-agent-sdk/tree/main/dist/i18n",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/nice-devone/nice-cxone-agent-sdk"
+  },
+  "module": "./index.js",
+  "main": "./index.js",
+  "type": "module",
+  "types": "./src\\index.d.ts"
+}

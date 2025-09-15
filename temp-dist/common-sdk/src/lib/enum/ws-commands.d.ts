@@ -1,0 +1,15 @@
+/**
+ * Enum for WebSocket Command
+ */
+export declare enum WSCommand {
+    CONNECT = "CONNECT",
+    CONNECTED = "CONNECTED",
+    HEARTBEAT = "HEARTBEAT",
+    SUBSCRIBE = "SUBSCRIBE",
+    SUBSCRIBED = "SUBSCRIBED",
+    UNSUBSCRIBE = "UNSUBSCRIBE",
+    UNSUBSCRIBED = "UNSUBSCRIBED",
+    MESSAGE = "MESSAGE",
+    ERROR = "ERROR",
+    RECONNECTED = "RECONNECTED"
+}
