@@ -182,14 +182,26 @@ const AcdSdk = () => {
           setVoiceContact(cxoneContact);
         }
       );
+
+      connectCopilot();
+
     } else {
       console.log("Agent Id not found", agentId);
     }
     
   };
 
-
-
+  //Method to connect copilot notification websocket
+ const connectCopilot = () => {
+      const {aahNotificationWssUri} = LocalStorageHelper.getItem("cxone_config", true);
+      const userInfo = LocalStorageHelper.getItem("user_info", true) as UserInfo;
+      CXoneClient.instance.copilotNotificationClient.connect(aahNotificationWssUri, userInfo.icAgentId);
+      CXoneClient.instance.copilotNotificationClient.onMessageNotification.subscribe(
+        (msg: any) => {
+          console.log("Received message:", msg);
+        }
+      );
+    }
 
   const getWebRtcServiceUrls = async () => {
     const agentSettings =
