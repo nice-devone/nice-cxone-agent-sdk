@@ -3064,7 +3064,9 @@ const IntegrationComponentLoader = /*#__PURE__*/memo(props => {
   const IntegrationComponent = useMemo(() => /*#__PURE__*/React.lazy(loadIntegrationModule(props.appType, remoteEntryUrl)), [props.appType]);
   //If remote entry file is not loaded, then skip loading embedded module
   if (!ready || failed) {
-    return jsx(Fragment, {});
+    return jsx(Fragment, {
+      children: "not loaded"
+    });
   }
   return jsx(Suspense, Object.assign({
     fallback: null
