@@ -1,5 +1,5 @@
 import { CcfLogger } from '@nice-devone/agent-sdk';
-import { HttpResponse, CXoneDigitalChannel, UserSlots, CXoneAttachment, FavQuickReply, ReactionType, CustomField, ContactHistory, ExternalPlatformTemplatesSchema, CXoneDigitalContactSearchRequest, CXoneDigitalContactSearchObject, CXoneRoutingQueue, CXoneDigitalMessageTagArray, CXoneDigitalQuickReply, CXoneDigitalCustomerSearchRequest, CXoneDigitalCustomerSearchDetails, CXoneDigitalMessageSearchRequest, CXoneDigitalMessageSearchDetails, CXoneDigitalThreadSearchRequest, CXoneDigitalThreadSearchDetails, CXoneDigitalTranslationLanguages, CXoneDigitalTranslationApiRequest, CXoneDigitalTranslationApiResponse, TypingIndicatorActions } from '@nice-devone/common-sdk';
+import { HttpResponse, CXoneDigitalChannel, UserSlots, CXoneAttachment, FavQuickReply, ReactionType, CustomField, ContactHistory, ExternalPlatformTemplatesSchema, CXoneDigitalContactSearchRequest, CXoneDigitalContactSearchObject, CXoneRoutingQueue, CXoneDigitalMessageTagArray, CXoneDigitalQuickReply, CXoneDigitalCustomerSearchRequest, CXoneDigitalCustomerSearchDetails, CXoneDigitalMessageSearchRequest, CXoneDigitalMessageSearchDetails, CXoneDigitalThreadSearchRequest, CXoneDigitalThreadSearchDetails, CXoneDigitalTranslationLanguages, CXoneDigitalTranslationApiRequest, CXoneDigitalTranslationApiResponse, TypingIndicatorActions, DigitalEventHubResponse } from '@nice-devone/common-sdk';
 import { HttpUtilService } from '@nice-devone/core-sdk';
 /**
  * Service to handle generic digital API calls
@@ -21,6 +21,7 @@ export declare class DigitalService {
     private DELETE_MESSAGE_CONTENT;
     private ERASE_MESSAGE_AUTHOR_NAME;
     private TYPING_INDICATOR_FOR_PATRON;
+    private GET_DIGITAL_WEBSOCKET_URL;
     cachedLanguageTranslations: CXoneDigitalTranslationLanguages | undefined;
     /**
      * @example
@@ -334,4 +335,10 @@ export declare class DigitalService {
    * ```
    */
     setTypingIndicatorForPatron(channelId: string, threadIdOnExternalPlatform: string, typingActionType: TypingIndicatorActions): Promise<HttpResponse>;
+    /**
+     * Method to get the digital websocket URL (as per new DFO Cell Based Architecture)
+     * @returns - Base URI of the DFO WebSocket Connection
+     * @example - getDigitalWebSocketBaseUri()
+     */
+    getDigitalWebSocketBaseUri(): Promise<DigitalEventHubResponse>;
 }

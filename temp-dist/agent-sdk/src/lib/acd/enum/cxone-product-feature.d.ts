@@ -66,5 +66,9 @@ export declare enum CXoneProductFeature {
     /**
      * @remarks - Product feature Id for Interaction Hub data policies
      */
-    INTERACTION_HUB_DATA_POLICIES = 901
+    INTERACTION_HUB_DATA_POLICIES = 901,
+    /**
+     * @remarks - Product feature Id for Continuous Transcription
+     */
+    CONTINUOUS_TRANSCRIPTION = 178
 }

@@ -30,7 +30,7 @@ export class TeamService {
         const token = this.auth.getAuthToken();
         const reqInit = this.utilService.initHeader(token.accessToken, 'application/json');
         const cxOneConfig = this.auth.getCXoneConfig();
-        const url = cxOneConfig.acdApiBaseUri + ApiUriConstants.GET_AGENT_WITH_TEAM_ID.replace('{teamId}', fetchAgentByTeamIdReq.teamId);
+        const url = cxOneConfig.apiFacadeBaseUri + ApiUriConstants.GET_AGENT_WITH_TEAM_ID.replace('{teamId}', fetchAgentByTeamIdReq.teamId);
         return new Promise((resolve, reject) => {
             if (this.validationUtils.isNotNullOrEmpty(fetchAgentByTeamIdReq.teamId)) {
                 HttpClient.get(url, reqInit).then((response) => {
@@ -91,7 +91,7 @@ export class TeamService {
         teamId = teamId ? teamId : (_a = CXoneUser.instance.getUserInfo().teamId) === null || _a === void 0 ? void 0 : _a.toString();
         return new Promise((resolve, reject) => {
             if (teamId) {
-                const url = cxOneConfig.acdApiBaseUri + ApiUriConstants.GET_TEAM_WITH_TEAM_ID.replace('{teamId}', teamId);
+                const url = cxOneConfig.apiFacadeBaseUri + ApiUriConstants.GET_TEAM_WITH_TEAM_ID.replace('{teamId}', teamId);
                 HttpClient.get(url, reqInit).then((response) => {
                     const team = new Team();
                     team.parse(response.data.teams[0]);

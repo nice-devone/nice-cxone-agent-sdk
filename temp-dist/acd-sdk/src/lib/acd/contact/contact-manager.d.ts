@@ -44,9 +44,11 @@ export declare class ContactManager {
     onLocalPostEvent: Subject<LocalPostEvent>;
     private dispositionsData;
     private tagsData;
-    private viewOnlyCases;
     private allContacts;
     voiceCallRecordServicePollingEvent: Subject<boolean>;
+    onVoiceTranscriptContactEndEvent: Subject<{
+        contactId: string;
+    }>;
     /**
      * @example
      * ```
@@ -110,6 +112,16 @@ export declare class ContactManager {
      * Method to subscribe the call contact event from the agentSession.
      */
     private callContactEventHandler;
+    /**
+     * Removes voice transcription data from IndexedDB for a specific contact.
+     * @param contactId - contactId for which voice transcription to be removed
+     */
+    private removeVoiceTranscriptionFromIndexedDB;
+    /** Method to remove bio hub data from local storage when call gets disconnected
+     * @param contactKeys - contact keys available in voice contact map
+     * @example removeBioHubFromLocalStorage(contactKeys)
+     **/
+    private removeBioHubFromLocalStorage;
     /**
      * Method to subscribe the workitem contact event from the agentSession.
      */

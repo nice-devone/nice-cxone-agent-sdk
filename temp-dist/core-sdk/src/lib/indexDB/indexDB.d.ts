@@ -1,5 +1,5 @@
 import { DBSchema, IDBPDatabase } from 'idb';
-import { AddressBooks, AgentMessageNotification, AgentStateResponse, CXoneAudioVisualNotificationSettings, CXoneDigitalChannel, DirectoryEntities, DirectoryResponse, FavQuickReply, NotificationEntities, SkillEvent, Team, CXoneRoutingQueue, WemNotificationDisplayData, Skills, CopilotMessageData, InteractionFailedMessages, AgentAssistWSRequest, agentCompletedContactsResponse, AddressBooksEntries, DirectoryAdditionalAtrributes, ConversationsGroupDetails } from '@nice-devone/common-sdk';
+import { AddressBooks, AgentMessageNotification, AgentStateResponse, CXoneAudioVisualNotificationSettings, CXoneDigitalChannel, DirectoryEntities, DirectoryResponse, FavQuickReply, NotificationEntities, SkillEvent, Team, CXoneRoutingQueue, WemNotificationDisplayData, Skills, CopilotMessageData, InteractionFailedMessages, AgentAssistWSRequest, agentCompletedContactsResponse, AddressBooksEntries, DirectoryAdditionalAtrributes, ConversationsGroupDetails, VoiceTranscriptionWebSocketResponse } from '@nice-devone/common-sdk';
 import { IndexDBStoreNames } from './enum/indexDB-store-names';
 import { IndexDBKeyNames } from './enum/indexDB-key-names';
 import { SkillActivityEvent } from './models/skill-activity-event';
@@ -48,6 +48,10 @@ export interface storeSchema extends DBSchema {
     Conversations: {
         key: IndexDBKeyNames.CONVERSATIONS_GROUPS;
         value: Array<ConversationsGroupDetails>;
+    };
+    VoiceTranscription: {
+        key: string;
+        value: Array<VoiceTranscriptionWebSocketResponse>;
     };
 }
 /**

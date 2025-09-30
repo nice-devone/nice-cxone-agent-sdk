@@ -13,6 +13,8 @@ export declare class GetNextEventProvider {
     private agentSession;
     private getNextEventHandler;
     private isRestartGetNextEventEnabled;
+    private isCustomGetNextEventPollingTimeoutEnabled;
+    private getNextEventTimeout;
     /**
      * constructor which sets agent session instance
      */

@@ -72,11 +72,16 @@ export declare const CXoneMessageDraftsSchema: import("yup/lib/object").Optional
      */
     isRefused: import("yup").BooleanSchema<boolean, import("yup/lib/types").AnyObject, boolean>;
     messageNotes: import("yup").ArraySchema<import("yup").ObjectSchema<import("yup/lib/object").Assign<import("yup/lib/object").ObjectShape, {
-        id: import("yup/lib/string").RequiredStringSchema<string, import("yup/lib/types").AnyObject>;
+        id: import("yup/lib/string").RequiredStringSchema<string, import("yup/lib/types").AnyObject>; /**
+         * @remarks - This variable is to hold the ID for the reply to message
+         */
         user: any;
         createdAt: import("yup/lib/string").RequiredStringSchema<string, import("yup/lib/types").AnyObject>;
         updatedAt: import("yup/lib/string").RequiredStringSchema<string, import("yup/lib/types").AnyObject>;
         content: import("yup/lib/string").RequiredStringSchema<string, import("yup/lib/types").AnyObject>;
+        /**
+         * @remarks - This displays the firstName of the agent, who sent this message
+         */
         currentAssignee: import("yup").StringSchema<string, import("yup/lib/types").AnyObject, string>;
         status: import("yup").ObjectSchema<import("yup/lib/object").Assign<import("yup/lib/object").ObjectShape, {
             type: import("yup/lib/string").RequiredStringSchema<string, import("yup/lib/types").AnyObject>;
@@ -93,11 +98,16 @@ export declare const CXoneMessageDraftsSchema: import("yup/lib/object").Optional
             id: import("yup/lib/string").RequiredStringSchema<string, import("yup/lib/types").AnyObject>;
         }>>>;
     }>, import("yup/lib/object").AnyObject, import("yup/lib/object").TypeOfShape<import("yup/lib/object").Assign<import("yup/lib/object").ObjectShape, {
-        id: import("yup/lib/string").RequiredStringSchema<string, import("yup/lib/types").AnyObject>;
+        id: import("yup/lib/string").RequiredStringSchema<string, import("yup/lib/types").AnyObject>; /**
+         * @remarks - This variable is to hold the ID for the reply to message
+         */
         user: any;
         createdAt: import("yup/lib/string").RequiredStringSchema<string, import("yup/lib/types").AnyObject>;
         updatedAt: import("yup/lib/string").RequiredStringSchema<string, import("yup/lib/types").AnyObject>;
         content: import("yup/lib/string").RequiredStringSchema<string, import("yup/lib/types").AnyObject>;
+        /**
+         * @remarks - This displays the firstName of the agent, who sent this message
+         */
         currentAssignee: import("yup").StringSchema<string, import("yup/lib/types").AnyObject, string>;
         status: import("yup").ObjectSchema<import("yup/lib/object").Assign<import("yup/lib/object").ObjectShape, {
             type: import("yup/lib/string").RequiredStringSchema<string, import("yup/lib/types").AnyObject>;
@@ -114,11 +124,16 @@ export declare const CXoneMessageDraftsSchema: import("yup/lib/object").Optional
             id: import("yup/lib/string").RequiredStringSchema<string, import("yup/lib/types").AnyObject>;
         }>>>;
     }>>, import("yup/lib/object").AssertsShape<import("yup/lib/object").Assign<import("yup/lib/object").ObjectShape, {
-        id: import("yup/lib/string").RequiredStringSchema<string, import("yup/lib/types").AnyObject>;
+        id: import("yup/lib/string").RequiredStringSchema<string, import("yup/lib/types").AnyObject>; /**
+         * @remarks - This variable is to hold the ID for the reply to message
+         */
         user: any;
         createdAt: import("yup/lib/string").RequiredStringSchema<string, import("yup/lib/types").AnyObject>;
         updatedAt: import("yup/lib/string").RequiredStringSchema<string, import("yup/lib/types").AnyObject>;
         content: import("yup/lib/string").RequiredStringSchema<string, import("yup/lib/types").AnyObject>;
+        /**
+         * @remarks - This displays the firstName of the agent, who sent this message
+         */
         currentAssignee: import("yup").StringSchema<string, import("yup/lib/types").AnyObject, string>;
         status: import("yup").ObjectSchema<import("yup/lib/object").Assign<import("yup/lib/object").ObjectShape, {
             type: import("yup/lib/string").RequiredStringSchema<string, import("yup/lib/types").AnyObject>;
@@ -135,11 +150,16 @@ export declare const CXoneMessageDraftsSchema: import("yup/lib/object").Optional
             id: import("yup/lib/string").RequiredStringSchema<string, import("yup/lib/types").AnyObject>;
         }>>>;
     }>>>, import("yup/lib/types").AnyObject, import("yup/lib/object").TypeOfShape<import("yup/lib/object").Assign<import("yup/lib/object").ObjectShape, {
-        id: import("yup/lib/string").RequiredStringSchema<string, import("yup/lib/types").AnyObject>;
+        id: import("yup/lib/string").RequiredStringSchema<string, import("yup/lib/types").AnyObject>; /**
+         * @remarks - This variable is to hold the ID for the reply to message
+         */
         user: any;
         createdAt: import("yup/lib/string").RequiredStringSchema<string, import("yup/lib/types").AnyObject>;
         updatedAt: import("yup/lib/string").RequiredStringSchema<string, import("yup/lib/types").AnyObject>;
         content: import("yup/lib/string").RequiredStringSchema<string, import("yup/lib/types").AnyObject>;
+        /**
+         * @remarks - This displays the firstName of the agent, who sent this message
+         */
         currentAssignee: import("yup").StringSchema<string, import("yup/lib/types").AnyObject, string>;
         status: import("yup").ObjectSchema<import("yup/lib/object").Assign<import("yup/lib/object").ObjectShape, {
             type: import("yup/lib/string").RequiredStringSchema<string, import("yup/lib/types").AnyObject>;
@@ -156,11 +176,16 @@ export declare const CXoneMessageDraftsSchema: import("yup/lib/object").Optional
             id: import("yup/lib/string").RequiredStringSchema<string, import("yup/lib/types").AnyObject>;
         }>>>;
     }>>[], import("yup/lib/object").AssertsShape<import("yup/lib/object").Assign<import("yup/lib/object").ObjectShape, {
-        id: import("yup/lib/string").RequiredStringSchema<string, import("yup/lib/types").AnyObject>;
+        id: import("yup/lib/string").RequiredStringSchema<string, import("yup/lib/types").AnyObject>; /**
+         * @remarks - This variable is to hold the ID for the reply to message
+         */
         user: any;
         createdAt: import("yup/lib/string").RequiredStringSchema<string, import("yup/lib/types").AnyObject>;
         updatedAt: import("yup/lib/string").RequiredStringSchema<string, import("yup/lib/types").AnyObject>;
         content: import("yup/lib/string").RequiredStringSchema<string, import("yup/lib/types").AnyObject>;
+        /**
+         * @remarks - This displays the firstName of the agent, who sent this message
+         */
         currentAssignee: import("yup").StringSchema<string, import("yup/lib/types").AnyObject, string>;
         status: import("yup").ObjectSchema<import("yup/lib/object").Assign<import("yup/lib/object").ObjectShape, {
             type: import("yup/lib/string").RequiredStringSchema<string, import("yup/lib/types").AnyObject>;
@@ -352,11 +377,16 @@ export declare const CXoneMessageDraftsSchema: import("yup/lib/object").Optional
      */
     isRefused: import("yup").BooleanSchema<boolean, import("yup/lib/types").AnyObject, boolean>;
     messageNotes: import("yup").ArraySchema<import("yup").ObjectSchema<import("yup/lib/object").Assign<import("yup/lib/object").ObjectShape, {
-        id: import("yup/lib/string").RequiredStringSchema<string, import("yup/lib/types").AnyObject>;
+        id: import("yup/lib/string").RequiredStringSchema<string, import("yup/lib/types").AnyObject>; /**
+         * @remarks - This variable is to hold the ID for the reply to message
+         */
         user: any;
         createdAt: import("yup/lib/string").RequiredStringSchema<string, import("yup/lib/types").AnyObject>;
         updatedAt: import("yup/lib/string").RequiredStringSchema<string, import("yup/lib/types").AnyObject>;
         content: import("yup/lib/string").RequiredStringSchema<string, import("yup/lib/types").AnyObject>;
+        /**
+         * @remarks - This displays the firstName of the agent, who sent this message
+         */
         currentAssignee: import("yup").StringSchema<string, import("yup/lib/types").AnyObject, string>;
         status: import("yup").ObjectSchema<import("yup/lib/object").Assign<import("yup/lib/object").ObjectShape, {
             type: import("yup/lib/string").RequiredStringSchema<string, import("yup/lib/types").AnyObject>;
@@ -373,11 +403,16 @@ export declare const CXoneMessageDraftsSchema: import("yup/lib/object").Optional
             id: import("yup/lib/string").RequiredStringSchema<string, import("yup/lib/types").AnyObject>;
         }>>>;
     }>, import("yup/lib/object").AnyObject, import("yup/lib/object").TypeOfShape<import("yup/lib/object").Assign<import("yup/lib/object").ObjectShape, {
-        id: import("yup/lib/string").RequiredStringSchema<string, import("yup/lib/types").AnyObject>;
+        id: import("yup/lib/string").RequiredStringSchema<string, import("yup/lib/types").AnyObject>; /**
+         * @remarks - This variable is to hold the ID for the reply to message
+         */
         user: any;
         createdAt: import("yup/lib/string").RequiredStringSchema<string, import("yup/lib/types").AnyObject>;
         updatedAt: import("yup/lib/string").RequiredStringSchema<string, import("yup/lib/types").AnyObject>;
         content: import("yup/lib/string").RequiredStringSchema<string, import("yup/lib/types").AnyObject>;
+        /**
+         * @remarks - This displays the firstName of the agent, who sent this message
+         */
         currentAssignee: import("yup").StringSchema<string, import("yup/lib/types").AnyObject, string>;
         status: import("yup").ObjectSchema<import("yup/lib/object").Assign<import("yup/lib/object").ObjectShape, {
             type: import("yup/lib/string").RequiredStringSchema<string, import("yup/lib/types").AnyObject>;
@@ -394,11 +429,16 @@ export declare const CXoneMessageDraftsSchema: import("yup/lib/object").Optional
             id: import("yup/lib/string").RequiredStringSchema<string, import("yup/lib/types").AnyObject>;
         }>>>;
     }>>, import("yup/lib/object").AssertsShape<import("yup/lib/object").Assign<import("yup/lib/object").ObjectShape, {
-        id: import("yup/lib/string").RequiredStringSchema<string, import("yup/lib/types").AnyObject>;
+        id: import("yup/lib/string").RequiredStringSchema<string, import("yup/lib/types").AnyObject>; /**
+         * @remarks - This variable is to hold the ID for the reply to message
+         */
         user: any;
         createdAt: import("yup/lib/string").RequiredStringSchema<string, import("yup/lib/types").AnyObject>;
         updatedAt: import("yup/lib/string").RequiredStringSchema<string, import("yup/lib/types").AnyObject>;
         content: import("yup/lib/string").RequiredStringSchema<string, import("yup/lib/types").AnyObject>;
+        /**
+         * @remarks - This displays the firstName of the agent, who sent this message
+         */
         currentAssignee: import("yup").StringSchema<string, import("yup/lib/types").AnyObject, string>;
         status: import("yup").ObjectSchema<import("yup/lib/object").Assign<import("yup/lib/object").ObjectShape, {
             type: import("yup/lib/string").RequiredStringSchema<string, import("yup/lib/types").AnyObject>;
@@ -415,11 +455,16 @@ export declare const CXoneMessageDraftsSchema: import("yup/lib/object").Optional
             id: import("yup/lib/string").RequiredStringSchema<string, import("yup/lib/types").AnyObject>;
         }>>>;
     }>>>, import("yup/lib/types").AnyObject, import("yup/lib/object").TypeOfShape<import("yup/lib/object").Assign<import("yup/lib/object").ObjectShape, {
-        id: import("yup/lib/string").RequiredStringSchema<string, import("yup/lib/types").AnyObject>;
+        id: import("yup/lib/string").RequiredStringSchema<string, import("yup/lib/types").AnyObject>; /**
+         * @remarks - This variable is to hold the ID for the reply to message
+         */
         user: any;
         createdAt: import("yup/lib/string").RequiredStringSchema<string, import("yup/lib/types").AnyObject>;
         updatedAt: import("yup/lib/string").RequiredStringSchema<string, import("yup/lib/types").AnyObject>;
         content: import("yup/lib/string").RequiredStringSchema<string, import("yup/lib/types").AnyObject>;
+        /**
+         * @remarks - This displays the firstName of the agent, who sent this message
+         */
         currentAssignee: import("yup").StringSchema<string, import("yup/lib/types").AnyObject, string>;
         status: import("yup").ObjectSchema<import("yup/lib/object").Assign<import("yup/lib/object").ObjectShape, {
             type: import("yup/lib/string").RequiredStringSchema<string, import("yup/lib/types").AnyObject>;
@@ -436,11 +481,16 @@ export declare const CXoneMessageDraftsSchema: import("yup/lib/object").Optional
             id: import("yup/lib/string").RequiredStringSchema<string, import("yup/lib/types").AnyObject>;
         }>>>;
     }>>[], import("yup/lib/object").AssertsShape<import("yup/lib/object").Assign<import("yup/lib/object").ObjectShape, {
-        id: import("yup/lib/string").RequiredStringSchema<string, import("yup/lib/types").AnyObject>;
+        id: import("yup/lib/string").RequiredStringSchema<string, import("yup/lib/types").AnyObject>; /**
+         * @remarks - This variable is to hold the ID for the reply to message
+         */
         user: any;
         createdAt: import("yup/lib/string").RequiredStringSchema<string, import("yup/lib/types").AnyObject>;
         updatedAt: import("yup/lib/string").RequiredStringSchema<string, import("yup/lib/types").AnyObject>;
         content: import("yup/lib/string").RequiredStringSchema<string, import("yup/lib/types").AnyObject>;
+        /**
+         * @remarks - This displays the firstName of the agent, who sent this message
+         */
         currentAssignee: import("yup").StringSchema<string, import("yup/lib/types").AnyObject, string>;
         status: import("yup").ObjectSchema<import("yup/lib/object").Assign<import("yup/lib/object").ObjectShape, {
             type: import("yup/lib/string").RequiredStringSchema<string, import("yup/lib/types").AnyObject>;
@@ -633,11 +683,16 @@ declare const CXoneMessageDraftsArraySchema: import("yup").ArraySchema<import("y
      */
     isRefused: import("yup").BooleanSchema<boolean, import("yup/lib/types").AnyObject, boolean>;
     messageNotes: import("yup").ArraySchema<import("yup").ObjectSchema<import("yup/lib/object").Assign<import("yup/lib/object").ObjectShape, {
-        id: import("yup/lib/string").RequiredStringSchema<string, import("yup/lib/types").AnyObject>;
+        id: import("yup/lib/string").RequiredStringSchema<string, import("yup/lib/types").AnyObject>; /**
+         * @remarks - This variable is to hold the ID for the reply to message
+         */
         user: any;
         createdAt: import("yup/lib/string").RequiredStringSchema<string, import("yup/lib/types").AnyObject>;
         updatedAt: import("yup/lib/string").RequiredStringSchema<string, import("yup/lib/types").AnyObject>;
         content: import("yup/lib/string").RequiredStringSchema<string, import("yup/lib/types").AnyObject>;
+        /**
+         * @remarks - This displays the firstName of the agent, who sent this message
+         */
         currentAssignee: import("yup").StringSchema<string, import("yup/lib/types").AnyObject, string>;
         status: import("yup").ObjectSchema<import("yup/lib/object").Assign<import("yup/lib/object").ObjectShape, {
             type: import("yup/lib/string").RequiredStringSchema<string, import("yup/lib/types").AnyObject>;
@@ -654,11 +709,16 @@ declare const CXoneMessageDraftsArraySchema: import("yup").ArraySchema<import("y
             id: import("yup/lib/string").RequiredStringSchema<string, import("yup/lib/types").AnyObject>;
         }>>>;
     }>, import("yup/lib/object").AnyObject, import("yup/lib/object").TypeOfShape<import("yup/lib/object").Assign<import("yup/lib/object").ObjectShape, {
-        id: import("yup/lib/string").RequiredStringSchema<string, import("yup/lib/types").AnyObject>;
+        id: import("yup/lib/string").RequiredStringSchema<string, import("yup/lib/types").AnyObject>; /**
+         * @remarks - This variable is to hold the ID for the reply to message
+         */
         user: any;
         createdAt: import("yup/lib/string").RequiredStringSchema<string, import("yup/lib/types").AnyObject>;
         updatedAt: import("yup/lib/string").RequiredStringSchema<string, import("yup/lib/types").AnyObject>;
         content: import("yup/lib/string").RequiredStringSchema<string, import("yup/lib/types").AnyObject>;
+        /**
+         * @remarks - This displays the firstName of the agent, who sent this message
+         */
         currentAssignee: import("yup").StringSchema<string, import("yup/lib/types").AnyObject, string>;
         status: import("yup").ObjectSchema<import("yup/lib/object").Assign<import("yup/lib/object").ObjectShape, {
             type: import("yup/lib/string").RequiredStringSchema<string, import("yup/lib/types").AnyObject>;
@@ -675,11 +735,16 @@ declare const CXoneMessageDraftsArraySchema: import("yup").ArraySchema<import("y
             id: import("yup/lib/string").RequiredStringSchema<string, import("yup/lib/types").AnyObject>;
         }>>>;
     }>>, import("yup/lib/object").AssertsShape<import("yup/lib/object").Assign<import("yup/lib/object").ObjectShape, {
-        id: import("yup/lib/string").RequiredStringSchema<string, import("yup/lib/types").AnyObject>;
+        id: import("yup/lib/string").RequiredStringSchema<string, import("yup/lib/types").AnyObject>; /**
+         * @remarks - This variable is to hold the ID for the reply to message
+         */
         user: any;
         createdAt: import("yup/lib/string").RequiredStringSchema<string, import("yup/lib/types").AnyObject>;
         updatedAt: import("yup/lib/string").RequiredStringSchema<string, import("yup/lib/types").AnyObject>;
         content: import("yup/lib/string").RequiredStringSchema<string, import("yup/lib/types").AnyObject>;
+        /**
+         * @remarks - This displays the firstName of the agent, who sent this message
+         */
         currentAssignee: import("yup").StringSchema<string, import("yup/lib/types").AnyObject, string>;
         status: import("yup").ObjectSchema<import("yup/lib/object").Assign<import("yup/lib/object").ObjectShape, {
             type: import("yup/lib/string").RequiredStringSchema<string, import("yup/lib/types").AnyObject>;
@@ -696,11 +761,16 @@ declare const CXoneMessageDraftsArraySchema: import("yup").ArraySchema<import("y
             id: import("yup/lib/string").RequiredStringSchema<string, import("yup/lib/types").AnyObject>;
         }>>>;
     }>>>, import("yup/lib/types").AnyObject, import("yup/lib/object").TypeOfShape<import("yup/lib/object").Assign<import("yup/lib/object").ObjectShape, {
-        id: import("yup/lib/string").RequiredStringSchema<string, import("yup/lib/types").AnyObject>;
+        id: import("yup/lib/string").RequiredStringSchema<string, import("yup/lib/types").AnyObject>; /**
+         * @remarks - This variable is to hold the ID for the reply to message
+         */
         user: any;
         createdAt: import("yup/lib/string").RequiredStringSchema<string, import("yup/lib/types").AnyObject>;
         updatedAt: import("yup/lib/string").RequiredStringSchema<string, import("yup/lib/types").AnyObject>;
         content: import("yup/lib/string").RequiredStringSchema<string, import("yup/lib/types").AnyObject>;
+        /**
+         * @remarks - This displays the firstName of the agent, who sent this message
+         */
         currentAssignee: import("yup").StringSchema<string, import("yup/lib/types").AnyObject, string>;
         status: import("yup").ObjectSchema<import("yup/lib/object").Assign<import("yup/lib/object").ObjectShape, {
             type: import("yup/lib/string").RequiredStringSchema<string, import("yup/lib/types").AnyObject>;
@@ -717,11 +787,16 @@ declare const CXoneMessageDraftsArraySchema: import("yup").ArraySchema<import("y
             id: import("yup/lib/string").RequiredStringSchema<string, import("yup/lib/types").AnyObject>;
         }>>>;
     }>>[], import("yup/lib/object").AssertsShape<import("yup/lib/object").Assign<import("yup/lib/object").ObjectShape, {
-        id: import("yup/lib/string").RequiredStringSchema<string, import("yup/lib/types").AnyObject>;
+        id: import("yup/lib/string").RequiredStringSchema<string, import("yup/lib/types").AnyObject>; /**
+         * @remarks - This variable is to hold the ID for the reply to message
+         */
         user: any;
         createdAt: import("yup/lib/string").RequiredStringSchema<string, import("yup/lib/types").AnyObject>;
         updatedAt: import("yup/lib/string").RequiredStringSchema<string, import("yup/lib/types").AnyObject>;
         content: import("yup/lib/string").RequiredStringSchema<string, import("yup/lib/types").AnyObject>;
+        /**
+         * @remarks - This displays the firstName of the agent, who sent this message
+         */
         currentAssignee: import("yup").StringSchema<string, import("yup/lib/types").AnyObject, string>;
         status: import("yup").ObjectSchema<import("yup/lib/object").Assign<import("yup/lib/object").ObjectShape, {
             type: import("yup/lib/string").RequiredStringSchema<string, import("yup/lib/types").AnyObject>;
@@ -913,11 +988,16 @@ declare const CXoneMessageDraftsArraySchema: import("yup").ArraySchema<import("y
      */
     isRefused: import("yup").BooleanSchema<boolean, import("yup/lib/types").AnyObject, boolean>;
     messageNotes: import("yup").ArraySchema<import("yup").ObjectSchema<import("yup/lib/object").Assign<import("yup/lib/object").ObjectShape, {
-        id: import("yup/lib/string").RequiredStringSchema<string, import("yup/lib/types").AnyObject>;
+        id: import("yup/lib/string").RequiredStringSchema<string, import("yup/lib/types").AnyObject>; /**
+         * @remarks - This variable is to hold the ID for the reply to message
+         */
         user: any;
         createdAt: import("yup/lib/string").RequiredStringSchema<string, import("yup/lib/types").AnyObject>;
         updatedAt: import("yup/lib/string").RequiredStringSchema<string, import("yup/lib/types").AnyObject>;
         content: import("yup/lib/string").RequiredStringSchema<string, import("yup/lib/types").AnyObject>;
+        /**
+         * @remarks - This displays the firstName of the agent, who sent this message
+         */
         currentAssignee: import("yup").StringSchema<string, import("yup/lib/types").AnyObject, string>;
         status: import("yup").ObjectSchema<import("yup/lib/object").Assign<import("yup/lib/object").ObjectShape, {
             type: import("yup/lib/string").RequiredStringSchema<string, import("yup/lib/types").AnyObject>;
@@ -934,11 +1014,16 @@ declare const CXoneMessageDraftsArraySchema: import("yup").ArraySchema<import("y
             id: import("yup/lib/string").RequiredStringSchema<string, import("yup/lib/types").AnyObject>;
         }>>>;
     }>, import("yup/lib/object").AnyObject, import("yup/lib/object").TypeOfShape<import("yup/lib/object").Assign<import("yup/lib/object").ObjectShape, {
-        id: import("yup/lib/string").RequiredStringSchema<string, import("yup/lib/types").AnyObject>;
+        id: import("yup/lib/string").RequiredStringSchema<string, import("yup/lib/types").AnyObject>; /**
+         * @remarks - This variable is to hold the ID for the reply to message
+         */
         user: any;
         createdAt: import("yup/lib/string").RequiredStringSchema<string, import("yup/lib/types").AnyObject>;
         updatedAt: import("yup/lib/string").RequiredStringSchema<string, import("yup/lib/types").AnyObject>;
         content: import("yup/lib/string").RequiredStringSchema<string, import("yup/lib/types").AnyObject>;
+        /**
+         * @remarks - This displays the firstName of the agent, who sent this message
+         */
         currentAssignee: import("yup").StringSchema<string, import("yup/lib/types").AnyObject, string>;
         status: import("yup").ObjectSchema<import("yup/lib/object").Assign<import("yup/lib/object").ObjectShape, {
             type: import("yup/lib/string").RequiredStringSchema<string, import("yup/lib/types").AnyObject>;
@@ -955,11 +1040,16 @@ declare const CXoneMessageDraftsArraySchema: import("yup").ArraySchema<import("y
             id: import("yup/lib/string").RequiredStringSchema<string, import("yup/lib/types").AnyObject>;
         }>>>;
     }>>, import("yup/lib/object").AssertsShape<import("yup/lib/object").Assign<import("yup/lib/object").ObjectShape, {
-        id: import("yup/lib/string").RequiredStringSchema<string, import("yup/lib/types").AnyObject>;
+        id: import("yup/lib/string").RequiredStringSchema<string, import("yup/lib/types").AnyObject>; /**
+         * @remarks - This variable is to hold the ID for the reply to message
+         */
         user: any;
         createdAt: import("yup/lib/string").RequiredStringSchema<string, import("yup/lib/types").AnyObject>;
         updatedAt: import("yup/lib/string").RequiredStringSchema<string, import("yup/lib/types").AnyObject>;
         content: import("yup/lib/string").RequiredStringSchema<string, import("yup/lib/types").AnyObject>;
+        /**
+         * @remarks - This displays the firstName of the agent, who sent this message
+         */
         currentAssignee: import("yup").StringSchema<string, import("yup/lib/types").AnyObject, string>;
         status: import("yup").ObjectSchema<import("yup/lib/object").Assign<import("yup/lib/object").ObjectShape, {
             type: import("yup/lib/string").RequiredStringSchema<string, import("yup/lib/types").AnyObject>;
@@ -976,11 +1066,16 @@ declare const CXoneMessageDraftsArraySchema: import("yup").ArraySchema<import("y
             id: import("yup/lib/string").RequiredStringSchema<string, import("yup/lib/types").AnyObject>;
         }>>>;
     }>>>, import("yup/lib/types").AnyObject, import("yup/lib/object").TypeOfShape<import("yup/lib/object").Assign<import("yup/lib/object").ObjectShape, {
-        id: import("yup/lib/string").RequiredStringSchema<string, import("yup/lib/types").AnyObject>;
+        id: import("yup/lib/string").RequiredStringSchema<string, import("yup/lib/types").AnyObject>; /**
+         * @remarks - This variable is to hold the ID for the reply to message
+         */
         user: any;
         createdAt: import("yup/lib/string").RequiredStringSchema<string, import("yup/lib/types").AnyObject>;
         updatedAt: import("yup/lib/string").RequiredStringSchema<string, import("yup/lib/types").AnyObject>;
         content: import("yup/lib/string").RequiredStringSchema<string, import("yup/lib/types").AnyObject>;
+        /**
+         * @remarks - This displays the firstName of the agent, who sent this message
+         */
         currentAssignee: import("yup").StringSchema<string, import("yup/lib/types").AnyObject, string>;
         status: import("yup").ObjectSchema<import("yup/lib/object").Assign<import("yup/lib/object").ObjectShape, {
             type: import("yup/lib/string").RequiredStringSchema<string, import("yup/lib/types").AnyObject>;
@@ -997,11 +1092,16 @@ declare const CXoneMessageDraftsArraySchema: import("yup").ArraySchema<import("y
             id: import("yup/lib/string").RequiredStringSchema<string, import("yup/lib/types").AnyObject>;
         }>>>;
     }>>[], import("yup/lib/object").AssertsShape<import("yup/lib/object").Assign<import("yup/lib/object").ObjectShape, {
-        id: import("yup/lib/string").RequiredStringSchema<string, import("yup/lib/types").AnyObject>;
+        id: import("yup/lib/string").RequiredStringSchema<string, import("yup/lib/types").AnyObject>; /**
+         * @remarks - This variable is to hold the ID for the reply to message
+         */
         user: any;
         createdAt: import("yup/lib/string").RequiredStringSchema<string, import("yup/lib/types").AnyObject>;
         updatedAt: import("yup/lib/string").RequiredStringSchema<string, import("yup/lib/types").AnyObject>;
         content: import("yup/lib/string").RequiredStringSchema<string, import("yup/lib/types").AnyObject>;
+        /**
+         * @remarks - This displays the firstName of the agent, who sent this message
+         */
         currentAssignee: import("yup").StringSchema<string, import("yup/lib/types").AnyObject, string>;
         status: import("yup").ObjectSchema<import("yup/lib/object").Assign<import("yup/lib/object").ObjectShape, {
             type: import("yup/lib/string").RequiredStringSchema<string, import("yup/lib/types").AnyObject>;
@@ -1193,11 +1293,16 @@ declare const CXoneMessageDraftsArraySchema: import("yup").ArraySchema<import("y
      */
     isRefused: import("yup").BooleanSchema<boolean, import("yup/lib/types").AnyObject, boolean>;
     messageNotes: import("yup").ArraySchema<import("yup").ObjectSchema<import("yup/lib/object").Assign<import("yup/lib/object").ObjectShape, {
-        id: import("yup/lib/string").RequiredStringSchema<string, import("yup/lib/types").AnyObject>;
+        id: import("yup/lib/string").RequiredStringSchema<string, import("yup/lib/types").AnyObject>; /**
+         * @remarks - This variable is to hold the ID for the reply to message
+         */
         user: any;
         createdAt: import("yup/lib/string").RequiredStringSchema<string, import("yup/lib/types").AnyObject>;
         updatedAt: import("yup/lib/string").RequiredStringSchema<string, import("yup/lib/types").AnyObject>;
         content: import("yup/lib/string").RequiredStringSchema<string, import("yup/lib/types").AnyObject>;
+        /**
+         * @remarks - This displays the firstName of the agent, who sent this message
+         */
         currentAssignee: import("yup").StringSchema<string, import("yup/lib/types").AnyObject, string>;
         status: import("yup").ObjectSchema<import("yup/lib/object").Assign<import("yup/lib/object").ObjectShape, {
             type: import("yup/lib/string").RequiredStringSchema<string, import("yup/lib/types").AnyObject>;
@@ -1214,11 +1319,16 @@ declare const CXoneMessageDraftsArraySchema: import("yup").ArraySchema<import("y
             id: import("yup/lib/string").RequiredStringSchema<string, import("yup/lib/types").AnyObject>;
         }>>>;
     }>, import("yup/lib/object").AnyObject, import("yup/lib/object").TypeOfShape<import("yup/lib/object").Assign<import("yup/lib/object").ObjectShape, {
-        id: import("yup/lib/string").RequiredStringSchema<string, import("yup/lib/types").AnyObject>;
+        id: import("yup/lib/string").RequiredStringSchema<string, import("yup/lib/types").AnyObject>; /**
+         * @remarks - This variable is to hold the ID for the reply to message
+         */
         user: any;
         createdAt: import("yup/lib/string").RequiredStringSchema<string, import("yup/lib/types").AnyObject>;
         updatedAt: import("yup/lib/string").RequiredStringSchema<string, import("yup/lib/types").AnyObject>;
         content: import("yup/lib/string").RequiredStringSchema<string, import("yup/lib/types").AnyObject>;
+        /**
+         * @remarks - This displays the firstName of the agent, who sent this message
+         */
         currentAssignee: import("yup").StringSchema<string, import("yup/lib/types").AnyObject, string>;
         status: import("yup").ObjectSchema<import("yup/lib/object").Assign<import("yup/lib/object").ObjectShape, {
             type: import("yup/lib/string").RequiredStringSchema<string, import("yup/lib/types").AnyObject>;
@@ -1235,11 +1345,16 @@ declare const CXoneMessageDraftsArraySchema: import("yup").ArraySchema<import("y
             id: import("yup/lib/string").RequiredStringSchema<string, import("yup/lib/types").AnyObject>;
         }>>>;
     }>>, import("yup/lib/object").AssertsShape<import("yup/lib/object").Assign<import("yup/lib/object").ObjectShape, {
-        id: import("yup/lib/string").RequiredStringSchema<string, import("yup/lib/types").AnyObject>;
+        id: import("yup/lib/string").RequiredStringSchema<string, import("yup/lib/types").AnyObject>; /**
+         * @remarks - This variable is to hold the ID for the reply to message
+         */
         user: any;
         createdAt: import("yup/lib/string").RequiredStringSchema<string, import("yup/lib/types").AnyObject>;
         updatedAt: import("yup/lib/string").RequiredStringSchema<string, import("yup/lib/types").AnyObject>;
         content: import("yup/lib/string").RequiredStringSchema<string, import("yup/lib/types").AnyObject>;
+        /**
+         * @remarks - This displays the firstName of the agent, who sent this message
+         */
         currentAssignee: import("yup").StringSchema<string, import("yup/lib/types").AnyObject, string>;
         status: import("yup").ObjectSchema<import("yup/lib/object").Assign<import("yup/lib/object").ObjectShape, {
             type: import("yup/lib/string").RequiredStringSchema<string, import("yup/lib/types").AnyObject>;
@@ -1256,11 +1371,16 @@ declare const CXoneMessageDraftsArraySchema: import("yup").ArraySchema<import("y
             id: import("yup/lib/string").RequiredStringSchema<string, import("yup/lib/types").AnyObject>;
         }>>>;
     }>>>, import("yup/lib/types").AnyObject, import("yup/lib/object").TypeOfShape<import("yup/lib/object").Assign<import("yup/lib/object").ObjectShape, {
-        id: import("yup/lib/string").RequiredStringSchema<string, import("yup/lib/types").AnyObject>;
+        id: import("yup/lib/string").RequiredStringSchema<string, import("yup/lib/types").AnyObject>; /**
+         * @remarks - This variable is to hold the ID for the reply to message
+         */
         user: any;
         createdAt: import("yup/lib/string").RequiredStringSchema<string, import("yup/lib/types").AnyObject>;
         updatedAt: import("yup/lib/string").RequiredStringSchema<string, import("yup/lib/types").AnyObject>;
         content: import("yup/lib/string").RequiredStringSchema<string, import("yup/lib/types").AnyObject>;
+        /**
+         * @remarks - This displays the firstName of the agent, who sent this message
+         */
         currentAssignee: import("yup").StringSchema<string, import("yup/lib/types").AnyObject, string>;
         status: import("yup").ObjectSchema<import("yup/lib/object").Assign<import("yup/lib/object").ObjectShape, {
             type: import("yup/lib/string").RequiredStringSchema<string, import("yup/lib/types").AnyObject>;
@@ -1277,11 +1397,16 @@ declare const CXoneMessageDraftsArraySchema: import("yup").ArraySchema<import("y
             id: import("yup/lib/string").RequiredStringSchema<string, import("yup/lib/types").AnyObject>;
         }>>>;
     }>>[], import("yup/lib/object").AssertsShape<import("yup/lib/object").Assign<import("yup/lib/object").ObjectShape, {
-        id: import("yup/lib/string").RequiredStringSchema<string, import("yup/lib/types").AnyObject>;
+        id: import("yup/lib/string").RequiredStringSchema<string, import("yup/lib/types").AnyObject>; /**
+         * @remarks - This variable is to hold the ID for the reply to message
+         */
         user: any;
         createdAt: import("yup/lib/string").RequiredStringSchema<string, import("yup/lib/types").AnyObject>;
         updatedAt: import("yup/lib/string").RequiredStringSchema<string, import("yup/lib/types").AnyObject>;
         content: import("yup/lib/string").RequiredStringSchema<string, import("yup/lib/types").AnyObject>;
+        /**
+         * @remarks - This displays the firstName of the agent, who sent this message
+         */
         currentAssignee: import("yup").StringSchema<string, import("yup/lib/types").AnyObject, string>;
         status: import("yup").ObjectSchema<import("yup/lib/object").Assign<import("yup/lib/object").ObjectShape, {
             type: import("yup/lib/string").RequiredStringSchema<string, import("yup/lib/types").AnyObject>;
@@ -1473,11 +1598,16 @@ declare const CXoneMessageDraftsArraySchema: import("yup").ArraySchema<import("y
      */
     isRefused: import("yup").BooleanSchema<boolean, import("yup/lib/types").AnyObject, boolean>;
     messageNotes: import("yup").ArraySchema<import("yup").ObjectSchema<import("yup/lib/object").Assign<import("yup/lib/object").ObjectShape, {
-        id: import("yup/lib/string").RequiredStringSchema<string, import("yup/lib/types").AnyObject>;
+        id: import("yup/lib/string").RequiredStringSchema<string, import("yup/lib/types").AnyObject>; /**
+         * @remarks - This variable is to hold the ID for the reply to message
+         */
         user: any;
         createdAt: import("yup/lib/string").RequiredStringSchema<string, import("yup/lib/types").AnyObject>;
         updatedAt: import("yup/lib/string").RequiredStringSchema<string, import("yup/lib/types").AnyObject>;
         content: import("yup/lib/string").RequiredStringSchema<string, import("yup/lib/types").AnyObject>;
+        /**
+         * @remarks - This displays the firstName of the agent, who sent this message
+         */
         currentAssignee: import("yup").StringSchema<string, import("yup/lib/types").AnyObject, string>;
         status: import("yup").ObjectSchema<import("yup/lib/object").Assign<import("yup/lib/object").ObjectShape, {
             type: import("yup/lib/string").RequiredStringSchema<string, import("yup/lib/types").AnyObject>;
@@ -1494,11 +1624,16 @@ declare const CXoneMessageDraftsArraySchema: import("yup").ArraySchema<import("y
             id: import("yup/lib/string").RequiredStringSchema<string, import("yup/lib/types").AnyObject>;
         }>>>;
     }>, import("yup/lib/object").AnyObject, import("yup/lib/object").TypeOfShape<import("yup/lib/object").Assign<import("yup/lib/object").ObjectShape, {
-        id: import("yup/lib/string").RequiredStringSchema<string, import("yup/lib/types").AnyObject>;
+        id: import("yup/lib/string").RequiredStringSchema<string, import("yup/lib/types").AnyObject>; /**
+         * @remarks - This variable is to hold the ID for the reply to message
+         */
         user: any;
         createdAt: import("yup/lib/string").RequiredStringSchema<string, import("yup/lib/types").AnyObject>;
         updatedAt: import("yup/lib/string").RequiredStringSchema<string, import("yup/lib/types").AnyObject>;
         content: import("yup/lib/string").RequiredStringSchema<string, import("yup/lib/types").AnyObject>;
+        /**
+         * @remarks - This displays the firstName of the agent, who sent this message
+         */
         currentAssignee: import("yup").StringSchema<string, import("yup/lib/types").AnyObject, string>;
         status: import("yup").ObjectSchema<import("yup/lib/object").Assign<import("yup/lib/object").ObjectShape, {
             type: import("yup/lib/string").RequiredStringSchema<string, import("yup/lib/types").AnyObject>;
@@ -1515,11 +1650,16 @@ declare const CXoneMessageDraftsArraySchema: import("yup").ArraySchema<import("y
             id: import("yup/lib/string").RequiredStringSchema<string, import("yup/lib/types").AnyObject>;
         }>>>;
     }>>, import("yup/lib/object").AssertsShape<import("yup/lib/object").Assign<import("yup/lib/object").ObjectShape, {
-        id: import("yup/lib/string").RequiredStringSchema<string, import("yup/lib/types").AnyObject>;
+        id: import("yup/lib/string").RequiredStringSchema<string, import("yup/lib/types").AnyObject>; /**
+         * @remarks - This variable is to hold the ID for the reply to message
+         */
         user: any;
         createdAt: import("yup/lib/string").RequiredStringSchema<string, import("yup/lib/types").AnyObject>;
         updatedAt: import("yup/lib/string").RequiredStringSchema<string, import("yup/lib/types").AnyObject>;
         content: import("yup/lib/string").RequiredStringSchema<string, import("yup/lib/types").AnyObject>;
+        /**
+         * @remarks - This displays the firstName of the agent, who sent this message
+         */
         currentAssignee: import("yup").StringSchema<string, import("yup/lib/types").AnyObject, string>;
         status: import("yup").ObjectSchema<import("yup/lib/object").Assign<import("yup/lib/object").ObjectShape, {
             type: import("yup/lib/string").RequiredStringSchema<string, import("yup/lib/types").AnyObject>;
@@ -1536,11 +1676,16 @@ declare const CXoneMessageDraftsArraySchema: import("yup").ArraySchema<import("y
             id: import("yup/lib/string").RequiredStringSchema<string, import("yup/lib/types").AnyObject>;
         }>>>;
     }>>>, import("yup/lib/types").AnyObject, import("yup/lib/object").TypeOfShape<import("yup/lib/object").Assign<import("yup/lib/object").ObjectShape, {
-        id: import("yup/lib/string").RequiredStringSchema<string, import("yup/lib/types").AnyObject>;
+        id: import("yup/lib/string").RequiredStringSchema<string, import("yup/lib/types").AnyObject>; /**
+         * @remarks - This variable is to hold the ID for the reply to message
+         */
         user: any;
         createdAt: import("yup/lib/string").RequiredStringSchema<string, import("yup/lib/types").AnyObject>;
         updatedAt: import("yup/lib/string").RequiredStringSchema<string, import("yup/lib/types").AnyObject>;
         content: import("yup/lib/string").RequiredStringSchema<string, import("yup/lib/types").AnyObject>;
+        /**
+         * @remarks - This displays the firstName of the agent, who sent this message
+         */
         currentAssignee: import("yup").StringSchema<string, import("yup/lib/types").AnyObject, string>;
         status: import("yup").ObjectSchema<import("yup/lib/object").Assign<import("yup/lib/object").ObjectShape, {
             type: import("yup/lib/string").RequiredStringSchema<string, import("yup/lib/types").AnyObject>;
@@ -1557,11 +1702,16 @@ declare const CXoneMessageDraftsArraySchema: import("yup").ArraySchema<import("y
             id: import("yup/lib/string").RequiredStringSchema<string, import("yup/lib/types").AnyObject>;
         }>>>;
     }>>[], import("yup/lib/object").AssertsShape<import("yup/lib/object").Assign<import("yup/lib/object").ObjectShape, {
-        id: import("yup/lib/string").RequiredStringSchema<string, import("yup/lib/types").AnyObject>;
+        id: import("yup/lib/string").RequiredStringSchema<string, import("yup/lib/types").AnyObject>; /**
+         * @remarks - This variable is to hold the ID for the reply to message
+         */
         user: any;
         createdAt: import("yup/lib/string").RequiredStringSchema<string, import("yup/lib/types").AnyObject>;
         updatedAt: import("yup/lib/string").RequiredStringSchema<string, import("yup/lib/types").AnyObject>;
         content: import("yup/lib/string").RequiredStringSchema<string, import("yup/lib/types").AnyObject>;
+        /**
+         * @remarks - This displays the firstName of the agent, who sent this message
+         */
         currentAssignee: import("yup").StringSchema<string, import("yup/lib/types").AnyObject, string>;
         status: import("yup").ObjectSchema<import("yup/lib/object").Assign<import("yup/lib/object").ObjectShape, {
             type: import("yup/lib/string").RequiredStringSchema<string, import("yup/lib/types").AnyObject>;
@@ -1753,11 +1903,16 @@ declare const CXoneMessageDraftsArraySchema: import("yup").ArraySchema<import("y
      */
     isRefused: import("yup").BooleanSchema<boolean, import("yup/lib/types").AnyObject, boolean>;
     messageNotes: import("yup").ArraySchema<import("yup").ObjectSchema<import("yup/lib/object").Assign<import("yup/lib/object").ObjectShape, {
-        id: import("yup/lib/string").RequiredStringSchema<string, import("yup/lib/types").AnyObject>;
+        id: import("yup/lib/string").RequiredStringSchema<string, import("yup/lib/types").AnyObject>; /**
+         * @remarks - This variable is to hold the ID for the reply to message
+         */
         user: any;
         createdAt: import("yup/lib/string").RequiredStringSchema<string, import("yup/lib/types").AnyObject>;
         updatedAt: import("yup/lib/string").RequiredStringSchema<string, import("yup/lib/types").AnyObject>;
         content: import("yup/lib/string").RequiredStringSchema<string, import("yup/lib/types").AnyObject>;
+        /**
+         * @remarks - This displays the firstName of the agent, who sent this message
+         */
         currentAssignee: import("yup").StringSchema<string, import("yup/lib/types").AnyObject, string>;
         status: import("yup").ObjectSchema<import("yup/lib/object").Assign<import("yup/lib/object").ObjectShape, {
             type: import("yup/lib/string").RequiredStringSchema<string, import("yup/lib/types").AnyObject>;
@@ -1774,11 +1929,16 @@ declare const CXoneMessageDraftsArraySchema: import("yup").ArraySchema<import("y
             id: import("yup/lib/string").RequiredStringSchema<string, import("yup/lib/types").AnyObject>;
         }>>>;
     }>, import("yup/lib/object").AnyObject, import("yup/lib/object").TypeOfShape<import("yup/lib/object").Assign<import("yup/lib/object").ObjectShape, {
-        id: import("yup/lib/string").RequiredStringSchema<string, import("yup/lib/types").AnyObject>;
+        id: import("yup/lib/string").RequiredStringSchema<string, import("yup/lib/types").AnyObject>; /**
+         * @remarks - This variable is to hold the ID for the reply to message
+         */
         user: any;
         createdAt: import("yup/lib/string").RequiredStringSchema<string, import("yup/lib/types").AnyObject>;
         updatedAt: import("yup/lib/string").RequiredStringSchema<string, import("yup/lib/types").AnyObject>;
         content: import("yup/lib/string").RequiredStringSchema<string, import("yup/lib/types").AnyObject>;
+        /**
+         * @remarks - This displays the firstName of the agent, who sent this message
+         */
         currentAssignee: import("yup").StringSchema<string, import("yup/lib/types").AnyObject, string>;
         status: import("yup").ObjectSchema<import("yup/lib/object").Assign<import("yup/lib/object").ObjectShape, {
             type: import("yup/lib/string").RequiredStringSchema<string, import("yup/lib/types").AnyObject>;
@@ -1795,11 +1955,16 @@ declare const CXoneMessageDraftsArraySchema: import("yup").ArraySchema<import("y
             id: import("yup/lib/string").RequiredStringSchema<string, import("yup/lib/types").AnyObject>;
         }>>>;
     }>>, import("yup/lib/object").AssertsShape<import("yup/lib/object").Assign<import("yup/lib/object").ObjectShape, {
-        id: import("yup/lib/string").RequiredStringSchema<string, import("yup/lib/types").AnyObject>;
+        id: import("yup/lib/string").RequiredStringSchema<string, import("yup/lib/types").AnyObject>; /**
+         * @remarks - This variable is to hold the ID for the reply to message
+         */
         user: any;
         createdAt: import("yup/lib/string").RequiredStringSchema<string, import("yup/lib/types").AnyObject>;
         updatedAt: import("yup/lib/string").RequiredStringSchema<string, import("yup/lib/types").AnyObject>;
         content: import("yup/lib/string").RequiredStringSchema<string, import("yup/lib/types").AnyObject>;
+        /**
+         * @remarks - This displays the firstName of the agent, who sent this message
+         */
         currentAssignee: import("yup").StringSchema<string, import("yup/lib/types").AnyObject, string>;
         status: import("yup").ObjectSchema<import("yup/lib/object").Assign<import("yup/lib/object").ObjectShape, {
             type: import("yup/lib/string").RequiredStringSchema<string, import("yup/lib/types").AnyObject>;
@@ -1816,11 +1981,16 @@ declare const CXoneMessageDraftsArraySchema: import("yup").ArraySchema<import("y
             id: import("yup/lib/string").RequiredStringSchema<string, import("yup/lib/types").AnyObject>;
         }>>>;
     }>>>, import("yup/lib/types").AnyObject, import("yup/lib/object").TypeOfShape<import("yup/lib/object").Assign<import("yup/lib/object").ObjectShape, {
-        id: import("yup/lib/string").RequiredStringSchema<string, import("yup/lib/types").AnyObject>;
+        id: import("yup/lib/string").RequiredStringSchema<string, import("yup/lib/types").AnyObject>; /**
+         * @remarks - This variable is to hold the ID for the reply to message
+         */
         user: any;
         createdAt: import("yup/lib/string").RequiredStringSchema<string, import("yup/lib/types").AnyObject>;
         updatedAt: import("yup/lib/string").RequiredStringSchema<string, import("yup/lib/types").AnyObject>;
         content: import("yup/lib/string").RequiredStringSchema<string, import("yup/lib/types").AnyObject>;
+        /**
+         * @remarks - This displays the firstName of the agent, who sent this message
+         */
         currentAssignee: import("yup").StringSchema<string, import("yup/lib/types").AnyObject, string>;
         status: import("yup").ObjectSchema<import("yup/lib/object").Assign<import("yup/lib/object").ObjectShape, {
             type: import("yup/lib/string").RequiredStringSchema<string, import("yup/lib/types").AnyObject>;
@@ -1837,11 +2007,16 @@ declare const CXoneMessageDraftsArraySchema: import("yup").ArraySchema<import("y
             id: import("yup/lib/string").RequiredStringSchema<string, import("yup/lib/types").AnyObject>;
         }>>>;
     }>>[], import("yup/lib/object").AssertsShape<import("yup/lib/object").Assign<import("yup/lib/object").ObjectShape, {
-        id: import("yup/lib/string").RequiredStringSchema<string, import("yup/lib/types").AnyObject>;
+        id: import("yup/lib/string").RequiredStringSchema<string, import("yup/lib/types").AnyObject>; /**
+         * @remarks - This variable is to hold the ID for the reply to message
+         */
         user: any;
         createdAt: import("yup/lib/string").RequiredStringSchema<string, import("yup/lib/types").AnyObject>;
         updatedAt: import("yup/lib/string").RequiredStringSchema<string, import("yup/lib/types").AnyObject>;
         content: import("yup/lib/string").RequiredStringSchema<string, import("yup/lib/types").AnyObject>;
+        /**
+         * @remarks - This displays the firstName of the agent, who sent this message
+         */
         currentAssignee: import("yup").StringSchema<string, import("yup/lib/types").AnyObject, string>;
         status: import("yup").ObjectSchema<import("yup/lib/object").Assign<import("yup/lib/object").ObjectShape, {
             type: import("yup/lib/string").RequiredStringSchema<string, import("yup/lib/types").AnyObject>;

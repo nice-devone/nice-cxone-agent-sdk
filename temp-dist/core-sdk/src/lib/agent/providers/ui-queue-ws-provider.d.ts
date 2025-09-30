@@ -21,6 +21,8 @@ export declare class UIQueueWsProvider {
     private validationUtils;
     private isUIQDegraded;
     private internetCheckTimer;
+    private isCustomKeepAlivePollingTimeoutEnabled;
+    private keepAliveTimeout;
     /**
    * constructor which sets agent session instance
    * @example

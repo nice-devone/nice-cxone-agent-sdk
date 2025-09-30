@@ -73,6 +73,7 @@ export class ACDSessionManager {
         this._rejectEvent = new Subject();
         this._callControlEvent = new Subject();
         this.isEventQueueResized = false;
+        this._onAgentCustomEvent = new Subject();
         /**
          * Posts custom form data
          * @param contactId - sendor contact id
@@ -397,6 +398,15 @@ export class ACDSessionManager {
      */
     get hoursOfOperationEvent() {
         return this._onHoursOfOperationEvent;
+    }
+    /**
+     * @example -
+     * ```
+     * const agentCustomEvent = acdSession.onAgentCustomEvent
+     * ```
+     */
+    get onAgentCustomEvent() {
+        return this._onAgentCustomEvent;
     }
     /**
      * Method to create singleton object of the class

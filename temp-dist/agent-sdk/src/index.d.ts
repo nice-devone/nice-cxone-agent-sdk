@@ -32,3 +32,4 @@ export * from './lib/acd/cxone-agent-setting/cxone-agent-setting';
 export * from './lib/commitment/commitment-service';
 export * from './lib/agent-state/enum/unified-agent-state';
 export * from './lib/acd/provider/cxone-voice-recording-status-provider';
+export * from './lib/utils/voiceTranscriptionUtils';

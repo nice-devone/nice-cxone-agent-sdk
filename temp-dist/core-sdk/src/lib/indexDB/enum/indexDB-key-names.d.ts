@@ -18,5 +18,6 @@ export declare enum IndexDBKeyNames {
     FAVORITE_SKILLS = "favoriteSkills",
     FAVORITE_DIGITAL_SKILLS = "favoriteDigitalSkills",
     FAVORITE_EXT_DIR_ENTRIES = "favoriteExtDirectoryEntries",
-    CONVERSATIONS_GROUPS = "conversationsGroups"
+    CONVERSATIONS_GROUPS = "conversationsGroups",
+    VOICE_TRANSCRIPTION = "voiceTranscription"
 }

@@ -41,6 +41,7 @@ export class ApiParser {
             'desearchmessages',
             'desearchcustomers',
             'desearchposts',
+            'voicetranscript',
             ACS_PERMISSION,
             HIDE_CALLER_NUMBER_PERMISSION,
             DISABLE_INTEGRATED_SOFTPHONE_SETTINGS

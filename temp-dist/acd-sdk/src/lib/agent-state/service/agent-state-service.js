@@ -161,7 +161,7 @@ export class AgentStateService {
                 const cxOneConfig = this.auth.getCXoneConfig();
                 teamId = teamId ? teamId : (_a = CXoneUser.instance.getUserInfo().teamId) === null || _a === void 0 ? void 0 : _a.toString();
                 if (teamId) {
-                    let unavailableCodeUrl = cxOneConfig.acdApiBaseUri +
+                    let unavailableCodeUrl = cxOneConfig.apiFacadeBaseUri +
                         ApiUriConstants.GET_UNAVAILABLE_CODES_URI.replace('{teamId}', teamId);
                     const params = { activityOnly: true };
                     unavailableCodeUrl = this.urlUtilSvc.appendQueryString(unavailableCodeUrl, params);

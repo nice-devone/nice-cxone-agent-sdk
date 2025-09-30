@@ -21,7 +21,7 @@ export class SkillService {
         this.urlUtilsService = new UrlUtilsService();
         this.validationUtils = new ValidationUtils();
         this.GET_SKILL_NAME_BY_ROUTING_ID = '/dfo/3.0/routing-queues?size=500';
-        this.GET_SKILLS_URI = '/InContactAPI/services/v27.0/skills';
+        this.GET_SKILLS_URI = '/acd-skills/v1/skills';
         this.auth = CXoneAuth.instance;
         SkillService.cachedAgentSkills = [];
     }
@@ -107,7 +107,7 @@ export class SkillService {
                         const token = this.auth.getAuthToken();
                         const reqInit = this.utilService.initHeader(token.accessToken, 'application/json');
                         const cxOneConfig = this.auth.getCXoneConfig();
-                        const url = cxOneConfig.acdApiBaseUri + ApiUriConstants.GET_SKILL_WITH_ID_URI.replace('{skillId}', skillId);
+                        const url = cxOneConfig.apiFacadeBaseUri + ApiUriConstants.GET_SKILL_WITH_ID_URI.replace('{skillId}', skillId);
                         HttpClient.get(url, reqInit).then((response) => {
                             const skillDetail = this.apiParser.parseSkillDetails(response);
                             this.logger.info('getSkillById', 'skill details using skill id' + skillDetail);
@@ -149,7 +149,7 @@ export class SkillService {
                 const token = this.auth.getAuthToken();
                 const reqInit = this.utilService.initHeader(token.accessToken, 'application/json');
                 const cxOneConfig = this.auth.getCXoneConfig();
-                let skillUrl = cxOneConfig.acdApiBaseUri + this.GET_SKILLS_URI;
+                let skillUrl = cxOneConfig.apiFacadeBaseUri + this.GET_SKILLS_URI;
                 skillUrl = this.urlUtilsService.appendQueryString(skillUrl, requestParams);
                 HttpClient.get(skillUrl, reqInit).then((resp) => __awaiter(this, void 0, void 0, function* () {
                     this.logger.info('getAllSkillsList', 'Get Agent skills Success');

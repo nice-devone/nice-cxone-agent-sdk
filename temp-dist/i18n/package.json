@@ -1,6 +1,6 @@
 {
   "name": "@nice-devone/i18n",
-  "version": "25.3.1",
+  "version": "25.3.0",
   "sideEffects": false,
   "description": "NICE CXone i18n SDK",
   "author": "NICE Ltd.",
@@ -13,5 +13,5 @@
   "module": "./index.js",
   "main": "./index.js",
   "type": "module",
-  "types": "./src\\index.d.ts"
+  "types": "./src/index.d.ts"
 }

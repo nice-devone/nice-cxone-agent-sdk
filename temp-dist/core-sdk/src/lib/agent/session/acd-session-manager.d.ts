@@ -59,6 +59,7 @@ export declare class ACDSessionManager {
     private _rejectEvent;
     private _callControlEvent;
     private isEventQueueResized;
+    private _onAgentCustomEvent;
     /**
      * @example
      * ```
@@ -128,13 +129,13 @@ export declare class ACDSessionManager {
         screenPopUrl: import("yup/lib/string").RequiredStringSchema<string, import("yup/lib/types").AnyObject>;
         screenPopUrlVariables: import("yup/lib/mixed").MixedSchema<any, import("yup/lib/types").AnyObject, any>;
         disconnectCode: import("yup/lib/string").RequiredStringSchema<string, import("yup/lib/types").AnyObject>;
-        isLogging: import("yup/lib/boolean").RequiredBooleanSchema<boolean, import("yup/lib/types").AnyObject>;
-        timeout: import("yup/lib/number").RequiredNumberSchema<number, import("yup/lib/types").AnyObject>; /**
-         * @example -
+        isLogging: import("yup/lib/boolean").RequiredBooleanSchema<boolean, import("yup/lib/types").AnyObject>; /**
+         * @example
          * ```
-         * const onGetNextEvent = acdSession.onGetNextEvent
+         * const acdSessionManager = new ACDSessionManager();
          * ```
          */
+        timeout: import("yup/lib/number").RequiredNumberSchema<number, import("yup/lib/types").AnyObject>;
         allowDispositions: import("yup/lib/boolean").RequiredBooleanSchema<boolean, import("yup/lib/types").AnyObject>;
         label: import("yup/lib/string").RequiredStringSchema<string, import("yup/lib/types").AnyObject>;
         isLinked: import("yup/lib/boolean").RequiredBooleanSchema<boolean, import("yup/lib/types").AnyObject>;
@@ -401,6 +402,13 @@ export declare class ACDSessionManager {
      * ```
      */
     get hoursOfOperationEvent(): Subject<unknown>;
+    /**
+     * @example -
+     * ```
+     * const agentCustomEvent = acdSession.onAgentCustomEvent
+     * ```
+     */
+    get onAgentCustomEvent(): Subject<AgentSessionResponse>;
     /**
      * Method to create singleton object of the class
      * @example

@@ -21,6 +21,8 @@ export class GetNextEventProvider {
         this.utilService = new HttpUtilService();
         this.getNextEventAdapter = new CXoneGetNextAdapter();
         this.isRestartGetNextEventEnabled = FeatureToggleService.instance.getFeatureToggleSync("release-cxa-get-next-event-restart-AW-37270" /* FeatureToggles.RESTART_GET_NEXT_EVENT_POLLING_FEATURE_TOGGLE */);
+        this.isCustomGetNextEventPollingTimeoutEnabled = FeatureToggleService.instance.getFeatureToggleSync("release-cxa-get-next-events-timeout-update-AW-45121" /* FeatureToggles.GET_NEXT_EVENT_POLLING_TIMEOUT_FEATURE_TOGGLE */);
+        this.getNextEventTimeout = this.isCustomGetNextEventPollingTimeoutEnabled ? ApiUriConstants.CUSTOM_GET_NEXT_EVENT_TIMEOUT : ApiUriConstants.GET_NEXT_EVENT_TIMEOUT;
         /**
          * Captures data returned from get-next-event api
          * @param response - collection of events
@@ -202,7 +204,7 @@ export class GetNextEventProvider {
                 this.logger.info('getNextEvents', 'SessionId not found');
                 return;
             }
-            const getNextPath = ApiUriConstants.GET_NEXT_EVENT_URI.replace('{sessionId}', sessionId).replace('{timeoutSec}', ApiUriConstants.GET_NEXT_EVENT_TIMEOUT);
+            const getNextPath = ApiUriConstants.GET_NEXT_EVENT_URI.replace('{sessionId}', sessionId).replace('{timeoutSec}', this.getNextEventTimeout);
             const authToken = this.agentSession.accessToken;
             const endpoint = this.baseUri + getNextPath;
             const reqInit = {
@@ -236,6 +238,7 @@ export class GetNextEventProvider {
                 pollingOptions: {
                     isPolling: false,
                     pollingInterval: 0,
+                    isCustomGetNextEventPollingTimeoutEnabled: this.isCustomGetNextEventPollingTimeoutEnabled,
                 },
             });
             this.logger.info('getNextEvents', 'Post message to getNextEvents worker');

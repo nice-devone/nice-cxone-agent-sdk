@@ -114,13 +114,9 @@ export declare class CXoneClientData {
      */
     mapper(currentClientDataObj: any, data: CXoneClientData): {
         softPhoneVolume: any;
-        CXASecondaryDevice: any; /**
-         * @remarks - Favorite Skill Activity
-         **/
+        CXASecondaryDevice: any;
         CXASecondaryDeviceName: any;
-        CXARingtone: any; /**
-           * @remarks - Favorite State Selector
-           */
+        CXARingtone: any;
         SecondaryDeviceDelay: any;
         AudioAgentMessage: any;
         AudioEndContact: any;
@@ -163,13 +159,9 @@ export declare class CXoneClientData {
     mapperIncludingSearchAppSettings(currentClientDataObj: Record<string, unknown>, data: CXoneClientData): {
         CxaSearchAppSettings: unknown;
         softPhoneVolume: any;
-        CXASecondaryDevice: any; /**
-         * @remarks - Favorite Skill Activity
-         **/
+        CXASecondaryDevice: any;
         CXASecondaryDeviceName: any;
-        CXARingtone: any; /**
-           * @remarks - Favorite State Selector
-           */
+        CXARingtone: any;
         SecondaryDeviceDelay: any;
         AudioAgentMessage: any;
         AudioEndContact: any;

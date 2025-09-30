@@ -6,10 +6,11 @@ export class ApiUriConstants {
 //Regional Token Endpoint
 ApiUriConstants.REGIONAL_AUTH_TOKEN = '/public/authentication/v1/token';
 ApiUriConstants.REGIONAL_AUTH_REFRESH_TOKEN = '/public/authentication/v1/refresh';
-ApiUriConstants.AGENT_SESSION_URI = '/InContactAPI/services/v23.0/agent-sessions';
-ApiUriConstants.JOIN_AGENT_SESSION_URI = '/InContactAPI/services/v23.0/agent-sessions/join';
+ApiUriConstants.AGENT_SESSION_URI = '/InContactAPI/services/v33.0/agent-sessions';
+ApiUriConstants.JOIN_AGENT_SESSION_URI = '/InContactAPI/services/v33.0/agent-sessions/join';
 ApiUriConstants.GET_NEXT_EVENT_URI = '/InContactAPI/services/v23.0/agent-sessions/{sessionId}/get-next-event?timeout={timeoutSec}';
 ApiUriConstants.GET_NEXT_EVENT_TIMEOUT = '60';
+ApiUriConstants.CUSTOM_GET_NEXT_EVENT_TIMEOUT = '15';
 ApiUriConstants.KEEP_ALIVE_URI = '/InContactAPI/services/v31.0/agent-sessions/{sessionId}/keep-alive';
 ApiUriConstants.TOTAL_RETRY_ATTEMPTS_FOR_OFFLINE_EVENTS = 60;
 ApiUriConstants.ERROR_RETRY_INTERVAL = 10000;
@@ -39,7 +40,7 @@ ApiUriConstants.ADDRESS_BOOK_URI = '/incontactapi/services/v23.0/agents/{agentId
 ApiUriConstants.ADDRESS_BOOK_2_URI = '/sab/v1/addressbook';
 ApiUriConstants.STANDARD_ADDRESS_BOOK_URI = '/incontactapi//services/v23.0/address-books/{addressBookId}/entries';
 ApiUriConstants.GET_AGENT_SKILLS_URI = '/InContactAPI/services/v23.0/agents/{agentId}/skills';
-ApiUriConstants.GET_SKILL_WITH_ID_URI = '/InContactAPI/services/v23.0/skills/{skillId}';
+ApiUriConstants.GET_SKILL_WITH_ID_URI = '/acd-skills/v1/skills/{skillId}';
 ApiUriConstants.SET_AGENT_STATE_URI = '/InContactAPI/services/v23.0/agent-sessions/{sessionId}/state';
 ApiUriConstants.PC_DIALER_LOGIN = '/InContactAPI/services/v23.0/agent-sessions/{sessionId}/dialer-login';
 ApiUriConstants.PC_DIALER_LOGOUT = '/InContactAPI/services/v23.0/agent-sessions/{sessionId}/dialer-logout';
@@ -50,8 +51,8 @@ ApiUriConstants.TRANSFER_VOICEMAIL_CONTACT_URI = '/InContactAPI/services/v23.0/a
 ApiUriConstants.TRANSFER_WORK_ITEM_CONTACT_URI = '/InContactAPI/services/v23.0/agent-sessions/{sessionId}/interactions/{contactId}/transfer-work-item-to-agent';
 ApiUriConstants.SEND_DTMF = '/InContactAPI/services/v23.0/agent-sessions/{sessionId}/send-dtmf';
 ApiUriConstants.SKILL_CACHE_URI = '/InContactAPI/services/v23.0/cache/skills';
-ApiUriConstants.AGENT_QUEUE_URI = '/incontactapi/services/v23.0/agents/{agentId}/queues';
-ApiUriConstants.AGENT_QUEUE_DETAIL_URI = '/incontactapi/services/v23.0/agents/{agentId}/queues-detail';
+ApiUriConstants.AGENT_QUEUE_URI = '/incontactapi/services/v33.0/agents/{agentId}/queues';
+ApiUriConstants.AGENT_QUEUE_DETAIL_URI = '/incontactapi/services/v33.0/agents/{agentId}/queues-detail';
 //Api uris to accept and reject inbound contact
 ApiUriConstants.ACCEPT_CONTACT_URI = '/InContactAPI/services/v23.0/agent-sessions/{sessionId}/interactions/{contactId}/accept';
 ApiUriConstants.REJECT_CONTACT_URI = '/InContactAPI/services/v23.0/agent-sessions/{sessionId}/interactions/{contactId}/reject';
@@ -109,15 +110,15 @@ ApiUriConstants.DIGITAL_REPLACE_VARIABLES = '/dfo/3.0/contacts/{contactId}/quick
 ApiUriConstants.DIGITAL_CASE_HISTORY = '/dfo/3.0/contacts/{contactId}/history?page={pageNumber}&size={pageSize}&withContext=1';
 ApiUriConstants.DIGITAL_TRANSLATION_AVAILABLE_LANGUAGES = '/dfo/3.0/translate/available-languages';
 ApiUriConstants.DIGITAL_MESSAGE_TRANSLATION = '/dfo/3.0/translate';
-ApiUriConstants.GET_UNAVAILABLE_CODES_URI = '/InContactAPI/services/v23.0/teams/{teamId}/unavailable-codes';
+ApiUriConstants.GET_UNAVAILABLE_CODES_URI = '/acd-teams/v1/teams/{teamId}/unavailable-codes';
 //Api uris to get team list
-ApiUriConstants.GET_TEAMS = '/InContactAPI/services/v23.0/teams';
+ApiUriConstants.GET_TEAMS = '/acd-teams/v1/teams';
 //API for event hub subscription
 ApiUriConstants.EVENT_HUB_SUBSCRIPTION_URI = '/dfo/3.0/event-hub-subscriptions';
 //Api uris to get agent list
-ApiUriConstants.GET_AGENT_WITH_TEAM_ID = '/InContactAPI/services/v23.0/teams/{teamId}/agents';
+ApiUriConstants.GET_AGENT_WITH_TEAM_ID = '/acd-teams/v1/teams/{teamId}/agents';
 // API uri to get agent info by agent id
-ApiUriConstants.GET_AGENT_WITH_AGENT_ID = '/InContactAPI/services/v23.0/agents/{agentId}';
+ApiUriConstants.GET_AGENT_WITH_AGENT_ID = '/InContactAPI/services/v33.0/agents/{agentId}';
 //Api uris to get agent schedule
 ApiUriConstants.GET_AGENT_SCHEDULE = '/schedules/user/{userId}?start={startDate}&end={endDate}';
 ApiUriConstants.GET_CUSTOM_FIELD_DEFINITIONS = '/dfo/3.0/customers/custom-field-definitions';
@@ -137,7 +138,7 @@ ApiUriConstants.PLAY_VOICEMAIL = '/incontactapi/services/V4.0/agent-sessions/{se
 ApiUriConstants.GET_CREATE_CUSTOMER_NOTE = '/dfo/3.0/customers/{customerId}/notes';
 ApiUriConstants.UPDATE_DELETE_CUSTOMER_NOTE = '/dfo/3.0/customers/{customerId}/notes/{noteId}';
 //Api uri to get team by team id
-ApiUriConstants.GET_TEAM_WITH_TEAM_ID = '/InContactAPI/services/v23.0/teams/{teamId}';
+ApiUriConstants.GET_TEAM_WITH_TEAM_ID = '/acd-teams/v1/teams/{teamId}';
 //Personal Connection Dialer APIs
 ApiUriConstants.POST_AMD_OVERRIDE = '/InContactAPI/services/v23.0/agent-sessions/{sessionId}/interactions/{contactId}/amd-override';
 ApiUriConstants.GET_SKILL_DELIVERY_PREFERENCES = '/InContactAPI/services/v23.0/skills/{skillId}/parameters/delivery-preferences';

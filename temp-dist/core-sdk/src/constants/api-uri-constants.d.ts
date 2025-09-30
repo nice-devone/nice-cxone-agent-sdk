@@ -8,6 +8,7 @@ export declare class ApiUriConstants {
     static JOIN_AGENT_SESSION_URI: string;
     static GET_NEXT_EVENT_URI: string;
     static GET_NEXT_EVENT_TIMEOUT: string;
+    static CUSTOM_GET_NEXT_EVENT_TIMEOUT: string;
     static KEEP_ALIVE_URI: string;
     static TOTAL_RETRY_ATTEMPTS_FOR_OFFLINE_EVENTS: number;
     static ERROR_RETRY_INTERVAL: number;

@@ -20,5 +20,6 @@ export var IndexDBKeyNames;
     IndexDBKeyNames["FAVORITE_DIGITAL_SKILLS"] = "favoriteDigitalSkills";
     IndexDBKeyNames["FAVORITE_EXT_DIR_ENTRIES"] = "favoriteExtDirectoryEntries";
     IndexDBKeyNames["CONVERSATIONS_GROUPS"] = "conversationsGroups";
+    IndexDBKeyNames["VOICE_TRANSCRIPTION"] = "voiceTranscription";
 })(IndexDBKeyNames || (IndexDBKeyNames = {}));
 //# sourceMappingURL=indexDB-key-names.js.map

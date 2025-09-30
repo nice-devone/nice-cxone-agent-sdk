@@ -38,7 +38,7 @@ const workercode = `self.importScripts(
           try {
             const response = await self.rxjs.fetch
               .fromFetch(
-                input.requestParams.url.replace('60','1'),
+                input.requestParams.url.replace(input?.pollingOptions?.isCustomGetNextEventPollingTimeoutEnabled ? '15' : '60','1'),
                 // eslint-disable-next-line no-undef
                 toRequestInit(
                   input.requestParams.method,

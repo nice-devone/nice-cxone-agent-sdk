@@ -71,6 +71,7 @@ export const StorageKeys = {
     CC_RELATESTO_ACTIVITIES_V2: 'cc_related_activities_v2',
     FINGERPRINT_SHOW: 'fingerPrintShow',
     VOICE_PREFERENCE: 'voice_preference',
+    SHOW_VOICE_TRANSCRIPT: 'showVoiceTranscript',
     TENANT_DATA: 'tenant_data',
     /**
      * This key is used to store the ACS email id used during session initiation
@@ -98,6 +99,7 @@ export const StorageKeys = {
     WEM_WS_CONNECTION_STATUS: 'wemWsConnectionStatus',
     //Conversation related keys
     AGENT_HIVE_CHANNEL_INFO: 'agentHiveChannelInfo',
+    IS_CONVERSATIONS_STANDALONE: 'isConversationsStandAlone',
 };
 export const NotificationSettings = {
     ACCESSIBILITY: 'Accessibility',

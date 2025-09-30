@@ -6,7 +6,7 @@ import { CXoneSdkError, CXoneSdkErrorType, WorkItemContactStatus, DirectoryEntit
 import { CXoneVoiceMailContact } from './cxone-voicemail-contact';
 import { CXoneWorkItemContact } from './cxone-workitem-contact';
 import { CXoneAcdClient } from '../../cxone-acd-client';
-import { DispositionService, SkillService, CXoneClient, PersonalConnectionService, ContactService, VoiceService, CallType, ContactType, FeatureToggleService } from '@nice-devone/agent-sdk';
+import { DispositionService, SkillService, CXoneClient, PersonalConnectionService, ContactService, VoiceService, CallType, ContactType, FeatureToggleService, isVoiceTranscriptEnabledAndToggledOn } from '@nice-devone/agent-sdk';
 /**
  * Class to handle the contacts
  */
@@ -47,9 +47,9 @@ export class ContactManager {
         this.onLocalPostEvent = new Subject();
         this.dispositionsData = {};
         this.tagsData = {};
-        this.viewOnlyCases = [];
         this.allContacts = {};
         this.voiceCallRecordServicePollingEvent = new Subject();
+        this.onVoiceTranscriptContactEndEvent = new Subject();
         /**
          * Method used to get the CXoneContact
          */
@@ -304,18 +304,40 @@ export class ContactManager {
             if (callContactEvent.status === CallContactEventStatus.DISCONNECTED && callContactEvent.finalState) {
                 delete this.dispositionsData[callContactEvent.contactId];
                 delete this.tagsData[callContactEvent.contactId];
-                const isVoiceBioHubEnabled = isVoiceBioHubFeatureEnabled() && FeatureToggleService.instance.getFeatureToggleSync("release-agent-voiceBioHub-AW-24969" /* FeatureToggles.VOICE_BIO_HUB_FEATURE_TOGGLE */);
-                if (isVoiceBioHubEnabled && contactKeys.length === 1) {
-                    const voicBioAgentAssistData = LocalStorageHelper.getItem(StorageKeys.VOICE_BIO_HUB_AGENT_ASSIST);
-                    if (voicBioAgentAssistData) {
-                        LocalStorageHelper.removeItem(StorageKeys.VOICE_BIO_HUB_AGENT_ASSIST);
-                        LocalStorageHelper.removeItem(StorageKeys.VOICE_BIO_HUB_DATA);
-                    }
-                }
+                this.removeBioHubFromLocalStorage(contactKeys);
+                this.removeVoiceTranscriptionFromIndexedDB(callContactEvent.contactId);
                 (contactKeys.length === 1) && this.voiceCallRecordServicePollingEvent.next(false);
             }
         });
     }
+    ;
+    /**
+     * Removes voice transcription data from IndexedDB for a specific contact.
+     * @param contactId - contactId for which voice transcription to be removed
+     */
+    removeVoiceTranscriptionFromIndexedDB(contactId) {
+        return __awaiter(this, void 0, void 0, function* () {
+            if (yield isVoiceTranscriptEnabledAndToggledOn()) {
+                this.onVoiceTranscriptContactEndEvent.next({ contactId });
+            }
+        });
+    }
+    ;
+    /** Method to remove bio hub data from local storage when call gets disconnected
+     * @param contactKeys - contact keys available in voice contact map
+     * @example removeBioHubFromLocalStorage(contactKeys)
+     **/
+    removeBioHubFromLocalStorage(contactKeys) {
+        const isVoiceBioHubEnabled = isVoiceBioHubFeatureEnabled() && FeatureToggleService.instance.getFeatureToggleSync("release-agent-voiceBioHub-AW-24969" /* FeatureToggles.VOICE_BIO_HUB_FEATURE_TOGGLE */);
+        if (isVoiceBioHubEnabled && contactKeys.length === 1) {
+            const voicBioAgentAssistData = LocalStorageHelper.getItem(StorageKeys.VOICE_BIO_HUB_AGENT_ASSIST);
+            if (voicBioAgentAssistData) {
+                LocalStorageHelper.removeItem(StorageKeys.VOICE_BIO_HUB_AGENT_ASSIST);
+                LocalStorageHelper.removeItem(StorageKeys.VOICE_BIO_HUB_DATA);
+            }
+        }
+    }
+    ;
     /**
      * Method to subscribe the workitem contact event from the agentSession.
      */

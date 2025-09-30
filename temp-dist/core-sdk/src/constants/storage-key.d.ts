@@ -71,6 +71,7 @@ export declare const StorageKeys: {
     CC_RELATESTO_ACTIVITIES_V2: string;
     FINGERPRINT_SHOW: string;
     VOICE_PREFERENCE: string;
+    SHOW_VOICE_TRANSCRIPT: string;
     TENANT_DATA: string;
     /**
      * This key is used to store the ACS email id used during session initiation
@@ -96,6 +97,7 @@ export declare const StorageKeys: {
     FAVORITE_IDS_TOGGLED: string;
     WEM_WS_CONNECTION_STATUS: string;
     AGENT_HIVE_CHANNEL_INFO: string;
+    IS_CONVERSATIONS_STANDALONE: string;
 };
 export declare const NotificationSettings: {
     ACCESSIBILITY: string;

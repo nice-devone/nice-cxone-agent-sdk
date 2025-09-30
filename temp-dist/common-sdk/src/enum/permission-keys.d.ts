@@ -56,5 +56,9 @@ export declare enum PermissionKeys {
     /**
      * permission key whether disable integrated softphone settings options are enabled
      */
-    DISABLE_INTEGRATED_SOFTPHONE_SETTINGS = "DisableIntegratedSoftphoneSettings"
+    DISABLE_INTEGRATED_SOFTPHONE_SETTINGS = "DisableIntegratedSoftphoneSettings",
+    /**
+     * permission key for enabling or disabling the voice transcript feature
+     */
+    VOICE_TRANSCRIPT = "VoiceTranscript"
 }

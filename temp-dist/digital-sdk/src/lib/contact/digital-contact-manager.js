@@ -641,8 +641,7 @@ export class DigitalContactManager {
             if ((autoSummaryStart === null || autoSummaryStart === void 0 ? void 0 : autoSummaryStart.mediaType) === MediaType.DIGITAL) {
                 const businessUnitData = (LocalStorageHelper.getItem(StorageKeys.BUSINESS_UNIT, true) || {});
                 const isAutoSummaryEnabledInBU = (_a = businessUnitData === null || businessUnitData === void 0 ? void 0 : businessUnitData.features) === null || _a === void 0 ? void 0 : _a.find((feature) => feature.productId === 177 && feature.isEnabled);
-                const isAutoSummaryDigitalFeatureEnabled = FeatureToggleService.instance.getFeatureToggleSync('release-cx-agent-auto-summary-digital-AW-23445');
-                if (isAutoSummaryDigitalFeatureEnabled && isAutoSummaryEnabledInBU && !CXoneClient.instance.autoSummaryNotificationService.isConnectionCreated) {
+                if (isAutoSummaryEnabledInBU && !CXoneClient.instance.autoSummaryNotificationService.isConnectionCreated) {
                     const userInfo = CXoneClient.instance.cxoneUser.getUserInfo();
                     const cxoneConfig = CXoneClient.instance.auth.getCXoneConfig();
                     const { aahNotificationWssUri } = cxoneConfig;
