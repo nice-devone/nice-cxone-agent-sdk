@@ -3064,7 +3064,9 @@ const IntegrationComponentLoader = /*#__PURE__*/memo(props => {
   const IntegrationComponent = useMemo(() => /*#__PURE__*/React.lazy(loadIntegrationModule(props.appType, remoteEntryUrl)), [props.appType]);
   //If remote entry file is not loaded, then skip loading embedded module
   if (!ready || failed) {
-    return jsx(Fragment, {});
+    return jsx(Fragment, {
+      children: "not loaded"
+    });
   }
   return jsx(Suspense, Object.assign({
     fallback: null
@@ -3090,6 +3092,7 @@ var CcfAppType;
   CcfAppType["CXoneAgentKustomer"] = "cxa_kustomer";
   CcfAppType["LvAppSpace"] = "lv";
   CcfAppType["CXoneAgentChat"] = "cxac";
+  CcfAppType["CXoneAgentChatTest"] = "test";
 })(CcfAppType || (CcfAppType = {}));
 
 /**
@@ -4869,13 +4872,14 @@ const cxs = Helpers.instance;
  * @example - triggerCRMScreenPop(screenPopData);
  */
 function triggerCRMScreenPop(activityData, action) {
-  var _a, _b, _c, _d;
+  var _a, _b, _c, _d, _e, _f;
   if (!activityData) {
     return;
   }
   const pinRecords = (_a = activityData === null || activityData === void 0 ? void 0 : activityData.result[0]) === null || _a === void 0 ? void 0 : _a.pinRecords;
   const relatedRecords = (_b = activityData === null || activityData === void 0 ? void 0 : activityData.result[0]) === null || _b === void 0 ? void 0 : _b.records;
-  const screenPopBaseUrl = (_d = (_c = activityData.result) === null || _c === void 0 ? void 0 : _c[0]) === null || _d === void 0 ? void 0 : _d.system.baseUrl;
+  const screenPop = (_d = (_c = activityData === null || activityData === void 0 ? void 0 : activityData.result[0]) === null || _c === void 0 ? void 0 : _c.records[0]) === null || _d === void 0 ? void 0 : _d.screenPop;
+  const screenPopBaseUrl = (_f = (_e = activityData.result) === null || _e === void 0 ? void 0 : _e[0]) === null || _f === void 0 ? void 0 : _f.system.baseUrl;
   const screenPopEventArgs = {};
   screenPopEventArgs.detail = {
     contactId: activityData.contactId,
@@ -4911,6 +4915,10 @@ function triggerCRMScreenPop(activityData, action) {
   }
   if (relatedRecords && relatedRecords.length > 0) {
     if (relatedRecords.length === 1) {
+      if (screenPop === false) {
+        return; // If screenPop is false, do not proceed with screen pop  
+      }
+
       handleScreenPop(relatedRecords);
     } else {
       const screenPopRelatedRecords = relatedRecords.filter(record => record.screenPop);

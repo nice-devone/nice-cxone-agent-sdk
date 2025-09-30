@@ -1,6 +1,6 @@
 {
   "name": "@nice-devone/shared-apps-lib",
-  "version": "25.3.1",
+  "version": "25.3.0",
   "sideEffects": false,
   "description": "NICE CXone shared-apps-lib SDK",
   "author": "NICE Ltd.",
@@ -13,12 +13,12 @@
   "module": "./index.js",
   "main": "./index.js",
   "type": "module",
-  "types": "./src\\index.d.ts",
+  "types": "./src/index.d.ts",
   "dependencies": {
     "react": "17.0.2",
     "@reduxjs/toolkit": "1.9.1",
     "react-toastify": "9.1.1",
-    "@nice-devone/i18n": "25.3.1",
+    "@nice-devone/i18n": "25.3.0",
     "@testrtc/watchrtc-sdk": "1.38.3"
   },
   "peerDependencies": {}
