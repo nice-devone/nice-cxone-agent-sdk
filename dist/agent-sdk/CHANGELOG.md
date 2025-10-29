@@ -17,3 +17,7 @@
 - `[Updated]`: Added changes in directory providers to maintain favorites for agents
 - `[Updated]`: Added changes in directory providers to maintain favorites for teams, skills, adddress book and external directory
 - `[Added]`: Added changes to show notifications to agents when recording starts or stops, if the Enhanced Voice Recording Compliance feature in Tenant Management is enabled
+
+## 25.4.0 - 2025-10-29 ##
+
+- `[Fixed]` : CFB fix for Agent Skill listing in Directory search showing wrong queue counts and wait times

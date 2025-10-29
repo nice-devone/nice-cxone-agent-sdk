@@ -12,3 +12,9 @@
 - `[Added]`: Added new interfaces for recording notification data
 - `[Updated]`: Updated client data API model for Email Revamp sorting feature
 - `[Updated]:` FT updated on the list for new versioning service beta release
+
+## 25.4.0 - 2025-10-29 ##
+
+- `[Added]` : FT added for Websocket architecture revamp & new response interface introduced
+- `[Added]`: New storage key added for Focus API revamp for Preview Digitals contacts
+- `[Added]` : New models added & existing HttpClient updated for API WS listener revamp
