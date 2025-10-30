@@ -76,6 +76,10 @@ export declare class CXoneConfiguration {
      */
     dfoAppBaseUri: string;
     /**
+     * @remarks - AAI transcript websocket URI
+     */
+    aaiTranscriptWsUri: string;
+    /**
      * This method to parse CXoneConfiguration data
      * @param data - CXoneConfiguration API response
      * ```
@@ -236,4 +240,15 @@ export declare class CXoneConfiguration {
      * ```
      */
     private getUIQueueWSBaseUri;
+    /**
+     * This method returns the  agent assist transcript WS uri
+     * @returns - api end point
+     * @param userHubArea - userHubArea
+     * @param domain - domain
+     * @example
+     * ```
+     * getAaiTranscriptWsUri('na1','staging.niceincontact.com');
+     * ```
+     */
+    private getAaiTranscriptWsUri;
 }

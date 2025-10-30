@@ -16,6 +16,7 @@ export declare class AgentAssistWSService extends WebsocketClient {
     isWSConnected: boolean;
     onMessageNotification: Subject<AgentAssistBaseResponse>;
     agentAssistProcessorService: AgentAssistProcessorService;
+    private cxoneClientInstance;
     logger: Logger;
     /**
      * constructor for AgentAssistWSService

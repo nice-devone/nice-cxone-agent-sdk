@@ -70,11 +70,19 @@ export declare class CXoneDigitalClient {
      */
     private onLeaderElectionChange;
     /**
-     * Method to update DFO URL
+     * Method to update DFO API URL
      * @example
      * ```
-     * updateDfoWSUrl()
+     * updateDfoApiUrl()
      * ```
      */
-    private updateDfoWSUrl;
+    private updateDfoApiUrl;
+    /**
+     * Method to fetch DFO Websocket URL from DX API & set in CXone config
+     * @example
+     * ```
+     * setDigitalWebSocketUri()
+     * ```
+     */
+    private setDigitalWebSocketUri;
 }

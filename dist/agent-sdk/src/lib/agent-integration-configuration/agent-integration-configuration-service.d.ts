@@ -40,6 +40,21 @@ export declare class AgentIntegrationConfigurationService {
      */
     getDataMappings(configId: string, token: string): Promise<AgentIntegrationDataMappingResult | CXoneSdkError>;
     /**
+     * Method to get studio action Test Summary data
+     * @returns - studio action enchanced workflow data
+     * ```
+     * @example
+     * getTestSearchWorkflows('01899438-147f-433b-945b-f1fde6d91877')
+     * ```
+    */
+    getEWEWorkflowsTestResult(configId: string, workflowId: string, token: string, body: {
+        action: string;
+        interactionID: string;
+        contactID: string;
+        workflowInput?: Record<string, unknown>;
+        workflowInputPayload?: Record<string, unknown>;
+    }): Promise<unknown>;
+    /**
      * Method to get studio action dynamic data mappings data
      * @returns - studio action workflow data
      * ```

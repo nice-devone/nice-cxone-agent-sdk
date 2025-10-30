@@ -26,11 +26,11 @@ export class CXoneTenant {
     checkProductEnablement(productIds) {
         return new Promise((resolve, reject) => {
             this.adminService.getBusinessUnit().then((resp) => {
+                var _a;
                 const buData = resp;
-                const isProductEnabled = buData.features.find((product) => {
+                resolve(Boolean((_a = buData === null || buData === void 0 ? void 0 : buData.features) === null || _a === void 0 ? void 0 : _a.find((product) => {
                     return productIds.includes(product.productId) && product.isEnabled;
-                });
-                resolve(isProductEnabled ? true : false);
+                })));
             }, (error) => {
                 this.logger.error('checkProductEnablement', 'CheckProduct Enablement failed ' + JSON.stringify(error));
                 reject(error);

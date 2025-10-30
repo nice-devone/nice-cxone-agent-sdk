@@ -1,7 +1,9 @@
-import { BulkReplyHistoryResponse, BulkReplyResponse, CcfLogger } from '@nice-devone/agent-sdk';
+import { __awaiter } from "tslib";
+import { BulkReplyHistoryResponse, BulkReplyResponse, CcfLogger, FeatureToggleService } from '@nice-devone/agent-sdk';
 import { CXoneAuth } from '@nice-devone/auth-sdk';
-import { CXoneSdkError, CXoneSdkErrorType, } from '@nice-devone/common-sdk';
-import { HttpUtilService, HttpClient, ApiUriConstants, UrlUtilsService, AdminService, } from '@nice-devone/core-sdk';
+import { CXoneSdkError, CXoneSdkErrorType, AllowedResponseHeaders, CXoneDigitalEventType, } from '@nice-devone/common-sdk';
+import { HttpUtilService, HttpClient, ApiUriConstants, UrlUtilsService, AdminService, LocalStorageHelper, StorageKeys, } from '@nice-devone/core-sdk';
+import { DigitalEventSyncService } from './digital-event-sync-service';
 /**
  * Class to handle digital contact related API calls
  */
@@ -31,8 +33,10 @@ export class DigitalContactService {
         this.DIGITAL_QUICK_REPLIES_OUTBOUND = '/dfo/3.0/quick-responses';
         this.DIGITAL_QR_REPLACE_VARIABLES = '/dfo/3.0/quick-responses/{quickResponseId}/replace-variables'; // TODO: To be replaced by below API facade in future release
         this.QUICK_RESPONSE_REPLACE_VARIABLES = '/rich-message-settings/1.0/quick-responses/{quickResponseId}/replace-variables';
+        this.isWSAPIIntegrationRevampToggleEnabled = FeatureToggleService.instance.getFeatureToggleSync("release-cx-agent-API-websocket-integration-revamp-AW-42181" /* FeatureToggles.REVAMPED_WEBSOCKET_INTEGRATION_PATTERN */) || false;
         this.auth = CXoneAuth.instance;
         this.adminService = AdminService.instance;
+        this.digitalEventSyncService = DigitalEventSyncService.instance;
     }
     /**
      * Method to change status of digital contact
@@ -137,10 +141,11 @@ export class DigitalContactService {
             headers: this.utilService.initHeader(authToken, 'application/json').headers,
         };
         return new Promise((resolve, reject) => {
-            HttpClient.delete(url, reqInit).then((response) => {
+            HttpClient.delete(url, reqInit).then((response) => __awaiter(this, void 0, void 0, function* () {
                 this.logger.info('unassignCustomerContact', 'Case unassigned successfully');
+                yield this.checkIfEventConsumed(response, contactId, CXoneDigitalEventType.CASE_INBOX_UNASSIGNED);
                 resolve(response);
-            }, (error) => {
+            }), (error) => {
                 const errorResponse = new CXoneSdkError(CXoneSdkErrorType.CXONE_API_ERROR, 'Case unassign failed', error);
                 this.logger.error('unassignCustomerContact', errorResponse.toString());
                 reject(errorResponse);
@@ -166,15 +171,48 @@ export class DigitalContactService {
             body: targetRoutingQueue,
         };
         return new Promise((resolve, reject) => {
-            HttpClient.put(url, reqInit).then((response) => {
+            HttpClient.put(url, reqInit).then((response) => __awaiter(this, void 0, void 0, function* () {
                 this.logger.info('changeRoutingQueue', 'Contact assignment to routing queue successfully');
+                yield this.checkIfEventConsumed(response, contactId, CXoneDigitalEventType.CASE_INBOX_UNASSIGNED);
                 resolve(response);
-            }, (error) => {
+            }), (error) => {
                 const errorResponse = new CXoneSdkError(CXoneSdkErrorType.CXONE_API_ERROR, 'Contact assignment to routing queue failed', error);
                 this.logger.error('changeRoutingQueue', errorResponse.toString());
                 reject(errorResponse);
             });
         });
+    }
+    /**
+     * Method to check if event is already consumed
+     * @param response - Http response from API
+     * @param contactId - Contact Id of the digital contact
+     * @param eventName - Event name to check
+     * @returns - isEventConsumed
+     * @example -
+     * checkIfEventConsumed(response, '645337', 'CASE_INBOX_ASSIGNED')
+    */
+    checkIfEventConsumed(response, contactId, eventName) {
+        return __awaiter(this, void 0, void 0, function* () {
+            // if WS revamp FT is off return false as no need to check for event consumption
+            if (!this.isWSAPIIntegrationRevampToggleEnabled)
+                return false;
+            const traceId = this.getTraceIdFromResponseHeader(response);
+            let isEventConsumed = false;
+            isEventConsumed = yield this.digitalEventSyncService.handleDigitalEventSync({ contactId: contactId, eventName: eventName, traceId: traceId });
+            return isEventConsumed;
+        });
+    }
+    /**
+     * Method to get logged in user id from local storage
+     * @returns - User Id of the logged in user
+     * @example -
+     * getLoggedInUserId()
+    */
+    getLoggedInUserId() {
+        var _a;
+        // get current logged in user info from local storage
+        const userInfoFromStorage = LocalStorageHelper.getItem(StorageKeys.USER_INFO, true);
+        return (_a = userInfoFromStorage === null || userInfoFromStorage === void 0 ? void 0 : userInfoFromStorage.userId) !== null && _a !== void 0 ? _a : null;
     }
     /**
      * Method to assign customer contact to User
@@ -195,11 +233,21 @@ export class DigitalContactService {
             headers: this.utilService.initHeader(authToken, 'application/json').headers,
             body: targetUser,
         };
+        let eventName;
+        // In case of transferring case to another agent event name will be CASE_INBOX_UNASSIGNED
+        if (this.getLoggedInUserId() !== cxoneUserId) {
+            eventName = CXoneDigitalEventType.CASE_INBOX_UNASSIGNED;
+        }
+        else {
+            // In case of self assignment or assignment from queue to agent event name will be CASE_INBOX_ASSIGNED
+            eventName = CXoneDigitalEventType.CASE_INBOX_ASSIGNED;
+        }
         return new Promise((resolve, reject) => {
-            HttpClient.put(url, reqInit).then((response) => {
+            HttpClient.put(url, reqInit).then((response) => __awaiter(this, void 0, void 0, function* () {
                 this.logger.info('changeAssignedUser', 'Contact assignment to user successfully');
+                yield this.checkIfEventConsumed(response, contactId, eventName);
                 resolve(response);
-            }, (error) => {
+            }), (error) => {
                 const errorResponse = new CXoneSdkError(CXoneSdkErrorType.CXONE_API_ERROR, 'Contact assignment to user failed', error);
                 this.logger.error('changeAssignedUser', errorResponse.toString());
                 reject(errorResponse);
@@ -831,6 +879,17 @@ export class DigitalContactService {
                 reject(errorResponse);
             });
         });
+    }
+    /**
+     * Method to get traceId from response headers
+     * @param response - HttpResponse object
+     * @example - getTraceIdFromResponseHeader(response)
+     * @returns - traceId string or empty string if not found
+     */
+    getTraceIdFromResponseHeader(response) {
+        var _a;
+        const traceIdHeader = (_a = response === null || response === void 0 ? void 0 : response.headers) === null || _a === void 0 ? void 0 : _a.find(currentHeader => { var _a; return ((_a = currentHeader === null || currentHeader === void 0 ? void 0 : currentHeader.name) === null || _a === void 0 ? void 0 : _a.toLowerCase()) === AllowedResponseHeaders.TRACE_ID; });
+        return traceIdHeader ? traceIdHeader.value : '';
     }
 }
 //# sourceMappingURL=digital-contact-service.js.map

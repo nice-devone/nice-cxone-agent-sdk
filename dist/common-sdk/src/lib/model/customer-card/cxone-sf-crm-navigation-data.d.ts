@@ -18,6 +18,10 @@ export interface SfCrmNavigationDataResponseEvent {
        * navigation entity name
        */
     mappingFieldName: string;
+    /**
+       * navigation entity Type
+       */
+    entityType?: string;
 }
 /**
  * Model for the CCF Name Relates Response Event
@@ -38,6 +42,7 @@ export interface CcfNameRelatesResponseEvent {
 export interface SfCrmNavigationEntity {
     entityValue: string;
     entityName: string;
+    entityType?: string;
 }
 /**
  * Model for Navigation Data
@@ -64,5 +69,8 @@ export interface SfCrmNavigationDataState {
 }
 export interface NameRelatesToState {
     [key: string]: string;
+}
+export declare enum RecordTypeName {
+    LEAD = "lead"
 }
 export {};

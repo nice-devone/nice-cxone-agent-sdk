@@ -8,6 +8,7 @@ export declare class ApiUriConstants {
     static JOIN_AGENT_SESSION_URI: string;
     static GET_NEXT_EVENT_URI: string;
     static GET_NEXT_EVENT_TIMEOUT: string;
+    static CUSTOM_GET_NEXT_EVENT_TIMEOUT: string;
     static KEEP_ALIVE_URI: string;
     static TOTAL_RETRY_ATTEMPTS_FOR_OFFLINE_EVENTS: number;
     static ERROR_RETRY_INTERVAL: number;
@@ -117,6 +118,7 @@ export declare class ApiUriConstants {
     static GET_AGENT_INTEGRATION_DATA_MAPPING_URI: string;
     static GET_AGENT_INTEGRATION_DYNAMIC_DATA_MAPPING_URI: string;
     static MESSAGE_TAG: string;
+    static GET_AGENT_INTEGRATION_WORKFLOW_TEST_URI: string;
     static GET_MESSAGE_TAG: string;
     static GET_MESSAGE_TAGS_BY_PAGE: string;
     static SEARCH_DIGITAL_TAG: string;

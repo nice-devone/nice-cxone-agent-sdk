@@ -15,6 +15,14 @@ var EventKeys;
      */
     EventKeys["ARROW_RIGHT"] = "ArrowRight";
     /**
+     * Up Arrow key of key board
+     */
+    EventKeys["ARROW_UP"] = "ArrowUp";
+    /**
+     * Down Arrow key of key board
+     */
+    EventKeys["ARROW_DOWN"] = "ArrowDown";
+    /**
      * Enter of key board
      */
     EventKeys["ENTER"] = "Enter";
@@ -50,5 +58,13 @@ var EventKeys;
      * U key in the numpad of key board
      */
     EventKeys["KEY_U"] = "KeyU";
+    /**
+      * D key in the numpad of key board
+      */
+    EventKeys["KEY_D"] = "KeyD";
+    /**
+     * Space key of key board
+     */
+    EventKeys["SPACE"] = " ";
 })(EventKeys = exports.EventKeys || (exports.EventKeys = {}));
 //# sourceMappingURL=event-keys.js.map

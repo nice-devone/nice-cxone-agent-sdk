@@ -47,6 +47,7 @@ class CXoneConfiguration {
             this.aahNotificationWssUri = this.getAahNotificationWssUri(userHubArea, this.domain);
             this.uiQueueWSBaseUri = this.getUIQueueWSBaseUri(userHubArea, this.domain);
             this.dfoAppBaseUri = this.getDfoAppBaseUri(userHubArea, this.domain);
+            this.aaiTranscriptWsUri = this.getAaiTranscriptWsUri(userHubArea, this.domain);
         }
     }
     /**
@@ -196,7 +197,7 @@ class CXoneConfiguration {
         // Once DFO moves to new domain, we will remove the hard coding logic
         const fedRampDomainForDfo = 'nicecxone-gov.com';
         const queryParams = `?tenantId=${wsQueryParams === null || wsQueryParams === void 0 ? void 0 : wsQueryParams.tenantId}&userId=${wsQueryParams === null || wsQueryParams === void 0 ? void 0 : wsQueryParams.userId}`;
-        const finalDfoBaseUri = isWebSocket ? 'wss://event-hub-de-' + userHubArea + '.' + fedRampDomainForDfo + queryParams : 'https://api-de-' + userHubArea + '.' + fedRampDomainForDfo;
+        const finalDfoBaseUri = isWebSocket ? 'wss://eventhub-de-' + userHubArea + '.' + fedRampDomainForDfo + queryParams : 'https://api-de-' + userHubArea + '.' + fedRampDomainForDfo;
         return finalDfoBaseUri;
     }
     /**
@@ -211,7 +212,7 @@ class CXoneConfiguration {
      * ```
      */
     formWssUri(userHubArea, domain, wsQueryParams) {
-        return 'wss://event-hub-de-' + userHubArea + '.' + domain + `?tenantId=${wsQueryParams.tenantId}&userId=${wsQueryParams.userId}`;
+        return 'wss://eventhub-de-' + userHubArea + '.' + domain + `?tenantId=${wsQueryParams.tenantId}&userId=${wsQueryParams.userId}`;
     }
     /**
      *
@@ -225,6 +226,21 @@ class CXoneConfiguration {
     getUIQueueWSBaseUri(userHubArea, domain) {
         return 'https://websocket-' + userHubArea + '.' + domain + '/ui-queue/du01/manager/node';
     }
+    ;
+    /**
+     * This method returns the  agent assist transcript WS uri
+     * @returns - api end point
+     * @param userHubArea - userHubArea
+     * @param domain - domain
+     * @example
+     * ```
+     * getAaiTranscriptWsUri('na1','staging.niceincontact.com');
+     * ```
+     */
+    getAaiTranscriptWsUri(userHubArea, domain) {
+        return 'wss://websocket-' + userHubArea + '.' + domain + '/aai-notification/transcript/ws';
+    }
+    ;
 }
 exports.CXoneConfiguration = CXoneConfiguration;
 //# sourceMappingURL=cxone-configuration.js.map

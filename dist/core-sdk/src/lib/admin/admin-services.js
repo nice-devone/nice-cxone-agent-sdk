@@ -725,10 +725,17 @@ export class AdminService {
             const reqInit = this.utilService.initHeader(this.accessToken, 'application/json');
             const url = this.cxOneConfig.apiFacadeBaseUri + ApiUriConstants.AGENT_PROFILE;
             HttpClient.get(url, reqInit).then((response) => {
+                var _a;
                 this.logger.info('getAgentProfileDetails', 'Get Agent Profile Details Successfully');
-                const agentProfileMappedSettings = this.apiParser.parseAgentConfiguration(response);
-                LocalStorageHelper.setItem(StorageKeys.AGENT_PROFILE_CONFIGURATION, JSON.stringify(agentProfileMappedSettings));
-                resolve(agentProfileMappedSettings);
+                if ((_a = response === null || response === void 0 ? void 0 : response.data) === null || _a === void 0 ? void 0 : _a.agentProfileId) {
+                    const agentProfileMappedSettings = this.apiParser.parseAgentConfiguration(response);
+                    LocalStorageHelper.setItem(StorageKeys.AGENT_PROFILE_CONFIGURATION, JSON.stringify(agentProfileMappedSettings));
+                    resolve(agentProfileMappedSettings);
+                }
+                else {
+                    this.logger.info('getAgentProfileDetails', 'No Agent Profile Assigned');
+                    reject(new CXoneSdkError(CXoneSdkErrorType.NO_DATA_FOUND, 'No active Desktop Profile Assigned', response === null || response === void 0 ? void 0 : response.data));
+                }
             }, (error) => {
                 var _a;
                 this.logger.error('getAgentProfileDetails', 'Get agent profile details failed' + JSON.stringify(error));

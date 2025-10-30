@@ -1,12 +1,13 @@
 import { __awaiter } from "tslib";
 import { GetNextEventType } from '../../enum/get-next-event-type';
-import { CallContactEventYup, MuteEvent, UpdatePermissionsEvent, AgentSessionEndEvent, AgentSessionStartEvent, CXoneIndicator, AgentStateEvent, UpdateUnavailableCodeEvent, AgentLegEvent, DigitalContactEvent, CXonePageOpen, CXoneRunApp, AgentSessionStatus, MCHSetting, CXonePopUrl, AgentWorkflowResponseEvent, AgentWorkflowRequestEvent, VoiceMailContactEventYup, CXoneAgentAssist, CommitmentEvent, VoiceMailPlayBackEventYup, CommitmentStatusEvent, UpdateNetworkTimeoutEvent, WorkItemContactEventYup, CoBrowseEvent, parseBooleanString, WorkItemContactStatus, MediaType, MediaTypeId, CXoneCustomScreenpop, } from '@nice-devone/common-sdk';
+import { CallContactEventYup, MuteEvent, UpdatePermissionsEvent, AgentSessionEndEvent, AgentSessionStartEvent, CXoneIndicator, AgentStateEvent, UpdateUnavailableCodeEvent, AgentLegEvent, DigitalContactEvent, CXonePageOpen, CXoneRunApp, AgentSessionStatus, MCHSetting, CXonePopUrl, AgentWorkflowResponseEvent, AgentWorkflowRequestEvent, VoiceMailContactEventYup, CXoneAgentAssist, CommitmentEvent, VoiceMailPlayBackEventYup, CommitmentStatusEvent, UpdateNetworkTimeoutEvent, WorkItemContactEventYup, CoBrowseEvent, parseBooleanString, MediaType, MediaTypeId, CXoneCustomScreenpop, } from '@nice-devone/common-sdk';
 import { ACDSessionManager } from '../agent/session/acd-session-manager';
 import { GetNextEventProvider, UIQueueWsProvider } from '../agent';
 import { LocalStorageHelper } from '../../util/storage-helper-local';
 import { StorageKeys } from '../../constants/storage-key';
 import { AcdCustomEventName } from '../../enum/acd-custom-event-name';
 import { Logger } from '../../logger/logger';
+import { CallContactEventStatus } from '../../enum/call-contact-event-status';
 /**
  * This class will handle all the get next event response according to event type
  */
@@ -35,7 +36,7 @@ export class CXoneGetNextAdapter {
             switch ((event === null || event === void 0 ? void 0 : event.Type) || (event === null || event === void 0 ? void 0 : event.type)) {
                 case GetNextEventType.CALL_CONTACT_EVENT: {
                     const callContactEvent = CallContactEventYup.cast(event);
-                    if (callContactEvent.status === WorkItemContactStatus.DISCONNECTED) {
+                    if (callContactEvent.status === CallContactEventStatus.DISCONNECTED && callContactEvent.finalState) {
                         this.agentSession.agentAssistWebSocketUnsubsribeSubject.next(callContactEvent.contactId.toString());
                     }
                     this.agentSession.callContactEventSubject.next(callContactEvent);
@@ -187,6 +188,20 @@ export class CXoneGetNextAdapter {
                         }
                         if ((event === null || event === void 0 ? void 0 : event.eventName) === AcdCustomEventName.AGENT_WORKFLOW_CREATE_PAYLOAD) {
                             this.agentSession.agentWorkflowCreatePayloadEvent.next(event === null || event === void 0 ? void 0 : event.data);
+                        }
+                    }
+                    if (event === null || event === void 0 ? void 0 : event.data) {
+                        let parsedCustomEventData;
+                        try {
+                            parsedCustomEventData = JSON.parse(event.data);
+                        }
+                        catch (error) {
+                            this.logger.error('handleGetNextResponse', 'Failed in Custom Event Parsing' + error);
+                        }
+                        const { eventName } = event;
+                        const isNotPredefinedCustomEvent = !eventName || !Object.values(AcdCustomEventName).includes(eventName);
+                        if (isNotPredefinedCustomEvent) {
+                            this.agentSession.onAgentCustomEvent.next(parsedCustomEventData);
                         }
                     }
                     if ((((_c = event === null || event === void 0 ? void 0 : event.data) === null || _c === void 0 ? void 0 : _c.includes('https://app.surfly')) && ((_d = event === null || event === void 0 ? void 0 : event.data) === null || _d === void 0 ? void 0 : _d.includes('agent_token='))) ||

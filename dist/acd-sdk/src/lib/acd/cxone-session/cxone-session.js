@@ -28,6 +28,7 @@ export class CXoneSession {
         this.naturalCallingSkillListSubject = new Subject();
         this.hoursOfOperationSubject = new Subject();
         this.isUiQueueEnabled = false;
+        this.onAgentCustomEvent = new Subject();
         this.auth = CXoneAuth.instance;
         this.user = CXoneUser.instance;
         this.agentStateService = AgentStateService.instance;
@@ -43,6 +44,7 @@ export class CXoneSession {
         this.subscribeNetworkOfflineSubjectChange();
         this.subscribeNaturalCallingSkillListEvent();
         this.subscribeHoursOfOperationEvent();
+        this.subscribeOnAgentCustomEvent();
     }
     /**
     * Method to start the session
@@ -186,6 +188,14 @@ export class CXoneSession {
     subscribeHoursOfOperationEvent() {
         this.acdSessionManager.hoursOfOperationEvent.subscribe((hoursOfOperationEventData) => {
             this.hoursOfOperationSubject.next(hoursOfOperationEventData);
+        });
+    }
+    /**
+     * Method to subscribe to the agent custom event
+     */
+    subscribeOnAgentCustomEvent() {
+        this.acdSessionManager.onAgentCustomEvent.subscribe((event) => {
+            this.onAgentCustomEvent.next(event);
         });
     }
 }

@@ -124,8 +124,9 @@ export class CXoneDigitalClient {
                         // @TODO: handled error from console now. will remove this quick fix after fall(AW-3982).
                         try {
                             this.digitalService = new DigitalService();
+                            this.updateDfoApiUrl();
                             yield this.getDigitalUserDetails();
-                            this.updateDfoWSUrl();
+                            yield this.setDigitalWebSocketUri(); // DFO updateDfoWSUrl method is integrated within this logic as fallback (Cell Based Arch Revamp)
                             this.subscribePollingResponseMessage();
                             this.digitalContactManager.initializeDigital();
                             this.cxoneDigitalWebsocket = new CXoneDigitalWebsocket();
@@ -191,20 +192,54 @@ export class CXoneDigitalClient {
         });
     }
     /**
-     * Method to update DFO URL
+     * Method to update DFO API URL
      * @example
      * ```
-     * updateDfoWSUrl()
+     * updateDfoApiUrl()
      * ```
      */
-    updateDfoWSUrl() {
+    updateDfoApiUrl() {
         const cxoneConfig = this.auth.getCXoneConfig();
-        const isToggleEnabled = FeatureToggleService.instance.getFeatureToggleSync("utility-cxa-eventhub-websocket-url-change-AW-32020" /* FeatureToggles.EVENTHUB_WEBSOCKET_URL_CHANGE_FEATURE_TOGGLE */) || false;
+        const isToggleEnabled = FeatureToggleService.instance.getFeatureToggleSync("release-cxa-dfo-api-facade-url-update-AW-44617" /* FeatureToggles.DFO_API_FACADE_URL_UPDATE */) || false;
         if (isToggleEnabled) {
-            cxoneConfig.dfoWssUri = cxoneConfig.dfoWssUri.replace('wss://event-hub-de-', 'wss://eventhub-de-');
+            cxoneConfig.dfoApiBaseUri = cxoneConfig.dfoApiBaseUri.replace('https://api-de-', 'https://api-');
             this.auth.setCXoneConfig(cxoneConfig);
             LocalStorageHelper.setItem(StorageKeys.CXONE_CONFIG, cxoneConfig);
         }
+    }
+    /**
+     * Method to fetch DFO Websocket URL from DX API & set in CXone config
+     * @example
+     * ```
+     * setDigitalWebSocketUri()
+     * ```
+     */
+    setDigitalWebSocketUri() {
+        return __awaiter(this, void 0, void 0, function* () {
+            const isDfoWSRevampToggleEnabled = FeatureToggleService.instance.getFeatureToggleSync("release-cx-agent-revamped-eventhub-websocket-AW-44146" /* FeatureToggles.DIGITAL_WEBSOCKET_REVAMP_TOGGLE */) || false;
+            if (isDfoWSRevampToggleEnabled) {
+                try {
+                    const eventHubApiResponse = yield this.digitalService.getDigitalWebSocketBaseUri();
+                    if (eventHubApiResponse && eventHubApiResponse.websocketUrl) {
+                        this.logger.info('setDigitalWebSocketUri', 'New WebSocket URL successfully fetched from DX API' + JSON.stringify(eventHubApiResponse));
+                        const loggedInUserInfo = this.cxoneUser.getUserInfo();
+                        const cxoneConfig = this.auth.getCXoneConfig();
+                        cxoneConfig.dfoWssUri = eventHubApiResponse.websocketUrl + '?tenantId=' + loggedInUserInfo.tenantId + '&userId=' + loggedInUserInfo.userId;
+                        this.auth.setCXoneConfig(cxoneConfig);
+                        LocalStorageHelper.setItem(StorageKeys.CXONE_CONFIG, cxoneConfig);
+                    }
+                    else {
+                        this.logger.info('setDigitalWebSocketUri', 'No WebSocket URL Fetched from API, so Host Level URL retained');
+                    }
+                }
+                catch (error) {
+                    this.logger.error('setDigitalWebSocketUri', 'Exception while setting WebSocket URL from DX API' + JSON.stringify(error));
+                }
+            }
+            else {
+                this.logger.info('setDigitalWebSocketUri', 'No WebSocket URL Change as WS Revamp FT is OFF, So Host Level URL retained');
+            }
+        });
     }
 }
 //# sourceMappingURL=cxone-digital-client.js.map

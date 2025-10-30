@@ -7,4 +7,5 @@ export interface AgentAssistWSRequest {
     subscriptions: string[];
     providerId: string;
     metadata?: any;
+    subCategory?: string;
 }

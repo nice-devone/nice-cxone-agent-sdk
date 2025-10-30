@@ -188,6 +188,7 @@ export class CXoneDigitalContact extends CXoneContact {
                     eventId: validatedResponse.eventId,
                     eventObject: validatedResponse.eventObject,
                     eventType: validatedResponse.eventType,
+                    traceId: validatedResponse === null || validatedResponse === void 0 ? void 0 : validatedResponse.traceId,
                 };
                 this.eventDetails = receivedEventData;
                 this.case = data === null || data === void 0 ? void 0 : data.case;

@@ -23,6 +23,8 @@ export declare class DigitalContactService {
     private DIGITAL_QUICK_REPLIES_OUTBOUND;
     private DIGITAL_QR_REPLACE_VARIABLES;
     private QUICK_RESPONSE_REPLACE_VARIABLES;
+    private digitalEventSyncService;
+    private isWSAPIIntegrationRevampToggleEnabled;
     /**
      * @example
      * ```
@@ -68,6 +70,23 @@ export declare class DigitalContactService {
     */
     changeRoutingQueue(contactId: string, skillId: string): Promise<HttpResponse | CXoneSdkError>;
     /**
+     * Method to check if event is already consumed
+     * @param response - Http response from API
+     * @param contactId - Contact Id of the digital contact
+     * @param eventName - Event name to check
+     * @returns - isEventConsumed
+     * @example -
+     * checkIfEventConsumed(response, '645337', 'CASE_INBOX_ASSIGNED')
+    */
+    private checkIfEventConsumed;
+    /**
+     * Method to get logged in user id from local storage
+     * @returns - User Id of the logged in user
+     * @example -
+     * getLoggedInUserId()
+    */
+    private getLoggedInUserId;
+    /**
      * Method to assign customer contact to User
      * @param contactId - Contact Id of the digital contact
      * @param userId - User Id to whom the contact it to be assigned
@@ -77,7 +96,7 @@ export declare class DigitalContactService {
      * changeAssignedUser('123332', '645337')
      * ```
     */
-    changeAssignedUser(contactId: string, cxoneUserId: string): Promise<HttpResponse>;
+    changeAssignedUser(contactId: string, cxoneUserId: string): Promise<HttpResponse | CXoneSdkError>;
     /**
      * Method to send reply
      * @param channelId - channel Id
@@ -269,4 +288,11 @@ export declare class DigitalContactService {
      * @example - fetchQuickResponseReplaceVariable('12ynj23', \{contact: \{contactNumber: '12345'\}, externalVariables: []\})
      */
     fetchQuickResponseReplaceVariable(quickResponseId: string, digitalContactVariableDetails: CXoneQuickReplyReplaceVariableRequest): Promise<HttpResponse>;
+    /**
+     * Method to get traceId from response headers
+     * @param response - HttpResponse object
+     * @example - getTraceIdFromResponseHeader(response)
+     * @returns - traceId string or empty string if not found
+     */
+    getTraceIdFromResponseHeader(response: HttpResponse): string;
 }

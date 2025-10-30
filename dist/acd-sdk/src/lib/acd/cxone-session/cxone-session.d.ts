@@ -16,6 +16,7 @@ export declare class CXoneSession {
     naturalCallingSkillListSubject: Subject<boolean>;
     hoursOfOperationSubject: Subject<unknown>;
     private isUiQueueEnabled;
+    onAgentCustomEvent: Subject<AgentSessionResponse>;
     /**
      * get instance for CXoneSession
      * @example
@@ -86,4 +87,8 @@ export declare class CXoneSession {
      * Method to subscribe to the hours of operation event
      */
     private subscribeHoursOfOperationEvent;
+    /**
+     * Method to subscribe to the agent custom event
+     */
+    private subscribeOnAgentCustomEvent;
 }

@@ -5,7 +5,7 @@ import { HttpHeader } from '../http-header/http-header';
 export declare class HttpResponse {
     status: number;
     statusText: string;
-    headers?: HttpHeader[];
+    headers: HttpHeader[];
     private body;
     /**
      * constructor to initialise the data members for http response object

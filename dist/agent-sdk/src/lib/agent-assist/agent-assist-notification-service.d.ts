@@ -5,6 +5,7 @@ export interface AgentAssistInput {
     contactId: string;
     providerId: string;
     subscriptions: string[];
+    subCategory?: string;
 }
 /**
  *  web socket base class for Agent assist notification

@@ -46,3 +46,4 @@ export * from './util/feature-toggle-services';
 export * from './enum/originating-service-identifier';
 export * from './lib/admin/model/agent-profile-settings';
 export * from './enum/agent-profile-configurations';
+export * from './enum/get-next-event-sub-category';

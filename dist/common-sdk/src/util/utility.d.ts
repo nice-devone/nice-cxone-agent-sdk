@@ -1,6 +1,7 @@
 import { CcfInteractionSearchFilterValues } from '../lib/model/digital/ccf-interaction-search-filter-values';
 import { CXoneDigitalMessageSearchRequest } from '../lib/model/digital/cxone-digital-message-search-request';
 import { CXoneDigitalThreadSearchRequest } from '../lib/model/digital/cxone-digital-thread-search-request';
+import { HttpHeader } from '../lib/http/http-header/http-header';
 /**
  * Use to parse the string properties with "True" or "False" values to corresponding boolean value
  * @param value - string values
@@ -164,3 +165,10 @@ export declare const formatTimestamp: (locale: string, timestamp: string | Date)
  * @example validatePort('8080');
  */
 export declare const validatePort: (port: string | number) => boolean;
+/**
+ * Normalizing headers into an array with lower-cased header names
+ * @param headers - headers to normalize
+ * @returns Array of normalized headers
+ * @example normalizeHeaders('X-Custom-Header': 'value');
+ */
+export declare function normalizeHeaders(headers: Headers | Record<string, string> | HttpHeader[] | undefined): [string, string][];

@@ -33,6 +33,7 @@ export class DigitalService {
         this.DELETE_MESSAGE_CONTENT = '/dfo/3.0/messages/{messageId}/content-removal';
         this.ERASE_MESSAGE_AUTHOR_NAME = '/internal/2.0/frontend-app-state?nodesToFetch=configurationEnvironment';
         this.TYPING_INDICATOR_FOR_PATRON = '/dfo/3.0/channels/{channelId}/threads/{threadIdOnExternalPlatform}/sender-actions';
+        this.GET_DIGITAL_WEBSOCKET_URL = '/dfo/3.0/event-hub-url'; // New Cell based DFO Architecture needs us to use this API for getting WS URL
         /**
          * Method to get available languages for translation
          * @returns - languages
@@ -411,6 +412,23 @@ export class DigitalService {
                 (yield (db === null || db === void 0 ? void 0 : db.get(IndexDBStoreNames.QUICKREPLIESOUTBOUND, IndexDBKeyNames.FAV_QUICK_REPLIES_OUTBOUND)))
                 : (yield (db === null || db === void 0 ? void 0 : db.get(IndexDBStoreNames.QUICKREPLIES, IndexDBKeyNames.FAV_QUICK_REPLIES)));
             return favQuickRepliesfromIndexDB;
+        });
+    }
+    /**
+   * Method to put fav quick Replies in IDB
+   * @returns
+   * @example
+   * ```
+   * putFavQuickReplies([{id:2,isFavorite:true}],IndexDBStoreNames.QUICKREPLIES,IndexDBKeyNames.FAV_QUICK_REPLIES)
+   * ```
+   * @param favQRObjects - represents favorite  quick replies array
+   * @param idbStoreName - represents indexdb store name
+   * @param idbKeyName - represents indexdb key name
+   */
+    putFavQuickReplies(favQRObjects, idbStoreName, idbKeyName) {
+        return __awaiter(this, void 0, void 0, function* () {
+            const db = yield dbInstance();
+            yield db.put(idbStoreName, favQRObjects, idbKeyName);
         });
     }
     /**
@@ -1162,6 +1180,29 @@ export class DigitalService {
                 const errorResponse = new CXoneSdkError(CXoneSdkErrorType.CXONE_API_ERROR, `Typing indicator ${typingActionType} set failed`, error);
                 this.logger.error('setTypingIndicatorForPatron', errorResponse.toString());
                 reject(errorResponse);
+            });
+        });
+    }
+    /**
+     * Method to get the digital websocket URL (as per new DFO Cell Based Architecture)
+     * @returns - Base URI of the DFO WebSocket Connection
+     * @example - getDigitalWebSocketBaseUri()
+     */
+    getDigitalWebSocketBaseUri() {
+        return __awaiter(this, void 0, void 0, function* () {
+            const baseUrl = this.auth.getCXoneConfig().dfoApiBaseUri;
+            const authToken = this.auth.getAuthToken().accessToken;
+            const url = baseUrl + this.GET_DIGITAL_WEBSOCKET_URL;
+            const reqInit = this.utilService.initHeader(authToken);
+            return new Promise((resolve, reject) => {
+                HttpClient.get(url, reqInit).then((response) => __awaiter(this, void 0, void 0, function* () {
+                    const responseData = response.data;
+                    resolve(responseData);
+                }), (error) => {
+                    const errorResponse = new CXoneSdkError(CXoneSdkErrorType.CXONE_API_ERROR, 'Error in getting WebSocket URL from DX API', error);
+                    this.logger.error('getDigitalWebSocketBaseUri', errorResponse.toString());
+                    reject(errorResponse);
+                });
             });
         });
     }
