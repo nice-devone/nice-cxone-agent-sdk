@@ -31,9 +31,9 @@ Ensure these dependencies are also installed and configured correctly for proper
 
 ### Breaking Change
 
-#### Important for Version 25.2.0
+#### Important for Version 25.2.0 onwards
 
-When using version **25.2.0**, you must include the `originatingServiceIdentifier` parameter in your `AuthSettings`. This is required for CMA SDK consumers to provide a meaningful identifier.
+When using version **25.2.0** onwards, you must include the `originatingServiceIdentifier` parameter in your `AuthSettings`. This is required for CMA SDK consumers to provide a meaningful identifier.
 Refer to the "Initialize CXoneAuth Instance" section above for an example of how to include this parameter.
 
 #### 1. Installation
