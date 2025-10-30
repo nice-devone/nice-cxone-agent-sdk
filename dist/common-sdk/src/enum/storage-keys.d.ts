@@ -7,4 +7,6 @@ export declare const UIStorageKeys: {
        */
     SLA_CONTACT_DETAILS: string;
     LV_EXPERIENCE_RECORDS: string;
+    DIGITAL_PREVIEW_CONTACT: string;
+    PREVIEW_CASES: string;
 };

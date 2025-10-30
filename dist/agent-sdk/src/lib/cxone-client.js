@@ -267,7 +267,7 @@ export class CXoneClient {
             this.transcript = new TranscriptService();
             this.notification = new CXoneNotificationManager(CXoneClient.instance.cxoneTenant);
             this.voiceBioHubService = new VoiceBioHubService();
-            this.cxoneTenant.checkProductEnablement([CXoneProductFeature.UI_QUEUE_WS]).then((resp) => {
+            this.cxoneTenant.checkProductEnablementFromTenantData([CXoneProductFeature.UI_QUEUE_WS]).then((resp) => {
                 this.isUIQueueEnabled = !!resp;
                 this.logger.info('initAuthDependentModules', 'UI Queue enablement: ' + this.isUIQueueEnabled);
             }).catch(() => {

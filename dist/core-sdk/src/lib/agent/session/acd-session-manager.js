@@ -73,6 +73,8 @@ export class ACDSessionManager {
         this._rejectEvent = new Subject();
         this._callControlEvent = new Subject();
         this.isEventQueueResized = false;
+        this._onAgentCustomEvent = new Subject();
+        this._aaVoiceTranscriptEventSubject = new ReplaySubject(1);
         /**
          * Posts custom form data
          * @param contactId - sendor contact id
@@ -397,6 +399,15 @@ export class ACDSessionManager {
      */
     get hoursOfOperationEvent() {
         return this._onHoursOfOperationEvent;
+    }
+    /**
+     * @example -
+     * ```
+     * const agentCustomEvent = acdSession.onAgentCustomEvent
+     * ```
+     */
+    get onAgentCustomEvent() {
+        return this._onAgentCustomEvent;
     }
     /**
      * Method to create singleton object of the class
@@ -783,6 +794,15 @@ export class ACDSessionManager {
     */
     get customScreenpopSubject() {
         return this._customScreenpopSubject;
+    }
+    /**
+     * @example -
+     * ```
+     * const aaVoiceTranscriptEventSubject  = acdSession.aaVoiceTranscriptEventSubject
+     * ```
+     */
+    get aaVoiceTranscriptEventSubject() {
+        return this._aaVoiceTranscriptEventSubject;
     }
 }
 //# sourceMappingURL=acd-session-manager.js.map

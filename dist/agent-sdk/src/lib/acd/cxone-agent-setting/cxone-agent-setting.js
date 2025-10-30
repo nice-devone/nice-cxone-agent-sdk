@@ -2,7 +2,6 @@ import { __awaiter } from "tslib";
 import { ACDSessionManager, AdminService, clearIndexDbStore, dbInstance, IndexDBKeyNames, IndexDBStoreNames, LocalStorageHelper, Logger, StorageKeys } from '@nice-devone/core-sdk';
 import { CXoneClientData, CXoneSdkError, CXoneSdkErrorType } from '@nice-devone/common-sdk';
 import { Subject } from 'rxjs';
-import { FeatureToggleService } from '../../feature-toggle';
 /**
  * Class to manage agent setting
  */
@@ -69,19 +68,10 @@ export class CXoneAgentSetting {
     updateAgentClientDataSettings(updatedData) {
         var _a;
         const currentClientDataObj = (_a = LocalStorageHelper.getItem(StorageKeys.CLIENT_DATA, true)) !== null && _a !== void 0 ? _a : {};
-        const isInteractionTabToggled = FeatureToggleService.instance.getFeatureToggleSync("release-cx-agent-interaction-tab-changes-AW-24221" /* FeatureToggles.INTERACTION_TAB_FEATURE_TOGGLE */);
-        if (isInteractionTabToggled) {
-            const newClientDatObj = new CXoneClientData().mapperIncludingSearchAppSettings(currentClientDataObj, updatedData);
-            const updatedClientDataObj = Object.assign(Object.assign({}, currentClientDataObj), newClientDatObj);
-            this.logger.info('updateAgentClientDataSettings', 'Updated client data:-' + updatedClientDataObj);
-            return this.adminService.putClientData(updatedClientDataObj);
-        }
-        else {
-            const newClientDatObj = new CXoneClientData().mapper(currentClientDataObj, updatedData);
-            const updatedClientDataObj = Object.assign(Object.assign({}, currentClientDataObj), newClientDatObj);
-            this.logger.info('updateAgentClientDataSettings', 'Updated client data:-' + updatedClientDataObj);
-            return this.adminService.putClientData(updatedClientDataObj);
-        }
+        const newClientDatObj = new CXoneClientData().mapperIncludingSearchAppSettings(currentClientDataObj, updatedData);
+        const updatedClientDataObj = Object.assign(Object.assign({}, currentClientDataObj), newClientDatObj);
+        this.logger.info('updateAgentClientDataSettings', 'Updated client data:-' + updatedClientDataObj);
+        return this.adminService.putClientData(updatedClientDataObj);
     }
     /**
      * Method to subscribe multi-channel agent settings

@@ -2,7 +2,7 @@ import { WebsocketClient, Logger, LoadWorker } from '@nice-devone/core-sdk';
 import { AgentAssistSubscribe, AgentAssistUnsubscribe, AgentAssistCommand, } from '@nice-devone/common-sdk';
 import { CXoneAuth } from '@nice-devone/auth-sdk';
 import { AgentAssistProvider } from '../enum/agent-assist-provider';
-const empytyAgentAssistInput = { webSocketUri: '', contactId: '0', providerId: '', subscriptions: [] };
+const empytyAgentAssistInput = { webSocketUri: '', contactId: '0', providerId: '', subscriptions: [], subCategory: '' };
 const MAX_RETRY_ATTEMPTS = 10;
 const RETRY_INTERVAL = 2000;
 /**

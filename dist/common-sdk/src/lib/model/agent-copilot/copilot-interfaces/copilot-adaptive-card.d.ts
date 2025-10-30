@@ -16,6 +16,10 @@ export interface CopilotAdaptiveCard {
      */
     body: any;
     /**
+     * adaptive card actions (optional)
+     */
+    actions?: any;
+    /**
      * adaptive card schema
      */
     $schema: string;

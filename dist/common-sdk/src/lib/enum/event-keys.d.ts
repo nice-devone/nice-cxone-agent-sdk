@@ -8,6 +8,14 @@ export declare enum EventKeys {
      */
     ARROW_RIGHT = "ArrowRight",
     /**
+     * Up Arrow key of key board
+     */
+    ARROW_UP = "ArrowUp",
+    /**
+     * Down Arrow key of key board
+     */
+    ARROW_DOWN = "ArrowDown",
+    /**
      * Enter of key board
      */
     ENTER = "Enter",
@@ -42,5 +50,13 @@ export declare enum EventKeys {
     /**
      * U key in the numpad of key board
      */
-    KEY_U = "KeyU"
+    KEY_U = "KeyU",
+    /**
+      * D key in the numpad of key board
+      */
+    KEY_D = "KeyD",
+    /**
+     * Space key of key board
+     */
+    SPACE = " "
 }

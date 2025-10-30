@@ -68,5 +68,13 @@ export var CXoneProductFeature;
      * @remarks - Product feature Id for Interaction Hub data policies
      */
     CXoneProductFeature[CXoneProductFeature["INTERACTION_HUB_DATA_POLICIES"] = 901] = "INTERACTION_HUB_DATA_POLICIES";
+    /**
+     * @remarks - Product feature Id for Continuous Transcription
+     */
+    CXoneProductFeature[CXoneProductFeature["CONTINUOUS_TRANSCRIPTION"] = 178] = "CONTINUOUS_TRANSCRIPTION";
+    /**
+     * @remarks - Product feature Id for Desktop Profiles
+     */
+    CXoneProductFeature[CXoneProductFeature["DESKTOP_PROFILES"] = 162] = "DESKTOP_PROFILES";
 })(CXoneProductFeature || (CXoneProductFeature = {}));
 //# sourceMappingURL=cxone-product-feature.js.map

@@ -61,5 +61,13 @@ var PermissionKeys;
      * permission key whether disable integrated softphone settings options are enabled
      */
     PermissionKeys["DISABLE_INTEGRATED_SOFTPHONE_SETTINGS"] = "DisableIntegratedSoftphoneSettings";
+    /**
+     * permission key for enabling or disabling the voice transcript feature
+     */
+    PermissionKeys["VOICE_TRANSCRIPT"] = "VoiceTranscript";
+    /**
+     * Realtime recording status update
+     */
+    PermissionKeys["REALTIME_RECORDING_STATUS_UPDATE"] = "realtimeRecordingStatusUpdate";
 })(PermissionKeys = exports.PermissionKeys || (exports.PermissionKeys = {}));
 //# sourceMappingURL=permission-keys.js.map

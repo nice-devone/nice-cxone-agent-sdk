@@ -3,8 +3,11 @@ import { CXoneAuth } from '@nice-devone/auth-sdk';
 import { Subject, timer } from 'rxjs';
 import { AgentAssistSubscribe, AgentAssistCommand, AgentAssistConnectedResponse, AgentAssistSubscribedResponse, AgentAssistErrorResponse, CXoneLeaderElector, MessageBus, MessageType, AgentAssistWSMessageResponse, AgentAssistUnsubscribe, AgentAssistHeartbeat, RtigTopic, AgentAssistConnect, } from '@nice-devone/common-sdk';
 import { AgentAssistProcessorService } from './agent-assist-processor-service';
-import { ACDSessionManager, LoadWorker, Logger, WebsocketClient } from '@nice-devone/core-sdk';
+import { ACDSessionManager, GetNextEventSubCategory, LoadWorker, Logger, WebsocketClient } from '@nice-devone/core-sdk';
 import { FeatureToggleService } from '../feature-toggle';
+import { AgentAssistWebSocketProviders } from './enums/provider-enums';
+import { isVoiceTranscriptEnabledAndToggledOn } from '../utils/voiceTranscriptionUtils';
+import { CXoneClient } from '../cxone-client';
 const agentAssistFeatureToggle = 'release-aah-cx1-native-support-aai-19195';
 /**
  * web socket class for agent assist
@@ -22,6 +25,7 @@ export class AgentAssistWSService extends WebsocketClient {
         this.isWSConnected = false;
         this.onMessageNotification = new Subject();
         this.agentAssistProcessorService = {};
+        this.cxoneClientInstance = CXoneClient.instance;
         this.initLogger(this.serviceName);
         this.loadFeatureToggles();
         this.agentAssistProcessorService = new AgentAssistProcessorService();
@@ -64,17 +68,17 @@ export class AgentAssistWSService extends WebsocketClient {
                     const agentAssistJson = JSON.parse(((_a = event === null || event === void 0 ? void 0 : event.allParams) === null || _a === void 0 ? void 0 : _a.AgentAssistAppConfigJson) || '{}');
                     const contactId = (_b = event === null || event === void 0 ? void 0 : event.allParams) === null || _b === void 0 ? void 0 : _b.ContactId;
                     const isAgentAssistAppEnabled = yield FeatureToggleService.instance.getFeatureToggle(agentAssistFeatureToggle);
-                    if (isAgentAssistAppEnabled && contactId && agentAssistJson && (((_c = agentAssistJson === null || agentAssistJson === void 0 ? void 0 : agentAssistJson.Params) === null || _c === void 0 ? void 0 : _c.providerId) === 'ccai' || ((_d = agentAssistJson === null || agentAssistJson === void 0 ? void 0 : agentAssistJson.Params) === null || _d === void 0 ? void 0 : _d.providerId) === 'rtig')) {
+                    if (isAgentAssistAppEnabled && contactId && agentAssistJson && (((_c = agentAssistJson === null || agentAssistJson === void 0 ? void 0 : agentAssistJson.Params) === null || _c === void 0 ? void 0 : _c.providerId) === AgentAssistWebSocketProviders.CCAI || ((_d = agentAssistJson === null || agentAssistJson === void 0 ? void 0 : agentAssistJson.Params) === null || _d === void 0 ? void 0 : _d.providerId) === AgentAssistWebSocketProviders.RTIG)) {
                         if (typeof agentAssistJson.WebSocketUri === 'string' && agentAssistJson.WebSocketUri) {
                             const agentAssistWSStart = { webSocketUri: agentAssistJson.WebSocketUri, contactId: contactId, subscriptions: agentAssistJson.Subscriptions, providerId: (_e = agentAssistJson === null || agentAssistJson === void 0 ? void 0 : agentAssistJson.Params) === null || _e === void 0 ? void 0 : _e.providerId };
                             // break here as we are not handling custom URL in CCAI in this release
-                            if (((_f = agentAssistJson === null || agentAssistJson === void 0 ? void 0 : agentAssistJson.Params) === null || _f === void 0 ? void 0 : _f.providerId) === 'ccai') {
+                            if (((_f = agentAssistJson === null || agentAssistJson === void 0 ? void 0 : agentAssistJson.Params) === null || _f === void 0 ? void 0 : _f.providerId) === AgentAssistWebSocketProviders.CCAI) {
                                 if ((_g = agentAssistJson === null || agentAssistJson === void 0 ? void 0 : agentAssistJson.Params) === null || _g === void 0 ? void 0 : _g.customAppURL) {
                                     return;
                                 }
                             }
                             // if 'Hide RTIG' is true, we should not show RTIG panel
-                            if (((_h = agentAssistJson === null || agentAssistJson === void 0 ? void 0 : agentAssistJson.Params) === null || _h === void 0 ? void 0 : _h.providerId) === 'rtig') {
+                            if (((_h = agentAssistJson === null || agentAssistJson === void 0 ? void 0 : agentAssistJson.Params) === null || _h === void 0 ? void 0 : _h.providerId) === AgentAssistWebSocketProviders.RTIG) {
                                 if ((_j = agentAssistJson === null || agentAssistJson === void 0 ? void 0 : agentAssistJson.Params) === null || _j === void 0 ? void 0 : _j.isHidden) {
                                     return;
                                 }
@@ -86,6 +90,35 @@ export class AgentAssistWSService extends WebsocketClient {
                                 agentAssistWSStart.metadata = metaDataRtig;
                             }
                             ACDSessionManager.instance.agentAssistWSSubject.next(agentAssistWSStart);
+                        }
+                    }
+                    else if ((event === null || event === void 0 ? void 0 : event.allParams['SubCategory']) === GetNextEventSubCategory.VOICE_TRANSCRIPT) {
+                        try {
+                            if (yield isVoiceTranscriptEnabledAndToggledOn()) {
+                                const userInfo = this.cxoneClientInstance.cxoneUser.getUserInfo();
+                                const cxoneConfig = this.cxoneClientInstance.auth.getCXoneConfig();
+                                const aahNotificationWssUri = cxoneConfig.aahNotificationWssUri;
+                                const subscriptionTopic = `${event.allParams.ContactId}_transcript`;
+                                const agentAssistInput = {
+                                    contactId: event.allParams.ContactId,
+                                    providerId: AgentAssistWebSocketProviders.VOICE_TRANSCRIPTION,
+                                    subCategory: GetNextEventSubCategory.VOICE_TRANSCRIPT,
+                                    subscriptions: [subscriptionTopic],
+                                    webSocketUri: aahNotificationWssUri,
+                                };
+                                // save getnext event data in index db, if not already exists for that contact Id
+                                const { setAgentAssistGetNextInIndexDb } = this.agentAssistProcessorService;
+                                if (setAgentAssistGetNextInIndexDb) {
+                                    setAgentAssistGetNextInIndexDb(agentAssistInput);
+                                }
+                                this.cxoneClientInstance.copilotNotificationClient.connect(aahNotificationWssUri, userInfo.icAgentId, agentAssistInput);
+                                ACDSessionManager.instance.aaVoiceTranscriptEventSubject.next(agentAssistInput);
+                            }
+                        }
+                        catch (error) {
+                            if (error instanceof Error) {
+                                this.logger.error('Voice Transcription could possibly not be enabled or configured', error.message);
+                            }
                         }
                     }
                     else {
@@ -108,12 +141,19 @@ export class AgentAssistWSService extends WebsocketClient {
             ACDSessionManager.instance.agentAssistWSSubject.subscribe((resp) => __awaiter(this, void 0, void 0, function* () {
                 if (resp) {
                     try {
-                        this.initWebSocketWorker(this.serviceName);
-                        this.connect(resp.webSocketUri);
-                        this.subscribe(resp);
-                        // save getnext event data in index db, if not already exists for that contact Id
-                        const { setAgentAssistGetNextInIndexDb } = this.agentAssistProcessorService;
-                        setAgentAssistGetNextInIndexDb && setAgentAssistGetNextInIndexDb(resp);
+                        if ((resp === null || resp === void 0 ? void 0 : resp.subCategory) === GetNextEventSubCategory.VOICE_TRANSCRIPT) {
+                            const userInfo = this.cxoneClientInstance.cxoneUser.getUserInfo();
+                            this.cxoneClientInstance.copilotNotificationClient.connect(resp.webSocketUri, userInfo.icAgentId, resp);
+                            ACDSessionManager.instance.aaVoiceTranscriptEventSubject.next(resp);
+                        }
+                        else {
+                            this.initWebSocketWorker(this.serviceName);
+                            this.connect(resp.webSocketUri);
+                            this.subscribe(resp);
+                            // save getnext event data in index db, if not already exists for that contact Id
+                            const { setAgentAssistGetNextInIndexDb } = this.agentAssistProcessorService;
+                            setAgentAssistGetNextInIndexDb && setAgentAssistGetNextInIndexDb(resp);
+                        }
                     }
                     catch (error) {
                         if (error instanceof Error) {
@@ -124,6 +164,7 @@ export class AgentAssistWSService extends WebsocketClient {
             }));
         });
     }
+    ;
     /**
      * used to register subscription to the websocket onMessageNotification subject
      * @example -
@@ -134,7 +175,7 @@ export class AgentAssistWSService extends WebsocketClient {
     registerWebSocketOnMessageNotification() {
         this.onMessageNotification.subscribe(resp => {
             var _a, _b, _c;
-            if (resp.command == AgentAssistCommand.message) {
+            if (resp.command === AgentAssistCommand.message) {
                 if ('topic' in resp.body) {
                     if (resp.body.topic === RtigTopic.RTG_UPDATES || resp.body.topic === RtigTopic.RTG_NOTIFICATIONS) {
                         this.agentAssistProcessorService.processRTIGWebSocketMessages(resp.body);
@@ -165,7 +206,8 @@ export class AgentAssistWSService extends WebsocketClient {
                 if (respContactId) {
                     try {
                         const isAgentAssistAppEnabled = yield FeatureToggleService.instance.getFeatureToggle(agentAssistFeatureToggle);
-                        if (isAgentAssistAppEnabled) {
+                        const voiceTranscriptionEnabledAndOn = yield isVoiceTranscriptEnabledAndToggledOn();
+                        if (isAgentAssistAppEnabled || voiceTranscriptionEnabledAndOn) {
                             const getNextDataForContactId = yield this.agentAssistProcessorService.getAgentAssistGetNextForContactIdFromIndexDb(respContactId);
                             if (getNextDataForContactId) {
                                 this.unsubscribeFromWebSocketForContactId(respContactId, getNextDataForContactId);
@@ -176,6 +218,9 @@ export class AgentAssistWSService extends WebsocketClient {
                                 (_a = this.hearbeatSubscription) === null || _a === void 0 ? void 0 : _a.unsubscribe();
                                 this.closeWebsocket();
                             }
+                        }
+                        if (yield isVoiceTranscriptEnabledAndToggledOn()) {
+                            this.cxoneClientInstance.copilotNotificationClient.unsubscribe(`${respContactId}_transcript`);
                         }
                     }
                     catch (error) {
@@ -342,11 +387,14 @@ export class AgentAssistWSService extends WebsocketClient {
     generateTopicForProvider(agentAssistWSInput) {
         var _a, _b;
         let currentTopic = '';
-        if (agentAssistWSInput.providerId == 'ccai') {
+        if (agentAssistWSInput.providerId === AgentAssistWebSocketProviders.CCAI) {
             currentTopic = (_a = agentAssistWSInput === null || agentAssistWSInput === void 0 ? void 0 : agentAssistWSInput.subscriptions[0]) === null || _a === void 0 ? void 0 : _a.replace('botassist', 'BotAssist');
         }
-        if (agentAssistWSInput.providerId == 'rtig') {
+        if (agentAssistWSInput.providerId === AgentAssistWebSocketProviders.RTIG) {
             currentTopic = (_b = agentAssistWSInput === null || agentAssistWSInput === void 0 ? void 0 : agentAssistWSInput.subscriptions[0]) === null || _b === void 0 ? void 0 : _b.replace('rtig-', '');
+        }
+        if (agentAssistWSInput.providerId === AgentAssistWebSocketProviders.VOICE_TRANSCRIPTION) {
+            currentTopic = `${agentAssistWSInput.contactId}_transcript`;
         }
         return currentTopic;
     }

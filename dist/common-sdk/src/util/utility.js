@@ -1,6 +1,6 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.validatePort = exports.formatTimestamp = exports.getCurrentDate = exports.validateURLOrACDStrings = exports.formatDateTime = exports.generateQueryForMultiSelectFilters = exports.generateQueryForFilters = exports.getQueryURLForSearchThreadsTab = exports.getQueryURLForCustomerTab = exports.getQueryURLForSearchMessagesTab = exports.getQueryURLFromObjectKeys = exports.calculatePercentage = exports.getTimeStringFromMS = exports.getMillisecondsFrom8601DurationString = exports.getDurationInSeconds = exports.getElapsedMinutes = exports.parseInteger = exports.parseBooleanString = void 0;
+exports.normalizeHeaders = exports.validatePort = exports.formatTimestamp = exports.getCurrentDate = exports.validateURLOrACDStrings = exports.formatDateTime = exports.generateQueryForMultiSelectFilters = exports.generateQueryForFilters = exports.getQueryURLForSearchThreadsTab = exports.getQueryURLForCustomerTab = exports.getQueryURLForSearchMessagesTab = exports.getQueryURLFromObjectKeys = exports.calculatePercentage = exports.getTimeStringFromMS = exports.getMillisecondsFrom8601DurationString = exports.getDurationInSeconds = exports.getElapsedMinutes = exports.parseInteger = exports.parseBooleanString = void 0;
 const logical_operators_1 = require("../enum/logical-operators");
 const screen_pop_urls_1 = require("../enum/screen-pop-urls");
 /**
@@ -413,4 +413,33 @@ const validatePort = (port) => {
     return isValidPort;
 };
 exports.validatePort = validatePort;
+/**
+ * Normalizing headers into an array with lower-cased header names
+ * @param headers - headers to normalize
+ * @returns Array of normalized headers
+ * @example normalizeHeaders('X-Custom-Header': 'value');
+ */
+function normalizeHeaders(headers) {
+    if (!headers) {
+        return [];
+    }
+    // Handle Headers instance cases
+    if (headers instanceof Headers) {
+        const result = [];
+        headers.forEach((value, name) => {
+            result.push([name.toLowerCase(), value]);
+        });
+        return result;
+    }
+    // Handle plain object cases
+    if (typeof headers === 'object' && !Array.isArray(headers)) {
+        return Object.entries(headers).map(([name, value]) => [name.toLowerCase(), value]);
+    }
+    // Handle HttpHeader[] cases
+    if (Array.isArray(headers)) {
+        return headers.map(currentHeader => [currentHeader.name.toLowerCase(), currentHeader.value]);
+    }
+    return [];
+}
+exports.normalizeHeaders = normalizeHeaders;
 //# sourceMappingURL=utility.js.map

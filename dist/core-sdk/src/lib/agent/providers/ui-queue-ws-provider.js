@@ -10,6 +10,7 @@ import { ApiUriConstants } from '../../../constants/api-uri-constants';
 import { HttpClient, HttpUtilService } from '../../http';
 import { UIQEventType } from '../../../enum/uiq-event-type';
 import { ValidationUtils } from '../../../util/validation-utils';
+import { FeatureToggleService } from '../../../util/feature-toggle-services';
 /** Custom HttpClient to handle uiq websocket connection */
 class CustomHttpClient extends DefaultHttpClient {
     /**
@@ -60,6 +61,8 @@ export class UIQueueWsProvider {
         this.validationUtils = new ValidationUtils();
         this.isUIQDegraded = false;
         this.internetCheckTimer = undefined; // to store the internet check timer
+        this.isCustomKeepAlivePollingTimeoutEnabled = FeatureToggleService.instance.getFeatureToggleSync("release-cxa-get-next-events-timeout-update-AW-45121" /* FeatureToggles.GET_NEXT_EVENT_POLLING_TIMEOUT_FEATURE_TOGGLE */);
+        this.keepAliveTimeout = this.isCustomKeepAlivePollingTimeoutEnabled ? 15000 : 120000;
         this.agentSession = ACDSessionManager.instance;
         this.adminService = AdminService.instance;
         window.addEventListener('RefreshTokenSuccess', () => {
@@ -108,7 +111,7 @@ export class UIQueueWsProvider {
         const reqInit = {
             headers: this.utilService.initHeader(authToken).headers,
         };
-        const pollingOptions = { isPolling: false, pollingInterval: 120000 };
+        const pollingOptions = { isPolling: false, pollingInterval: this.keepAliveTimeout };
         if (!this.keepAlivePollingWorker) {
             this.initAgentKeepAliveWorker();
             this.keepAlivePollingWorker.onmessage = (response) => {
@@ -565,9 +568,12 @@ export class UIQueueWsProvider {
      * ```
      */
     failoverToGetNext(error) {
-        this.terminatePolling();
-        this.agentSession.startGetNextEvents();
-        this.logger.error('failoverToGetNext', 'Switching to get-next polling as websocket connection failed' + error.toString());
+        const randomDelay = Math.floor(Math.random() * 2000);
+        setTimeout(() => {
+            this.terminatePolling();
+            this.agentSession.startGetNextEvents();
+            this.logger.error('failoverToGetNext', 'Switching to get-next polling as websocket connection failed' + error.toString());
+        }, randomDelay);
     }
 }
 //# sourceMappingURL=ui-queue-ws-provider.js.map

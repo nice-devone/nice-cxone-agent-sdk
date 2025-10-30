@@ -6166,6 +6166,7 @@ export declare const CXoneContactDetailsEventSchema: import("yup").ObjectSchema<
     eventId: import("yup").StringSchema<string, import("yup/lib/types").AnyObject, string>;
     eventObject: import("yup").StringSchema<string, import("yup/lib/types").AnyObject, string>;
     eventType: import("yup/lib/string").RequiredStringSchema<string, import("yup/lib/types").AnyObject>;
+    traceId: import("yup").StringSchema<string, import("yup/lib/types").AnyObject, string>;
 }, import("yup/lib/object").AnyObject, import("yup/lib/object").TypeOfShape<{
     data: any;
 } & {
@@ -6174,6 +6175,7 @@ export declare const CXoneContactDetailsEventSchema: import("yup").ObjectSchema<
     eventId: import("yup").StringSchema<string, import("yup/lib/types").AnyObject, string>;
     eventObject: import("yup").StringSchema<string, import("yup/lib/types").AnyObject, string>;
     eventType: import("yup/lib/string").RequiredStringSchema<string, import("yup/lib/types").AnyObject>;
+    traceId: import("yup").StringSchema<string, import("yup/lib/types").AnyObject, string>;
 }>, import("yup/lib/object").AssertsShape<{
     data: any;
 } & {
@@ -6182,5 +6184,6 @@ export declare const CXoneContactDetailsEventSchema: import("yup").ObjectSchema<
     eventId: import("yup").StringSchema<string, import("yup/lib/types").AnyObject, string>;
     eventObject: import("yup").StringSchema<string, import("yup/lib/types").AnyObject, string>;
     eventType: import("yup/lib/string").RequiredStringSchema<string, import("yup/lib/types").AnyObject>;
+    traceId: import("yup").StringSchema<string, import("yup/lib/types").AnyObject, string>;
 }>>;
 export declare type CXoneContactDetails = InferType<typeof CXoneContactDetailsSchema>;

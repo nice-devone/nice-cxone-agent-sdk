@@ -11,6 +11,10 @@ export declare enum CXoneAgentEvents {
      */
     CXONE_CLICK_TO_DIAL_EVENT = "ClickToDialEvent",
     /**
+     *@remarks - enum for session switched event
+     */
+    CXONE_SESSION_SWITCHED_EVENT = "SessionSwitchedEvent",
+    /**
      * @remarks - enum for voice contact type
      */
     CXONE_VOICE_CONTACT_EVENT = "VoiceContact",
@@ -83,5 +87,9 @@ export declare enum CXoneAgentEvents {
     /**
      * @remarks - enum for workitem contact type
      */
-    CXONE_WORKITEM_CONTACT_EVENT = "WorkItemContact"
+    CXONE_WORKITEM_CONTACT_EVENT = "WorkItemContact",
+    /**
+     * @remarks - enum for contact selection changed event
+     */
+    CXONE_CONTACT_SELECTION_EVENT = "ContactSelectionEvent"
 }

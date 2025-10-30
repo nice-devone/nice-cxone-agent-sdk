@@ -3061,6 +3061,7 @@ const IntegrationComponentLoader = /*#__PURE__*/memo(props => {
     //This will make sure that remoteEntry.js file is loaded only once.
     scriptType: 'module'
   });
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   const IntegrationComponent = useMemo(() => /*#__PURE__*/React.lazy(loadIntegrationModule(props.appType, remoteEntryUrl)), [props.appType]);
   //If remote entry file is not loaded, then skip loading embedded module
   if (!ready || failed) {
@@ -3150,6 +3151,10 @@ var CXoneAgentEvents;
    */
   CXoneAgentEvents["CXONE_CLICK_TO_DIAL_EVENT"] = "ClickToDialEvent";
   /**
+   *@remarks - enum for session switched event
+   */
+  CXoneAgentEvents["CXONE_SESSION_SWITCHED_EVENT"] = "SessionSwitchedEvent";
+  /**
    * @remarks - enum for voice contact type
    */
   CXoneAgentEvents["CXONE_VOICE_CONTACT_EVENT"] = "VoiceContact";
@@ -3223,6 +3228,10 @@ var CXoneAgentEvents;
    * @remarks - enum for workitem contact type
    */
   CXoneAgentEvents["CXONE_WORKITEM_CONTACT_EVENT"] = "WorkItemContact";
+  /**
+   * @remarks - enum for contact selection changed event
+   */
+  CXoneAgentEvents["CXONE_CONTACT_SELECTION_EVENT"] = "ContactSelectionEvent";
 })(CXoneAgentEvents || (CXoneAgentEvents = {}));
 
 var CXoneCallContactStatus;
@@ -4869,13 +4878,14 @@ const cxs = Helpers.instance;
  * @example - triggerCRMScreenPop(screenPopData);
  */
 function triggerCRMScreenPop(activityData, action) {
-  var _a, _b, _c, _d;
+  var _a, _b, _c, _d, _e, _f;
   if (!activityData) {
     return;
   }
   const pinRecords = (_a = activityData === null || activityData === void 0 ? void 0 : activityData.result[0]) === null || _a === void 0 ? void 0 : _a.pinRecords;
   const relatedRecords = (_b = activityData === null || activityData === void 0 ? void 0 : activityData.result[0]) === null || _b === void 0 ? void 0 : _b.records;
-  const screenPopBaseUrl = (_d = (_c = activityData.result) === null || _c === void 0 ? void 0 : _c[0]) === null || _d === void 0 ? void 0 : _d.system.baseUrl;
+  const screenPop = (_d = (_c = activityData === null || activityData === void 0 ? void 0 : activityData.result[0]) === null || _c === void 0 ? void 0 : _c.records[0]) === null || _d === void 0 ? void 0 : _d.screenPop;
+  const screenPopBaseUrl = (_f = (_e = activityData.result) === null || _e === void 0 ? void 0 : _e[0]) === null || _f === void 0 ? void 0 : _f.system.baseUrl;
   const screenPopEventArgs = {};
   screenPopEventArgs.detail = {
     contactId: activityData.contactId,
@@ -4911,6 +4921,10 @@ function triggerCRMScreenPop(activityData, action) {
   }
   if (relatedRecords && relatedRecords.length > 0) {
     if (relatedRecords.length === 1) {
+      if (screenPop === false) {
+        return; // If screenPop is false, do not proceed with screen pop  
+      }
+
       handleScreenPop(relatedRecords);
     } else {
       const screenPopRelatedRecords = relatedRecords.filter(record => record.screenPop);
@@ -4965,7 +4979,8 @@ class CcfIntegrationTransformer {
       finalState: source.finalState,
       ani: source.ani,
       dnis: source.dnis,
-      direction: source.direction
+      direction: source.direction,
+      screenPopUrl: source.screenPopUrl
     };
     return target;
   }
@@ -5033,7 +5048,10 @@ class CcfIntegrationTransformer {
       skillName: source.skillName,
       status: source.status,
       type: source.type,
-      finalState: source.finalState
+      finalState: source.finalState,
+      screenPopUrl: source.voiceMailEventData.screenPopUrl,
+      from: source.voiceMailEventData.from,
+      to: source.voiceMailEventData.to
     };
     return target;
   }
@@ -5051,7 +5069,8 @@ class CcfIntegrationTransformer {
       skillName: source.skillName,
       status: source.status,
       type: source.type,
-      finalState: source.finalState
+      finalState: source.finalState,
+      screenPopUrl: source.workItemEventData.screenPopUrl
     };
     return target;
   }
@@ -5077,6 +5096,14 @@ class CXoneAgentIntegrationManager {
     const eventData = event.detail;
     const screepopData = CcfIntegrationTransformer.toScreenPopEntityData(eventData);
     this.agentIntegration.handleCXoneScreenpop(screepopData);
+  }
+  /**
+   * Handler of contact selecrion CustomEvent raised from CXone Agent (on contact selection changes)
+   * @example
+   */
+  handleCXoneContactSelectionEvent(event) {
+    const contactId = event.detail.contactId;
+    this.agentIntegration.handleCXoneContactSelectionChanged(contactId);
   }
   /**
    * Handler of DigitalContact CustomEvent raised from CXone Agent (on Contact Status Changes)
@@ -5112,6 +5139,16 @@ class CXoneAgentIntegrationManager {
     const eventArgs = {};
     eventArgs.detail = params;
     const customEvent = new CustomEvent(CXoneAgentEvents.CXONE_CLICK_TO_DIAL_EVENT, eventArgs);
+    window.dispatchEvent(customEvent);
+    return true;
+  }
+  /**
+   * Callback method invoked from Integration Module to perform action in CMA based on sesion switch in MSD
+   */
+  handleIntegrationSessionSwitched(params) {
+    const eventArgs = {};
+    eventArgs.detail = params;
+    const customEvent = new CustomEvent(CXoneAgentEvents.CXONE_SESSION_SWITCHED_EVENT, eventArgs);
     window.dispatchEvent(customEvent);
     return true;
   }
@@ -5210,6 +5247,7 @@ class CXoneAgentIntegrationManager {
     window.addEventListener(CXoneAgentEvents.CXONE_AGENT_HOME_INITIALIZED, this.handleCXoneAgentHomeInitialized.bind(this));
     window.addEventListener(CXoneAgentEvents.CXONE_VOICE_MAIL_CONTACT_EVENT, this.handleCXoneVoiceMailContactEvent.bind(this));
     window.addEventListener(CXoneAgentEvents.CXONE_WORKITEM_CONTACT_EVENT, this.handleCXoneWorkItemContactEvent.bind(this));
+    window.addEventListener(CXoneAgentEvents.CXONE_CONTACT_SELECTION_EVENT, this.handleCXoneContactSelectionEvent.bind(this));
   }
   /**
    * Method to initialize listeners for all the events initiated by CXoneAgent Home apps.
@@ -5230,6 +5268,7 @@ class CXoneAgentIntegrationManager {
    */
   initialize() {
     this.agentIntegration.onClickToAct(this.handleIntegrationClickToAct);
+    this.agentIntegration.onSessionSwitched(this.handleIntegrationSessionSwitched);
     if (this.eventHandlerAdded) {
       //Event Listeners already added
       return false; // return early.

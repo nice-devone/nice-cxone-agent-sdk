@@ -17,6 +17,11 @@ export declare class CXoneAgentIntegrationManager {
      */
     private handleCXoneScreenPopEvent;
     /**
+     * Handler of contact selecrion CustomEvent raised from CXone Agent (on contact selection changes)
+     * @example
+     */
+    private handleCXoneContactSelectionEvent;
+    /**
      * Handler of DigitalContact CustomEvent raised from CXone Agent (on Contact Status Changes)
      * @example
      */
@@ -35,6 +40,10 @@ export declare class CXoneAgentIntegrationManager {
      * Callback method invoked from Integration Module to start click-to-dial functionality in CXone Agent
      */
     private handleIntegrationClickToAct;
+    /**
+     * Callback method invoked from Integration Module to perform action in CMA based on sesion switch in MSD
+     */
+    private handleIntegrationSessionSwitched;
     /**
      * Callback method invoked from Integration Module to send/update locale to CXone Agent.
      */

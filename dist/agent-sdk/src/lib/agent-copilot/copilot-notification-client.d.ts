@@ -1,5 +1,5 @@
 import { Subject } from 'rxjs';
-import { AgentAssistBaseResponse } from '@nice-devone/common-sdk';
+import { AgentAssistErrorResponse, AgentAssistBaseResponse, VoiceTranscriptionResponse } from '@nice-devone/common-sdk';
 import { AgentAssistInput, AgentAssistNotificationService } from '../agent-assist/agent-assist-notification-service';
 /**
  *  web socket class for agent copilot
@@ -7,20 +7,34 @@ import { AgentAssistInput, AgentAssistNotificationService } from '../agent-assis
 export declare class CopilotNotificationClient extends AgentAssistNotificationService {
     private agentId;
     private webSocketUri;
-    private topic;
+    private subscriptionTopics;
     onMessageNotification: Subject<AgentAssistBaseResponse>;
+    onVoiceTranscriptionMessage: Subject<VoiceTranscriptionResponse>;
+    onVoiceTranscriptionError: Subject<AgentAssistErrorResponse>;
     /**
      * used to connect to the socket.
-     * @example -  connect('ws://localhost:8080');
+     * @example -  connect('ws://localhost:8080', 1011, 123_subscription);
      * @param websocketServerUri - websocketServer uri
      */
-    connect(websocketServerUri: string, agentId: string): boolean;
+    connect(websocketServerUri: string, agentId: string, agentCopilotInput?: AgentAssistInput): boolean;
+    /**
+     * Adds default subscriptions for agent copilot, and any additional passed subscriptions.
+     * This method ensures that the agent copilot and health topics are included in the subscription list.
+     * @example -  addSubscriptionTopics();
+     */
+    private addSubscriptionTopics;
     /**
      * Subscribe to events.
      * @example -  subscribe('topic');
      * @param topic - topic to subscribe
      */
     subscribe(agentCopilotInput: AgentAssistInput): boolean;
+    /**
+     * Unsubscribe from a specific topic.
+     * @example -  unsubscribe('topic');
+     * @param subscriptionTopics - subscriptionTopics to unsubscribe
+     */
+    unsubscribe(topic: string): boolean;
     /**
      * on websocket close.
      * @example -  onClosed();

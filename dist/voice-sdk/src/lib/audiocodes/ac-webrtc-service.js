@@ -284,7 +284,7 @@ class ACWebRtcService {
        * ```
        */
     loginAudioCodeServer() {
-        var _a, _b;
+        var _a, _b, _c, _d;
         this.logger.debug('loginAudioCodeServer', `[Init] AudioCodesUA initializing for the agent id:${this.acdAgentId}`);
         try {
             this.onConnectionStatusChanged.next({
@@ -297,6 +297,9 @@ class ACWebRtcService {
                 const agentId = this.acdAgentId;
                 const lastConnectedSBC = core_sdk_1.LocalStorageHelper.getItem(core_sdk_1.StorageKeys.CONNECTED_AC_SERVER) || '';
                 const acServers = this.getAudioCodeServer(this.options.webRTCWssUrls, lastConnectedSBC); // Apply server priority
+                //update echo and noise cancelation settings based on values from roles and permissions. fallback to false if not passed
+                const echoCancellation = (_b = (_a = this.options) === null || _a === void 0 ? void 0 : _a.echoCancellation) !== null && _b !== void 0 ? _b : false;
+                const noiseCancellation = (_d = (_c = this.options) === null || _c === void 0 ? void 0 : _c.noiseCancellation) !== null && _d !== void 0 ? _d : false;
                 const phoneConfig = {
                     reconnectIntervalMin: 2,
                     reconnectIntervalMax: 30,
@@ -331,29 +334,14 @@ class ACWebRtcService {
                     },
                     // Set browser constraints.
                     constraints: {
-                        chrome: { audio: { echoCancellation: true, noiseSuppression: true } },
-                        firefox: { audio: { echoCancellation: true, noiseSuppression: true } },
-                        ios_safari: { audio: { echoCancellation: true, noiseSuppression: true } },
-                        safari: { audio: { echoCancellation: true, noiseSuppression: true } },
-                        other: { audio: { echoCancellation: true, noiseSuppression: true } },
+                        chrome: { audio: { echoCancellation: echoCancellation, noiseSuppression: noiseCancellation } },
+                        firefox: { audio: { echoCancellation: echoCancellation, noiseSuppression: noiseCancellation } },
+                        ios_safari: { audio: { echoCancellation: echoCancellation, noiseSuppression: noiseCancellation } },
+                        safari: { audio: { echoCancellation: echoCancellation, noiseSuppression: noiseCancellation } },
+                        other: { audio: { echoCancellation: echoCancellation, noiseSuppression: noiseCancellation } },
                     },
                     version: '13-Apr-2022',
                 };
-                //update echo and noise cancelation settings based on values from roles and permissions
-                if (((_a = this.options) === null || _a === void 0 ? void 0 : _a.noiseCancellation) === false) {
-                    phoneConfig.constraints.chrome.audio.noiseSuppression = false;
-                    phoneConfig.constraints.firefox.audio.noiseSuppression = false;
-                    phoneConfig.constraints.safari.audio.noiseSuppression = false;
-                    phoneConfig.constraints.ios_safari.audio.noiseSuppression = false;
-                    phoneConfig.constraints.other.audio.noiseSuppression = false;
-                }
-                if (((_b = this.options) === null || _b === void 0 ? void 0 : _b.echoCancellation) === false) {
-                    phoneConfig.constraints.chrome.audio.echoCancellation = false;
-                    phoneConfig.constraints.firefox.audio.echoCancellation = false;
-                    phoneConfig.constraints.safari.audio.echoCancellation = false;
-                    phoneConfig.constraints.ios_safari.audio.echoCancellation = false;
-                    phoneConfig.constraints.other.audio.echoCancellation = false;
-                }
                 // Phone parameters tuning.
                 this.audioCode = new AudioCodesUA();
                 this.audioCode.setServerConfig(acServers, this.options.webRTCServerDomain, this.options.webRTCIceUrls);

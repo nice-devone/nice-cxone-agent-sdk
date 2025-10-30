@@ -279,6 +279,14 @@ tslib_1.__exportStar(require("./lib/model/wem-notification/wem-notification-reco
 tslib_1.__exportStar(require("./lib/enum/recording-data"), exports);
 tslib_1.__exportStar(require("./lib/enum/event-keys"), exports);
 tslib_1.__exportStar(require("./lib/model/conversations-group-details"), exports);
+tslib_1.__exportStar(require("./lib/enum/element-roles"), exports);
+tslib_1.__exportStar(require("./lib/model/voice-transcription/interfaces/voice-transcription-web-socket-response"), exports);
 tslib_1.__exportStar(require("./lib/model/agent-copilot/copilot-interfaces/copilot-adaptive-card"), exports);
 tslib_1.__exportStar(require("./lib/enum/window-events"), exports);
+tslib_1.__exportStar(require("./lib/model/websocket/digital-event-hub-response"), exports);
+tslib_1.__exportStar(require("./model/digital-event-sync"), exports);
+tslib_1.__exportStar(require("./lib/model/voice-transcription/interfaces/voice-transcription-item"), exports);
+tslib_1.__exportStar(require("./lib/model/voice-transcription/interfaces/voice-transcription-status-event"), exports);
+tslib_1.__exportStar(require("./lib/model/voice-transcription/voice-transcription-response"), exports);
+tslib_1.__exportStar(require("./lib/enum/allowed-response-headers"), exports);
 //# sourceMappingURL=index.js.map

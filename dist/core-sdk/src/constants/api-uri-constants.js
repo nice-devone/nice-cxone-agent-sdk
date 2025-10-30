@@ -10,6 +10,7 @@ ApiUriConstants.AGENT_SESSION_URI = '/InContactAPI/services/v23.0/agent-sessions
 ApiUriConstants.JOIN_AGENT_SESSION_URI = '/InContactAPI/services/v23.0/agent-sessions/join';
 ApiUriConstants.GET_NEXT_EVENT_URI = '/InContactAPI/services/v23.0/agent-sessions/{sessionId}/get-next-event?timeout={timeoutSec}';
 ApiUriConstants.GET_NEXT_EVENT_TIMEOUT = '60';
+ApiUriConstants.CUSTOM_GET_NEXT_EVENT_TIMEOUT = '15';
 ApiUriConstants.KEEP_ALIVE_URI = '/InContactAPI/services/v31.0/agent-sessions/{sessionId}/keep-alive';
 ApiUriConstants.TOTAL_RETRY_ATTEMPTS_FOR_OFFLINE_EVENTS = 60;
 ApiUriConstants.ERROR_RETRY_INTERVAL = 10000;
@@ -149,6 +150,7 @@ ApiUriConstants.GET_AGENT_INTEGRATION_CONFIGURATION_URI = '/InContactAPI/service
 ApiUriConstants.GET_AGENT_INTEGRATION_DATA_MAPPING_URI = '/InContactAPI/services/v27.0/agent-integration/configuration/{configurationId}/data-mappings';
 ApiUriConstants.GET_AGENT_INTEGRATION_DYNAMIC_DATA_MAPPING_URI = '/InContactAPI/services/v29.0/agent-integration/configuration/{configurationId}/dynamic-data-mappings';
 ApiUriConstants.MESSAGE_TAG = '/dfo/3.0/messages/{messageId}/tags/{tagId}';
+ApiUriConstants.GET_AGENT_INTEGRATION_WORKFLOW_TEST_URI = '/InContactAPI/services/v27.0/agent-integration/configuration/{configurationId}/workflow/{workflowId}';
 ApiUriConstants.GET_MESSAGE_TAG = '/dfo/3.0/tags';
 ApiUriConstants.GET_MESSAGE_TAGS_BY_PAGE = '/dfo/3.0/tags?page={pageNumber}';
 ApiUriConstants.SEARCH_DIGITAL_TAG = '/dfo/3.0/tags?nameContains={tagName}&page={pageNumber}&includeDeleted=false';
@@ -164,7 +166,7 @@ ApiUriConstants.GET_PRESENCE_SYNC_RULE = '/adapter-apis/v1/{partnerName}/rule/{p
 ApiUriConstants.GET_AGENT_LOCATION = '/user-management/v1/users/location/evaluate';
 ApiUriConstants.SELECT_AGENT_LOCATION = '/user-management/v1/users/location/select-location';
 //Agent Profile API
-ApiUriConstants.AGENT_PROFILE = '/agent-profiles/v1/assigned';
+ApiUriConstants.AGENT_PROFILE = '/agent-profiles/v2/assigned';
 ApiUriConstants.FEEDBACK_CATEGORIES_AND_PRIORITIES = '/incontactapi/services/v23.0/feedback-categories-and-priorities';
 ApiUriConstants.SUBMIT_FEEDBACK = '/incontactapi/services/V23.0/agent-sessions/{sessionId}/submit-feedback';
 // LocalPost custom event api

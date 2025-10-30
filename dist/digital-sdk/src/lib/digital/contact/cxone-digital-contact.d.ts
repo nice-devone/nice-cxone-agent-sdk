@@ -103,9 +103,17 @@ export declare class CXoneDigitalContact extends CXoneContact {
       */
     previousCaseId?: string | null;
     /**
+      * @remarks - caseId of the next case
+      */
+    nextCaseId?: string | null;
+    /**
       * @remarks - stores details about the previous case
       */
     previousConversationMessages?: CXoneLoadPreviousContactDetails[];
+    /**
+      * @remarks - stores details about the next case
+      */
+    nextConversationMessages?: CXoneLoadPreviousContactDetails[];
     /**
       * @remarks - stores details about reply channels
       */

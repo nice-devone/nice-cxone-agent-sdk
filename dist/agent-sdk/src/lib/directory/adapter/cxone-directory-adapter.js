@@ -23,8 +23,8 @@ export class CXoneDirectoryAdapter {
             const teamList = [];
             let addressBookEntriesCount = 0;
             if (response.get(DirectoryEntities.AGENT_LIST)) {
-                const agentStateValue = response.get(DirectoryEntities.AGENT_LIST);
                 const isFTUnifyAgentStateOn = FeatureToggleService.instance.getFeatureToggleSync("release-cx-directory-agent-state-working-digital-AW-28472" /* FeatureToggles.DIRECTORY_AGENT_STATE_WORKING_DIGITAL_FEATURE_TOGGLE */);
+                const agentStateValue = response.get(DirectoryEntities.AGENT_LIST);
                 if (isFTUnifyAgentStateOn) {
                     if (agentStateValue.status === 'fulfilled' && ((_a = agentStateValue === null || agentStateValue === void 0 ? void 0 : agentStateValue.value) === null || _a === void 0 ? void 0 : _a.agentStates)) {
                         (_b = agentStateValue === null || agentStateValue === void 0 ? void 0 : agentStateValue.value) === null || _b === void 0 ? void 0 : _b.agentStates.forEach((state) => {

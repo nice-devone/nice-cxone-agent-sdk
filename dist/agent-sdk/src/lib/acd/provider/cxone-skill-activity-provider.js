@@ -283,7 +283,7 @@ export class CXoneSkillActivityProvider {
                     var _a, _b;
                     const matchedSkillIndex = currentSkillList.findIndex((currentSkill) => currentSkill.skillId == skill.skillId);
                     if (matchedSkillIndex >= 0) {
-                        if (this.isFavoritesFTEnabled)
+                        if (this.isFavoritesFTEnabled) {
                             if (((_a = currentSkillList[matchedSkillIndex]) === null || _a === void 0 ? void 0 : _a.isFavorite)
                                 && ((_b = clientData === null || clientData === void 0 ? void 0 : clientData.CXAFavSkills) === null || _b === void 0 ? void 0 : _b.includes(currentSkillList[matchedSkillIndex].skillId))) {
                                 SkillList[index].isFavorite =
@@ -295,13 +295,12 @@ export class CXoneSkillActivityProvider {
                             else {
                                 SkillList[index].isFavorite = false;
                             }
+                        }
+                        if (skill.isActive) { // If skills are active, add into SKILL_ACTIVITY DB else remove. 
+                            currentSkillList[matchedSkillIndex] = SkillList[index];
+                        }
                         else {
-                            if (skill.isActive) { // If skills are active, add into SKILL_ACTIVITY DB else remove. 
-                                currentSkillList[matchedSkillIndex] = SkillList[index];
-                            }
-                            else {
-                                currentSkillList.splice(matchedSkillIndex, 1);
-                            }
+                            currentSkillList.splice(matchedSkillIndex, 1);
                         }
                     }
                     else
