@@ -548,7 +548,7 @@ export class ACDSessionManager {
                     });
                     // initiate get next event
                     if (CXoneLeaderElector.instance.isLeader) {
-                        this.toggleACDEventEmitter({ invokeSnapshot: true, isUIQueueEnabled: options === null || options === void 0 ? void 0 : options.isUIQueueEnabled });
+                        this.toggleACDEventEmitter({ invokeSnapshot: true, isUIQueueEnabled: options === null || options === void 0 ? void 0 : options.isUIQueueEnabled, sessionId: this.sessionId });
                     }
                     else {
                         const msg = {

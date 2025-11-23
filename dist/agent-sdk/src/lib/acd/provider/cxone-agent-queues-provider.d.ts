@@ -11,6 +11,8 @@ export declare class CXoneAgentQueuesProvider {
     private urlUtilService;
     pollingWorker: any;
     private agentId;
+    private isIncreasedQueuesPolling;
+    private pollingInterval;
     /**
      * Creates agent queue provider
      * @example - const provider = new CXoneAgentQueuesProvider()

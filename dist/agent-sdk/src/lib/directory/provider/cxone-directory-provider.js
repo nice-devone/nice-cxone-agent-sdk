@@ -479,6 +479,8 @@ export class CXoneDirectoryProvider {
     ], shouldFetchAllAgents) {
         this.pollingOptions = pollingOptions;
         let updatedSinceValue = LocalStorageHelper.getItem(StorageKeys.DIRECTORY_POLLING_UPDATED_SINCE) || new Date(0).toISOString();
+        let teamUpdatedSinceValue = LocalStorageHelper.getItem(StorageKeys.TEAM_POLLING_UPDATED_SINCE) || new Date(0).toISOString();
+        let skillUpdatedSinceValue = LocalStorageHelper.getItem(StorageKeys.SKILL_POLLING_UPDATED_SINCE) || new Date(0).toISOString();
         this.entity = entity;
         this.isFreshRequest = true; // whenever new api request for directory is made that means its an explicit user request to get the directory data as per the entity provided
         this.logger.info('startPolling', 'startPolling in CXoneDirectoryProvider');
@@ -490,10 +492,7 @@ export class CXoneDirectoryProvider {
             if (entity.includes(DirectoryEntities.AGENT_LIST)) {
                 if (isFTUnifyAgentStateOn) {
                     const agentStateUrl = new URL(ApiUriConstants.AGENT_STATE_UNIFY_URI, this.baseUri);
-                    if (updatedSinceValue) {
-                        // if updatedSinceValue is present then we will use that value to get the agent state
-                        agentStateUrl.searchParams.set('updatedSince', updatedSinceValue);
-                    }
+                    agentStateUrl.searchParams.set('updatedSince', updatedSinceValue);
                     const agentStateRequest = {
                         headers: this.utilService.initHeader(authToken).headers,
                     };
@@ -522,7 +521,7 @@ export class CXoneDirectoryProvider {
             if (entity.includes(DirectoryEntities.SKILL_LIST)) {
                 const skillUrl = new URL(ApiUriConstants.SKILL_ACTIVITY_URI, this.baseUri);
                 skillUrl.searchParams.set('fields', 'isActive,isOutbound,mediaTypeId,mediaTypeName,skillId,skillName');
-                skillUrl.searchParams.set('updatedSince', new Date(0).toISOString());
+                skillUrl.searchParams.set('updatedSince', skillUpdatedSinceValue);
                 const skillRequest = {
                     headers: this.utilService.initHeader(authToken).headers,
                 };
@@ -547,7 +546,8 @@ export class CXoneDirectoryProvider {
             if (entity.includes(DirectoryEntities.TEAM_LIST)) {
                 const teamListUrl = new URL(ApiUriConstants.GET_TEAMS, this.baseUri);
                 teamListUrl.searchParams.set('fields', 'teamId,teamName,isActive,agentCount');
-                teamListUrl.searchParams.set('updatedSince', new Date(0).toISOString());
+                teamListUrl.searchParams.set('isActive', 'true');
+                teamListUrl.searchParams.set('updatedSince', teamUpdatedSinceValue);
                 const teamListRequest = {
                     headers: this.utilService.initHeader(authToken).headers,
                 };
@@ -560,10 +560,10 @@ export class CXoneDirectoryProvider {
             if (!this.pollingWorker) {
                 this.initUtilWorker();
                 this.pollingWorker.onmessage = (response) => {
-                    var _a, _b, _c, _d;
+                    var _a, _b, _c, _d, _e, _f, _g, _h;
                     this.handleDirectoryResponse(response.data, shouldFetchAllAgents);
                     if (entity.includes(DirectoryEntities.AGENT_LIST)) {
-                        const agentListWrapper = (_a = response === null || response === void 0 ? void 0 : response.data) === null || _a === void 0 ? void 0 : _a.get('agentList');
+                        const agentListWrapper = (_a = response === null || response === void 0 ? void 0 : response.data) === null || _a === void 0 ? void 0 : _a.get(DirectoryEntities.AGENT_LIST);
                         if (isFTUnifyAgentStateOn && ((_b = agentListWrapper === null || agentListWrapper === void 0 ? void 0 : agentListWrapper.value) === null || _b === void 0 ? void 0 : _b.lastPollTime)) {
                             const agentList = agentListWrapper === null || agentListWrapper === void 0 ? void 0 : agentListWrapper.value;
                             updatedSinceValue = agentList === null || agentList === void 0 ? void 0 : agentList.lastPollTime;
@@ -573,6 +573,22 @@ export class CXoneDirectoryProvider {
                             updatedSinceValue = agentList === null || agentList === void 0 ? void 0 : agentList.lastPollTime;
                         }
                         LocalStorageHelper.setItem(StorageKeys.DIRECTORY_POLLING_UPDATED_SINCE, updatedSinceValue);
+                    }
+                    if (entity.includes(DirectoryEntities.TEAM_LIST)) {
+                        const teamListWrapper = (_e = response === null || response === void 0 ? void 0 : response.data) === null || _e === void 0 ? void 0 : _e.get(DirectoryEntities.TEAM_LIST);
+                        if ((_f = teamListWrapper === null || teamListWrapper === void 0 ? void 0 : teamListWrapper.value) === null || _f === void 0 ? void 0 : _f.lastPollTime) {
+                            const teamList = teamListWrapper === null || teamListWrapper === void 0 ? void 0 : teamListWrapper.value;
+                            teamUpdatedSinceValue = teamList === null || teamList === void 0 ? void 0 : teamList.lastPollTime;
+                        }
+                        LocalStorageHelper.setItem(StorageKeys.TEAM_POLLING_UPDATED_SINCE, teamUpdatedSinceValue);
+                    }
+                    if (entity.includes(DirectoryEntities.SKILL_LIST)) {
+                        const skillListWrapper = (_g = response === null || response === void 0 ? void 0 : response.data) === null || _g === void 0 ? void 0 : _g.get(DirectoryEntities.SKILL_LIST);
+                        if ((_h = skillListWrapper === null || skillListWrapper === void 0 ? void 0 : skillListWrapper.value) === null || _h === void 0 ? void 0 : _h.lastPollTime) {
+                            const skillList = skillListWrapper === null || skillListWrapper === void 0 ? void 0 : skillListWrapper.value;
+                            skillUpdatedSinceValue = skillList === null || skillList === void 0 ? void 0 : skillList.lastPollTime;
+                        }
+                        LocalStorageHelper.setItem(StorageKeys.SKILL_POLLING_UPDATED_SINCE, skillUpdatedSinceValue);
                     }
                 };
             }

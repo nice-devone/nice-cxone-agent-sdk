@@ -236,10 +236,10 @@ export class CXoneClient {
             this.hasInitModuleInitiated = true;
             // eslint-disable-next-line @typescript-eslint/no-unused-expressions
             CXoneClient.instance;
-            CXoneLeaderElector.instance.start();
             this.acdSessionManager = ACDSessionManager.instance;
             const authToken = yield this.auth.validateFtAndGetDecryptedToken();
             authToken && this.auth.setAuthToken(authToken);
+            CXoneLeaderElector.instance.start();
             const accessToken = this.auth.getAuthToken().accessToken;
             const cxOneConfig = this.auth.getCXoneConfig();
             const userInfo = this.cxoneUser.getUserInfo();

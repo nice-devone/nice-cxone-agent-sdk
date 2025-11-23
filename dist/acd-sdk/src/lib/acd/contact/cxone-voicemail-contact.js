@@ -232,15 +232,22 @@ export class CXoneVoiceMailContact extends CXoneContact {
     }
     /**
      * Method to validate the contact has end button then invoke the endContact method.
+     * @param forceEnd - boolean to force end the contact, this should only be used AFTER necessary API has been sent, see example.
      * @example
      * ```
-     * end('123');
+     * end();
+     *
+     * or
+     *
+     * voiceMailContact.resumeVoiceMail().then(() => {
+     *   voiceMailContact.end(true);
+     * });
      * ```
      */
-    end() {
+    end(forceEnd = false) {
         return new Promise((resolve, reject) => {
-            if (this.voiceMailControlButton.end.isVisible &&
-                this.voiceMailControlButton.end.isEnable) {
+            if (forceEnd || (this.voiceMailControlButton.end.isVisible &&
+                this.voiceMailControlButton.end.isEnable)) {
                 this.voiceControlService.endContact(this.voiceMailEventData.contactId).then((resp) => {
                     resolve(resp);
                 }, (err) => {
@@ -248,7 +255,7 @@ export class CXoneVoiceMailContact extends CXoneContact {
                 });
             }
             else {
-                reject(new CXoneSdkError(CXoneSdkErrorType.INVALID_METHOD_INVOCATION, 'Unauthorized method invocation'));
+                reject(new CXoneSdkError(CXoneSdkErrorType.INVALID_METHOD_INVOCATION, 'Unauthorized method invocation, can only end contact when end button is visible and enabled'));
             }
         });
     }

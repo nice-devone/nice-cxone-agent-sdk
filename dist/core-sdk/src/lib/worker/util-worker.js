@@ -134,11 +134,12 @@ const workercode = `self.importScripts(
   }
 
   function startAgentPolling(input) {
+    let pollingInterval = input?.pollingOptions?.pollingInterval ?? 5000;
     getQueues(input);
 
     setInterval(() => {
       getQueues(input);
-    }, 5000);
+    }, pollingInterval);
   }
 
   function getQueues(input) {

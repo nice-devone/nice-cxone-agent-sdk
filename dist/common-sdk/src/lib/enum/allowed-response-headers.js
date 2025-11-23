@@ -10,5 +10,9 @@ var AllowedResponseHeaders;
      * Unique trace id of the request
      */
     AllowedResponseHeaders["TRACE_ID"] = "x-trace-id";
+    /**
+     * Content-Disposition header used for file downloads
+     */
+    AllowedResponseHeaders["CONTENT_DISPOSITION"] = "content-disposition";
 })(AllowedResponseHeaders = exports.AllowedResponseHeaders || (exports.AllowedResponseHeaders = {}));
 //# sourceMappingURL=allowed-response-headers.js.map

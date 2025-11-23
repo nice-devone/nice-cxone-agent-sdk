@@ -116,10 +116,11 @@ export class CXoneSkillActivityProvider {
                 this.mediaTypeId = skillActivityPollingRequest.mediaTypeId;
             }
             this.isOutbound = skillActivityPollingRequest.isOutbound ? skillActivityPollingRequest.isOutbound : false;
+            let activityUpdatedSinceValue = LocalStorageHelper.getItem(StorageKeys.ACTIVITY_POLLING_UPDATED_SINCE) || new Date(0).toISOString();
             if (this.baseUri && authToken && !this.pollingWorker) {
                 const Url = new URL(ApiUriConstants.SKILL_ACTIVITY_URI, this.baseUri);
                 Url.searchParams.set('fields', 'agentsAvailable,agentsUnavailable,agentsLoggedIn,agentsWorking,campaignId,earliestQueueTime,emailFromAddress,inSLA,isActive,isNaturalCalling,isOutbound,mediaTypeId,mediaTypeName,outSLA,personalQueueCount,queueCount,serviceLevel,serviceLevelGoal,skillId,skillName,skillQueueCount');
-                Url.searchParams.set('updatedSince', new Date(0).toISOString());
+                Url.searchParams.set('updatedSince', activityUpdatedSinceValue);
                 const reqInit = {
                     headers: this.utilService.initHeader(authToken).headers,
                 };
@@ -127,7 +128,12 @@ export class CXoneSkillActivityProvider {
                 if (!this.pollingWorker) {
                     this.initSkillActivityWorker();
                     this.pollingWorker.onmessage = (response) => {
+                        var _a;
                         this.handleSkillActivityResponse(response.data);
+                        if ((_a = response.data) === null || _a === void 0 ? void 0 : _a.lastPollTime) {
+                            activityUpdatedSinceValue = response.data.lastPollTime;
+                        }
+                        LocalStorageHelper.setItem(StorageKeys.ACTIVITY_POLLING_UPDATED_SINCE, activityUpdatedSinceValue);
                     };
                 }
                 this.skillActivityPollingRequest = skillActivityPollingRequest;

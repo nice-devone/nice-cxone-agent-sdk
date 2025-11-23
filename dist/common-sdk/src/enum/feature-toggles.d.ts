@@ -22,6 +22,7 @@ export declare const enum FeatureToggles {
     LV_SMARTREACH = "release-tm-customerCard-2.0-crm-11684",
     LV_SMARTREACH_ECC = "release-smartreach-ecc-CXDSK-13",
     LV_SMARTREACH_DESK = "release-smartreach-desk-CXDSK-3",
+    MPOWER_LOGO_FEATURE_TOGGLE = "release-uh-new-bp-mpower-UH-48776",
     NEW_EMAIL_REVAMP_FEATURE_TOGGLE = "release-cx-agent-Revamped_New_Digital_Email_CMA-AW-28772",
     NO_TIMER_FEATURE_TOGGLE = "release-digital-no-timer-AW-36494",
     RESTART_GET_NEXT_EVENT_POLLING_FEATURE_TOGGLE = "release-cxa-get-next-event-restart-AW-37270",
@@ -38,5 +39,9 @@ export declare const enum FeatureToggles {
     GET_NEXT_EVENT_POLLING_TIMEOUT_FEATURE_TOGGLE = "release-cxa-get-next-events-timeout-update-AW-45121",
     RELATESTO_MSD_CURRENT_INTERACTION = "release-cxa-RelatesTo-MSD-CRM-10029",
     REVAMPED_WEBSOCKET_INTEGRATION_PATTERN = "release-cx-agent-API-websocket-integration-revamp-AW-42181",
-    MULTI_ACD_WEBSOCKET = "release-agentcopilot-multiacd-websocket-CSA-28481"
+    MULTI_ACD_WEBSOCKET = "release-agentcopilot-multiacd-websocket-CSA-28481",
+    DISABLE_AGENT_TO_PATRON_TYPING_TOGGLE = "release-cx-agent-disable-agent-typing-indicator-AW-46709",
+    INCREASE_QUEUES_POLLING_TOGGLE = "release-cx-agent-increase-queues-api-polling-AW-46709",
+    SYF_PERFORMANCE_GENERIC_TOGGLE = "release-cx-agent-syf-performance-generic-AW-46709",
+    HEAP_PERFORMANCE_RELOAD_TOGGLE = "release-cx-agent-heap-performance-reload-AW-46709"
 }

@@ -1,6 +1,7 @@
 import { AuthStatus } from '@nice-devone/auth-sdk';
 import { AgentQueuesDetail, CXoneLeaderElector, MessageBus, MessageType } from '@nice-devone/common-sdk';
 import { ACDSessionManager, ApiUriConstants, HttpUtilService, LoadWorker, Logger, UrlUtilsService } from '@nice-devone/core-sdk';
+import { FeatureToggleService } from '../../feature-toggle/feature-toggle-services';
 /**
  * Agent Queues Detail Provider Class
  */
@@ -17,6 +18,9 @@ export class CXoneAgentQueuesDetailProvider {
         this.cxoneClient = {};
         this.urlUtilService = new UrlUtilsService();
         this.agentId = '';
+        this.isIncreasedQueuesPolling = FeatureToggleService.instance.getFeatureToggleSync("release-cx-agent-increase-queues-api-polling-AW-46709" /* FeatureToggles.INCREASE_QUEUES_POLLING_TOGGLE */);
+        // if the FT is enabled then polling interval will be 30 seconds else 5 seconds
+        this.pollingInterval = this.isIncreasedQueuesPolling ? 30000 : 5000;
         window.addEventListener(AuthStatus.REFRESH_TOKEN_SUCCESS, () => this.restartWorker(this.agentId));
     }
     /**
@@ -63,6 +67,9 @@ export class CXoneAgentQueuesDetailProvider {
             this.pollingWorker.postMessage({
                 type: 'agent-polling',
                 requestParams: { url: url, method: 'GET', request: reqInit },
+                pollingOptions: {
+                    pollingInterval: this.pollingInterval,
+                },
             });
         }
     }

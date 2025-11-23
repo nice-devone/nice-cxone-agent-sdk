@@ -95,6 +95,9 @@ export const StorageKeys = {
     AGENT_SCREEN_SIZE: 'agent_screen_size',
     FAV_QR_ID_TOGGLED: 'favQuickReplyIdToggled',
     DIRECTORY_POLLING_UPDATED_SINCE: 'directoryUpdatedSince',
+    TEAM_POLLING_UPDATED_SINCE: 'teamUpdatedSince',
+    ACTIVITY_POLLING_UPDATED_SINCE: 'activityUpdatedSince',
+    SKILL_POLLING_UPDATED_SINCE: 'skillUpdatedSince',
     FAVORITE_IDS_TOGGLED: 'favIdsToggled',
     WEM_WS_CONNECTION_STATUS: 'wemWsConnectionStatus',
     //Conversation related keys
