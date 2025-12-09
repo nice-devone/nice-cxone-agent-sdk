@@ -29,7 +29,7 @@ const CxaPlaceholder=()=>{
                     );
     },[])
 
-  const handleEvent = () => {
+  const switchContacts = () => {
     const sessionDetails =
     {
       interactionId: '123456789',
@@ -42,7 +42,7 @@ const CxaPlaceholder=()=>{
   }
   return (
     <> 
-      <Button onClick={handleEvent}>fire event</Button>
+      <Button onClick={switchContacts}>fire event</Button>
       <div id="launchCXA">CXA Placeholder </div>
     </>
   )
