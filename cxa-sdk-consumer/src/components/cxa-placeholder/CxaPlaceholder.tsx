@@ -30,6 +30,7 @@ const CxaPlaceholder=()=>{
     },[])
 
   const handleSwitchContact = () => {
+    // customer should provide actual values here for switching contacts
     const sessionDetails =
     {
       interactionId: '123456789',
