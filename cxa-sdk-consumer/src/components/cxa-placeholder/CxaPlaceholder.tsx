@@ -11,6 +11,8 @@
  * 
  * @returns {JSX.Element} A div element with id "launchCXA" that serves as a placeholder for the CXone Agent.
  */
+import { Button } from '@mui/material';
+import { CXoneClient } from '@nice-devone/agent-sdk';
 import { CXoneAuth } from '@nice-devone/auth-sdk';
 import React, { useEffect } from 'react'
 
@@ -26,8 +28,24 @@ const CxaPlaceholder=()=>{
                       { width: "400px", height: "500px" }
                     );
     },[])
-    return(
-        <div id="launchCXA">CXA Placeholder </div>
-    )
+
+  const handleSwitchContact = () => {
+    // customer should provide actual values here for switching contacts
+    const sessionDetails =
+    {
+      interactionId: '123456789',
+      contactId: '12345',
+      mediaType: 'Mock'
+    };
+
+
+    CXoneClient.instance.switchContacts(sessionDetails);
+  }
+  return (
+    <> 
+      <Button onClick={handleSwitchContact}>Switch Contact</Button>
+      <div id="launchCXA">CXA Placeholder </div>
+    </>
+  )
 }
 export default CxaPlaceholder;
