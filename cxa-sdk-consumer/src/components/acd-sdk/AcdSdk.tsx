@@ -48,6 +48,7 @@ import { AgentSettings } from "@nice-devone/core-sdk";
 import { UserInfo } from "@nice-devone/common-sdk";
 import { useLocation } from "react-router-dom";
 import { tryCatchWrapper } from "../../utils/tryCatchWrapper";
+import { CcfMessageType } from '@nice-devone/shared-apps-lib';
 
 
 const AcdSdk = () => {
@@ -75,7 +76,10 @@ const AcdSdk = () => {
     CXoneAcdClient.instance.initAcdEngagement().finally(() => {
       setInitEngagement(true);
     })
-    
+    CXoneAcdClient.instance.setClickToDialCustomAgentUrl(
+        "http://localhost:3000/"
+      ); 
+      window.addEventListener('message', extensionClickToDialHandler);
    
   },[])
 
@@ -109,6 +113,21 @@ const AcdSdk = () => {
       setAgentLegButton(true);
     }
   }, [startSessionButton]);
+
+  /**
+   * Handle click-to-dial messages from browser extension
+   * @param event - message event from extension
+   */
+  const extensionClickToDialHandler = (event: MessageEvent) => {
+    if (event.data['type'] === CcfMessageType.CtdDialedNumber) {
+      const number = event.data['dialedNumber'];
+      const contactDetails: any = {
+          skillId: '889669', //replace with actual skill id
+          phoneNumber: number.toString().replace(/[`~!@$%^&()_|\-=?;:'",.<>{}[\]\s\\]/gi ,''),
+      };
+      CXoneAcdClient.instance.contactManager.voiceService.dialPhone(contactDetails);
+    };
+  }
 
   const initMethods = async () => {
     
