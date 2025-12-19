@@ -126,7 +126,7 @@ export class CXoneDigitalClient {
                             this.digitalService = new DigitalService();
                             this.updateDfoApiUrl();
                             yield this.getDigitalUserDetails();
-                            this.setDigitalWebSocketUri(); // DFO updateDfoWSUrl method is integrated within this logic as fallback (Cell Based Arch Revamp)
+                            yield this.setDigitalWebSocketUri(); // DFO updateDfoWSUrl method is integrated within this logic as fallback (Cell Based Arch Revamp)
                             this.subscribePollingResponseMessage();
                             this.digitalContactManager.initializeDigital();
                             this.cxoneDigitalWebsocket = new CXoneDigitalWebsocket();

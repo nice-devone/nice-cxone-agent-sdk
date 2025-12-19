@@ -1,7 +1,9 @@
+import { __awaiter } from "tslib";
 import { BulkReplyHistoryResponse, BulkReplyResponse, CcfLogger } from '@nice-devone/agent-sdk';
 import { CXoneAuth } from '@nice-devone/auth-sdk';
-import { CXoneSdkError, CXoneSdkErrorType, } from '@nice-devone/common-sdk';
-import { HttpUtilService, HttpClient, ApiUriConstants, UrlUtilsService, AdminService, } from '@nice-devone/core-sdk';
+import { CXoneSdkError, CXoneSdkErrorType, AllowedResponseHeaders, CXoneDigitalEventType, } from '@nice-devone/common-sdk';
+import { HttpUtilService, HttpClient, ApiUriConstants, UrlUtilsService, AdminService, LocalStorageHelper, StorageKeys, } from '@nice-devone/core-sdk';
+import { CXoneDigitalUtil } from '../util/cxone-digital-util';
 /**
  * Class to handle digital contact related API calls
  */
@@ -137,10 +139,11 @@ export class DigitalContactService {
             headers: this.utilService.initHeader(authToken, 'application/json').headers,
         };
         return new Promise((resolve, reject) => {
-            HttpClient.delete(url, reqInit).then((response) => {
+            HttpClient.delete(url, reqInit).then((response) => __awaiter(this, void 0, void 0, function* () {
                 this.logger.info('unassignCustomerContact', 'Case unassigned successfully');
+                yield CXoneDigitalUtil.instance.checkIfEventConsumed(response, contactId, CXoneDigitalEventType.CASE_INBOX_UNASSIGNED);
                 resolve(response);
-            }, (error) => {
+            }), (error) => {
                 const errorResponse = new CXoneSdkError(CXoneSdkErrorType.CXONE_API_ERROR, 'Case unassign failed', error);
                 this.logger.error('unassignCustomerContact', errorResponse.toString());
                 reject(errorResponse);
@@ -166,15 +169,28 @@ export class DigitalContactService {
             body: targetRoutingQueue,
         };
         return new Promise((resolve, reject) => {
-            HttpClient.put(url, reqInit).then((response) => {
+            HttpClient.put(url, reqInit).then((response) => __awaiter(this, void 0, void 0, function* () {
                 this.logger.info('changeRoutingQueue', 'Contact assignment to routing queue successfully');
+                yield CXoneDigitalUtil.instance.checkIfEventConsumed(response, contactId, CXoneDigitalEventType.CASE_INBOX_UNASSIGNED);
                 resolve(response);
-            }, (error) => {
+            }), (error) => {
                 const errorResponse = new CXoneSdkError(CXoneSdkErrorType.CXONE_API_ERROR, 'Contact assignment to routing queue failed', error);
                 this.logger.error('changeRoutingQueue', errorResponse.toString());
                 reject(errorResponse);
             });
         });
+    }
+    /**
+     * Method to get logged in user id from local storage
+     * @returns - User Id of the logged in user
+     * @example -
+     * getLoggedInUserId()
+    */
+    getLoggedInUserId() {
+        var _a;
+        // get current logged in user info from local storage
+        const userInfoFromStorage = LocalStorageHelper.getItem(StorageKeys.USER_INFO, true);
+        return (_a = userInfoFromStorage === null || userInfoFromStorage === void 0 ? void 0 : userInfoFromStorage.userId) !== null && _a !== void 0 ? _a : null;
     }
     /**
      * Method to assign customer contact to User
@@ -195,11 +211,21 @@ export class DigitalContactService {
             headers: this.utilService.initHeader(authToken, 'application/json').headers,
             body: targetUser,
         };
+        let eventName;
+        // In case of transferring case to another agent event name will be CASE_INBOX_UNASSIGNED
+        if (this.getLoggedInUserId() !== cxoneUserId) {
+            eventName = CXoneDigitalEventType.CASE_INBOX_UNASSIGNED;
+        }
+        else {
+            // In case of self assignment or assignment from queue to agent event name will be CASE_INBOX_ASSIGNED
+            eventName = CXoneDigitalEventType.CASE_INBOX_ASSIGNED;
+        }
         return new Promise((resolve, reject) => {
-            HttpClient.put(url, reqInit).then((response) => {
+            HttpClient.put(url, reqInit).then((response) => __awaiter(this, void 0, void 0, function* () {
                 this.logger.info('changeAssignedUser', 'Contact assignment to user successfully');
+                yield CXoneDigitalUtil.instance.checkIfEventConsumed(response, contactId, eventName);
                 resolve(response);
-            }, (error) => {
+            }), (error) => {
                 const errorResponse = new CXoneSdkError(CXoneSdkErrorType.CXONE_API_ERROR, 'Contact assignment to user failed', error);
                 this.logger.error('changeAssignedUser', errorResponse.toString());
                 reject(errorResponse);
@@ -226,9 +252,16 @@ export class DigitalContactService {
         if (reqInit.headers)
             reqInit.headers.push({ name: 'X-Trace-Id', value: xTraceId });
         return new Promise((resolve, reject) => {
-            HttpClient.post(url, reqInit).then((response) => {
+            HttpClient.post(url, reqInit).then((response) => __awaiter(this, void 0, void 0, function* () {
+                var _a, _b, _c;
+                const messageData = (_a = response === null || response === void 0 ? void 0 : response.data) === null || _a === void 0 ? void 0 : _a.message;
+                const consumerContactId = (_c = (_b = response === null || response === void 0 ? void 0 : response.data) === null || _b === void 0 ? void 0 : _b.consumerContact) === null || _c === void 0 ? void 0 : _c.id;
+                // Use response.data if consumerContact is available there, otherwise adjust as needed
+                if (consumerContactId) {
+                    yield CXoneDigitalUtil.instance.checkIfEventConsumed(response, consumerContactId, CXoneDigitalEventType.MESSAGE_ADDED_INTO_CASE, messageData);
+                }
                 resolve(response);
-            }, (error) => {
+            }), (error) => {
                 const errorResponse = new CXoneSdkError(CXoneSdkErrorType.CXONE_API_ERROR, 'Send reply failed', error);
                 this.logger.error('postOutboundReply', errorResponse.toString());
                 reject(errorResponse);
@@ -649,16 +682,18 @@ export class DigitalContactService {
      * Method to refuseDraftMessage
      * @param contactId - contact Id
      * @param messageDraftId - draft message id
+     * @param reason - reason for refusal
      * @returns response from API
      * @example
     */
-    refuseDraftMessage(contactId, messageDraftId) {
+    refuseDraftMessage(contactId, messageDraftId, reason) {
         const baseUrl = this.auth.getCXoneConfig().dfoApiBaseUri;
         const authToken = this.auth.getAuthToken().accessToken;
         const url = baseUrl + this.REJECT_DRAFT_MESSAGE.replace('{contactId}', contactId).replace('{messageDraftId}', messageDraftId);
-        const reqInit = {
-            headers: this.utilService.initHeader(authToken, 'application/json').headers,
+        const body = {
+            'reason': reason,
         };
+        const reqInit = Object.assign({ headers: this.utilService.initHeader(authToken, 'application/json').headers }, (reason && { body: body }));
         return new Promise((resolve, reject) => {
             HttpClient.post(url, reqInit).then((response) => {
                 this.logger.info('refuseDraftMessage', 'Message Approval Denied successfully');
@@ -831,6 +866,17 @@ export class DigitalContactService {
                 reject(errorResponse);
             });
         });
+    }
+    /**
+     * Method to get traceId from response headers
+     * @param response - HttpResponse object
+     * @example - getTraceIdFromResponseHeader(response)
+     * @returns - traceId string or empty string if not found
+     */
+    getTraceIdFromResponseHeader(response) {
+        var _a;
+        const traceIdHeader = (_a = response === null || response === void 0 ? void 0 : response.headers) === null || _a === void 0 ? void 0 : _a.find(currentHeader => { var _a; return ((_a = currentHeader === null || currentHeader === void 0 ? void 0 : currentHeader.name) === null || _a === void 0 ? void 0 : _a.toLowerCase()) === AllowedResponseHeaders.TRACE_ID; });
+        return traceIdHeader ? traceIdHeader.value : '';
     }
 }
 //# sourceMappingURL=digital-contact-service.js.map

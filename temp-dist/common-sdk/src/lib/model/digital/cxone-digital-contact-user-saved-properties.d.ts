@@ -74,4 +74,9 @@ export interface CXoneDigitalContactUserSavedProperties {
     * @remarks - In case of replying to a message
     */
     message?: CXoneMessage | undefined;
+    /**
+    * @remarks - In case of copy rejected message, this flag will be set to true, if this will be true we will
+    * not override the current editor content
+    */
+    isRejectedMessageCopied?: boolean;
 }

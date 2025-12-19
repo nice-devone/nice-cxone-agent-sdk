@@ -6,5 +6,6 @@ export var AcdCustomEventName;
     AcdCustomEventName["AGENT_WORKFLOW_CREATE_PAYLOAD"] = "AgentWorkflowCreatePayload";
     AcdCustomEventName["AGENT_SCREENPOP_CUSTOMSETTINGS"] = "ScreenPopCustomSettings";
     AcdCustomEventName["AGENT_LOCAL_POST"] = "LOCALPOST";
+    AcdCustomEventName["AGENT_TRIGGER_RECORDING_CONTROLS"] = "TRIGGER_RECORDING_CONTROLS";
 })(AcdCustomEventName || (AcdCustomEventName = {}));
 //# sourceMappingURL=acd-custom-event-name.js.map

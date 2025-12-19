@@ -3,7 +3,7 @@ import { CXoneAuth } from '@nice-devone/auth-sdk';
 import { Subject, timer } from 'rxjs';
 import { AgentAssistSubscribe, AgentAssistCommand, AgentAssistConnectedResponse, AgentAssistSubscribedResponse, AgentAssistErrorResponse, CXoneLeaderElector, MessageBus, MessageType, AgentAssistWSMessageResponse, AgentAssistUnsubscribe, AgentAssistHeartbeat, RtigTopic, AgentAssistConnect, } from '@nice-devone/common-sdk';
 import { AgentAssistProcessorService } from './agent-assist-processor-service';
-import { ACDSessionManager, CallContactEventStatus, GetNextEventSubCategory, LoadWorker, Logger, WebsocketClient } from '@nice-devone/core-sdk';
+import { ACDSessionManager, GetNextEventSubCategory, LoadWorker, Logger, WebsocketClient } from '@nice-devone/core-sdk';
 import { FeatureToggleService } from '../feature-toggle';
 import { AgentAssistWebSocketProviders } from './enums/provider-enums';
 import { isVoiceTranscriptEnabledAndToggledOn } from '../utils/voiceTranscriptionUtils';
@@ -63,7 +63,7 @@ export class AgentAssistWSService extends WebsocketClient {
     registerAgentAssistGetNextSubject() {
         return __awaiter(this, void 0, void 0, function* () {
             ACDSessionManager.instance.agentAssistGetNextEventSubject.subscribe((event) => __awaiter(this, void 0, void 0, function* () {
-                var _a, _b, _c, _d, _e, _f, _g, _h, _j, _k, _l, _m, _o;
+                var _a, _b, _c, _d, _e, _f, _g, _h, _j, _k, _l, _m;
                 if (event) {
                     const agentAssistJson = JSON.parse(((_a = event === null || event === void 0 ? void 0 : event.allParams) === null || _a === void 0 ? void 0 : _a.AgentAssistAppConfigJson) || '{}');
                     const contactId = (_b = event === null || event === void 0 ? void 0 : event.allParams) === null || _b === void 0 ? void 0 : _b.ContactId;
@@ -112,6 +112,7 @@ export class AgentAssistWSService extends WebsocketClient {
                                     setAgentAssistGetNextInIndexDb(agentAssistInput);
                                 }
                                 this.cxoneClientInstance.copilotNotificationClient.connect(aahNotificationWssUri, userInfo.icAgentId, agentAssistInput);
+                                ACDSessionManager.instance.aaVoiceTranscriptEventSubject.next(agentAssistInput);
                             }
                         }
                         catch (error) {
@@ -119,9 +120,6 @@ export class AgentAssistWSService extends WebsocketClient {
                                 this.logger.error('Voice Transcription could possibly not be enabled or configured', error.message);
                             }
                         }
-                    }
-                    else if ((event === null || event === void 0 ? void 0 : event.allParams['Status']) === CallContactEventStatus.DISCONNECTED) {
-                        this.cxoneClientInstance.copilotNotificationClient.unsubscribe(`${(_o = event === null || event === void 0 ? void 0 : event.allParams) === null || _o === void 0 ? void 0 : _o.ContactID}_transcript`);
                     }
                     else {
                         // this subject is used to show agent assist app in new tabs the old existing way
@@ -143,12 +141,19 @@ export class AgentAssistWSService extends WebsocketClient {
             ACDSessionManager.instance.agentAssistWSSubject.subscribe((resp) => __awaiter(this, void 0, void 0, function* () {
                 if (resp) {
                     try {
-                        this.initWebSocketWorker(this.serviceName);
-                        this.connect(resp.webSocketUri);
-                        this.subscribe(resp);
-                        // save getnext event data in index db, if not already exists for that contact Id
-                        const { setAgentAssistGetNextInIndexDb } = this.agentAssistProcessorService;
-                        setAgentAssistGetNextInIndexDb && setAgentAssistGetNextInIndexDb(resp);
+                        if ((resp === null || resp === void 0 ? void 0 : resp.subCategory) === GetNextEventSubCategory.VOICE_TRANSCRIPT) {
+                            const userInfo = this.cxoneClientInstance.cxoneUser.getUserInfo();
+                            this.cxoneClientInstance.copilotNotificationClient.connect(resp.webSocketUri, userInfo.icAgentId, resp);
+                            ACDSessionManager.instance.aaVoiceTranscriptEventSubject.next(resp);
+                        }
+                        else {
+                            this.initWebSocketWorker(this.serviceName);
+                            this.connect(resp.webSocketUri);
+                            this.subscribe(resp);
+                            // save getnext event data in index db, if not already exists for that contact Id
+                            const { setAgentAssistGetNextInIndexDb } = this.agentAssistProcessorService;
+                            setAgentAssistGetNextInIndexDb && setAgentAssistGetNextInIndexDb(resp);
+                        }
                     }
                     catch (error) {
                         if (error instanceof Error) {
@@ -159,6 +164,7 @@ export class AgentAssistWSService extends WebsocketClient {
             }));
         });
     }
+    ;
     /**
      * used to register subscription to the websocket onMessageNotification subject
      * @example -
@@ -200,7 +206,8 @@ export class AgentAssistWSService extends WebsocketClient {
                 if (respContactId) {
                     try {
                         const isAgentAssistAppEnabled = yield FeatureToggleService.instance.getFeatureToggle(agentAssistFeatureToggle);
-                        if (isAgentAssistAppEnabled) {
+                        const voiceTranscriptionEnabledAndOn = yield isVoiceTranscriptEnabledAndToggledOn();
+                        if (isAgentAssistAppEnabled || voiceTranscriptionEnabledAndOn) {
                             const getNextDataForContactId = yield this.agentAssistProcessorService.getAgentAssistGetNextForContactIdFromIndexDb(respContactId);
                             if (getNextDataForContactId) {
                                 this.unsubscribeFromWebSocketForContactId(respContactId, getNextDataForContactId);
@@ -211,6 +218,9 @@ export class AgentAssistWSService extends WebsocketClient {
                                 (_a = this.hearbeatSubscription) === null || _a === void 0 ? void 0 : _a.unsubscribe();
                                 this.closeWebsocket();
                             }
+                        }
+                        if (yield isVoiceTranscriptEnabledAndToggledOn()) {
+                            this.cxoneClientInstance.copilotNotificationClient.unsubscribe(`${respContactId}_transcript`);
                         }
                     }
                     catch (error) {

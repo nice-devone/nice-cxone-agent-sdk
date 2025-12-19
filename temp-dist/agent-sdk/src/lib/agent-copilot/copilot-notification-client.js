@@ -13,6 +13,7 @@ export class CopilotNotificationClient extends AgentAssistNotificationService {
         this.subscriptionTopics = [];
         this.onMessageNotification = new Subject();
         this.onVoiceTranscriptionMessage = new Subject();
+        this.onVoiceTranscriptionError = new Subject();
     }
     /**
      * used to connect to the socket.
@@ -151,6 +152,9 @@ export class CopilotNotificationClient extends AgentAssistNotificationService {
                 if (this.subscriptionTopics.includes(msgResponse.body.topic)) {
                     this.subscriptionTopics.splice(this.subscriptionTopics.indexOf(msgResponse.body.topic), 1);
                 }
+                break;
+            case AgentAssistCommand.error:
+                this.onVoiceTranscriptionError.next(msgResponse);
                 break;
             default:
                 break;

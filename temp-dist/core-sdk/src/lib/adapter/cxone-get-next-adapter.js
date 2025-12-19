@@ -1,11 +1,12 @@
 import { __awaiter } from "tslib";
 import { GetNextEventType } from '../../enum/get-next-event-type';
-import { CallContactEventYup, MuteEvent, UpdatePermissionsEvent, AgentSessionEndEvent, AgentSessionStartEvent, CXoneIndicator, AgentStateEvent, UpdateUnavailableCodeEvent, AgentLegEvent, DigitalContactEvent, CXonePageOpen, CXoneRunApp, AgentSessionStatus, MCHSetting, CXonePopUrl, AgentWorkflowResponseEvent, AgentWorkflowRequestEvent, VoiceMailContactEventYup, CXoneAgentAssist, CommitmentEvent, VoiceMailPlayBackEventYup, CommitmentStatusEvent, UpdateNetworkTimeoutEvent, WorkItemContactEventYup, CoBrowseEvent, parseBooleanString, MediaType, MediaTypeId, CXoneCustomScreenpop, } from '@nice-devone/common-sdk';
+import { CallContactEventYup, MuteEvent, UpdatePermissionsEvent, AgentSessionEndEvent, AgentSessionStartEvent, CXoneIndicator, AgentStateEvent, UpdateUnavailableCodeEvent, AgentLegEvent, DigitalContactEvent, CXonePageOpen, CXoneRunApp, AgentSessionStatus, MCHSetting, CXonePopUrl, AgentWorkflowResponseEvent, AgentWorkflowRequestEvent, AgentWorkflowCallControlRequestEvent, VoiceMailContactEventYup, CXoneAgentAssist, CommitmentEvent, VoiceMailPlayBackEventYup, CommitmentStatusEvent, UpdateNetworkTimeoutEvent, WorkItemContactEventYup, CoBrowseEvent, parseBooleanString, MediaType, MediaTypeId, CXoneCustomScreenpop, } from '@nice-devone/common-sdk';
 import { ACDSessionManager } from '../agent/session/acd-session-manager';
 import { GetNextEventProvider, UIQueueWsProvider } from '../agent';
 import { LocalStorageHelper } from '../../util/storage-helper-local';
 import { StorageKeys } from '../../constants/storage-key';
 import { AcdCustomEventName } from '../../enum/acd-custom-event-name';
+import { CallControlEventActions, CallControlEventTypes } from '../../enum/call-control-event-actions';
 import { Logger } from '../../logger/logger';
 import { CallContactEventStatus } from '../../enum/call-contact-event-status';
 /**
@@ -36,10 +37,8 @@ export class CXoneGetNextAdapter {
             switch ((event === null || event === void 0 ? void 0 : event.Type) || (event === null || event === void 0 ? void 0 : event.type)) {
                 case GetNextEventType.CALL_CONTACT_EVENT: {
                     const callContactEvent = CallContactEventYup.cast(event);
-                    if (callContactEvent.status === CallContactEventStatus.DISCONNECTED) {
-                        const agentAssistEvent = new CXoneAgentAssist(event);
+                    if (callContactEvent.status === CallContactEventStatus.DISCONNECTED && callContactEvent.finalState) {
                         this.agentSession.agentAssistWebSocketUnsubsribeSubject.next(callContactEvent.contactId.toString());
-                        this.agentSession.agentAssistGetNextEventSubject.next(agentAssistEvent);
                     }
                     this.agentSession.callContactEventSubject.next(callContactEvent);
                     this.agentSession.onContactEvent.next(event);
@@ -191,6 +190,17 @@ export class CXoneGetNextAdapter {
                         if ((event === null || event === void 0 ? void 0 : event.eventName) === AcdCustomEventName.AGENT_WORKFLOW_CREATE_PAYLOAD) {
                             this.agentSession.agentWorkflowCreatePayloadEvent.next(event === null || event === void 0 ? void 0 : event.data);
                         }
+                    }
+                    // Handle Agent Workflow Call Control Event
+                    if ((event === null || event === void 0 ? void 0 : event.eventName) === CallControlEventActions.TRIGGER_RECORDING_CONTROLS) {
+                        const agentWorkflowCallControlAdapter = new AgentWorkflowCallControlRequestEvent(event === null || event === void 0 ? void 0 : event.data, CallControlEventTypes.RECORDING_CONTROL_EVENT);
+                        this.agentSession.agentWorkflowCallControlEvent.next(agentWorkflowCallControlAdapter.recordingControlData);
+                        break;
+                    }
+                    if ((event === null || event === void 0 ? void 0 : event.eventName) === CallControlEventActions.TRIGGER_OB) {
+                        const agentWorkflowCallControlAdapter = new AgentWorkflowCallControlRequestEvent(event === null || event === void 0 ? void 0 : event.data, CallControlEventTypes.OUTBOUND_CALL);
+                        this.agentSession.agentWorkflowCallControlEvent.next(agentWorkflowCallControlAdapter.outBoundControlData);
+                        break;
                     }
                     if (event === null || event === void 0 ? void 0 : event.data) {
                         let parsedCustomEventData;

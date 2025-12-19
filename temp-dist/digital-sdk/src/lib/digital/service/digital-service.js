@@ -2,8 +2,10 @@ import { __awaiter } from "tslib";
 /* eslint-disable @typescript-eslint/no-unused-expressions */
 import { CcfLogger } from '@nice-devone/agent-sdk';
 import { CXoneAuth, CXoneUser } from '@nice-devone/auth-sdk';
-import { CXoneSdkError, CXoneDigitalChannelArray, CXoneCaseArray, ReactionType, ExternalPlatformTemplatesResponse, getQueryURLFromObjectKeys, CXoneDigitalContactSearch, CXoneRoutingQueueArray, CXoneSdkErrorType, CXoneDigitalMessageTagArraychema, CXoneDigitalCustomerSearch, CXoneDigitalMessageSearch, CXoneDigitalThreadSearch, CXoneDigitaltranslationApiResponseSchema, getQueryURLForSearchMessagesTab, getQueryURLForSearchThreadsTab, getQueryURLForCustomerTab, UserSlotsSchema, } from '@nice-devone/common-sdk';
-import { HttpUtilService, HttpClient, ApiUriConstants, LocalStorageHelper, StorageKeys, dbInstance, IndexDBStoreNames, IndexDBKeyNames, clearIndexDbStore, } from '@nice-devone/core-sdk';
+import { CXoneSdkError, CXoneDigitalChannelArray, CXoneCaseArray, ReactionType, ExternalPlatformTemplatesResponse, getQueryURLFromObjectKeys, CXoneDigitalContactSearch, CXoneRoutingQueueArray, CXoneSdkErrorType, CXoneDigitalMessageTagArraychema, CXoneDigitalCustomerSearch, CXoneDigitalMessageSearch, CXoneDigitalThreadSearch, CXoneDigitaltranslationApiResponseSchema, getQueryURLForSearchMessagesTab, getQueryURLForSearchThreadsTab, getQueryURLForCustomerTab, UserSlotsSchema, CXoneDigitalEventType, } from '@nice-devone/common-sdk';
+import { HttpUtilService, HttpClient, ApiUriConstants, LocalStorageHelper, StorageKeys, dbInstance, IndexDBStoreNames, IndexDBKeyNames, clearIndexDbStore, UrlUtilsService, } from '@nice-devone/core-sdk';
+import { DigitalContactService } from './digital-contact-service';
+import { CXoneDigitalUtil } from '../util/cxone-digital-util';
 /**
  * Service to handle generic digital API calls
  */
@@ -17,6 +19,7 @@ export class DigitalService {
     constructor() {
         this.logger = new CcfLogger('acd', 'Digital Service');
         this.utilService = new HttpUtilService();
+        this.urlUtilsService = new UrlUtilsService();
         this.UPDATE_MESSAGE_REACTION = '/dfo/3.0/messages/{messageId}/react/{reactionType}';
         this.UPDATE_CASE_CUSTOM_FIELD = '/dfo/3.0/contacts/{caseId}/custom-fields';
         this.EXTERNAL_PLATFORM_TEMPLATE_URI = '/dfo/3.0/channels/{channelId}/external-platform-templates';
@@ -34,6 +37,8 @@ export class DigitalService {
         this.ERASE_MESSAGE_AUTHOR_NAME = '/internal/2.0/frontend-app-state?nodesToFetch=configurationEnvironment';
         this.TYPING_INDICATOR_FOR_PATRON = '/dfo/3.0/channels/{channelId}/threads/{threadIdOnExternalPlatform}/sender-actions';
         this.GET_DIGITAL_WEBSOCKET_URL = '/dfo/3.0/event-hub-url'; // New Cell based DFO Architecture needs us to use this API for getting WS URL
+        this.MARK_QUICK_RESPONSE_AS_FAVORITE = '/rich-message-settings/1.0/quick-responses/{quickResponseId}/favorite';
+        this.digitalContactService = new DigitalContactService();
         /**
          * Method to get available languages for translation
          * @returns - languages
@@ -415,6 +420,23 @@ export class DigitalService {
         });
     }
     /**
+   * Method to put fav quick Replies in IDB
+   * @returns
+   * @example
+   * ```
+   * putFavQuickReplies([{id:2,isFavorite:true}],IndexDBStoreNames.QUICKREPLIES,IndexDBKeyNames.FAV_QUICK_REPLIES)
+   * ```
+   * @param favQRObjects - represents favorite  quick replies array
+   * @param idbStoreName - represents indexdb store name
+   * @param idbKeyName - represents indexdb key name
+   */
+    putFavQuickReplies(favQRObjects, idbStoreName, idbKeyName) {
+        return __awaiter(this, void 0, void 0, function* () {
+            const db = yield dbInstance();
+            yield db.put(idbStoreName, favQRObjects, idbKeyName);
+        });
+    }
+    /**
      * Method to unmark a quickReply as favorite
      * @returns
      * @example -unmarkFavQuickReplies(reply, true)
@@ -768,9 +790,14 @@ export class DigitalService {
             headers: this.utilService.initHeader(authToken, 'application/json', "x-message-sender" /* HttpRequestCustomHeaders.X_MESSAGE_SENDER */).headers,
         };
         return new Promise((resolve, reject) => {
-            HttpClient.put(url, reqInit).then((response) => {
+            HttpClient.put(url, reqInit).then((response) => __awaiter(this, void 0, void 0, function* () {
+                const contactId = LocalStorageHelper.getItem(StorageKeys.FOCUSED_CONTACT_ID);
+                if (contactId) {
+                    const messageData = response === null || response === void 0 ? void 0 : response.data;
+                    yield CXoneDigitalUtil.instance.checkIfEventConsumed(response, contactId, CXoneDigitalEventType.MESSAGE_UPDATED, messageData);
+                }
                 resolve(response);
-            }, (error) => {
+            }), (error) => {
                 const errorResponse = new CXoneSdkError(CXoneSdkErrorType.CXONE_API_ERROR, 'add message tag failed', error);
                 this.logger.error('addDigitalMessageTag', errorResponse.toString());
                 reject(errorResponse);
@@ -792,9 +819,14 @@ export class DigitalService {
             headers: this.utilService.initHeader(authToken, 'application/json', "x-message-sender" /* HttpRequestCustomHeaders.X_MESSAGE_SENDER */).headers,
         };
         return new Promise((resolve, reject) => {
-            HttpClient.delete(url, reqInit).then((response) => {
+            HttpClient.delete(url, reqInit).then((response) => __awaiter(this, void 0, void 0, function* () {
+                const contactId = LocalStorageHelper.getItem(StorageKeys.FOCUSED_CONTACT_ID);
+                if (contactId) {
+                    const messageData = response === null || response === void 0 ? void 0 : response.data;
+                    yield CXoneDigitalUtil.instance.checkIfEventConsumed(response, contactId, CXoneDigitalEventType.MESSAGE_UPDATED, messageData);
+                }
                 resolve(response);
-            }, (error) => {
+            }), (error) => {
                 const errorResponse = new CXoneSdkError(CXoneSdkErrorType.CXONE_API_ERROR, 'remove message tag failed', error);
                 this.logger.error('deleteDigitalMessageTag', errorResponse.toString());
                 reject(errorResponse);
@@ -894,6 +926,84 @@ export class DigitalService {
             }, (error) => {
                 const errorResponse = new CXoneSdkError(CXoneSdkErrorType.CXONE_API_ERROR, 'Digital QuickResponses fetch failed', error);
                 this.logger.error('getQuickResponses', errorResponse.toString());
+                reject(errorResponse);
+            });
+        });
+    }
+    /**
+     * Method to mark or unmark a quickResponse as favorite
+     * @param quickResponseId - Id of the quick response to be marked as favorite
+     * @param isMarkedAsFavorite - boolean flag to mark or unmark as favorite
+     * @example - digitalService.markQuickResponseAsFavorite(1234)
+     */
+    toggleFavoriteQuickResponse(quickResponseId, isMarkedAsFavorite) {
+        const baseUrl = this.auth.getCXoneConfig().apiFacadeBaseUri;
+        const authToken = this.auth.getAuthToken().accessToken;
+        const url = baseUrl + this.MARK_QUICK_RESPONSE_AS_FAVORITE.replace('{quickResponseId}', quickResponseId.toString());
+        const reqInit = this.utilService.initHeader(authToken);
+        if (isMarkedAsFavorite) {
+            return new Promise((resolve, reject) => {
+                HttpClient.post(url, reqInit).then((response) => {
+                    resolve(response);
+                }, (error) => {
+                    const errorResponse = new CXoneSdkError(CXoneSdkErrorType.CXONE_API_ERROR, 'Mark Quick Response as favorite failed', error);
+                    this.logger.error('markQuickResponseAsFavorite', errorResponse.toString());
+                    reject(errorResponse);
+                });
+            });
+        }
+        else {
+            return new Promise((resolve, reject) => {
+                HttpClient.delete(url, reqInit).then((response) => {
+                    resolve(response);
+                }, (error) => {
+                    const errorResponse = new CXoneSdkError(CXoneSdkErrorType.CXONE_API_ERROR, 'Unmark Quick Response as favorite failed', error);
+                    this.logger.error('unmarkQuickResponseAsFavorite', errorResponse.toString());
+                    reject(errorResponse);
+                });
+            });
+        }
+    }
+    /**
+     * Method to get unified quick responses includes rich text & quick replies with pagination support
+     * @param channels - channel ids to be passed to get channel specific list (optional)
+     * @param skills - skill ids to be passed to get skill specific list (optional)
+     * @param page - page number for pagination (default: 1)
+     * @param limit - number of items per page (default: 20)
+     * @param search - search term to filter results (optional)
+     * @returns - list of all types of quick responses
+     * @example - digitalService.getUnifiedQuickResponses()
+     */
+    getUnifiedQuickResponses(channels, skills, page = 1, limit = 20, search = '', isFavorite) {
+        const baseUrl = this.auth.getCXoneConfig().apiFacadeBaseUri;
+        const authToken = this.auth.getAuthToken().accessToken;
+        const channelQueryParams = channels && channels.length > 0 ? channels.map(channel => `channelId%5B%5D=${channel}`).join('&') : null;
+        const skillQueryParams = skills && skills.length > 0 ? skills.map(skill => `skillId%5B%5D=${skill}`).join('&') : null;
+        const favoriteQueryParam = isFavorite ? 'isFavorite=true' : undefined;
+        const combinedQueryParams = [channelQueryParams, skillQueryParams, favoriteQueryParam]
+            .filter(Boolean)
+            .join('&');
+        const queryParams = { page, limit };
+        if (search !== '') {
+            queryParams.query = search;
+        }
+        const apiUrl = combinedQueryParams ? `${this.QUICK_RESPONSES}?${combinedQueryParams}` : this.QUICK_RESPONSES;
+        let url = baseUrl + apiUrl;
+        url = this.urlUtilsService.appendQueryString(url, queryParams);
+        const reqInit = this.utilService.initHeader(authToken);
+        return new Promise((resolve, reject) => {
+            HttpClient.get(url, reqInit).then((response) => {
+                const responseData = response.data;
+                responseData.page = page;
+                responseData.limit = limit;
+                resolve({
+                    allQuickReplies: responseData.data,
+                    nextLinks: responseData._links || null,
+                    totalRecords: responseData.totalRecords,
+                });
+            }, (error) => {
+                const errorResponse = new CXoneSdkError(CXoneSdkErrorType.CXONE_API_ERROR, 'Digital Unified QuickResponses fetch failed', error);
+                this.logger.error('getUnifiedQuickResponses', errorResponse.toString());
                 reject(errorResponse);
             });
         });

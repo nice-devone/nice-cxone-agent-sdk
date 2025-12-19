@@ -15,6 +15,7 @@ var workflowActions;
     workflowActions["DATAMEMORIALIZATION"] = "datamemorialization";
     workflowActions["TIMELINE"] = "timeline";
     workflowActions["RELATESTO"] = "relatesto";
+    workflowActions["TRIGGER"] = "trigger";
 })(workflowActions || (workflowActions = {}));
 /**
  * Class to handle Customer Card API calls
@@ -69,6 +70,11 @@ export class CustomerCardService {
                         entity: request === null || request === void 0 ? void 0 : request.entity,
                         entityId: request === null || request === void 0 ? void 0 : request.entityId,
                         relatedObject: request === null || request === void 0 ? void 0 : request.relatedObject,
+                    };
+                case workflowActions.TRIGGER:
+                    return {
+                        action: request === null || request === void 0 ? void 0 : request.action,
+                        workflowInput: request === null || request === void 0 ? void 0 : request.workflowInput,
                     };
                 default: {
                     return {};

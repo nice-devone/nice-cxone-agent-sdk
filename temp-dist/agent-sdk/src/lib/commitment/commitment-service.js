@@ -251,8 +251,8 @@ export class CommitmentService {
 }
 //Api uris to get, create, edit, delete commitments
 CommitmentService.GET_COMMITMENTS = '/incontactapi/services/v25.0/agents/{agentId}/scheduled-callbacks';
-CommitmentService.CREATE_COMMITMENT = '/incontactapi/services/v25.0/scheduled-callbacks';
-CommitmentService.EDIT_COMMITMENT = '/incontactapi/services/v25.0/scheduled-callbacks/{callbackId}';
+CommitmentService.CREATE_COMMITMENT = '/incontactapi/services/v33.0/scheduled-callbacks';
+CommitmentService.EDIT_COMMITMENT = '/incontactapi/services/v33.0/scheduled-callbacks/{callbackId}';
 CommitmentService.DELETE_COMMITMENT = '/incontactapi/services/v25.0/scheduled-callbacks/{callbackId}';
 // Api uri to make commitment call
 CommitmentService.MAKE_COMMITMENT_CALL = '/incontactapi/services/v21.0/agent-sessions/{sessionId}/interactions/{callbackId}/dial';

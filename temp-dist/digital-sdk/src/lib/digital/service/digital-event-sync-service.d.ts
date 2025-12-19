@@ -19,12 +19,12 @@ export declare class DigitalEventSyncService {
      * @param handler - A callback function that processes digital event synchronization.
      * @example digitalEventSyncService.initDigitalEventSync((args));
     */
-    initDigitalEventSync: (handler: (digitalEventSync: DigitalEventSync) => boolean) => void;
+    initDigitalEventSync: (handler: (digitalEventSync: DigitalEventSync) => Promise<boolean>) => void;
     /**
      * Handles the digital event synchronization by invoking the registered handler.
      * @param digitalEventSync - The arguments required for digital event synchronization.
      * @returns A boolean based on the result of the handler.
      * @example const result = digitalEventSyncService.handleDigitalEventSync(args);
     */
-    handleDigitalEventSync: (digitalEventSync: DigitalEventSync) => boolean;
+    handleDigitalEventSync: (digitalEventSync: DigitalEventSync) => Promise<boolean>;
 }

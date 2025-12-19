@@ -157,6 +157,7 @@ export * from './lib/model/customer-card/cxone-crm-search-response';
 export * from './lib/model/authenticate/cxone-configuration';
 export * from './lib/model/contact/agent-workflow/agent-workflow-event-result';
 export * from './lib/model/contact/agent-workflow/agent-workflow-request-event-request';
+export * from './lib/model/contact/agent-workflow/agent-call-control-event-request';
 export * from './lib/model/agent-setting/cxone-audio-visual-notification-settings';
 export * from './lib/model/agent-setting/cxone-client-data';
 export * from './lib/model/agent-setting/cxone-softphone-notification-settings';
@@ -281,5 +282,9 @@ export * from './lib/model/voice-transcription/interfaces/voice-transcription-we
 export * from './lib/model/agent-copilot/copilot-interfaces/copilot-adaptive-card';
 export * from './lib/enum/window-events';
 export * from './lib/model/websocket/digital-event-hub-response';
-export * from './lib/model/voice-transcription/voice-transcription-response';
 export * from './model/digital-event-sync';
+export * from './lib/model/voice-transcription/interfaces/voice-transcription-item';
+export * from './lib/model/voice-transcription/interfaces/voice-transcription-status-event';
+export * from './lib/model/voice-transcription/voice-transcription-response';
+export * from './lib/enum/allowed-response-headers';
+export * from './lib/enum/icon-variant';

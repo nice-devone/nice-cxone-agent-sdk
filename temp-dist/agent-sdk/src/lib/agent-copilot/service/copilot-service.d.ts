@@ -190,6 +190,25 @@ export declare class CopilotService {
      */
     storeAgentAssistConfig: (contactId: string, mediaType?: string, agentAssistId?: string) => Promise<any>;
     /**
+     * Ensures the Agent Assist configuration for the given contactId is available in memory.
+     * If the configuration is not already cached (in the in-memory store or localStorage),
+     * it will be retrieved from the backend API and then returned.
+     *
+     * Unlike {@link storeAgentAssistConfig}, this method only attempts a backend retrieval
+     * when no cached configuration exists; it does not validate agentAssistId/mediaType changes.
+     *
+     * @param contactId - The contact (case) identifier whose Agent Assist configuration is required.
+     * @returns The loaded {@link CopilotProfileConfig} if available after cache check / retrieval; otherwise `undefined` if retrieval failed silently.
+     * @example
+     * ```ts
+     * const aahConfig = copilotService.resolveAgentAssistConfig('12321');
+     * if (aahConfig?.Params?.emailChannel) {
+     *   // proceed with email specific logic
+     * }
+     * ```
+     */
+    resolveAgentAssistConfig: (contactId: string) => Promise<CopilotProfileConfig | undefined>;
+    /**
      * Used to get the last generated list of topics for the contact id
      * @param contactId - contact Id
      * @example -

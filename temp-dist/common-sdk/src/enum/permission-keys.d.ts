@@ -60,5 +60,13 @@ export declare enum PermissionKeys {
     /**
      * permission key for enabling or disabling the voice transcript feature
      */
-    VOICE_TRANSCRIPT = "VoiceTranscript"
+    VOICE_TRANSCRIPT = "VoiceTranscript",
+    /**
+     * permission key for enabling or disabling the real-time recording status update feature
+     */
+    REALTIME_RECORDING_STATUS_UPDATE = "realtimeRecordingStatusUpdate",
+    /**
+     * permission key for enabling or disabling the stop record feature
+     */
+    STOP_RECORDING = "StopRecording"
 }

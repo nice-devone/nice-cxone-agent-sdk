@@ -1,5 +1,5 @@
 import { Subject } from 'rxjs';
-import { AgentAssistBaseResponse, VoiceTranscriptionResponse } from '@nice-devone/common-sdk';
+import { AgentAssistErrorResponse, AgentAssistBaseResponse, VoiceTranscriptionResponse } from '@nice-devone/common-sdk';
 import { AgentAssistInput, AgentAssistNotificationService } from '../agent-assist/agent-assist-notification-service';
 /**
  *  web socket class for agent copilot
@@ -10,6 +10,7 @@ export declare class CopilotNotificationClient extends AgentAssistNotificationSe
     private subscriptionTopics;
     onMessageNotification: Subject<AgentAssistBaseResponse>;
     onVoiceTranscriptionMessage: Subject<VoiceTranscriptionResponse>;
+    onVoiceTranscriptionError: Subject<AgentAssistErrorResponse>;
     /**
      * used to connect to the socket.
      * @example -  connect('ws://localhost:8080', 1011, 123_subscription);

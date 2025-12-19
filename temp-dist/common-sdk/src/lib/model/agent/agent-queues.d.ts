@@ -22,7 +22,15 @@ export declare class Queue extends CXoneEvent {
     /**
      * @remarks - Type of Media
      */
-    mediaType: number;
+    mediaType?: number;
+    /**
+     * @remarks - Channel Number
+     */
+    channelNo?: number;
+    /**
+     * @remarks - Channel name
+     */
+    channelName?: string;
     /**
      * @remarks - Total count of the contact
      */

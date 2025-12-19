@@ -1,6 +1,6 @@
 import { HttpUtilService } from '../../http/index';
 import { Logger } from '../../../logger/logger';
-import { CXoneIndicator, CustomFormData, StartSessionRequest, CXonePageOpen, CXoneRunApp, CXoneSdkError, HttpResponse, EndSessionRequest, AgentSessionResponse, MCHSetting, CXonePopUrl, CXoneContactScreenpop, AgentWorkflowResponseEvent, AgentWorkflowRequestEvent, UserInfo, CXoneAgentAssist, CommitmentEvent, CommitmentStatusEvent, CoBrowseEvent, LocalPostEvent, AgentAssistWSRequest, MuteEvent, UpdatePermissionsEvent, AgentStateEvent, UpdateUnavailableCodeEvent, AgentLegEvent, DigitalContactEvent, CXoneConfiguration, UpdateNetworkTimeoutEvent, CXoneCustomScreenpop, GetNextAgentAssistEvent } from '@nice-devone/common-sdk';
+import { CXoneIndicator, CustomFormData, StartSessionRequest, CXonePageOpen, CXoneRunApp, CXoneSdkError, HttpResponse, EndSessionRequest, AgentSessionResponse, MCHSetting, CXonePopUrl, CXoneContactScreenpop, AgentWorkflowResponseEvent, AgentWorkflowRequestEvent, UserInfo, CXoneAgentAssist, CommitmentEvent, CommitmentStatusEvent, CoBrowseEvent, LocalPostEvent, AgentAssistWSRequest, MuteEvent, UpdatePermissionsEvent, AgentStateEvent, UpdateUnavailableCodeEvent, AgentLegEvent, DigitalContactEvent, CXoneConfiguration, UpdateNetworkTimeoutEvent, CXoneCustomScreenpop, GetNextAgentAssistEvent, AgentWorkflowCallControlEventType } from '@nice-devone/common-sdk';
 import { Subject, ReplaySubject } from 'rxjs';
 import { CXoneGetNextAdapter } from '../../adapter/cxone-get-next-adapter';
 /**
@@ -60,6 +60,8 @@ export declare class ACDSessionManager {
     private _callControlEvent;
     private isEventQueueResized;
     private _onAgentCustomEvent;
+    private _aaVoiceTranscriptEventSubject;
+    private _agentWorkflowCallControlEvent;
     /**
      * @example
      * ```
@@ -129,12 +131,7 @@ export declare class ACDSessionManager {
         screenPopUrl: import("yup/lib/string").RequiredStringSchema<string, import("yup/lib/types").AnyObject>;
         screenPopUrlVariables: import("yup/lib/mixed").MixedSchema<any, import("yup/lib/types").AnyObject, any>;
         disconnectCode: import("yup/lib/string").RequiredStringSchema<string, import("yup/lib/types").AnyObject>;
-        isLogging: import("yup/lib/boolean").RequiredBooleanSchema<boolean, import("yup/lib/types").AnyObject>; /**
-         * @example
-         * ```
-         * const acdSessionManager = new ACDSessionManager();
-         * ```
-         */
+        isLogging: import("yup/lib/boolean").RequiredBooleanSchema<boolean, import("yup/lib/types").AnyObject>;
         timeout: import("yup/lib/number").RequiredNumberSchema<number, import("yup/lib/types").AnyObject>;
         allowDispositions: import("yup/lib/boolean").RequiredBooleanSchema<boolean, import("yup/lib/types").AnyObject>;
         label: import("yup/lib/string").RequiredStringSchema<string, import("yup/lib/types").AnyObject>;
@@ -622,4 +619,18 @@ export declare class ACDSessionManager {
     * ```
     */
     get customScreenpopSubject(): Subject<CXoneCustomScreenpop>;
+    /**
+     * @example -
+     * ```
+     * const aaVoiceTranscriptEventSubject  = acdSession.aaVoiceTranscriptEventSubject
+     * ```
+     */
+    get aaVoiceTranscriptEventSubject(): ReplaySubject<AgentAssistWSRequest>;
+    /**
+     * @example -
+     * ```
+     * const agentWorkflowCallControlEvent = acdSession.agentWorkflowCallControlEvent
+     * ```
+     */
+    get agentWorkflowCallControlEvent(): Subject<AgentWorkflowCallControlEventType>;
 }

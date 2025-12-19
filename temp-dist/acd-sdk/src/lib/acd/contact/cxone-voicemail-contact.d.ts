@@ -90,12 +90,19 @@ export declare class CXoneVoiceMailContact extends CXoneContact {
     play(): Promise<HttpResponse | CXoneSdkError>;
     /**
      * Method to validate the contact has end button then invoke the endContact method.
+     * @param forceEnd - boolean to force end the contact, this should only be used AFTER necessary API has been sent, see example.
      * @example
      * ```
-     * end('123');
+     * end();
+     *
+     * or
+     *
+     * voiceMailContact.resumeVoiceMail().then(() => {
+     *   voiceMailContact.end(true);
+     * });
      * ```
      */
-    end(): Promise<HttpResponse | CXoneSdkError>;
+    end(forceEnd?: boolean): Promise<HttpResponse | CXoneSdkError>;
     /**
      * Method to transfer a voicemail contact.
      * @param agentId - id of agent initiating the transfer

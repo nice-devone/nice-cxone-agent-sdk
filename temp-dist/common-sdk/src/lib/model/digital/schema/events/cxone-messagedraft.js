@@ -85,6 +85,10 @@ exports.CXoneMessageDraftsSchema = (0, yup_1.object)({
     sentStatus: (0, yup_1.string)().oneOf(Object.values(cxone_message_1.MessageSendStatusType)).nullable(),
     delivered: (0, yup_1.array)().of((0, yup_1.object)().shape(cxone_message_1.CXoneMessageDeliveryStatusSchema.fields)),
     customerStatistics: (0, yup_1.object)().shape(cxone_message_1.CXoneMessageSeenStatusSchema.fields).nullable(),
+    /**
+     * Reason for rejection
+     */
+    reason: (0, yup_1.string)().optional().nullable().default(''),
 });
 const CXoneMessageDraftsArraySchema = (0, yup_1.array)().of((0, yup_1.object)().shape(exports.CXoneMessageDraftsSchema.fields));
 //# sourceMappingURL=cxone-messagedraft.js.map

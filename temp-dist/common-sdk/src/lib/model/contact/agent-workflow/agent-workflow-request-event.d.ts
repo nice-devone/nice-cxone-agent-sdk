@@ -12,6 +12,7 @@ export interface AgentWorkflowRequestEventType {
     timelineWorkflow?: AgentWorkflowRequestEventRequest[];
     /**  agent workflow response dataMemorializationWorkflow*/
     dataMemorializationWorkflow?: AgentWorkflowRequestEventRequest[];
+    payload?: AgentWorkflowRequestEventRequest[];
 }
 /**
  * Model Class for the AgentWorkflowRequestEvent
@@ -41,6 +42,7 @@ export declare class AgentWorkflowRequestEvent {
      * agent workflow response dataMemorializationWorkflow
      */
     dataMemorializationWorkflow: AgentWorkflowRequestEventRequest[];
+    payload: AgentWorkflowRequestEventRequest[];
     /**
      * used to parse the data
      * @example

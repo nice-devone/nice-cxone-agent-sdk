@@ -76,6 +76,15 @@ export declare class VoiceControlService {
      */
     recordCall(contactId: string): Promise<HttpResponse>;
     /**
+     * Method to stop call recording
+     * @param contactId - contact Id
+     * @example -
+     * ```
+     * stopCallRecording(contactId);
+     * ```
+     */
+    stopCallRecording(contactId: string): Promise<HttpResponse>;
+    /**
      * This method to end the contact
      * @param contactId -  contact id
      * @example

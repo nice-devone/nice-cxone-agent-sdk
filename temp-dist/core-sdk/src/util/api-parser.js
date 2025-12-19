@@ -1,5 +1,5 @@
 import { PermissionKeys } from '@nice-devone/common-sdk';
-import { AgentProfileConfigurationSettings } from '../enum/agent-profile-configurations';
+import { AgentProfileConfigurationSettings, DesktopProfileConfigurationSettings } from '../enum/agent-profile-configurations';
 import { Logger } from '../logger/logger';
 /**
  * This class to parse api response
@@ -16,11 +16,13 @@ export class ApiParser {
        * ```
        */
     parsePermissions(response) {
-        var _a, _b, _c, _d;
+        var _a, _b, _c, _d, _e, _f;
         const data = (_a = response === null || response === void 0 ? void 0 : response.data) === null || _a === void 0 ? void 0 : _a.permissions;
         const ACS_PERMISSION = (_b = PermissionKeys.ACS) === null || _b === void 0 ? void 0 : _b.toLowerCase();
         const HIDE_CALLER_NUMBER_PERMISSION = (_c = PermissionKeys.HIDE_CALLER_PHONE_NUMBER) === null || _c === void 0 ? void 0 : _c.toLowerCase();
         const DISABLE_INTEGRATED_SOFTPHONE_SETTINGS = (_d = PermissionKeys.DISABLE_INTEGRATED_SOFTPHONE_SETTINGS) === null || _d === void 0 ? void 0 : _d.toLowerCase();
+        const REALTIME_RECORDING_STATUS_UPDATE_SETTING = (_e = PermissionKeys.REALTIME_RECORDING_STATUS_UPDATE) === null || _e === void 0 ? void 0 : _e.toLowerCase();
+        const STOP_RECORD_SETTING = (_f = PermissionKeys.STOP_RECORDING) === null || _f === void 0 ? void 0 : _f.toLowerCase();
         const keys = [
             'agentsfsoftphone',
             'recordcontact',
@@ -44,7 +46,9 @@ export class ApiParser {
             'voicetranscript',
             ACS_PERMISSION,
             HIDE_CALLER_NUMBER_PERMISSION,
-            DISABLE_INTEGRATED_SOFTPHONE_SETTINGS
+            DISABLE_INTEGRATED_SOFTPHONE_SETTINGS,
+            REALTIME_RECORDING_STATUS_UPDATE_SETTING,
+            STOP_RECORD_SETTING
         ];
         const permission = [];
         for (let i = 0; i < keys.length; i++) {
@@ -155,6 +159,85 @@ export class ApiParser {
             }
             else {
                 logger.error('Unhandled Agent Profile Configuration: ', config.subCategoryName);
+            }
+        });
+        return configuration;
+    }
+    /**
+     * This method to parse Desktop Profile Response and return configuration
+     *
+     * @param desktopProfileResponse  - Desktop Profile Response
+     * @returns - configuration data
+     * @example -
+     * ```
+     * parseDesktopProfileConfiguration(desktopProfileResponse)
+     * ```
+     */
+    parseDesktopProfileConfiguration(desktopProfileResponse) {
+        var _a;
+        const logger = new Logger('DesktopProfileUtils', 'CXoneSession');
+        const desktopProfileAPIResponse = desktopProfileResponse === null || desktopProfileResponse === void 0 ? void 0 : desktopProfileResponse.data;
+        const configuration = {
+            agentScreenSize: '',
+            hideContactHistory: true,
+            hideSearch: true,
+            hideQueueCounter: true,
+            hideSchedule: true,
+            hideWEM: true,
+            hideLaunch: true,
+            hideCustomWorkspace: true,
+            hideReporting: true,
+            hideConversations: true,
+            hideOBADHoc: true,
+            hideOBRedial: true,
+            hideOBAgentConsult: true,
+            hideOBAddressBookConsult: true,
+            hideOBSkillConsult: true,
+            hideOBElevation: true,
+            hideOBSaveAndRedial: true,
+            hideOBTransfer: true,
+            hideDirectorySearch: true,
+            hideDirectoryAll: true,
+            hideDirectoryFavorites: true,
+            hideDirectoryAgents: true,
+            hideDirectoryTeams: true,
+            hideDirectorySkills: true,
+            hideDirectoryStandardAddressBook: true,
+        };
+        const mapping = {
+            [DesktopProfileConfigurationSettings.CONTACT_HISTORY]: (value) => (configuration.hideContactHistory = !JSON.parse(value)),
+            [DesktopProfileConfigurationSettings.SEARCH]: (value) => (configuration.hideSearch = !JSON.parse(value)),
+            [DesktopProfileConfigurationSettings.QUEUE_COUNTER]: (value) => (configuration.hideQueueCounter = !JSON.parse(value)),
+            [DesktopProfileConfigurationSettings.SCHEDULE]: (value) => (configuration.hideSchedule = !JSON.parse(value)),
+            [DesktopProfileConfigurationSettings.WEM]: (value) => (configuration.hideWEM = !JSON.parse(value)),
+            [DesktopProfileConfigurationSettings.LAUNCH]: (value) => (configuration.hideLaunch = !JSON.parse(value)),
+            [DesktopProfileConfigurationSettings.CUSTOM_WORKSPACE]: (value) => (configuration.hideCustomWorkspace = !JSON.parse(value)),
+            [DesktopProfileConfigurationSettings.REPORTING]: (value) => (configuration.hideReporting = !JSON.parse(value)),
+            [DesktopProfileConfigurationSettings.CONVERSATIONS]: (value) => (configuration.hideConversations = !JSON.parse(value)),
+            [DesktopProfileConfigurationSettings.DEFAULT_SCREEN_SIZE]: (value) => (configuration.agentScreenSize = value),
+            [DesktopProfileConfigurationSettings.OB_ADHOC]: (value) => (configuration.hideOBADHoc = !JSON.parse(value)),
+            [DesktopProfileConfigurationSettings.OB_REDIAL]: (value) => (configuration.hideOBRedial = !JSON.parse(value)),
+            [DesktopProfileConfigurationSettings.OB_AGENT_CONSULT]: (value) => (configuration.hideOBAgentConsult = !JSON.parse(value)),
+            [DesktopProfileConfigurationSettings.OB_ADDRESSBOOK_CONSULT]: (value) => (configuration.hideOBAddressBookConsult = !JSON.parse(value)),
+            [DesktopProfileConfigurationSettings.OB_SKILL_CONSULT]: (value) => (configuration.hideOBSkillConsult = !JSON.parse(value)),
+            [DesktopProfileConfigurationSettings.OB_ELEVATION_CALL]: (value) => (configuration.hideOBElevation = !JSON.parse(value)),
+            [DesktopProfileConfigurationSettings.OB_SAVE_AND_REDIAL]: (value) => (configuration.hideOBSaveAndRedial = !JSON.parse(value)),
+            [DesktopProfileConfigurationSettings.OB_TRANSFER]: (value) => (configuration.hideOBTransfer = !JSON.parse(value)),
+            [DesktopProfileConfigurationSettings.DIRECTORY_SEARCH]: (value) => (configuration.hideDirectorySearch = !JSON.parse(value)),
+            [DesktopProfileConfigurationSettings.DIRECTORY_ALL]: (value) => (configuration.hideDirectoryAll = !JSON.parse(value)),
+            [DesktopProfileConfigurationSettings.DIRECTORY_FAVORITES]: (value) => (configuration.hideDirectoryFavorites = !JSON.parse(value)),
+            [DesktopProfileConfigurationSettings.DIRECTORY_AGENTS]: (value) => (configuration.hideDirectoryAgents = !JSON.parse(value)),
+            [DesktopProfileConfigurationSettings.DIRECTORY_TEAMS]: (value) => (configuration.hideDirectoryTeams = !JSON.parse(value)),
+            [DesktopProfileConfigurationSettings.DIRECTORY_SKILLS]: (value) => (configuration.hideDirectorySkills = !JSON.parse(value)),
+            [DesktopProfileConfigurationSettings.DIRECTORY_STANDARD_ADDRESS_BOOK]: (value) => (configuration.hideDirectoryStandardAddressBook = !JSON.parse(value)),
+        };
+        (_a = desktopProfileAPIResponse === null || desktopProfileAPIResponse === void 0 ? void 0 : desktopProfileAPIResponse.agentProfileConfigurations) === null || _a === void 0 ? void 0 : _a.forEach((config) => {
+            const updateConfig = mapping[config.elementId];
+            if (updateConfig) {
+                updateConfig(config.value[0]);
+            }
+            else {
+                logger.error('Unhandled Desktop Profile Configuration: ', config.elementId);
             }
         });
         return configuration;

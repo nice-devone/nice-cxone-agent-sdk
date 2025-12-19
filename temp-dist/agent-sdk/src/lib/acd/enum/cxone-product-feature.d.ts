@@ -70,5 +70,13 @@ export declare enum CXoneProductFeature {
     /**
      * @remarks - Product feature Id for Continuous Transcription
      */
-    CONTINUOUS_TRANSCRIPTION = 178
+    CONTINUOUS_TRANSCRIPTION = 178,
+    /**
+     * @remarks - Product feature Id for Desktop Profiles
+     */
+    DESKTOP_PROFILES = 162,
+    /**
+     * @remarks - Product feature Id for Conversations
+     */
+    CONVERSATIONS = 707101
 }

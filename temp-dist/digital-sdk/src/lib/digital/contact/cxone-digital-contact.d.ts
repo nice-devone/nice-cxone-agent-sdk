@@ -320,13 +320,15 @@ export declare class CXoneDigitalContact extends CXoneContact {
     approveDraftMessage(draftMessageId: string): Promise<HttpResponse>;
     /**
      * Method to rejectDraftMessage
-     * @returns - promise HttpResponce/error
+     * @param reason - reason for rejecting draft message
+     * @param draftMessageId - draft message Id
+     * @returns - promise HttpResponse/error
      * ```
      * @example
-     * rejectDraftMessage( id)
+     * rejectDraftMessage('123', 'please update the content')
      * ```
      */
-    rejectDraftMessage(draftMessageId: string): Promise<HttpResponse>;
+    rejectDraftMessage(draftMessageId: string, reason?: string): Promise<HttpResponse>;
     /**
      * Method to get previous & next case ids of current digital contact
      * @param contactId - Contact Id of the digital contact

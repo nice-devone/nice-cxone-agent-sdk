@@ -3,9 +3,11 @@ export declare const CXoneEventSchema: import("yup/lib/object").OptionalObjectSc
     eventId: import("yup").StringSchema<string, import("yup/lib/types").AnyObject, string>;
     eventObject: import("yup").StringSchema<string, import("yup/lib/types").AnyObject, string>;
     eventType: import("yup/lib/string").RequiredStringSchema<string, import("yup/lib/types").AnyObject>;
+    traceId: import("yup").StringSchema<string, import("yup/lib/types").AnyObject, string>;
 }, import("yup/lib/object").AnyObject, import("yup/lib/object").TypeOfShape<{
     eventId: import("yup").StringSchema<string, import("yup/lib/types").AnyObject, string>;
     eventObject: import("yup").StringSchema<string, import("yup/lib/types").AnyObject, string>;
     eventType: import("yup/lib/string").RequiredStringSchema<string, import("yup/lib/types").AnyObject>;
+    traceId: import("yup").StringSchema<string, import("yup/lib/types").AnyObject, string>;
 }>>;
 export declare type CXoneDigitalEvent = InferType<typeof CXoneEventSchema>;

@@ -160,6 +160,7 @@ tslib_1.__exportStar(require("./lib/model/customer-card/cxone-crm-search-respons
 tslib_1.__exportStar(require("./lib/model/authenticate/cxone-configuration"), exports);
 tslib_1.__exportStar(require("./lib/model/contact/agent-workflow/agent-workflow-event-result"), exports);
 tslib_1.__exportStar(require("./lib/model/contact/agent-workflow/agent-workflow-request-event-request"), exports);
+tslib_1.__exportStar(require("./lib/model/contact/agent-workflow/agent-call-control-event-request"), exports);
 tslib_1.__exportStar(require("./lib/model/agent-setting/cxone-audio-visual-notification-settings"), exports);
 tslib_1.__exportStar(require("./lib/model/agent-setting/cxone-client-data"), exports);
 tslib_1.__exportStar(require("./lib/model/agent-setting/cxone-softphone-notification-settings"), exports);
@@ -284,6 +285,10 @@ tslib_1.__exportStar(require("./lib/model/voice-transcription/interfaces/voice-t
 tslib_1.__exportStar(require("./lib/model/agent-copilot/copilot-interfaces/copilot-adaptive-card"), exports);
 tslib_1.__exportStar(require("./lib/enum/window-events"), exports);
 tslib_1.__exportStar(require("./lib/model/websocket/digital-event-hub-response"), exports);
-tslib_1.__exportStar(require("./lib/model/voice-transcription/voice-transcription-response"), exports);
 tslib_1.__exportStar(require("./model/digital-event-sync"), exports);
+tslib_1.__exportStar(require("./lib/model/voice-transcription/interfaces/voice-transcription-item"), exports);
+tslib_1.__exportStar(require("./lib/model/voice-transcription/interfaces/voice-transcription-status-event"), exports);
+tslib_1.__exportStar(require("./lib/model/voice-transcription/voice-transcription-response"), exports);
+tslib_1.__exportStar(require("./lib/enum/allowed-response-headers"), exports);
+tslib_1.__exportStar(require("./lib/enum/icon-variant"), exports);
 //# sourceMappingURL=index.js.map

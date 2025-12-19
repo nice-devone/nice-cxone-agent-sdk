@@ -15,7 +15,7 @@ export class ContactService {
         this.logger = new Logger('acd', 'ContactService');
         this.utilService = new HttpUtilService();
         this.acdSession = {};
-        this.TRANSFER_WORK_ITEM_SKILL = '/InContactAPI/services/v23.0/agent-sessions/{sessionId}/interactions/{contactId}/transfer-work-item-to-skill';
+        this.TRANSFER_WORK_ITEM_SKILL = '/InContactAPI/services/v33.0/agent-sessions/{sessionId}/interactions/{contactId}/transfer-work-item-to-skill';
         /**
            * Method to send payload sent via local post event
            * @param customData - contains an object containing port, path and payload

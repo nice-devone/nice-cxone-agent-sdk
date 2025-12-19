@@ -68,6 +68,13 @@ export declare class DigitalContactService {
     */
     changeRoutingQueue(contactId: string, skillId: string): Promise<HttpResponse | CXoneSdkError>;
     /**
+     * Method to get logged in user id from local storage
+     * @returns - User Id of the logged in user
+     * @example -
+     * getLoggedInUserId()
+    */
+    private getLoggedInUserId;
+    /**
      * Method to assign customer contact to User
      * @param contactId - Contact Id of the digital contact
      * @param userId - User Id to whom the contact it to be assigned
@@ -77,7 +84,7 @@ export declare class DigitalContactService {
      * changeAssignedUser('123332', '645337')
      * ```
     */
-    changeAssignedUser(contactId: string, cxoneUserId: string): Promise<HttpResponse>;
+    changeAssignedUser(contactId: string, cxoneUserId: string): Promise<HttpResponse | CXoneSdkError>;
     /**
      * Method to send reply
      * @param channelId - channel Id
@@ -219,10 +226,11 @@ export declare class DigitalContactService {
      * Method to refuseDraftMessage
      * @param contactId - contact Id
      * @param messageDraftId - draft message id
+     * @param reason - reason for refusal
      * @returns response from API
      * @example
     */
-    refuseDraftMessage(contactId: string, messageDraftId: string): Promise<HttpResponse>;
+    refuseDraftMessage(contactId: string, messageDraftId: string, reason?: string): Promise<HttpResponse>;
     /**
      * Method to focus a digital contact
      * @param messageId - case id of the selected digital contact
@@ -269,4 +277,11 @@ export declare class DigitalContactService {
      * @example - fetchQuickResponseReplaceVariable('12ynj23', \{contact: \{contactNumber: '12345'\}, externalVariables: []\})
      */
     fetchQuickResponseReplaceVariable(quickResponseId: string, digitalContactVariableDetails: CXoneQuickReplyReplaceVariableRequest): Promise<HttpResponse>;
+    /**
+     * Method to get traceId from response headers
+     * @param response - HttpResponse object
+     * @example - getTraceIdFromResponseHeader(response)
+     * @returns - traceId string or empty string if not found
+     */
+    getTraceIdFromResponseHeader(response: HttpResponse): string;
 }

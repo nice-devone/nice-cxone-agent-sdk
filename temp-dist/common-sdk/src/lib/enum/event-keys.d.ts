@@ -52,6 +52,10 @@ export declare enum EventKeys {
      */
     KEY_U = "KeyU",
     /**
+      * D key in the numpad of key board
+      */
+    KEY_D = "KeyD",
+    /**
      * Space key of key board
      */
     SPACE = " "

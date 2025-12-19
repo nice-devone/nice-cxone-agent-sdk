@@ -90,6 +90,10 @@ export interface TaskAssistConfig {
      * Identifier for the virtual agent.
      */
     virtualAgentId: string;
+    /**
+     * Friendly bot name exposed to UI (optional if backend omits it).
+     */
+    botName?: string;
 }
 /**
  * Contains detailed validation error information.

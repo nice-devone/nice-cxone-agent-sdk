@@ -1,9 +1,9 @@
 "use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.AgentAssistConfigACPParamsKeys = exports.AgentAssistSettings = void 0;
 /**
  * model interface for agent assist Configuration
  */
-Object.defineProperty(exports, "__esModule", { value: true });
-exports.AgentAssistConfigACPParamsKeys = exports.AgentAssistSettings = void 0;
 /**
  * Enum for Agent Assist App Settings
  */

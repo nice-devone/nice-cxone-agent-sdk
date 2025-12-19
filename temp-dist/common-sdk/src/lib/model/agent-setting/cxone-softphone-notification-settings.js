@@ -15,7 +15,7 @@ class CXoneSoftphoneNotificationSettings {
      */
     parse(data) {
         var _a, _b, _c, _d, _e;
-        this.softPhoneVolume = (_a = data === null || data === void 0 ? void 0 : data.softPhoneVolume) !== null && _a !== void 0 ? _a : 80;
+        this.softPhoneVolume = (_a = data === null || data === void 0 ? void 0 : data.softPhoneVolume) !== null && _a !== void 0 ? _a : 0.8;
         this.secondaryDevice = (_b = data === null || data === void 0 ? void 0 : data.CXASecondaryDevice) !== null && _b !== void 0 ? _b : 0;
         this.secondaryDeviceName = (_c = data === null || data === void 0 ? void 0 : data.CXASecondaryDeviceName) !== null && _c !== void 0 ? _c : 0;
         this.ringtone = (_d = data === null || data === void 0 ? void 0 : data.CXARingtone) !== null && _d !== void 0 ? _d : 1;

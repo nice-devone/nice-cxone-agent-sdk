@@ -65,5 +65,13 @@ var PermissionKeys;
      * permission key for enabling or disabling the voice transcript feature
      */
     PermissionKeys["VOICE_TRANSCRIPT"] = "VoiceTranscript";
+    /**
+     * permission key for enabling or disabling the real-time recording status update feature
+     */
+    PermissionKeys["REALTIME_RECORDING_STATUS_UPDATE"] = "realtimeRecordingStatusUpdate";
+    /**
+     * permission key for enabling or disabling the stop record feature
+     */
+    PermissionKeys["STOP_RECORDING"] = "StopRecording";
 })(PermissionKeys = exports.PermissionKeys || (exports.PermissionKeys = {}));
 //# sourceMappingURL=permission-keys.js.map

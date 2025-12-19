@@ -14,7 +14,7 @@ export class VoiceService {
         this.utilService = new HttpUtilService();
         this.acdSession = {};
         this.isAddContactInProgress = false;
-        this.TRANSFER_VOICE_MAIL_SKILL = '/InContactAPI/services/V4.0/agent-sessions/{sessionId}/interactions/{contactId}/transfer-voicemail-to-skill';
+        this.TRANSFER_VOICE_MAIL_SKILL = '/InContactAPI/services/V33.0/agent-sessions/{sessionId}/interactions/{contactId}/transfer-voicemail-to-skill';
         this.acdSession = ACDSessionManager.instance;
     }
     /**

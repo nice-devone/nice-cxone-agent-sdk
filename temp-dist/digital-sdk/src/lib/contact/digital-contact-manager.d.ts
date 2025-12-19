@@ -46,6 +46,10 @@ export declare class DigitalContactManager {
     }>;
     private userSlotSubscribed;
     private isWebSocketFailure;
+    private digitalEventSyncService;
+    private digitalEventSyncDictionary;
+    private isWSAPIIntegrationRevampToggleEnabled;
+    private readonly SYNC_ENABLED_EVENTS;
     /**
      * @example
      * ```
@@ -65,6 +69,84 @@ export declare class DigitalContactManager {
      * ```
      */
     initializeDigital(): Promise<void>;
+    /**
+     * Method to initialize digital event sync service
+     */
+    private initializeDigitalEventSync;
+    /**
+     * Method to handle digital sync events from the DigitalEventSyncService
+     * @example handleDigitalSyncEvent(event);
+     * @param event - DigitalEventSync object containing contactId, eventName, traceId
+     */
+    private handleDigitalSyncEvent;
+    /**
+     * Method to get actual event name for the given event.
+     * In case of AssigntoMe & UnAssign events we get CaseInboxAssigneeChanged event from websocket.
+     * To differentiate between these two events we will use actual event name.
+     * @param eventName - The name of the event we receive from websocket.
+     * @example getActualEventName(event);
+     * @returns - actual event name differentiating assign & unassign.
+     */
+    private getActualEventName;
+    /**
+    * Add a traceId for given eventName and contactId.
+    * @param eventName - The name of the event
+    * @param contactId - The ID of the contact
+    * @param traceId - The trace ID associate with the event and contact
+    * @example addTraceIdInEventSyncDictionary('event1', 'contact1', 'trace1');
+    */
+    private addTraceIdInEventSyncDictionary;
+    /**
+     * Update the Digital Event Sync Dictionary with the latest traceId for a given contactId and eventName.
+     * @param contactId - contact id
+     * @param eventName - The name of the event
+     * @param traceId - The trace ID associated with the event and contact
+     * @example updateDESyncDictionary('contact1', 'event1', 'trace1');
+     */
+    private updateDESyncDictionary;
+    /**
+     * Check if the digital event sync dictionary should be updated for the given event
+     * @param eventName - The name of the event
+     * @param traceId - The trace ID associated with the event
+     * @returns - true if sync dictionary update is required, false otherwise
+     * @example isSyncDictionaryUpdateRequired(CXoneDigitalEventType.CASE_INBOX_ASSIGNEE_CHANGED, 'trace123');
+     */
+    private isSyncDictionaryUpdateRequired;
+    /**
+     * Handle Message Updated API response in case of message update event
+     * @param contactId - contact id
+     * @param traceId - Unique id for tracking the events and avoiding duplication
+     * @example handleMessageUpdatedEvent(contactId, traceId);
+     */
+    handleMessageUpdatedEvent(contactId: string, traceId: string, messageUpdatedEventData?: CXoneMessage): Promise<void>;
+    /**
+     * Handle Message Added Into Case API response in case of new message added to case
+     * @param contactId - contact id
+     * @param traceId - Unique id for tracking the events and avoiding duplication
+     * @example handleMessageAddedIntoCaseEvent(contactId, traceId);
+     */
+    handleMessageAddedIntoCaseEvent(contactId: string, traceId: string, messageAddedEventData?: CXoneMessage): Promise<void>;
+    /**
+     * Handle Assignee Changed API response in case of case assignment to agent inbox from
+     * @param contactId - contact id
+     * @param traceId - Unique id for tracking the events and avoiding duplication
+     * @example handleAssigneeChangedEvent(contactId, traceId);
+     */
+    handleAssigneeChangedEvent(contactId: string, traceId: string): Promise<void>;
+    /**
+     * Handle UnAssignee Changed API response in case of case unassignment from agent inbox
+     * @param contactId - contact id
+     * @param traceId - Unique id for tracking the events and avoiding duplication
+     * @example handleUnAssigneeChangedEvent(contactId, traceId);
+     */
+    handleUnAssigneeChangedEvent(contactId: string, traceId: string): Promise<void>;
+    /**
+     * Retrieve a traceId by eventName + contactId
+     * @example getTraceIdFromEventSyncDictionary('event1', 'contact1');
+     * @param eventName - The name of the event
+     * @param contactId - contact id
+     */
+    getTraceIdFromEventSyncDictionary(eventName: string, contactId: string): string | null;
     /**
      * terminate digital workers
      * @example

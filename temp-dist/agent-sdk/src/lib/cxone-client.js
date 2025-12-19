@@ -1,5 +1,5 @@
 import { __awaiter } from "tslib";
-import { ACDSessionManager, AdminService, clearIndexDbKey, clearIndexDbStore, HttpUtilService, IndexDBKeyNames, IndexDBStoreNames, LocalStorageHelper, Logger, NotificationSettings, OriginatingServiceIdentifier, SessionStorageHelper, StorageKeys, } from '@nice-devone/core-sdk';
+import { ACDSessionManager, AdminService, clearIndexDbKey, clearIndexDbStore, FeatureToggleService, HttpUtilService, IndexDBKeyNames, IndexDBStoreNames, LocalStorageHelper, Logger, NotificationSettings, OriginatingServiceIdentifier, SessionStorageHelper, StorageKeys, } from '@nice-devone/core-sdk';
 import { CXoneLeaderElector, MessageBus, MessageType, } from '@nice-devone/common-sdk';
 import { CXoneDirectory } from './directory/cxone-directory';
 import { CopilotNotificationClient } from './agent-copilot/copilot-notification-client';
@@ -236,10 +236,10 @@ export class CXoneClient {
             this.hasInitModuleInitiated = true;
             // eslint-disable-next-line @typescript-eslint/no-unused-expressions
             CXoneClient.instance;
-            CXoneLeaderElector.instance.start();
             this.acdSessionManager = ACDSessionManager.instance;
             const authToken = yield this.auth.validateFtAndGetDecryptedToken();
             authToken && this.auth.setAuthToken(authToken);
+            CXoneLeaderElector.instance.start();
             const accessToken = this.auth.getAuthToken().accessToken;
             const cxOneConfig = this.auth.getCXoneConfig();
             const userInfo = this.cxoneUser.getUserInfo();
@@ -453,6 +453,32 @@ export class CXoneClient {
      */
     submitFeedback(feedbackData) {
         return AdminService.instance.submitFeedback(feedbackData);
+    }
+    /**
+     * Assigns selected case id to user in CXone sdk
+     * @param sessionDetails - contactId, interactionId, mediaType
+     * @example -
+     * ```
+     * switchContacts(sessionDetails);
+     * ```
+     */
+    switchContacts(sessionDetails) {
+        var _a;
+        const isSdkMsdContextSwitchEnabled = FeatureToggleService.instance.getFeatureToggleSync("release-cxa-sdk-MSD-context-switch-AW-47558" /* FeatureToggles.SDK_MSD_CONTEXT_SWITCHING */);
+        if (!isSdkMsdContextSwitchEnabled) {
+            return;
+        }
+        this.logger.info('switchContacts', `param sessionDetails: ${sessionDetails}`);
+        const message = {
+            issuer: 'CMASDK',
+            messageType: 'ContactSwitch',
+            contactId: sessionDetails === null || sessionDetails === void 0 ? void 0 : sessionDetails.contactId,
+            interactionId: sessionDetails === null || sessionDetails === void 0 ? void 0 : sessionDetails.interactionId,
+            mediaType: sessionDetails === null || sessionDetails === void 0 ? void 0 : sessionDetails.mediaType,
+        };
+        const iFrame = document.getElementById('launchCXAFrame');
+        if (iFrame)
+            (_a = iFrame === null || iFrame === void 0 ? void 0 : iFrame.contentWindow) === null || _a === void 0 ? void 0 : _a.postMessage(message, '*');
     }
 }
 //# sourceMappingURL=cxone-client.js.map

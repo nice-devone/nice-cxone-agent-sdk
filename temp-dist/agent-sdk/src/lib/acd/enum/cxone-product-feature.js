@@ -72,5 +72,13 @@ export var CXoneProductFeature;
      * @remarks - Product feature Id for Continuous Transcription
      */
     CXoneProductFeature[CXoneProductFeature["CONTINUOUS_TRANSCRIPTION"] = 178] = "CONTINUOUS_TRANSCRIPTION";
+    /**
+     * @remarks - Product feature Id for Desktop Profiles
+     */
+    CXoneProductFeature[CXoneProductFeature["DESKTOP_PROFILES"] = 162] = "DESKTOP_PROFILES";
+    /**
+     * @remarks - Product feature Id for Conversations
+     */
+    CXoneProductFeature[CXoneProductFeature["CONVERSATIONS"] = 707101] = "CONVERSATIONS";
 })(CXoneProductFeature || (CXoneProductFeature = {}));
 //# sourceMappingURL=cxone-product-feature.js.map

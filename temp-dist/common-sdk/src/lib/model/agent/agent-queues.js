@@ -21,6 +21,8 @@ class Queue extends cxone_event_1.CXoneEvent {
         this.skillName = data.skillName;
         this.campaignId = (0, utility_1.parseInteger)(data.campaignId);
         this.mediaType = (0, utility_1.parseInteger)(data.mediaType);
+        this.channelNo = (0, utility_1.parseInteger)(data.channelNo);
+        this.channelName = data.channelName;
         this.queueCount = (0, utility_1.parseInteger)(data.queueCount);
         this.longestQueueTimeInSeconds = data.longestQueueTimeInSeconds;
         this.earliestQueueTimeInUTC = new Date(data.earliestQueueTimeInUTC);

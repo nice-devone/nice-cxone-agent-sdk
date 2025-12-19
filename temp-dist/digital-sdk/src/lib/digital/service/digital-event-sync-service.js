@@ -1,3 +1,4 @@
+import { __awaiter } from "tslib";
 import { CcfLogger } from '@nice-devone/agent-sdk';
 /**
  * Class to handle synchronous control flow between the DigitalContactService and the DigitalContactManager.
@@ -19,15 +20,21 @@ export class DigitalEventSyncService {
          * @returns A boolean based on the result of the handler.
          * @example const result = digitalEventSyncService.handleDigitalEventSync(args);
         */
-        this.handleDigitalEventSync = (digitalEventSync) => {
-            if (DigitalEventSyncService.handleDigitalSync) {
-                return DigitalEventSyncService.handleDigitalSync(digitalEventSync);
+        this.handleDigitalEventSync = (digitalEventSync) => __awaiter(this, void 0, void 0, function* () {
+            try {
+                if (DigitalEventSyncService.handleDigitalSync) {
+                    return yield DigitalEventSyncService.handleDigitalSync(digitalEventSync);
+                }
+                else {
+                    this.logger.error('handleDigitalEventSync', 'Digital event sync handler is not initialized.');
+                    return false;
+                }
             }
-            else {
-                this.logger.error('handleDigitalEventSync', 'Digital event sync handler is not initialized.');
+            catch (error) {
+                this.logger.error('handleDigitalEventSync', 'Error logging digital event sync details: ' + JSON.stringify(error));
                 return false;
             }
-        };
+        });
     }
     /**
      * Retrieves the singleton instance of the DigitalEventSyncService.

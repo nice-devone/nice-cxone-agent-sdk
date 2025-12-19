@@ -19,4 +19,12 @@ export declare class DateTimeUtilService {
      * @example - getRequiredDateFormat("2022-05-23T06:26:13+00:00")
      */
     static getRequiredDateFormat(date: string): string;
+    /**
+     * Strips a Date or date-string to seconds precision.
+     *
+     * @param value - The date value to convert.
+     * @returns The ISO string truncated to seconds.
+     * @example  "2025-01-01T12:34:56.789Z" to "2025-01-01T12:34:56Z"
+     */
+    static stripToSeconds: (value: string | Date) => string;
 }

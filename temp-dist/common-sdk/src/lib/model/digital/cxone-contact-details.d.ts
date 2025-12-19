@@ -1651,6 +1651,7 @@ export declare const CXoneContactDetailsSchema: import("yup/lib/object").Optiona
             reason: import("yup").StringSchema<string, import("yup/lib/types").AnyObject, string>;
         }>>[]>;
         customerStatistics: any;
+        reason: import("yup").StringSchema<string, import("yup/lib/types").AnyObject, string>;
     }>, import("yup/lib/object").AnyObject, import("yup/lib/object").TypeOfShape<import("yup/lib/object").Assign<import("yup/lib/object").ObjectShape, {
         createdAt: import("yup/lib/string").RequiredStringSchema<string, import("yup/lib/types").AnyObject>;
         id: import("yup/lib/string").RequiredStringSchema<string, import("yup/lib/types").AnyObject>;
@@ -1893,6 +1894,7 @@ export declare const CXoneContactDetailsSchema: import("yup/lib/object").Optiona
             reason: import("yup").StringSchema<string, import("yup/lib/types").AnyObject, string>;
         }>>[]>;
         customerStatistics: any;
+        reason: import("yup").StringSchema<string, import("yup/lib/types").AnyObject, string>;
     }>>, import("yup/lib/object").AssertsShape<import("yup/lib/object").Assign<import("yup/lib/object").ObjectShape, {
         createdAt: import("yup/lib/string").RequiredStringSchema<string, import("yup/lib/types").AnyObject>;
         id: import("yup/lib/string").RequiredStringSchema<string, import("yup/lib/types").AnyObject>;
@@ -2135,6 +2137,7 @@ export declare const CXoneContactDetailsSchema: import("yup/lib/object").Optiona
             reason: import("yup").StringSchema<string, import("yup/lib/types").AnyObject, string>;
         }>>[]>;
         customerStatistics: any;
+        reason: import("yup").StringSchema<string, import("yup/lib/types").AnyObject, string>;
     }>>>, import("yup/lib/types").AnyObject, import("yup/lib/object").TypeOfShape<import("yup/lib/object").Assign<import("yup/lib/object").ObjectShape, {
         createdAt: import("yup/lib/string").RequiredStringSchema<string, import("yup/lib/types").AnyObject>;
         id: import("yup/lib/string").RequiredStringSchema<string, import("yup/lib/types").AnyObject>;
@@ -2377,6 +2380,7 @@ export declare const CXoneContactDetailsSchema: import("yup/lib/object").Optiona
             reason: import("yup").StringSchema<string, import("yup/lib/types").AnyObject, string>;
         }>>[]>;
         customerStatistics: any;
+        reason: import("yup").StringSchema<string, import("yup/lib/types").AnyObject, string>;
     }>>[], import("yup/lib/object").AssertsShape<import("yup/lib/object").Assign<import("yup/lib/object").ObjectShape, {
         createdAt: import("yup/lib/string").RequiredStringSchema<string, import("yup/lib/types").AnyObject>;
         id: import("yup/lib/string").RequiredStringSchema<string, import("yup/lib/types").AnyObject>;
@@ -2619,6 +2623,7 @@ export declare const CXoneContactDetailsSchema: import("yup/lib/object").Optiona
             reason: import("yup").StringSchema<string, import("yup/lib/types").AnyObject, string>;
         }>>[]>;
         customerStatistics: any;
+        reason: import("yup").StringSchema<string, import("yup/lib/types").AnyObject, string>;
     }>>[]>;
     messageNotes: import("yup").ArraySchema<import("yup").ObjectSchema<import("yup/lib/object").Assign<import("yup/lib/object").ObjectShape, {
         id: import("yup/lib/string").RequiredStringSchema<string, import("yup/lib/types").AnyObject>;
@@ -4730,6 +4735,7 @@ export declare const CXoneContactDetailsSchema: import("yup/lib/object").Optiona
             reason: import("yup").StringSchema<string, import("yup/lib/types").AnyObject, string>;
         }>>[]>;
         customerStatistics: any;
+        reason: import("yup").StringSchema<string, import("yup/lib/types").AnyObject, string>;
     }>, import("yup/lib/object").AnyObject, import("yup/lib/object").TypeOfShape<import("yup/lib/object").Assign<import("yup/lib/object").ObjectShape, {
         createdAt: import("yup/lib/string").RequiredStringSchema<string, import("yup/lib/types").AnyObject>;
         id: import("yup/lib/string").RequiredStringSchema<string, import("yup/lib/types").AnyObject>;
@@ -4972,6 +4978,7 @@ export declare const CXoneContactDetailsSchema: import("yup/lib/object").Optiona
             reason: import("yup").StringSchema<string, import("yup/lib/types").AnyObject, string>;
         }>>[]>;
         customerStatistics: any;
+        reason: import("yup").StringSchema<string, import("yup/lib/types").AnyObject, string>;
     }>>, import("yup/lib/object").AssertsShape<import("yup/lib/object").Assign<import("yup/lib/object").ObjectShape, {
         createdAt: import("yup/lib/string").RequiredStringSchema<string, import("yup/lib/types").AnyObject>;
         id: import("yup/lib/string").RequiredStringSchema<string, import("yup/lib/types").AnyObject>;
@@ -5214,6 +5221,7 @@ export declare const CXoneContactDetailsSchema: import("yup/lib/object").Optiona
             reason: import("yup").StringSchema<string, import("yup/lib/types").AnyObject, string>;
         }>>[]>;
         customerStatistics: any;
+        reason: import("yup").StringSchema<string, import("yup/lib/types").AnyObject, string>;
     }>>>, import("yup/lib/types").AnyObject, import("yup/lib/object").TypeOfShape<import("yup/lib/object").Assign<import("yup/lib/object").ObjectShape, {
         createdAt: import("yup/lib/string").RequiredStringSchema<string, import("yup/lib/types").AnyObject>;
         id: import("yup/lib/string").RequiredStringSchema<string, import("yup/lib/types").AnyObject>;
@@ -5456,6 +5464,7 @@ export declare const CXoneContactDetailsSchema: import("yup/lib/object").Optiona
             reason: import("yup").StringSchema<string, import("yup/lib/types").AnyObject, string>;
         }>>[]>;
         customerStatistics: any;
+        reason: import("yup").StringSchema<string, import("yup/lib/types").AnyObject, string>;
     }>>[], import("yup/lib/object").AssertsShape<import("yup/lib/object").Assign<import("yup/lib/object").ObjectShape, {
         createdAt: import("yup/lib/string").RequiredStringSchema<string, import("yup/lib/types").AnyObject>;
         id: import("yup/lib/string").RequiredStringSchema<string, import("yup/lib/types").AnyObject>;
@@ -5698,6 +5707,7 @@ export declare const CXoneContactDetailsSchema: import("yup/lib/object").Optiona
             reason: import("yup").StringSchema<string, import("yup/lib/types").AnyObject, string>;
         }>>[]>;
         customerStatistics: any;
+        reason: import("yup").StringSchema<string, import("yup/lib/types").AnyObject, string>;
     }>>[]>;
     messageNotes: import("yup").ArraySchema<import("yup").ObjectSchema<import("yup/lib/object").Assign<import("yup/lib/object").ObjectShape, {
         id: import("yup/lib/string").RequiredStringSchema<string, import("yup/lib/types").AnyObject>;
@@ -6166,6 +6176,7 @@ export declare const CXoneContactDetailsEventSchema: import("yup").ObjectSchema<
     eventId: import("yup").StringSchema<string, import("yup/lib/types").AnyObject, string>;
     eventObject: import("yup").StringSchema<string, import("yup/lib/types").AnyObject, string>;
     eventType: import("yup/lib/string").RequiredStringSchema<string, import("yup/lib/types").AnyObject>;
+    traceId: import("yup").StringSchema<string, import("yup/lib/types").AnyObject, string>;
 }, import("yup/lib/object").AnyObject, import("yup/lib/object").TypeOfShape<{
     data: any;
 } & {
@@ -6174,6 +6185,7 @@ export declare const CXoneContactDetailsEventSchema: import("yup").ObjectSchema<
     eventId: import("yup").StringSchema<string, import("yup/lib/types").AnyObject, string>;
     eventObject: import("yup").StringSchema<string, import("yup/lib/types").AnyObject, string>;
     eventType: import("yup/lib/string").RequiredStringSchema<string, import("yup/lib/types").AnyObject>;
+    traceId: import("yup").StringSchema<string, import("yup/lib/types").AnyObject, string>;
 }>, import("yup/lib/object").AssertsShape<{
     data: any;
 } & {
@@ -6182,5 +6194,6 @@ export declare const CXoneContactDetailsEventSchema: import("yup").ObjectSchema<
     eventId: import("yup").StringSchema<string, import("yup/lib/types").AnyObject, string>;
     eventObject: import("yup").StringSchema<string, import("yup/lib/types").AnyObject, string>;
     eventType: import("yup/lib/string").RequiredStringSchema<string, import("yup/lib/types").AnyObject>;
+    traceId: import("yup").StringSchema<string, import("yup/lib/types").AnyObject, string>;
 }>>;
 export declare type CXoneContactDetails = InferType<typeof CXoneContactDetailsSchema>;

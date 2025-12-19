@@ -1,3 +1,4 @@
+import { TaskAssistConfig } from '../agent-copilot/copilot-interfaces/copilot-task-assist';
 /**
  * model interface for agent assist Configuration
  */
@@ -196,6 +197,18 @@ export interface CopilotProfileConfig {
          * Features available for the auto summary card.
          */
         autoSummaryCardFeatures: AutoSummaryCardFeature[] | [];
+        /**
+         * Indicates if the email channel features (creation / response cards) are enabled for this contact.
+         */
+        emailChannel?: boolean;
+        /**
+         * Indicates if the legal disclosure card should be rendered for this contact.
+         */
+        legalDisclosure?: boolean;
+        /**
+         * Configuration object for Task Assist feature (virtual agent + intents). Present only when task assist is enabled.
+         */
+        taskAssistConfig?: TaskAssistConfig;
     };
 }
 /**

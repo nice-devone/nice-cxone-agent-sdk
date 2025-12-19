@@ -124,11 +124,12 @@ export class AdminService {
             const agentSettingFromStorage = LocalStorageHelper.getItem(StorageKeys.AGENT_SETTINGS, true);
             let isCxssVersionServiceToggleEnabled = false;
             isCxssVersionServiceToggleEnabled = FeatureToggleService.instance.getFeatureToggleSync("release-cx-agent-cxss-versioning-api-AW-37635" /* FeatureToggles.GET_VERSION_FROM_CXSS_VERSIONING_API */);
+            const isTenantSegmentationEnabled = FeatureToggleService.instance.getFeatureToggleSync("release-cxa-tenant-segmentation-AW-28101" /* FeatureToggles.TENANT_SEGMENTATION */);
             if (!agentSettingFromStorage) {
                 const reqInit = this.utilService.initHeader(this.accessToken, 'application/json');
                 // Dev Note : Till monolith dependency is not removed, this logic should not be changed.
                 // variable 'getAgentSettingsVersionServiceUri' to be used for Versioning Service usage, and variable 'getAgentSettingsUri' for direct Monolith usage
-                const agentSettingAPIURL = isCxssVersionServiceToggleEnabled ? AdminApis.getAgentSettingsVersionServiceUri : AdminApis.getAgentSettingsUri;
+                const agentSettingAPIURL = (isCxssVersionServiceToggleEnabled || isTenantSegmentationEnabled) ? AdminApis.getAgentSettingsVersionServiceUri : AdminApis.getAgentSettingsUri;
                 const permissionUrl = this.cxOneConfig.acdApiBaseUri +
                     agentSettingAPIURL.replace('{agentId}', this.userInfo.icAgentId);
                 HttpClient.get(permissionUrl, reqInit).then((resp) => __awaiter(this, void 0, void 0, function* () {
@@ -724,11 +725,19 @@ export class AdminService {
         return new Promise((resolve, reject) => {
             const reqInit = this.utilService.initHeader(this.accessToken, 'application/json');
             const url = this.cxOneConfig.apiFacadeBaseUri + ApiUriConstants.AGENT_PROFILE;
+            const isDesktopProfileAdditionalSettingsEnabled = FeatureToggleService.instance.getFeatureToggleSync("release-CMA-desktop-profile-control-setting-AW-46852" /* FeatureToggles.DESKTOP_PROFILE_ADDITIONAL_SETTINGS_FEATURE_TOGGLE */);
             HttpClient.get(url, reqInit).then((response) => {
+                var _a;
                 this.logger.info('getAgentProfileDetails', 'Get Agent Profile Details Successfully');
-                const agentProfileMappedSettings = this.apiParser.parseAgentConfiguration(response);
-                LocalStorageHelper.setItem(StorageKeys.AGENT_PROFILE_CONFIGURATION, JSON.stringify(agentProfileMappedSettings));
-                resolve(agentProfileMappedSettings);
+                if ((_a = response === null || response === void 0 ? void 0 : response.data) === null || _a === void 0 ? void 0 : _a.agentProfileId) {
+                    const agentProfileMappedSettings = !isDesktopProfileAdditionalSettingsEnabled ? this.apiParser.parseAgentConfiguration(response) : this.apiParser.parseDesktopProfileConfiguration(response);
+                    LocalStorageHelper.setItem(StorageKeys.AGENT_PROFILE_CONFIGURATION, JSON.stringify(agentProfileMappedSettings));
+                    resolve(agentProfileMappedSettings);
+                }
+                else {
+                    this.logger.info('getAgentProfileDetails', 'No Agent Profile Assigned');
+                    reject(new CXoneSdkError(CXoneSdkErrorType.NO_DATA_FOUND, 'No active Desktop Profile Assigned', response === null || response === void 0 ? void 0 : response.data));
+                }
             }, (error) => {
                 var _a;
                 this.logger.error('getAgentProfileDetails', 'Get agent profile details failed' + JSON.stringify(error));

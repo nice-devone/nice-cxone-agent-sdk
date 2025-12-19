@@ -64,6 +64,7 @@ export declare const StorageKeys: {
     CRM_PIN_RECORDS: string;
     SELECTED_INTERACTION_ID: string;
     CRM_NAVIGATION_DATA: string;
+    CRM_USER_ID: string;
     COBROWSE_DATA: string;
     LOGGING_LEVEL: string;
     DIGITAL_ATTACHMENTS: string;
@@ -94,10 +95,14 @@ export declare const StorageKeys: {
     AGENT_SCREEN_SIZE: string;
     FAV_QR_ID_TOGGLED: string;
     DIRECTORY_POLLING_UPDATED_SINCE: string;
+    TEAM_POLLING_UPDATED_SINCE: string;
+    ACTIVITY_POLLING_UPDATED_SINCE: string;
+    SKILL_POLLING_UPDATED_SINCE: string;
     FAVORITE_IDS_TOGGLED: string;
     WEM_WS_CONNECTION_STATUS: string;
     AGENT_HIVE_CHANNEL_INFO: string;
     IS_CONVERSATIONS_STANDALONE: string;
+    IS_CONVERSATIONS_STANDALONE_FIRST_LAUNCH: string;
 };
 export declare const NotificationSettings: {
     ACCESSIBILITY: string;

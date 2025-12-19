@@ -1,6 +1,6 @@
 # NICE CXone ACD SDK
 
-*  [Official SDK Documentation](https://help.nice-incontact.com/content/agent/agentapplicationadministration/cxoneagent/cxasdk.htm?tocpath=Agent%20Application%20Administration%7CAgent%20Application%20Administration%7CCXone%20Agent%7C_____8)
+*  [Official SDK Documentation](https://help.nicecxone.com/content/agent/agentapplicationadministration/cxoneagent/cxasdk.htm?tocpath=Agent%20Application%20Administration%7CAgent%20Application%20Administration%7CCXone%20Agent%7C_____8)
 *  [NPM package](https://www.npmjs.com/package/@nice-devone/acd-sdk)
 *  [Sample Web App](https://github.com/nice-devone/nice-cxone-agent-sdk/tree/main/cxa-sdk-consumer)
 
@@ -49,7 +49,7 @@ Explore the available classes and methods within the library (src/lib/acd) to in
 
 ### Documentation
 
-For detailed documentation and developer related queries, Please visit [Official SDK Documentation](https://help.nice-incontact.com/content/agent/agentapplicationadministration/cxoneagent/cxasdk.htm?tocpath=Agent%20Application%20Administration%7CAgent%20Application%20Administration%7CCXone%20Agent%7C_____8)
+For detailed documentation and developer related queries, Please visit [Official SDK Documentation](https://help.nicecxone.com/content/agent/agentapplicationadministration/cxoneagent/cxasdk.htm?tocpath=Agent%20Application%20Administration%7CAgent%20Application%20Administration%7CCXone%20Agent%7C_____8)
 
 ### Compatibility
 

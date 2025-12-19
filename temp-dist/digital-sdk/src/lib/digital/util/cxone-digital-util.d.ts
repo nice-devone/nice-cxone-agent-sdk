@@ -1,11 +1,16 @@
 import { CcfLogger } from '@nice-devone/agent-sdk';
-import { CXoneRecipient } from '@nice-devone/common-sdk';
+import { CXoneDigitalEventType, CXoneMessage, CXoneRecipient, HttpResponse } from '@nice-devone/common-sdk';
+import { DigitalContactService } from '../service/digital-contact-service';
+import { DigitalEventSyncService } from '../service/digital-event-sync-service';
 /**
  * Utility Class containing methods related to handling of generic logic
  */
 export declare class CXoneDigitalUtil {
     protected logger: CcfLogger;
     private static singleton;
+    digitalContactService: DigitalContactService;
+    digitalEventSyncService: DigitalEventSyncService;
+    private isWSAPIIntegrationRevampToggleEnabled;
     /**
       * constructor to initialize various required instances for the class
       * @example
@@ -44,4 +49,15 @@ export declare class CXoneDigitalUtil {
      * ```
      */
     isUserSlotFeatureToggleEnabled(): Promise<boolean>;
+    /**
+       * Method to check if event is already consumed
+       * @param response - Http response from API
+       * @param contactId - Contact Id of the digital contact
+       * @param eventName - Event name to check
+       * @param eventData - Event data to be passed for syncEventResponse
+       * @returns - isEventConsumed
+       * @example -
+       * checkIfEventConsumed(response, '645337', 'CASE_INBOX_ASSIGNED',eventData);
+      */
+    checkIfEventConsumed(response: HttpResponse, contactId: string, eventName: CXoneDigitalEventType, eventData?: CXoneMessage): Promise<boolean>;
 }

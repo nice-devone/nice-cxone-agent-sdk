@@ -84,6 +84,32 @@ export class AgentIntegrationConfigurationService {
         });
     }
     /**
+     * Method to get studio action Test Summary data
+     * @returns - studio action enchanced workflow data
+     * ```
+     * @example
+     * getTestSearchWorkflows('01899438-147f-433b-945b-f1fde6d91877')
+     * ```
+    */
+    getEWEWorkflowsTestResult(configId, workflowId, token, body) {
+        this.logger.info('getEWEWorkflowsTestResult', 'Executing workflow');
+        const baseUrl = this.auth.getCXoneConfig().acdApiBaseUri;
+        const url = baseUrl + ApiUriConstants.GET_AGENT_INTEGRATION_WORKFLOW_TEST_URI
+            .replace('{configurationId}', configId)
+            .replace('{workflowId}', workflowId);
+        const reqInit = this.utilService.initHeader(token, 'application/json');
+        reqInit.body = JSON.stringify(body);
+        return new Promise((resolve, reject) => {
+            HttpClient.post(url, reqInit).then((resp) => {
+                this.logger.info('getEWEWorkflowsTestResult', 'Workflow execution success');
+                resolve(resp.data);
+            }, (error) => {
+                this.logger.error('getEWEWorkflowsTestResult', 'Workflow execution failed: ' + JSON.stringify(error));
+                reject(error);
+            });
+        });
+    }
+    /**
      * Method to get studio action dynamic data mappings data
      * @returns - studio action workflow data
      * ```

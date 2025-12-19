@@ -59,6 +59,10 @@ var EventKeys;
      */
     EventKeys["KEY_U"] = "KeyU";
     /**
+      * D key in the numpad of key board
+      */
+    EventKeys["KEY_D"] = "KeyD";
+    /**
      * Space key of key board
      */
     EventKeys["SPACE"] = " ";

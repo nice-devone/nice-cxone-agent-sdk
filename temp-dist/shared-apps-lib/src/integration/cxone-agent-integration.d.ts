@@ -9,10 +9,13 @@ import { CXoneAuthRequestData } from '../interfaces/cxone-auth-request-data';
 import { CXonePartnerAccountDetails } from '../interfaces/cxone-partner-account-details';
 import { CXonePartnerPresenceSyncRule } from '../interfaces/cxone-partner-presence-sync-rule';
 import { CXoneContactData } from '../interfaces/cxone-contact-data';
+import { SessionSwitchData } from '../interfaces/session-switch-data';
+import { CXoneTranslations } from '../interfaces/cxone-translations';
 /**
  * Type alias for click to act callback, to be invoked from intergration apps
  */
 export declare type ClickToActCallback = (params: ClickToActData) => boolean;
+export declare type SessionSwitchedCallback = (params: SessionSwitchData) => boolean;
 export declare type LocaleChangeCallback = (params: Integrationi18nData) => void;
 export declare type CXoneAuthResponseCallback = (params: CXoneAuthResponseData) => void;
 export declare type CXonePartnerDetailsCallback = (params: CXonePartnerAccountDetails) => void;
@@ -33,6 +36,11 @@ export interface ICXoneAgentIntegration {
      * @param screepopData - Event Args
      */
     handleCXoneScreenpop(screepopData: CXoneScreenPopData): void;
+    /**
+     *
+     * @param contactId - string
+     */
+    handleCXoneContactSelectionChanged(contactId: string): void;
     /**
      *
      * @param voiceContactData - Event Args
@@ -58,6 +66,11 @@ export interface ICXoneAgentIntegration {
      * @param callback - Callback method
      */
     onClickToAct(callback: ClickToActCallback): void;
+    /**
+     *
+     * @param callback - Callback method
+     */
+    onSessionSwitched(callback: SessionSwitchedCallback): void;
     /**
      * Embedded app specific method for getting locale
      * @param callback - Callback method
@@ -88,4 +101,8 @@ export interface ICXoneAgentIntegration {
      * @param workItemContactData - Event Args
      */
     handleCXoneWorkItemContactEvent(workItemContactData: CXoneContactData): void;
+    /**
+     * Embedded app specific method to get the current locale
+     */
+    handleCurrentTranslations(localization: CXoneTranslations): void;
 }

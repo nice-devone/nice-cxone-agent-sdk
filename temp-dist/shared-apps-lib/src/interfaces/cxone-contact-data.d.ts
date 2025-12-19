@@ -54,4 +54,16 @@ export interface CXoneContactData {
    * @remarks - CXone
    * */
     type?: string;
+    /**
+     * @remarks - Screen pop URL provided in the skill configuration
+     * */
+    screenPopUrl?: string;
+    /**
+     * @remarks - Caller information (from) for voice mail contact
+     * */
+    from?: string;
+    /**
+     * @remarks - Receiver information (to) for voice mail contact
+     * */
+    to?: string;
 }

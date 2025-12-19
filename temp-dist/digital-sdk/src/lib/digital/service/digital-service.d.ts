@@ -1,6 +1,7 @@
 import { CcfLogger } from '@nice-devone/agent-sdk';
-import { HttpResponse, CXoneDigitalChannel, UserSlots, CXoneAttachment, FavQuickReply, ReactionType, CustomField, ContactHistory, ExternalPlatformTemplatesSchema, CXoneDigitalContactSearchRequest, CXoneDigitalContactSearchObject, CXoneRoutingQueue, CXoneDigitalMessageTagArray, CXoneDigitalQuickReply, CXoneDigitalCustomerSearchRequest, CXoneDigitalCustomerSearchDetails, CXoneDigitalMessageSearchRequest, CXoneDigitalMessageSearchDetails, CXoneDigitalThreadSearchRequest, CXoneDigitalThreadSearchDetails, CXoneDigitalTranslationLanguages, CXoneDigitalTranslationApiRequest, CXoneDigitalTranslationApiResponse, TypingIndicatorActions, DigitalEventHubResponse } from '@nice-devone/common-sdk';
-import { HttpUtilService } from '@nice-devone/core-sdk';
+import { HttpResponse, CXoneDigitalChannel, UserSlots, CXoneAttachment, FavQuickReply, ReactionType, CustomField, ContactHistory, ExternalPlatformTemplatesSchema, CXoneDigitalContactSearchRequest, CXoneDigitalContactSearchObject, CXoneRoutingQueue, CXoneDigitalMessageTagArray, CXoneDigitalQuickReply, CXoneDigitalCustomerSearchRequest, CXoneDigitalCustomerSearchDetails, CXoneDigitalMessageSearchRequest, CXoneDigitalMessageSearchDetails, CXoneDigitalThreadSearchRequest, CXoneDigitalThreadSearchDetails, CXoneDigitalTranslationLanguages, CXoneDigitalTranslationApiRequest, CXoneDigitalTranslationApiResponse, TypingIndicatorActions, DigitalEventHubResponse, CXoneDigitalOutboundQuickReply } from '@nice-devone/common-sdk';
+import { HttpUtilService, IndexDBStoreNames, IndexDBKeyNames } from '@nice-devone/core-sdk';
+import { DigitalContactService } from './digital-contact-service';
 /**
  * Service to handle generic digital API calls
  */
@@ -8,6 +9,7 @@ export declare class DigitalService {
     logger: CcfLogger;
     protected utilService: HttpUtilService;
     private auth;
+    private urlUtilsService;
     private UPDATE_MESSAGE_REACTION;
     private UPDATE_CASE_CUSTOM_FIELD;
     private EXTERNAL_PLATFORM_TEMPLATE_URI;
@@ -23,6 +25,8 @@ export declare class DigitalService {
     private TYPING_INDICATOR_FOR_PATRON;
     private GET_DIGITAL_WEBSOCKET_URL;
     cachedLanguageTranslations: CXoneDigitalTranslationLanguages | undefined;
+    private MARK_QUICK_RESPONSE_AS_FAVORITE;
+    digitalContactService: DigitalContactService;
     /**
      * @example
      * ```
@@ -110,6 +114,18 @@ export declare class DigitalService {
      * @param isOutbound - represents outbound or not
      */
     getFavQuickReplies(isOutbound: boolean): Promise<Array<FavQuickReply>>;
+    /**
+   * Method to put fav quick Replies in IDB
+   * @returns
+   * @example
+   * ```
+   * putFavQuickReplies([{id:2,isFavorite:true}],IndexDBStoreNames.QUICKREPLIES,IndexDBKeyNames.FAV_QUICK_REPLIES)
+   * ```
+   * @param favQRObjects - represents favorite  quick replies array
+   * @param idbStoreName - represents indexdb store name
+   * @param idbKeyName - represents indexdb key name
+   */
+    putFavQuickReplies(favQRObjects: FavQuickReply[], idbStoreName: typeof IndexDBStoreNames[keyof typeof IndexDBStoreNames], idbKeyName: typeof IndexDBKeyNames[keyof typeof IndexDBKeyNames]): Promise<void>;
     /**
      * Method to unmark a quickReply as favorite
      * @returns
@@ -248,6 +264,24 @@ export declare class DigitalService {
      * @example - digitalService.getQuickResponses()
      */
     getQuickResponses(channels?: string[]): Promise<Array<CXoneDigitalQuickReply>>;
+    /**
+     * Method to mark or unmark a quickResponse as favorite
+     * @param quickResponseId - Id of the quick response to be marked as favorite
+     * @param isMarkedAsFavorite - boolean flag to mark or unmark as favorite
+     * @example - digitalService.markQuickResponseAsFavorite(1234)
+     */
+    toggleFavoriteQuickResponse(quickResponseId: number, isMarkedAsFavorite: boolean): Promise<HttpResponse>;
+    /**
+     * Method to get unified quick responses includes rich text & quick replies with pagination support
+     * @param channels - channel ids to be passed to get channel specific list (optional)
+     * @param skills - skill ids to be passed to get skill specific list (optional)
+     * @param page - page number for pagination (default: 1)
+     * @param limit - number of items per page (default: 20)
+     * @param search - search term to filter results (optional)
+     * @returns - list of all types of quick responses
+     * @example - digitalService.getUnifiedQuickResponses()
+     */
+    getUnifiedQuickResponses(channels?: string[], skills?: number[], page?: number, limit?: number, search?: string, isFavorite?: boolean): Promise<CXoneDigitalOutboundQuickReply>;
     /**
      * Method to create URL link to secure form,
      * URL created after this api call will be used to sent to the customer by agent using editor.

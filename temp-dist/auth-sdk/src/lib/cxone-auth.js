@@ -939,6 +939,17 @@ export class CXoneAuth {
         return this.adminService.getBusinessUnit();
     }
     /**
+     * Method to return active user details
+     * @returns - returns the active user details
+     * ```
+     * @example
+     * getUserDetails()
+     * ```
+    */
+    getUserDetails() {
+        return this.adminService.getUserDetails(true);
+    }
+    /**
      * Method to return business unit features
      * @returns - returns the business unit features
      * ```

@@ -12,6 +12,14 @@ export declare function getAgentRemoteEntryUrl(cxaVersion: string): string;
  */
 export declare function getRemoteEntryUrl(appType: string, cxaVersion: string): string;
 /**
+ * Returns the complete URL to the TPI (third-party integration) remote entry file for an embedded app.
+ * @param appType - The type identifier of the third-party integration app.
+ * @param cxaVersion - The version hash of CXone Agent.
+ * @returns The complete URL to the TPI remote entry file.
+ * @example getTPIRemoteEntryUrl(appType, cxaVersion)
+ */
+export declare function getTPIRemoteEntryUrl(appType: string, cxaVersion: string): string;
+/**
  * Method to load remote Integration Module from remoteEntry.js file
  * @param appType - type of remote embedded app
  * @param remoteEntryUrl - url of the remote entry

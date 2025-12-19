@@ -26,6 +26,7 @@ import { PresenceSyncService } from './presence-sync/service/presence-sync-servi
 import { AgentAssistWSService } from './agent-assist/agent-assist-ws-service';
 import { VoiceBioHubService } from './voice-bio-hub/voice-bio-hub-service';
 import { CXoneAgentContactHistory } from './acd/cxone-agent-contact-history/cxone-agent-contact-history';
+import { SessionSwitchData } from './interfaces/session-switch-data';
 /** This is the base class for ACD */
 export declare class CXoneClient {
     private logger;
@@ -170,4 +171,13 @@ export declare class CXoneClient {
      * ```
      */
     submitFeedback(feedbackData: FeedbackData): Promise<import("@nice-devone/common-sdk").HttpResponse | import("@nice-devone/common-sdk").CXoneSdkError>;
+    /**
+     * Assigns selected case id to user in CXone sdk
+     * @param sessionDetails - contactId, interactionId, mediaType
+     * @example -
+     * ```
+     * switchContacts(sessionDetails);
+     * ```
+     */
+    switchContacts(sessionDetails: SessionSwitchData): void;
 }

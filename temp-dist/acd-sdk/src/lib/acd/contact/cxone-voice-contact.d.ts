@@ -8,6 +8,7 @@ export declare class CXoneVoiceContact extends CXoneContact {
     private isMuteVisible;
     private isMaskVisible;
     private isRecordVisible;
+    private isStopRecordEnabled;
     private hideInboundHangup;
     private voiceControlService;
     callControlButton: CallControlButton;
@@ -216,6 +217,14 @@ export declare class CXoneVoiceContact extends CXoneContact {
      * ```
      */
     record(): Promise<HttpResponse | CXoneSdkError>;
+    /**
+     * Method to validate the contact has record button then invoke the stopCallRecording method.
+     * @example
+     * ```
+     * stopRecord();
+     * ```
+     */
+    stopRecord(): Promise<HttpResponse | CXoneSdkError>;
     /**
      * Method to validate the contact has end button then invoke the endContact method.
      * @example

@@ -28,8 +28,11 @@ class AgentQueuesDetail extends cxone_event_1.CXoneEvent {
         this.lastName = data.lastName;
         this.lastUpdateTime = new Date(data.lastUpdateTime);
         this.masterContactId = (0, utility_1.parseInteger)(data.masterContactId);
+        this.interactionId = (0, utility_1.parseInteger)(data.interactionId);
         this.mediaName = data.mediaName;
         this.mediaType = (0, utility_1.parseInteger)(data.mediaType);
+        this.channelNo = (0, utility_1.parseInteger)(data.channelNo);
+        this.channelName = data.channelName;
         this.skillName = data.skillName;
         this.skillId = (0, utility_1.parseInteger)(data.skillId);
         this.startDate = new Date(data.startDate);

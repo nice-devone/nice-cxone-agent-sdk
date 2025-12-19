@@ -11,6 +11,10 @@ export interface CXoneDigitalOutboundQuickReply {
      * @remarks - Object of next links
      */
     nextLinks: CXoneDigitalNextLinks;
+    /**
+     * @remarks - total records count
+     */
+    totalRecords?: number;
 }
 /**
  * Interface for CXone digital links in outbound Quick replies response

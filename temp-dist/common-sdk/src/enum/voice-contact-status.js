@@ -13,6 +13,7 @@ var VoiceContactStatus;
     VoiceContactStatus["DIALING"] = "dialing";
     VoiceContactStatus["MASKING"] = "masking";
     VoiceContactStatus["INQUEUE"] = "Inqueue";
+    VoiceContactStatus["QUEUING"] = "Queuing";
     VoiceContactStatus["TRANSFER"] = "transfer";
     VoiceContactStatus["CONFERENCE"] = "conference";
     VoiceContactStatus["PREVIEW"] = "preview";

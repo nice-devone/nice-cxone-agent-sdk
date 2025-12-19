@@ -12,4 +12,19 @@ export interface AgentProfileSettings {
     hideCustomWorkspace: boolean;
     hideReporting: boolean;
     hideConversations: boolean;
+    hideOBADHoc?: boolean;
+    hideOBRedial?: boolean;
+    hideOBAgentConsult?: boolean;
+    hideOBAddressBookConsult?: boolean;
+    hideOBSkillConsult?: boolean;
+    hideOBElevation?: boolean;
+    hideOBSaveAndRedial?: boolean;
+    hideOBTransfer?: boolean;
+    hideDirectorySearch?: boolean;
+    hideDirectoryAll?: boolean;
+    hideDirectoryFavorites?: boolean;
+    hideDirectoryAgents?: boolean;
+    hideDirectoryTeams?: boolean;
+    hideDirectorySkills?: boolean;
+    hideDirectoryStandardAddressBook?: boolean;
 }

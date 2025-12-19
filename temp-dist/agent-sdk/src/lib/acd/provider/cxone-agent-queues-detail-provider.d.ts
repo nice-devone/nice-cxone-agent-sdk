@@ -7,11 +7,15 @@ export declare class CXoneAgentQueuesDetailProvider {
     private logger;
     private acdSession;
     private baseUri;
+    private apiFacadeBaseUri;
     private utilService;
     private cxoneClient;
     private urlUtilService;
     pollingWorker: any;
     private agentId;
+    private isIncreasedQueuesPolling;
+    private pollingInterval;
+    private isQueueDetailsFeatureToggleEnabled;
     /**
      * Create a directory provider.
      * @example -- Const provider = new CXoneAgentQueuesDetailProvider();
@@ -30,7 +34,7 @@ export declare class CXoneAgentQueuesDetailProvider {
      * this.agentQueuesDetailProvider.agentQueuesDetailsPolling();
      * ```
      */
-    agentQueuesDetailsPolling(agentId: string): void;
+    agentQueuesDetailsPolling(agentId: string): Promise<void>;
     /**
      * Callback method which will passed on to the worker and will be executed after the polling api response
      * then will publish to the subject subscriber with the agent queues detail data

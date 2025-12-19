@@ -18,7 +18,7 @@ class AgentWorkflowRequestEvent {
      * ```
      */
     parse(agentWorkflowConfiguration) {
-        var _a, _b, _c, _d;
+        var _a, _b, _c, _d, _e;
         (agentWorkflowConfiguration === null || agentWorkflowConfiguration === void 0 ? void 0 : agentWorkflowConfiguration.contactId) && (this.ContactID = agentWorkflowConfiguration === null || agentWorkflowConfiguration === void 0 ? void 0 : agentWorkflowConfiguration.contactId);
         if (agentWorkflowConfiguration === null || agentWorkflowConfiguration === void 0 ? void 0 : agentWorkflowConfiguration.request) {
             this.request = (_a = agentWorkflowConfiguration === null || agentWorkflowConfiguration === void 0 ? void 0 : agentWorkflowConfiguration.request) === null || _a === void 0 ? void 0 : _a.map((res) => {
@@ -43,6 +43,13 @@ class AgentWorkflowRequestEvent {
         }
         if (agentWorkflowConfiguration === null || agentWorkflowConfiguration === void 0 ? void 0 : agentWorkflowConfiguration.timelineWorkflow) {
             this.timelineWorkflow = (_d = agentWorkflowConfiguration === null || agentWorkflowConfiguration === void 0 ? void 0 : agentWorkflowConfiguration.timelineWorkflow) === null || _d === void 0 ? void 0 : _d.map((res) => {
+                const result = new agent_workflow_request_event_request_1.AgentWorkflowRequestEventRequest();
+                result.parse(res);
+                return res;
+            });
+        }
+        if (agentWorkflowConfiguration === null || agentWorkflowConfiguration === void 0 ? void 0 : agentWorkflowConfiguration.payload) {
+            this.payload = (_e = agentWorkflowConfiguration === null || agentWorkflowConfiguration === void 0 ? void 0 : agentWorkflowConfiguration.payload) === null || _e === void 0 ? void 0 : _e.map((res) => {
                 const result = new agent_workflow_request_event_request_1.AgentWorkflowRequestEventRequest();
                 result.parse(res);
                 return res;

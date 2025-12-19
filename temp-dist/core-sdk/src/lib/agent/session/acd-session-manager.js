@@ -74,6 +74,8 @@ export class ACDSessionManager {
         this._callControlEvent = new Subject();
         this.isEventQueueResized = false;
         this._onAgentCustomEvent = new Subject();
+        this._aaVoiceTranscriptEventSubject = new ReplaySubject(1);
+        this._agentWorkflowCallControlEvent = new Subject();
         /**
          * Posts custom form data
          * @param contactId - sendor contact id
@@ -547,7 +549,7 @@ export class ACDSessionManager {
                     });
                     // initiate get next event
                     if (CXoneLeaderElector.instance.isLeader) {
-                        this.toggleACDEventEmitter({ invokeSnapshot: true, isUIQueueEnabled: options === null || options === void 0 ? void 0 : options.isUIQueueEnabled });
+                        this.toggleACDEventEmitter({ invokeSnapshot: true, isUIQueueEnabled: options === null || options === void 0 ? void 0 : options.isUIQueueEnabled, sessionId: this.sessionId });
                     }
                     else {
                         const msg = {
@@ -663,7 +665,10 @@ export class ACDSessionManager {
      */
     startGetNextEvents(sessionId) {
         if (this.isEventQueueResized) {
-            this.adminService.resizeEventQueue(this.sessionId, false).then(() => {
+            if (!sessionId) {
+                sessionId = this.getSessionId();
+            }
+            this.adminService.resizeEventQueue(sessionId, false).then(() => {
                 this.isEventQueueResized = false;
                 this.logger.info('startGetNextEvents', 'Resized event queue');
             }, error => {
@@ -692,7 +697,10 @@ export class ACDSessionManager {
      */
     establishUIQSocketConnection(invokeSnapshot, sessionId) {
         this.terminateGetNextPolling();
-        this.adminService.resizeEventQueue(this.sessionId, true)
+        if (!sessionId) {
+            sessionId = this.getSessionId();
+        }
+        this.adminService.resizeEventQueue(sessionId, true)
             .then(() => {
             this.isEventQueueResized = true;
             UIQueueWsProvider.instance.connectAgent(this.userInfo, invokeSnapshot, sessionId);
@@ -793,6 +801,24 @@ export class ACDSessionManager {
     */
     get customScreenpopSubject() {
         return this._customScreenpopSubject;
+    }
+    /**
+     * @example -
+     * ```
+     * const aaVoiceTranscriptEventSubject  = acdSession.aaVoiceTranscriptEventSubject
+     * ```
+     */
+    get aaVoiceTranscriptEventSubject() {
+        return this._aaVoiceTranscriptEventSubject;
+    }
+    /**
+     * @example -
+     * ```
+     * const agentWorkflowCallControlEvent = acdSession.agentWorkflowCallControlEvent
+     * ```
+     */
+    get agentWorkflowCallControlEvent() {
+        return this._agentWorkflowCallControlEvent;
     }
 }
 //# sourceMappingURL=acd-session-manager.js.map

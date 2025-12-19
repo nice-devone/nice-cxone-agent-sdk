@@ -20,6 +20,7 @@ export declare class ApiUriConstants {
     static MASK_CALL_URI: string;
     static UNMASK_CALL_URI: string;
     static RECORD_CALL_URI: string;
+    static STOP_CALL_RECORDING_URI: string;
     static END_CONTACT_URI: string;
     static AGENT_STATE_URI: string;
     static AGENT_STATE_UNIFY_URI: string;
@@ -49,7 +50,9 @@ export declare class ApiUriConstants {
     static SEND_DTMF: string;
     static SKILL_CACHE_URI: string;
     static AGENT_QUEUE_URI: string;
+    static AGENT_QUEUE_URI_NEW: string;
     static AGENT_QUEUE_DETAIL_URI: string;
+    static AGENT_QUEUE_DETAIL_URI_NEW: string;
     static ACCEPT_CONTACT_URI: string;
     static REJECT_CONTACT_URI: string;
     static POST_CUSTOM_FORM_DATA: string;
@@ -118,6 +121,7 @@ export declare class ApiUriConstants {
     static GET_AGENT_INTEGRATION_DATA_MAPPING_URI: string;
     static GET_AGENT_INTEGRATION_DYNAMIC_DATA_MAPPING_URI: string;
     static MESSAGE_TAG: string;
+    static GET_AGENT_INTEGRATION_WORKFLOW_TEST_URI: string;
     static GET_MESSAGE_TAG: string;
     static GET_MESSAGE_TAGS_BY_PAGE: string;
     static SEARCH_DIGITAL_TAG: string;

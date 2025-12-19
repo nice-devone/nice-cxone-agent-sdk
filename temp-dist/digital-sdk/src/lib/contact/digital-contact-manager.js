@@ -12,6 +12,7 @@ import { DigitalService } from '../digital/service/digital-service';
 import { CXoneUserSlotProvider } from '../digital/provider/cxone-user-slot-provider';
 import { DigitalContactService } from '../digital/service/digital-contact-service';
 import { CXoneDigitalUtil } from '../digital/util/cxone-digital-util';
+import { DigitalEventSyncService } from '../digital/service/digital-event-sync-service';
 /**
  * Class to handle the contacts
  */
@@ -56,6 +57,33 @@ export class DigitalContactManager {
         this.onAgentHiveEvent = new Subject();
         this.userSlotSubscribed = null;
         this.isWebSocketFailure = false;
+        this.digitalEventSyncService = DigitalEventSyncService.instance;
+        // Dictionary for synchronizing digital events. [eventName -> (contactId -> traceId)]
+        this.digitalEventSyncDictionary = new Map();
+        this.isWSAPIIntegrationRevampToggleEnabled = FeatureToggleService.instance.getFeatureToggleSync("release-cx-agent-API-websocket-integration-revamp-AW-42181" /* FeatureToggles.REVAMPED_WEBSOCKET_INTEGRATION_PATTERN */) || false;
+        // Event types that require dictionary sync updates
+        this.SYNC_ENABLED_EVENTS = new Set([
+            CXoneDigitalEventType.CASE_INBOX_ASSIGNEE_CHANGED,
+            CXoneDigitalEventType.MESSAGE_UPDATED,
+            CXoneDigitalEventType.MESSAGE_ADDED_INTO_CASE
+        ]);
+        /**
+         * Method to handle digital sync events from the DigitalEventSyncService
+         * @example handleDigitalSyncEvent(event);
+         * @param event - DigitalEventSync object containing contactId, eventName, traceId
+         */
+        this.handleDigitalSyncEvent = (event) => __awaiter(this, void 0, void 0, function* () {
+            try {
+                this.logger.info('handleDigitalSyncEvent', 'Handling digital sync event: ' + JSON.stringify(event));
+                const { eventName, contactId, traceId, syncEventResponse } = event;
+                const result = yield this.addTraceIdInEventSyncDictionary(eventName, contactId, traceId, syncEventResponse);
+                return Promise.resolve(result);
+            }
+            catch (error) {
+                this.logger.error('handleDigitalSyncEvent', 'Error in handling digital sync event: ' + JSON.stringify(error));
+                return Promise.resolve(false);
+            }
+        });
         /**
          * Method used to get the CXoneContact
          */
@@ -138,6 +166,9 @@ export class DigitalContactManager {
                 yield this.manageUserSlotDetails();
                 this.digitalWebsocketMessageHandler();
                 this.digitalWebsocketConnectionStateHandler();
+                // If ws revamp FT is on, initialize digital event sync service
+                if (this.isWSAPIIntegrationRevampToggleEnabled)
+                    this.initializeDigitalEventSync();
             }
             catch (error) {
                 if (error instanceof Error) {
@@ -145,6 +176,217 @@ export class DigitalContactManager {
                 }
             }
         });
+    }
+    /**
+     * Method to initialize digital event sync service
+     */
+    initializeDigitalEventSync() {
+        this.digitalEventSyncService.initDigitalEventSync(this.handleDigitalSyncEvent);
+    }
+    /**
+     * Method to get actual event name for the given event.
+     * In case of AssigntoMe & UnAssign events we get CaseInboxAssigneeChanged event from websocket.
+     * To differentiate between these two events we will use actual event name.
+     * @param eventName - The name of the event we receive from websocket.
+     * @example getActualEventName(event);
+     * @returns - actual event name differentiating assign & unassign.
+     */
+    getActualEventName(eventName) {
+        var _a;
+        const eventTypes = { [CXoneDigitalEventType.CASE_INBOX_ASSIGNEE_CHANGED]: [CXoneDigitalEventType.CASE_INBOX_ASSIGNED, CXoneDigitalEventType.CASE_INBOX_UNASSIGNED] };
+        let currentEventName = eventName;
+        (_a = Object.keys(eventTypes)) === null || _a === void 0 ? void 0 : _a.forEach(key => {
+            var _a;
+            if ((_a = eventTypes[key]) === null || _a === void 0 ? void 0 : _a.includes(eventName)) {
+                currentEventName = key;
+            }
+        });
+        return currentEventName;
+    }
+    /**
+    * Add a traceId for given eventName and contactId.
+    * @param eventName - The name of the event
+    * @param contactId - The ID of the contact
+    * @param traceId - The trace ID associate with the event and contact
+    * @example addTraceIdInEventSyncDictionary('event1', 'contact1', 'trace1');
+    */
+    addTraceIdInEventSyncDictionary(eventName, contactId, traceId, eventData) {
+        return __awaiter(this, void 0, void 0, function* () {
+            try {
+                const currentEventName = this.getActualEventName(eventName);
+                // Get the map for current event or create a new one
+                if (this.getTraceIdFromEventSyncDictionary(currentEventName, contactId) !== traceId) {
+                    if (eventName === CXoneDigitalEventType.CASE_INBOX_ASSIGNED) {
+                        yield this.handleAssigneeChangedEvent(contactId, traceId);
+                    }
+                    else if (eventName === CXoneDigitalEventType.CASE_INBOX_UNASSIGNED) {
+                        yield this.handleUnAssigneeChangedEvent(contactId, traceId);
+                    }
+                    else if (eventName === CXoneDigitalEventType.MESSAGE_ADDED_INTO_CASE) {
+                        yield this.handleMessageAddedIntoCaseEvent(contactId, traceId, eventData);
+                    }
+                    else if (eventName === CXoneDigitalEventType.MESSAGE_UPDATED) {
+                        yield this.handleMessageUpdatedEvent(contactId, traceId, eventData);
+                    }
+                    return Promise.resolve(false);
+                }
+                this.logger.trace('addTraceIdInEventSyncDictionary', `Success: eventName=${eventName}, contactId=${contactId}, traceId=${traceId}`);
+                return Promise.resolve(true);
+            }
+            catch (error) {
+                this.logger.error('addTraceIdInEventSyncDictionary', `Failed to add traceId in EventSyncDictionary for eventName=${eventName}, contactId=${contactId}, traceId=${traceId}:` + JSON.stringify(error));
+                return Promise.resolve(false);
+            }
+        });
+    }
+    /**
+     * Update the Digital Event Sync Dictionary with the latest traceId for a given contactId and eventName.
+     * @param contactId - contact id
+     * @param eventName - The name of the event
+     * @param traceId - The trace ID associated with the event and contact
+     * @example updateDESyncDictionary('contact1', 'event1', 'trace1');
+     */
+    updateDESyncDictionary(contactId, eventName, traceId) {
+        try {
+            const currentEventName = this.getActualEventName(eventName);
+            // Get the map for current event or create a new one
+            const currentEventDictionary = this.digitalEventSyncDictionary.get(currentEventName) || new Map();
+            currentEventDictionary.set(contactId, traceId);
+            this.digitalEventSyncDictionary.set(currentEventName, currentEventDictionary);
+        }
+        catch (error) {
+            this.logger.error('updateDESyncDictionary', 'Failed to update Digital Event Sync Dictionary: ' + JSON.stringify(error));
+        }
+    }
+    /**
+     * Check if the digital event sync dictionary should be updated for the given event
+     * @param eventName - The name of the event
+     * @param traceId - The trace ID associated with the event
+     * @returns - true if sync dictionary update is required, false otherwise
+     * @example isSyncDictionaryUpdateRequired(CXoneDigitalEventType.CASE_INBOX_ASSIGNEE_CHANGED, 'trace123');
+     */
+    isSyncDictionaryUpdateRequired(eventName, traceId) {
+        return Boolean(this.isWSAPIIntegrationRevampToggleEnabled &&
+            this.SYNC_ENABLED_EVENTS.has(eventName) &&
+            traceId);
+    }
+    /**
+     * Handle Message Updated API response in case of message update event
+     * @param contactId - contact id
+     * @param traceId - Unique id for tracking the events and avoiding duplication
+     * @example handleMessageUpdatedEvent(contactId, traceId);
+     */
+    handleMessageUpdatedEvent(contactId, traceId, messageUpdatedEventData) {
+        var _a, _b, _c, _d;
+        return __awaiter(this, void 0, void 0, function* () {
+            try {
+                if (contactId && this.digitalContactMap.has(contactId)) {
+                    const contact = this.digitalContactMap.get(contactId);
+                    if (contact) {
+                        const currentCase = (_b = (_a = this.digitalContactMap) === null || _a === void 0 ? void 0 : _a.get(contactId)) === null || _b === void 0 ? void 0 : _b.case;
+                        const currentChannels = (_d = (_c = this.digitalContactMap) === null || _c === void 0 ? void 0 : _c.get(contactId)) === null || _d === void 0 ? void 0 : _d.channel;
+                        const message = messageUpdatedEventData;
+                        const apiResponseToPublish = { 'case': currentCase, 'channel': currentChannels, 'message': message };
+                        const eventDetailsToPublish = { eventId: CXoneDigitalEventType.MESSAGE_UPDATED, eventObject: 'Message', eventType: CXoneDigitalEventType.MESSAGE_UPDATED, traceId: traceId };
+                        const eventDataToPublish = Object.assign(Object.assign(Object.assign({}, messageUpdatedEventData), eventDetailsToPublish), { data: apiResponseToPublish });
+                        this.checkSchemaAndPublishForMessage(contact, eventDataToPublish);
+                    }
+                }
+            }
+            catch (error) {
+                this.logger.error('handleMessageUpdatedEvent', `Failed to handle message updated event for contactId=${contactId}, traceId=${traceId}: ` + JSON.stringify(error));
+            }
+        });
+    }
+    /**
+     * Handle Message Added Into Case API response in case of new message added to case
+     * @param contactId - contact id
+     * @param traceId - Unique id for tracking the events and avoiding duplication
+     * @example handleMessageAddedIntoCaseEvent(contactId, traceId);
+     */
+    handleMessageAddedIntoCaseEvent(contactId, traceId, messageAddedEventData) {
+        var _a, _b, _c, _d, _e, _f;
+        return __awaiter(this, void 0, void 0, function* () {
+            try {
+                if (contactId && this.digitalContactMap.has(contactId)) {
+                    this.logger.info('handleMessageAddedIntoCaseEvent', 'Message added into case to be published to map ' + contactId + ' ' + traceId);
+                    if (contactId) {
+                        const currentCase = (_b = (_a = this.digitalContactMap) === null || _a === void 0 ? void 0 : _a.get(contactId)) === null || _b === void 0 ? void 0 : _b.case;
+                        const currentChannels = (_d = (_c = this.digitalContactMap) === null || _c === void 0 ? void 0 : _c.get(contactId)) === null || _d === void 0 ? void 0 : _d.channel;
+                        const message = messageAddedEventData;
+                        const apiResponseToPublish = { 'case': currentCase, 'channel': currentChannels, 'message': message };
+                        const eventDetailsToPublish = { eventId: CXoneDigitalEventType.MESSAGE_ADDED_INTO_CASE, eventObject: 'case', eventType: CXoneDigitalEventType.MESSAGE_ADDED_INTO_CASE, traceId: traceId };
+                        const eventDataToPublish = Object.assign(Object.assign(Object.assign({}, messageAddedEventData), eventDetailsToPublish), { data: apiResponseToPublish });
+                        const schemaValidatedMessage = this.cxoneDigitalContactHelper.validateResponseSchema(eventDataToPublish);
+                        const contact = this.digitalContactMap.get((_f = (_e = schemaValidatedMessage === null || schemaValidatedMessage === void 0 ? void 0 : schemaValidatedMessage.data) === null || _e === void 0 ? void 0 : _e.case) === null || _f === void 0 ? void 0 : _f.id);
+                        if (contact) {
+                            const currentContact = contact;
+                            schemaValidatedMessage.data.channel = currentContact.channel;
+                            currentContact.parse(schemaValidatedMessage);
+                            this.updatePublishDigitalContactMap(currentContact);
+                        }
+                    }
+                }
+            }
+            catch (error) {
+                this.logger.error('handleMessageAddedIntoCaseEvent', `Failed to handle message added into case event for contactId=${contactId}, traceId=${traceId}: ` + JSON.stringify(error));
+            }
+        });
+    }
+    /**
+     * Handle Assignee Changed API response in case of case assignment to agent inbox from
+     * @param contactId - contact id
+     * @param traceId - Unique id for tracking the events and avoiding duplication
+     * @example handleAssigneeChangedEvent(contactId, traceId);
+     */
+    handleAssigneeChangedEvent(contactId, traceId) {
+        return __awaiter(this, void 0, void 0, function* () {
+            if (contactId && !this.digitalContactMap.has(contactId)) {
+                this.logger.info('handleAssigneeChangedEvent', 'Inbox assigned contact to be published to map' + contactId);
+                const eventDetailsToPublish = { eventId: '', eventObject: 'Case', eventType: CXoneDigitalEventType.CASE_INBOX_ASSIGNED, traceId: traceId };
+                yield this.getDigitalContactDetails(contactId, eventDetailsToPublish);
+            }
+        });
+    }
+    /**
+     * Handle UnAssignee Changed API response in case of case unassignment from agent inbox
+     * @param contactId - contact id
+     * @param traceId - Unique id for tracking the events and avoiding duplication
+     * @example handleUnAssigneeChangedEvent(contactId, traceId);
+     */
+    handleUnAssigneeChangedEvent(contactId, traceId) {
+        return __awaiter(this, void 0, void 0, function* () {
+            const currentContact = this.digitalContactMap.get(contactId);
+            if (contactId && currentContact) {
+                const eventDetailsToPublish = { eventId: '', eventObject: 'Case', eventType: CXoneDigitalEventType.CASE_INBOX_UNASSIGNED, traceId: traceId };
+                // checking if the case is view only case or not, if yes then don't remove the case from digital contact map
+                const isViewOnlyCase = this.viewOnlyCases.includes(contactId);
+                if (!isViewOnlyCase) {
+                    // Here will attach the unAssign event to contact & publish it.
+                    const contactInMap = Object.assign(Object.assign({}, currentContact), { eventDetails: eventDetailsToPublish });
+                    this.updatePublishDigitalContactMap(contactInMap);
+                    // Removing the contact from map
+                    this.digitalContactMap.delete(contactId);
+                }
+            }
+        });
+    }
+    /**
+     * Retrieve a traceId by eventName + contactId
+     * @example getTraceIdFromEventSyncDictionary('event1', 'contact1');
+     * @param eventName - The name of the event
+     * @param contactId - contact id
+     */
+    getTraceIdFromEventSyncDictionary(eventName, contactId) {
+        var _a, _b, _c;
+        try {
+            this.logger.trace('getTraceIdFromEventSyncDictionary', `Success: eventName=${eventName}, contactId=${contactId}`);
+            return (_c = (_b = (_a = this.digitalEventSyncDictionary) === null || _a === void 0 ? void 0 : _a.get(eventName)) === null || _b === void 0 ? void 0 : _b.get(contactId)) !== null && _c !== void 0 ? _c : null;
+        }
+        catch (error) {
+            this.logger.error('getTraceIdFromEventSyncDictionary', `Failed to get traceId from EventSyncDictionary for eventName=${eventName}, contactId=${contactId}:` + JSON.stringify(error));
+            return null;
+        }
     }
     /**
      * terminate digital workers
@@ -186,7 +428,7 @@ export class DigitalContactManager {
             else {
                 eventTypeToPublish = eventData === null || eventData === void 0 ? void 0 : eventData.eventType;
             }
-            const eventDetailsToPublish = { eventId: eventData.eventId, eventObject: eventData.eventObject, eventType: eventTypeToPublish };
+            const eventDetailsToPublish = { eventId: eventData.eventId, eventObject: eventData.eventObject, eventType: eventTypeToPublish, traceId: eventData.traceId };
             const relevantEventTypes = [
                 CXoneDigitalEventType.MESSAGE_NOTE_CREATED,
                 CXoneDigitalEventType.MESSAGE_NOTE_DELETED,
@@ -428,13 +670,13 @@ export class DigitalContactManager {
             // If not present, calling contact Details API & publish it to Map
             if (contact.caseId && !this.digitalContactMap.has(contact.caseId)) {
                 this.logger.info('pollUserSlots', 'Inbox assigned contact to be published to map' + JSON.stringify(contact.caseId));
-                const eventDetailsToPublish = { eventId: '', eventObject: 'Case', eventType: CXoneDigitalEventType.CASE_INBOX_ASSIGNED };
+                const eventDetailsToPublish = { eventId: '', eventObject: 'Case', eventType: CXoneDigitalEventType.CASE_INBOX_ASSIGNED, traceId: '' };
                 this.getDigitalContactDetails(contact.caseId, eventDetailsToPublish);
             }
         });
         //Dev Note: if userSlotResponse length is not equal to digitalContactMap size then it means some contacts are unassigned
         if ((userSlotResponse === null || userSlotResponse === void 0 ? void 0 : userSlotResponse.length) !== ((_a = this.digitalContactMap) === null || _a === void 0 ? void 0 : _a.size) || WebsocketConnectionFailure) {
-            const eventDetailsToPublish = { eventId: '', eventObject: 'Case', eventType: CXoneDigitalEventType.CASE_INBOX_UNASSIGNED };
+            const eventDetailsToPublish = { eventId: '', eventObject: 'Case', eventType: CXoneDigitalEventType.CASE_INBOX_UNASSIGNED, traceId: '' };
             // Will iterate over the digital contact map to check both contacts are present in userSlotResponse or not
             this.digitalContactMap.forEach((contact, _) => {
                 //if contact is not present in userSlotResponse and then it means it is unassigned
@@ -457,42 +699,57 @@ export class DigitalContactManager {
      * this method will be called in case of MESSAGE_ADDED_INTO_CASE & CASE_STATUS_CHANGED event
      */
     updatePublishDigitalContactMap(currentContact) {
-        var _a, _b, _c;
-        const isViewOnlyCase = this.viewOnlyCases.includes(currentContact === null || currentContact === void 0 ? void 0 : currentContact.caseId);
-        //isAssignedToAgentInbox is false for viewOnly cases and true for !viewOnly cases
-        currentContact.isAssignedToAgentInbox = !isViewOnlyCase; //when we receive any event on web socket we set this flag if case is present in viewOnlyCases array    else{
-        // this check is for maintaining map of websocket data which is intended for current login user only.
-        // as on websocket event we can also receive the data of subscribed cases using event-hub-subscriptions api.
-        if (((_b = (_a = currentContact.case) === null || _a === void 0 ? void 0 : _a.inboxAssigneeUser) === null || _b === void 0 ? void 0 : _b.incontactId) === this.currentUserId || isViewOnlyCase) {
-            const customFieldDefinitions = currentContact.contactCustomFieldDefs;
-            if (((_c = currentContact.case.customFields) === null || _c === void 0 ? void 0 : _c.length) && (customFieldDefinitions === null || customFieldDefinitions === void 0 ? void 0 : customFieldDefinitions.length)) {
-                // if case has a custom fields then we have to update label and values
-                currentContact.case.customFields.forEach((field) => {
-                    var _a, _b;
-                    const currentFieldData = customFieldDefinitions.find(data => data.ident === field.ident);
-                    field.label = (currentFieldData === null || currentFieldData === void 0 ? void 0 : currentFieldData.label) ? currentFieldData === null || currentFieldData === void 0 ? void 0 : currentFieldData.label : field.ident;
-                    if ((_a = currentFieldData === null || currentFieldData === void 0 ? void 0 : currentFieldData.values) === null || _a === void 0 ? void 0 : _a.length) {
-                        const currentFieldValue = (_b = currentFieldData === null || currentFieldData === void 0 ? void 0 : currentFieldData.values) === null || _b === void 0 ? void 0 : _b.find((data) => data.name === field.value);
-                        if (currentFieldValue) {
-                            field.value = (currentFieldValue === null || currentFieldValue === void 0 ? void 0 : currentFieldValue.value) ? currentFieldValue.value : field.value;
-                        }
+        var _a, _b, _c, _d, _e;
+        const currentContactTraceId = (_a = currentContact === null || currentContact === void 0 ? void 0 : currentContact.eventDetails) === null || _a === void 0 ? void 0 : _a.traceId;
+        const actualEventName = this.getActualEventName((_b = currentContact === null || currentContact === void 0 ? void 0 : currentContact.eventDetails) === null || _b === void 0 ? void 0 : _b.eventType);
+        // If revamp FT is off, always publish the contact
+        // If revamp FT is on, publish the contact only if the traceId from event sync dictionary is different from the current contact traceId
+        if (!this.isWSAPIIntegrationRevampToggleEnabled || (this.isWSAPIIntegrationRevampToggleEnabled && (this.getTraceIdFromEventSyncDictionary(actualEventName, currentContact.caseId) !== currentContactTraceId))) {
+            const isViewOnlyCase = this.viewOnlyCases.includes(currentContact === null || currentContact === void 0 ? void 0 : currentContact.caseId);
+            //isAssignedToAgentInbox is false for viewOnly cases and true for !viewOnly cases
+            currentContact.isAssignedToAgentInbox = !isViewOnlyCase; //when we receive any event on web socket we set this flag if case is present in viewOnlyCases array    else{
+            // this check is for maintaining map of websocket data which is intended for current login user only.
+            // as on websocket event we can also receive the data of subscribed cases using event-hub-subscriptions api.
+            if (((_d = (_c = currentContact.case) === null || _c === void 0 ? void 0 : _c.inboxAssigneeUser) === null || _d === void 0 ? void 0 : _d.incontactId) === this.currentUserId || isViewOnlyCase) {
+                const customFieldDefinitions = currentContact.contactCustomFieldDefs;
+                try { // TODO needs to be checked for "TypeError: Cannot assign to read only property 'label' of object '#<Object>'" try catch to avoid any breaking changes in case of any issue in below code
+                    if (((_e = currentContact.case.customFields) === null || _e === void 0 ? void 0 : _e.length) && (customFieldDefinitions === null || customFieldDefinitions === void 0 ? void 0 : customFieldDefinitions.length)) {
+                        // if case has a custom fields then we have to update label and values
+                        currentContact.case.customFields.forEach((field) => {
+                            var _a, _b;
+                            const currentFieldData = customFieldDefinitions.find(data => data.ident === field.ident);
+                            field.label = (currentFieldData === null || currentFieldData === void 0 ? void 0 : currentFieldData.label) ? currentFieldData === null || currentFieldData === void 0 ? void 0 : currentFieldData.label : field.ident;
+                            if ((_a = currentFieldData === null || currentFieldData === void 0 ? void 0 : currentFieldData.values) === null || _a === void 0 ? void 0 : _a.length) {
+                                const currentFieldValue = (_b = currentFieldData === null || currentFieldData === void 0 ? void 0 : currentFieldData.values) === null || _b === void 0 ? void 0 : _b.find((data) => data.name === field.value);
+                                if (currentFieldValue) {
+                                    field.value = (currentFieldValue === null || currentFieldValue === void 0 ? void 0 : currentFieldValue.value) ? currentFieldValue.value : field.value;
+                                }
+                            }
+                        });
                     }
-                });
+                }
+                catch (error) {
+                    this.logger.error('updatePublishDigitalContactMap', 'Error occurred while updating custom fields - ' + error + 'for case id ' + currentContact.caseId);
+                }
+                this.digitalContactMap.set(currentContact.caseId, currentContact);
             }
-            this.digitalContactMap.set(currentContact.caseId, currentContact);
-        }
-        else {
-            if (this.digitalContactMap.has(currentContact.caseId)) {
-                this.digitalContactMap.delete(currentContact.caseId);
-                if (this.digitalContactMap.size === 0) {
-                    this.terminateEventHubApiPolling();
+            else {
+                if (this.digitalContactMap.has(currentContact.caseId)) {
+                    this.digitalContactMap.delete(currentContact.caseId);
+                    if (this.digitalContactMap.size === 0) {
+                        this.terminateEventHubApiPolling();
+                    }
                 }
             }
+            if (isViewOnlyCase && currentContact.eventDetails.eventType === CXoneDigitalEventType.CASE_INBOX_UNASSIGNED) { //on transferring a view only case, stop publishing the contact as we need not to remove preview case from agent inbox on transfer
+                return;
+            }
+            this.publishContact(currentContact);
+            // Update the dictionary with latest traceId for sync-enabled events
+            if (currentContactTraceId && this.isSyncDictionaryUpdateRequired(actualEventName, currentContactTraceId)) {
+                this.updateDESyncDictionary(currentContact.caseId, actualEventName, currentContactTraceId);
+            }
         }
-        if (isViewOnlyCase && currentContact.eventDetails.eventType === CXoneDigitalEventType.CASE_INBOX_UNASSIGNED) { //on transferring a view only case, stop publishing the contact as we need not to remove preview case from agent inbox on transfer
-            return;
-        }
-        this.publishContact(currentContact);
     }
     /**
      * get assigned digital contact details based on caseId
@@ -502,60 +759,62 @@ export class DigitalContactManager {
      * ```
     */
     getDigitalContactDetails(contactId, eventDetails, isAssignedToAgentInbox = true) {
-        this.digitalContactService.getDigitalContactDetails(contactId).then((resp) => __awaiter(this, void 0, void 0, function* () {
-            var _a, _b, _c, _d, _e, _f, _g;
-            this.logger.info('getContactDetails', 'Assigned Digital contact details received' + JSON.stringify(resp));
-            //For public channels, related message API invoked below to fetch complete message history
-            if (!((_b = (_a = resp === null || resp === void 0 ? void 0 : resp.data) === null || _a === void 0 ? void 0 : _a.channel) === null || _b === void 0 ? void 0 : _b.isPrivate)) {
-                const relatedMessagesResponse = yield this.digitalContactService.getRelatedMessages(contactId);
-                const isRelatedMessageArray = (_c = relatedMessagesResponse === null || relatedMessagesResponse === void 0 ? void 0 : relatedMessagesResponse.data) === null || _c === void 0 ? void 0 : _c.data;
-                isRelatedMessageArray && isRelatedMessageArray.forEach((message) => {
-                    message.isRelatedMessage = true;
-                });
-                (_d = resp === null || resp === void 0 ? void 0 : resp.data) === null || _d === void 0 ? void 0 : _d.messages.push(...relatedMessagesResponse.data.data);
-            }
-            const contactDetails = { data: resp === null || resp === void 0 ? void 0 : resp.data };
-            const skillId = (_g = (_f = (_e = contactDetails === null || contactDetails === void 0 ? void 0 : contactDetails.data) === null || _e === void 0 ? void 0 : _e.routingQueue) === null || _f === void 0 ? void 0 : _f.skillId) === null || _g === void 0 ? void 0 : _g.toString();
-            //This method used to get skill and customer/agent Response Timer details (ART)/(CRT) from the indexedDB
-            const skillDetails = skillId && (yield this.skillService.getSkillById(skillId, true));
-            contactDetails.data.routingQueue = skillDetails ? Object.assign(Object.assign({}, contactDetails.data.routingQueue), { agentResponseEnabled: skillDetails.agentResponseEnabled, agentFirstResponseTime: skillDetails.agentFirstResponseTime, agentFollowOnResponseTime: skillDetails.agentFollowOnResponseTime, customerResponseEnabled: skillDetails.customerResponseEnabled, customerIdleTime: skillDetails.customerIdleTime, timeExtensionEnabled: skillDetails.timeExtensionEnabled }) : contactDetails.data.routingQueue;
-            contactDetails.data.isAssignedToAgentInbox = isAssignedToAgentInbox;
-            const isViewOnlyCase = this.viewOnlyCases.includes(contactId);
-            if (!isAssignedToAgentInbox && !isViewOnlyCase) {
-                //when view only case comes first time on clicking customer history card/interaction search row or when page is reloaded
-                this.viewOnlyCases.push(contactId);
-            }
-            else if (isAssignedToAgentInbox && isViewOnlyCase) {
-                //when subscriber assigns case to the same agent or when case is routed through unified routing to the same agent or when view only case is transferred to different agent(isAssignedToAgent = true)
-                this.viewOnlyCases = this.viewOnlyCases.filter((viewOnlyCaseId) => viewOnlyCaseId !== contactId);
-            }
-            const responseToValidate = eventDetails ? Object.assign(Object.assign({}, eventDetails), contactDetails) : Object.assign({}, contactDetails);
-            const schemaValidatedResponse = this.cxoneDigitalContactHelper.validateResponseSchema(responseToValidate);
-            const cxoneDigitalContact = new CXoneDigitalContact();
-            yield cxoneDigitalContact.parse(schemaValidatedResponse);
-            if (skillId) {
-                //Get the disposition details for skill attached to digital contact
-                const skillResponse = yield this.skillService.getSkillById(skillId);
-                // If acwType is disposition then only will publish disposition details.
-                if ((skillResponse === null || skillResponse === void 0 ? void 0 : skillResponse.acwTypeId) === AcwType.DISPOSITION) {
-                    cxoneDigitalContact.requireDisposition = skillResponse === null || skillResponse === void 0 ? void 0 : skillResponse.requireDisposition;
-                    //publish the disposition details for digital contact
-                    this.publishDispositionDetails(cxoneDigitalContact.caseId, skillId, MediaType.DIGITAL);
+        return __awaiter(this, void 0, void 0, function* () {
+            yield this.digitalContactService.getDigitalContactDetails(contactId).then((resp) => __awaiter(this, void 0, void 0, function* () {
+                var _a, _b, _c, _d, _e, _f, _g;
+                this.logger.info('getContactDetails', 'Assigned Digital contact details received' + JSON.stringify(resp));
+                //For public channels, related message API invoked below to fetch complete message history
+                if (!((_b = (_a = resp === null || resp === void 0 ? void 0 : resp.data) === null || _a === void 0 ? void 0 : _a.channel) === null || _b === void 0 ? void 0 : _b.isPrivate)) {
+                    const relatedMessagesResponse = yield this.digitalContactService.getRelatedMessages(contactId);
+                    const isRelatedMessageArray = (_c = relatedMessagesResponse === null || relatedMessagesResponse === void 0 ? void 0 : relatedMessagesResponse.data) === null || _c === void 0 ? void 0 : _c.data;
+                    isRelatedMessageArray && isRelatedMessageArray.forEach((message) => {
+                        message.isRelatedMessage = true;
+                    });
+                    (_d = resp === null || resp === void 0 ? void 0 : resp.data) === null || _d === void 0 ? void 0 : _d.messages.push(...relatedMessagesResponse.data.data);
                 }
-            }
-            else {
-                this.logger.error('getContactDetails', 'Skill id is missing for digital contact ' + cxoneDigitalContact.caseId);
-            }
-            // Setting data in map post first time authorization when websocket is not emitting any events
-            // Reusing the DIGITAL_CONTACT constant value(DigitalContactEvent) as the contact type is Digital
-            if (cxoneDigitalContact.type === ContactType.DIGITAL_CONTACT && cxoneDigitalContact.status !== DigitalContactStatus.INCOMING) {
-                this.updatePublishDigitalContactMap(cxoneDigitalContact);
-            }
-            // Call event hub subscription api when websocket is connected
-            if (!this.isWebSocketFailure)
-                cxoneDigitalContact.subscribeToEventHub();
-        }), (error) => {
-            this.logger.error('getContactDetails', 'Assigned Digital contact fetch failed ' + JSON.stringify(error));
+                const contactDetails = { data: resp === null || resp === void 0 ? void 0 : resp.data };
+                const skillId = (_g = (_f = (_e = contactDetails === null || contactDetails === void 0 ? void 0 : contactDetails.data) === null || _e === void 0 ? void 0 : _e.routingQueue) === null || _f === void 0 ? void 0 : _f.skillId) === null || _g === void 0 ? void 0 : _g.toString();
+                //This method used to get skill and customer/agent Response Timer details (ART)/(CRT) from the indexedDB
+                const skillDetails = skillId && (yield this.skillService.getSkillById(skillId, true));
+                contactDetails.data.routingQueue = skillDetails ? Object.assign(Object.assign({}, contactDetails.data.routingQueue), { agentResponseEnabled: skillDetails.agentResponseEnabled, agentFirstResponseTime: skillDetails.agentFirstResponseTime, agentFollowOnResponseTime: skillDetails.agentFollowOnResponseTime, customerResponseEnabled: skillDetails.customerResponseEnabled, customerIdleTime: skillDetails.customerIdleTime, timeExtensionEnabled: skillDetails.timeExtensionEnabled }) : contactDetails.data.routingQueue;
+                contactDetails.data.isAssignedToAgentInbox = isAssignedToAgentInbox;
+                const isViewOnlyCase = this.viewOnlyCases.includes(contactId);
+                if (!isAssignedToAgentInbox && !isViewOnlyCase) {
+                    //when view only case comes first time on clicking customer history card/interaction search row or when page is reloaded
+                    this.viewOnlyCases.push(contactId);
+                }
+                else if (isAssignedToAgentInbox && isViewOnlyCase) {
+                    //when subscriber assigns case to the same agent or when case is routed through unified routing to the same agent or when view only case is transferred to different agent(isAssignedToAgent = true)
+                    this.viewOnlyCases = this.viewOnlyCases.filter((viewOnlyCaseId) => viewOnlyCaseId !== contactId);
+                }
+                const responseToValidate = eventDetails ? Object.assign(Object.assign({}, eventDetails), contactDetails) : Object.assign({}, contactDetails);
+                const schemaValidatedResponse = this.cxoneDigitalContactHelper.validateResponseSchema(responseToValidate);
+                const cxoneDigitalContact = new CXoneDigitalContact();
+                yield cxoneDigitalContact.parse(schemaValidatedResponse);
+                if (skillId) {
+                    //Get the disposition details for skill attached to digital contact
+                    const skillResponse = yield this.skillService.getSkillById(skillId);
+                    // If acwType is disposition then only will publish disposition details.
+                    if ((skillResponse === null || skillResponse === void 0 ? void 0 : skillResponse.acwTypeId) === AcwType.DISPOSITION) {
+                        cxoneDigitalContact.requireDisposition = skillResponse === null || skillResponse === void 0 ? void 0 : skillResponse.requireDisposition;
+                        //publish the disposition details for digital contact
+                        this.publishDispositionDetails(cxoneDigitalContact.caseId, skillId, MediaType.DIGITAL);
+                    }
+                }
+                else {
+                    this.logger.error('getContactDetails', 'Skill id is missing for digital contact ' + cxoneDigitalContact.caseId);
+                }
+                // Setting data in map post first time authorization when websocket is not emitting any events
+                // Reusing the DIGITAL_CONTACT constant value(DigitalContactEvent) as the contact type is Digital
+                if (cxoneDigitalContact.type === ContactType.DIGITAL_CONTACT && cxoneDigitalContact.status !== DigitalContactStatus.INCOMING) {
+                    this.updatePublishDigitalContactMap(cxoneDigitalContact);
+                }
+                // Call event hub subscription api when websocket is connected
+                if (!this.isWebSocketFailure)
+                    cxoneDigitalContact.subscribeToEventHub();
+            }), (error) => {
+                this.logger.error('getContactDetails', 'Assigned Digital contact fetch failed ' + JSON.stringify(error));
+            });
         });
     }
     /**
@@ -617,7 +876,7 @@ export class DigitalContactManager {
      * ```
      */
     getContactDetails(contactId, isAssignedToAgentInbox = true) {
-        const eventDetailsToPublish = { eventId: '', eventObject: 'Case', eventType: CXoneDigitalEventType.CASE_INBOX_ASSIGNED };
+        const eventDetailsToPublish = { eventId: '', eventObject: 'Case', eventType: CXoneDigitalEventType.CASE_INBOX_ASSIGNED, traceId: '' };
         this.getDigitalContactDetails(contactId, eventDetailsToPublish, isAssignedToAgentInbox);
     }
     /**
@@ -668,7 +927,7 @@ export class DigitalContactManager {
             const userSlotResponse = UserSlotsSchema.validateSync(response, { stripUnknown: true });
             userSlotResponse === null || userSlotResponse === void 0 ? void 0 : userSlotResponse.forEach((contact) => {
                 if (contact.caseId && !this.digitalContactMap.has(contact.caseId)) {
-                    const eventDetailsToPublish = { eventId: '', eventObject: 'Case', eventType: CXoneDigitalEventType.CASE_INBOX_ASSIGNED };
+                    const eventDetailsToPublish = { eventId: '', eventObject: 'Case', eventType: CXoneDigitalEventType.CASE_INBOX_ASSIGNED, traceId: '' };
                     this.getDigitalContactDetails(contact.caseId, eventDetailsToPublish);
                 }
             });

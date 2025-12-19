@@ -4,5 +4,6 @@ export declare enum AcdCustomEventName {
     AGENT_WORKFLOW_CONFIGURATION = "AgentWorkflowConfiguration",
     AGENT_WORKFLOW_CREATE_PAYLOAD = "AgentWorkflowCreatePayload",
     AGENT_SCREENPOP_CUSTOMSETTINGS = "ScreenPopCustomSettings",
-    AGENT_LOCAL_POST = "LOCALPOST"
+    AGENT_LOCAL_POST = "LOCALPOST",
+    AGENT_TRIGGER_RECORDING_CONTROLS = "TRIGGER_RECORDING_CONTROLS"
 }

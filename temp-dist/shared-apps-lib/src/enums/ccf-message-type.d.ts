@@ -13,5 +13,6 @@ export declare enum CcfMessageType {
     TabContentUpdated = "Ccf_Tab_Content_Updated",
     CtdDialedNumber = "Ccf_Ctd_Dialed_Number",
     SetObSkillsAvailable = "Ccf_Set_Ob_Skills_Available",
-    QueueCounterDetails = "Ccf_Queue_Counte_Details"
+    QueueCounterDetails = "Ccf_Queue_Counte_Details",
+    SetCtdCustomAgentUrl = "Ccf_Set_Ctd_Custom_Agent_Url"
 }
