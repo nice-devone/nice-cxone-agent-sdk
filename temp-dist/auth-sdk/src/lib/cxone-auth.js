@@ -102,9 +102,17 @@ export class CXoneAuth {
      * ```
      */
     init(authSettings) {
+        var _a, _b;
         this.authSettings = authSettings;
-        LocalStorageHelper.setItem(StorageKeys.ORIGINATING_SERVICE_IDENTIFIER, authSettings.originatingServiceIdentifier);
-        HttpUtilService.originatingServiceIdentifier = authSettings.originatingServiceIdentifier || OriginatingServiceIdentifier.CXONE_AGENT;
+        if (((_a = this.authSettings) === null || _a === void 0 ? void 0 : _a.originatingServiceIdentifier) === OriginatingServiceIdentifier.CXONE_AGENT ||
+            ((_b = this.authSettings) === null || _b === void 0 ? void 0 : _b.originatingServiceIdentifier) === OriginatingServiceIdentifier.CXONE_AGENT_CHAT) {
+            LocalStorageHelper.setItem(StorageKeys.ORIGINATING_SERVICE_IDENTIFIER, this.authSettings.originatingServiceIdentifier);
+            HttpUtilService.originatingServiceIdentifier = this.authSettings.originatingServiceIdentifier;
+        }
+        else {
+            LocalStorageHelper.setItem(StorageKeys.ORIGINATING_SERVICE_IDENTIFIER, OriginatingServiceIdentifier.CMA_SDK);
+            HttpUtilService.originatingServiceIdentifier = OriginatingServiceIdentifier.CMA_SDK;
+        }
     }
     /**
      * Method generate the Authorize url using authorize endpoint with clientId, code challenge, authMode and codeChallengeMethod.

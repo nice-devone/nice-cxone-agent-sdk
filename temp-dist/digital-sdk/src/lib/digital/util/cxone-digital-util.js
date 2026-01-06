@@ -71,16 +71,17 @@ export class CXoneDigitalUtil {
        * @param contactId - Contact Id of the digital contact
        * @param eventName - Event name to check
        * @param eventData - Event data to be passed for syncEventResponse
+       * @param traceXId - traceXId from the response header
        * @returns - isEventConsumed
        * @example -
-       * checkIfEventConsumed(response, '645337', 'CASE_INBOX_ASSIGNED',eventData);
+       * checkIfEventConsumed(response, '645337', 'CASE_INBOX_ASSIGNED',eventData,traceXid);
       */
-    checkIfEventConsumed(response, contactId, eventName, eventData) {
+    checkIfEventConsumed(response, contactId, eventName, eventData, traceXId) {
         return __awaiter(this, void 0, void 0, function* () {
             // if WS revamp FT is off return false as no need to check for event consumption
             if (!this.isWSAPIIntegrationRevampToggleEnabled)
                 return false;
-            const traceId = this.digitalContactService.getTraceIdFromResponseHeader(response);
+            const traceId = traceXId !== null && traceXId !== void 0 ? traceXId : this.digitalContactService.getTraceIdFromResponseHeader(response);
             let isEventConsumed = false;
             isEventConsumed = yield this.digitalEventSyncService.handleDigitalEventSync({ contactId: contactId, eventName: eventName, traceId: traceId, syncEventResponse: eventData });
             return isEventConsumed;

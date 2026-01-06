@@ -55,9 +55,10 @@ export declare class CXoneDigitalUtil {
        * @param contactId - Contact Id of the digital contact
        * @param eventName - Event name to check
        * @param eventData - Event data to be passed for syncEventResponse
+       * @param traceXId - traceXId from the response header
        * @returns - isEventConsumed
        * @example -
-       * checkIfEventConsumed(response, '645337', 'CASE_INBOX_ASSIGNED',eventData);
+       * checkIfEventConsumed(response, '645337', 'CASE_INBOX_ASSIGNED',eventData,traceXid);
       */
-    checkIfEventConsumed(response: HttpResponse, contactId: string, eventName: CXoneDigitalEventType, eventData?: CXoneMessage): Promise<boolean>;
+    checkIfEventConsumed(response: HttpResponse, contactId: string, eventName: CXoneDigitalEventType, eventData?: CXoneMessage, traceXId?: string): Promise<boolean>;
 }

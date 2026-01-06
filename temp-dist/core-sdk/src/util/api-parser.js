@@ -16,13 +16,14 @@ export class ApiParser {
        * ```
        */
     parsePermissions(response) {
-        var _a, _b, _c, _d, _e, _f;
+        var _a, _b, _c, _d, _e, _f, _g;
         const data = (_a = response === null || response === void 0 ? void 0 : response.data) === null || _a === void 0 ? void 0 : _a.permissions;
         const ACS_PERMISSION = (_b = PermissionKeys.ACS) === null || _b === void 0 ? void 0 : _b.toLowerCase();
         const HIDE_CALLER_NUMBER_PERMISSION = (_c = PermissionKeys.HIDE_CALLER_PHONE_NUMBER) === null || _c === void 0 ? void 0 : _c.toLowerCase();
         const DISABLE_INTEGRATED_SOFTPHONE_SETTINGS = (_d = PermissionKeys.DISABLE_INTEGRATED_SOFTPHONE_SETTINGS) === null || _d === void 0 ? void 0 : _d.toLowerCase();
         const REALTIME_RECORDING_STATUS_UPDATE_SETTING = (_e = PermissionKeys.REALTIME_RECORDING_STATUS_UPDATE) === null || _e === void 0 ? void 0 : _e.toLowerCase();
         const STOP_RECORD_SETTING = (_f = PermissionKeys.STOP_RECORDING) === null || _f === void 0 ? void 0 : _f.toLowerCase();
+        const REALTIME_RECORDING_NOTIFICATION_SETTING = (_g = PermissionKeys.REALTIME_RECORDING_NOTIFICATION) === null || _g === void 0 ? void 0 : _g.toLowerCase();
         const keys = [
             'agentsfsoftphone',
             'recordcontact',
@@ -48,7 +49,8 @@ export class ApiParser {
             HIDE_CALLER_NUMBER_PERMISSION,
             DISABLE_INTEGRATED_SOFTPHONE_SETTINGS,
             REALTIME_RECORDING_STATUS_UPDATE_SETTING,
-            STOP_RECORD_SETTING
+            STOP_RECORD_SETTING,
+            REALTIME_RECORDING_NOTIFICATION_SETTING
         ];
         const permission = [];
         for (let i = 0; i < keys.length; i++) {

@@ -121,7 +121,10 @@ export class UIQueueWsProvider {
                     this.logger.info('getNextEvents', 'Polling called successfully');
                 }
                 if (((_b = response === null || response === void 0 ? void 0 : response.data) === null || _b === void 0 ? void 0 : _b.status) === 302) {
+                    this.isUIQDegraded = true;
+                    this.disconnectConsumerAgent();
                     this.failoverToGetNext(new CXoneSdkError(CXoneSdkErrorType.CXONE_API_ERROR, 'Keep alive API failed with 302 status'));
+                    this.logger.error('keepAlivePolling', 'Switching to get-next polling as keep alive API returned 302 status');
                 }
             };
         }
@@ -378,7 +381,7 @@ export class UIQueueWsProvider {
             this.logger.info('CustomDegradation', 'Received Custom Degradation event');
             this.isUIQDegraded = true;
             this.disconnectConsumerAgent();
-            this.agentSession.startGetNextEvents();
+            this.failoverToGetNext(new CXoneSdkError(CXoneSdkErrorType.CXONE_API_ERROR, 'UIQ is degraded'));
             this.logger.error('CustomDegradation', 'Switching to get-next polling as UIQ is degraded');
         });
         this.hubConnection.onreconnected((connectionId) => {

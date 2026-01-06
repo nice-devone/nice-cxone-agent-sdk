@@ -50,9 +50,13 @@ export declare const enum FeatureToggles {
     STOP_RECORD_FEATURE_TOGGLE = "release-cma-stop-recording-AW-48493",
     TENANT_SEGMENTATION = "release-cxa-tenant-segmentation-AW-28101",
     FEATURE_TOGGLE_FOR_AGENT_INTEGRATION_NOT_ENABLED_ERROR = "release-cxa-agent-integration-not-enabled-error-CRM-19206",
+    GRAFANA_FARO_LOGGING_TOGGLE = "release-cxa-grafana-faro-integration-AW-42163",
     SDK_MSD_CONTEXT_SWITCHING = "release-cxa-sdk-MSD-context-switch-AW-47558",
     QUEUES_FEATURE_TOGGLE = "release-cxa-queue-detail-microservice-integration-AW-42779",
     QUEUES_DETAIL_FEATURE_TOGGLE = "release-cxa-queue-microservice-integration-AW-42779",
     LEXICAL_TABLE_BORDER_TOGGLE = "release-cxa-lexical-table-border-AW-45046",
-    SIDENAV_APPSPACE_DND_LIBRARY_REPLACEMENT = "release-cx-agent-dnd-app-space-AW-48194"
+    SIDENAV_APPSPACE_DND_LIBRARY_REPLACEMENT = "release-cx-agent-dnd-app-space-AW-48194",
+    TS_DIGITAL_OB_CONTACTS_TOGGLE = "release-cx-ts-digital-outbound-contacts-AW-36771",
+    ENHANCED_STUDIO_ACTION_EDITOR_MANUAL_CREATE = "release-studio-action-editor-manual-create-CRM-22314",
+    OMILIA_CUSTOM_WORKSPACE_FEATURE_TOGGLE = "release-aai-omiliawrapper-aai-34358"
 }

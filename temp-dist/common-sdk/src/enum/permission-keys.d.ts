@@ -68,5 +68,9 @@ export declare enum PermissionKeys {
     /**
      * permission key for enabling or disabling the stop record feature
      */
-    STOP_RECORDING = "StopRecording"
+    STOP_RECORDING = "StopRecording",
+    /**
+     * permission key for enabling or disabling the real-time recording notification feature
+     */
+    REALTIME_RECORDING_NOTIFICATION = "RealTimeRecordingNotification"
 }

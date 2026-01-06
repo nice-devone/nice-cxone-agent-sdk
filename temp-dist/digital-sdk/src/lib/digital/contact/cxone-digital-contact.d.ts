@@ -135,6 +135,10 @@ export declare class CXoneDigitalContact extends CXoneContact {
       */
     contactCustomFieldDefs?: CXoneContactCustomFieldDefinition[];
     /**
+     * @remarks - Skill ID of the digital skill associated with the digital contact
+     */
+    digitalSkillId?: number;
+    /**
      * get instance for DigitalContactService
      * @example
      * ```

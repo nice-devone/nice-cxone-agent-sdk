@@ -1,6 +1,6 @@
 import { HttpUtilService } from '../../http/index';
 import { Logger } from '../../../logger/logger';
-import { CXoneIndicator, CustomFormData, StartSessionRequest, CXonePageOpen, CXoneRunApp, CXoneSdkError, HttpResponse, EndSessionRequest, AgentSessionResponse, MCHSetting, CXonePopUrl, CXoneContactScreenpop, AgentWorkflowResponseEvent, AgentWorkflowRequestEvent, UserInfo, CXoneAgentAssist, CommitmentEvent, CommitmentStatusEvent, CoBrowseEvent, LocalPostEvent, AgentAssistWSRequest, MuteEvent, UpdatePermissionsEvent, AgentStateEvent, UpdateUnavailableCodeEvent, AgentLegEvent, DigitalContactEvent, CXoneConfiguration, UpdateNetworkTimeoutEvent, CXoneCustomScreenpop, GetNextAgentAssistEvent, AgentWorkflowCallControlEventType } from '@nice-devone/common-sdk';
+import { CXoneIndicator, CustomFormData, StartSessionRequest, CXonePageOpen, CXoneRunApp, CXoneSdkError, HttpResponse, EndSessionRequest, AgentSessionResponse, MCHSetting, CXonePopUrl, CXoneContactScreenpop, AgentWorkflowResponseEvent, AgentWorkflowRequestEvent, UserInfo, CXoneAgentAssist, CommitmentEvent, CommitmentStatusEvent, CoBrowseEvent, LocalPostEvent, AgentAssistWSRequest, CallContactEvent, MuteEvent, UpdatePermissionsEvent, AgentStateEvent, UpdateUnavailableCodeEvent, AgentLegEvent, DigitalContactEvent, CXoneConfiguration, UpdateNetworkTimeoutEvent, CXoneCustomScreenpop, GetNextAgentAssistEvent, AgentWorkflowCallControlEventType } from '@nice-devone/common-sdk';
 import { Subject, ReplaySubject } from 'rxjs';
 import { CXoneGetNextAdapter } from '../../adapter/cxone-get-next-adapter';
 /**
@@ -46,6 +46,8 @@ export declare class ACDSessionManager {
     private _onCommitmentStatusEvent;
     private _agentAssistSummarySubject;
     private _agentAssistWSSubject;
+    private _agentAssistOmiliaGetNextSubject;
+    private _closeOmiliaIFrameSubject;
     private _voiceMailPlayBackSubject;
     private _onNaturalCallingSkillListEvent;
     private _onConferenceEvent;
@@ -580,6 +582,83 @@ export declare class ACDSessionManager {
    * @example -const agentAssistWSSubject  = acdSession.agentAssistWSSubject
    */
     get agentAssistWSSubject(): ReplaySubject<AgentAssistWSRequest>;
+    /**
+     * Signal to close the Omilia iframe in CXA custom workspace
+     * @example -
+     * ```
+     * const closeOmiliaIFrameSubject  = acdSession.closeOmiliaIFrameSubject
+     * ```
+     */
+    get closeOmiliaIFrameSubject(): Subject<import("yup/lib/object").AssertsShape<{
+        contactId: import("yup/lib/string").RequiredStringSchema<string, import("yup/lib/types").AnyObject>;
+        masterId: import("yup/lib/string").RequiredStringSchema<string, import("yup/lib/types").AnyObject>;
+        status: import("yup/lib/string").RequiredStringSchema<string, import("yup/lib/types").AnyObject>;
+        originalState: import("yup/lib/boolean").RequiredBooleanSchema<boolean, import("yup/lib/types").AnyObject>;
+        callType: import("yup/lib/string").RequiredStringSchema<string, import("yup/lib/types").AnyObject>;
+        dnis: import("yup/lib/string").RequiredStringSchema<string, import("yup/lib/types").AnyObject>;
+        ani: import("yup/lib/string").RequiredStringSchema<string, import("yup/lib/types").AnyObject>;
+        skill: import("yup/lib/string").RequiredStringSchema<string, import("yup/lib/types").AnyObject>;
+        isInbound: import("yup/lib/boolean").RequiredBooleanSchema<boolean, import("yup/lib/types").AnyObject>;
+        startTimeUtc: import("yup/lib/date").RequiredDateSchema<Date, import("yup/lib/types").AnyObject>;
+        startTime: import("yup/lib/date").RequiredDateSchema<Date, import("yup/lib/types").AnyObject>;
+        lastStateChangeTimeUtc: import("yup/lib/date").RequiredDateSchema<Date, import("yup/lib/types").AnyObject>;
+        lastStateChangeTime: import("yup/lib/date").RequiredDateSchema<Date, import("yup/lib/types").AnyObject>;
+        screenPopUrl: import("yup/lib/string").RequiredStringSchema<string, import("yup/lib/types").AnyObject>;
+        screenPopUrlVariables: import("yup/lib/mixed").MixedSchema<any, import("yup/lib/types").AnyObject, any>;
+        disconnectCode: import("yup/lib/string").RequiredStringSchema<string, import("yup/lib/types").AnyObject>;
+        isLogging: import("yup/lib/boolean").RequiredBooleanSchema<boolean, import("yup/lib/types").AnyObject>;
+        timeout: import("yup/lib/number").RequiredNumberSchema<number, import("yup/lib/types").AnyObject>;
+        allowDispositions: import("yup/lib/boolean").RequiredBooleanSchema<boolean, import("yup/lib/types").AnyObject>;
+        label: import("yup/lib/string").RequiredStringSchema<string, import("yup/lib/types").AnyObject>;
+        isLinked: import("yup/lib/boolean").RequiredBooleanSchema<boolean, import("yup/lib/types").AnyObject>;
+        timeZones: import("yup/lib/string").RequiredStringSchema<string, import("yup/lib/types").AnyObject>;
+        finalState: import("yup/lib/boolean").RequiredBooleanSchema<boolean, import("yup/lib/types").AnyObject>;
+        otherInformation: import("yup/lib/string").RequiredStringSchema<string, import("yup/lib/types").AnyObject>;
+        otherInformationNewFormat: import("yup/lib/string").RequiredStringSchema<string, import("yup/lib/types").AnyObject>;
+        blendingToSkillName: import("yup/lib/string").RequiredStringSchema<string, import("yup/lib/types").AnyObject>;
+        deliveryType: import("yup/lib/string").RequiredStringSchema<string, import("yup/lib/types").AnyObject>;
+        customData: import("yup/lib/string").RequiredStringSchema<string, import("yup/lib/types").AnyObject>;
+        complianceRecord: import("yup/lib/boolean").RequiredBooleanSchema<boolean, import("yup/lib/types").AnyObject>;
+        confirmationRequired: import("yup/lib/boolean").RequiredBooleanSchema<boolean, import("yup/lib/types").AnyObject>;
+        parentContactId: import("yup/lib/string").RequiredStringSchema<string, import("yup/lib/types").AnyObject>;
+        omniGroupId: import("yup/lib/string").RequiredStringSchema<string, import("yup/lib/types").AnyObject>;
+        externalId: import("yup/lib/string").RequiredStringSchema<string, import("yup/lib/types").AnyObject>;
+        ansMachineOverride: import("yup").BooleanSchema<boolean, import("yup/lib/types").AnyObject, boolean>;
+        ansMachineOverrideEndTime: import("yup/lib/string").RequiredStringSchema<string, import("yup/lib/types").AnyObject>;
+        interactionId: import("yup/lib/string").RequiredStringSchema<string, import("yup/lib/types").AnyObject>;
+        customerCardUrl: import("yup").StringSchema<string, import("yup/lib/types").AnyObject, string>;
+        isRequireManualAccept: import("yup").BooleanSchema<boolean, import("yup/lib/types").AnyObject, boolean>;
+    }>>;
+    /**
+     * @example -
+     * ```
+     * const agentAssistOmiliaGetNextSubject  = acdSession.agentAssistOmiliaGetNextSubject
+     * ```
+     */
+    get agentAssistOmiliaGetNextSubject(): Subject<CXoneAgentAssist>;
+    /**
+   * @example -
+   * ```
+   * const updateAgentAssistOmiliaGetNextSubjectFromIndexDB  = await acdSession.updateAgentAssistOmiliaGetNextSubjectFromIndexDB()
+   * ```
+   */
+    updateAgentAssistOmiliaGetNextSubjectFromIndexDB(): Promise<void>;
+    /**
+   * @param value - CXoneAgentAssist value
+   * @example -
+   * ```
+   * await acdSession.setAgentAssistOmiliaGetNextSubject(value)
+   * ```
+   */
+    setAgentAssistOmiliaGetNextSubject(value: CXoneAgentAssist): Promise<void>;
+    /**
+     * @param callContactEvent - CallContactEvent value
+     * @example -
+     * ```
+     * await acdSession.removeAgentAssistOmiliaGetNextEvent(callContactEvent)
+     * ```
+     */
+    removeAgentAssistOmiliaGetNextEvent(callContactEvent: CallContactEvent): Promise<void>;
     /**
      * @example -
      * ```

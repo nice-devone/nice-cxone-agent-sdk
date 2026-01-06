@@ -1795,6 +1795,7 @@ export class CXoneDirectoryProvider {
                             // Remove entries present in currentAddressBookEntries but not in addressBookEntries
                             currentAddressBookEntries = currentAddressBookEntries.filter((currentAddressBookEntry) => addressBookEntries.some((addressBookEntry) => addressBookEntry.addressBookEntryId === currentAddressBookEntry.addressBookEntryId));
                             addressBookEntries.forEach((addressBookEntry, entryIndex) => {
+                                var _a;
                                 addressBookEntry.addressBookName = addressBook.addressBookName;
                                 const matchedEntryIndex = currentAddressBookEntries.findIndex((currentAddressBookEntry) => currentAddressBookEntry.addressBookEntryId === addressBookEntry.addressBookEntryId);
                                 // FAVORITES SYNC LOGIC
@@ -1807,7 +1808,15 @@ export class CXoneDirectoryProvider {
                                         currentFavAddressBookList[favIndex] = addressBookEntry;
                                     }
                                     else {
-                                        addressBookEntry.isFavorite = false;
+                                        // Added the following check to handle cases where the user searches using the favorites dropdown and no items match. 
+                                        // In such scenarios, currentFavAddressBookList becomes empty. This check also includes validation from local storage.
+                                        if (currentAddressBookEntries[matchedEntryIndex].isFavorite
+                                            && (currFavListInLS === null || currFavListInLS === void 0 ? void 0 : currFavListInLS.includes((_a = currentAddressBookEntries[matchedEntryIndex]) === null || _a === void 0 ? void 0 : _a.addressBookEntryId))) {
+                                            addressBookEntry.isFavorite = true;
+                                        }
+                                        else {
+                                            addressBookEntry.isFavorite = false;
+                                        }
                                     }
                                 }
                                 if (matchedEntryIndex >= 0)

@@ -3327,7 +3327,6 @@ var CcfAppType;
   CcfAppType["CXoneAgentKustomer"] = "cxa_kustomer";
   CcfAppType["LvAppSpace"] = "lv";
   CcfAppType["CXoneAgentChat"] = "cxac";
-  CcfAppType["CXoneAgentChatTest"] = "test";
 })(CcfAppType || (CcfAppType = {}));
 
 /**

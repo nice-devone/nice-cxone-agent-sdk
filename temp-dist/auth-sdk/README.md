@@ -29,11 +29,6 @@ Ensure these dependencies are also installed and configured correctly for proper
 
 ### Getting Started
 
-### Breaking Change
-
-#### Important for Version 25.2.0 onwards
-
-When using version **25.2.0** onwards, you must include the `originatingServiceIdentifier` parameter in your `AuthSettings`. This is required for CMA SDK consumers to provide a meaningful identifier.
 Refer to the "Initialize CXoneAuth Instance" section below for an example of how to include this parameter.
 
 #### 1. Installation
@@ -52,8 +47,7 @@ Initialize the CXoneAuth instance with your authentication configuration:
 ```
 const authSettings: AuthSettings = {
     cxoneHostname: 'https://cxone.niceincontact.com',
-    clientId: '<ClientIdPlaceholder>',
-    originatingServiceIdentifier:'CMASDK' //CMA SDK consumers need to pass the meaningful identifier e.g. originatingServiceIdentifier:'CMASDK'.
+    clientId: '<ClientIdPlaceholder>'
 };
 const auth = CXoneAuth.instance;
 auth.init(authSettings);

@@ -1,6 +1,6 @@
 {
   "name": "@nice-devone/common-sdk",
-  "version": "25.4.0",
+  "version": "26.1.0",
   "sideEffects": false,
   "description": "NICE CXone Auth SDK",
   "author": "NICE Ltd.",
@@ -16,11 +16,11 @@
     "broadcast-channel": "7.1.0",
     "rxjs": "7.8.1",
     "uuid": "8.3.2",
-    "@nice-devone/shared-apps-lib": "25.4.0",
+    "@nice-devone/shared-apps-lib": "26.1.0",
     "react": "17.0.2",
     "@reduxjs/toolkit": "1.9.1",
     "react-toastify": "9.1.1",
-    "@nice-devone/i18n": "25.4.0",
+    "@nice-devone/i18n": "26.1.0",
     "@testrtc/watchrtc-sdk": "1.38.3",
     "lexical": "0.12.4",
     "tslib": "2.4.1"

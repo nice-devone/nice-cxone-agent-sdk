@@ -258,7 +258,7 @@ export class DigitalContactService {
                 const consumerContactId = (_c = (_b = response === null || response === void 0 ? void 0 : response.data) === null || _b === void 0 ? void 0 : _b.consumerContact) === null || _c === void 0 ? void 0 : _c.id;
                 // Use response.data if consumerContact is available there, otherwise adjust as needed
                 if (consumerContactId) {
-                    yield CXoneDigitalUtil.instance.checkIfEventConsumed(response, consumerContactId, CXoneDigitalEventType.MESSAGE_ADDED_INTO_CASE, messageData);
+                    yield CXoneDigitalUtil.instance.checkIfEventConsumed(response, consumerContactId, CXoneDigitalEventType.MESSAGE_ADDED_INTO_CASE, messageData, xTraceId);
                 }
                 resolve(response);
             }), (error) => {

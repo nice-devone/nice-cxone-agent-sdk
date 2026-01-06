@@ -1372,5 +1372,11 @@ export declare const translations: {
         group_others: string;
         group_renamed: string;
         group_left: string;
+        stopRecordingError: string;
+        goBackToQRMenu: string;
+        addQRToEditor: string;
+        previewQR: string;
+        expandQR: string;
+        expandedQR: string;
     };
 };

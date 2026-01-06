@@ -1,7 +1,8 @@
 import { __awaiter } from "tslib";
 import { AuthStatus, CXoneUser } from '@nice-devone/auth-sdk';
-import { CXoneLeaderElector, CXoneSdkError, CXoneSdkErrorType, WemNotificationRecordingData } from '@nice-devone/common-sdk';
+import { CXoneLeaderElector, CXoneSdkError, CXoneSdkErrorType, PermissionKeys, PermissionValues, WemNotificationRecordingData } from '@nice-devone/common-sdk';
 import { ACDSessionManager, ApiUriConstants, HttpClient, HttpUtilService, LoadWorker, Logger } from '@nice-devone/core-sdk';
+import { CXoneClient } from '../../cxone-client';
 /**
  * @remarks - This class is used to provide the status of voice recording in CXOne.
  */
@@ -20,6 +21,7 @@ export class CxOneVoiceRecordingStatusProvider {
         this.logger = new Logger('Agent-SDK', 'CxOneVoiceRecordingStatusProvider');
         this.utilService = new HttpUtilService();
         this.notificationBase = {};
+        this.isRecordingNotificationEnabled = null;
         this.agentSession = ACDSessionManager.instance;
         this.notificationBase = notificationBase;
         window.addEventListener(AuthStatus.REFRESH_TOKEN_SUCCESS, () => {
@@ -45,14 +47,18 @@ export class CxOneVoiceRecordingStatusProvider {
                 const reqInit = {
                     headers: this.utilService.initHeader(authToken).headers,
                 };
-                HttpClient.get(endpoint, reqInit).then((response) => {
+                HttpClient.get(endpoint, reqInit).then((response) => __awaiter(this, void 0, void 0, function* () {
                     if (response.status === 200) {
                         this.logger.info('getVoiceRecordingStatus', 'Successfully fetched voice recording status');
+                        if (this.isRecordingNotificationEnabled === null) {
+                            this.isRecordingNotificationEnabled = yield CXoneClient.instance.agentPermission.checkPermissions(PermissionKeys.REALTIME_RECORDING_NOTIFICATION, PermissionValues.VIEW);
+                        }
                         const recordingStatusInfo = new WemNotificationRecordingData();
                         recordingStatusInfo.parseFromRecordingManagerApi(response.data);
+                        recordingStatusInfo.isRealtimeNotificationEnabled = this.isRecordingNotificationEnabled;
                         resolve(recordingStatusInfo);
                     }
-                }, (error) => {
+                }), (error) => {
                     this.logger.error('getVoiceRecordingStatus', 'Error fetching voice recording status' + error.toString());
                     reject(new CXoneSdkError(CXoneSdkErrorType.CXONE_API_ERROR, error === null || error === void 0 ? void 0 : error.message, error === null || error === void 0 ? void 0 : error.data));
                 });
@@ -112,9 +118,13 @@ export class CxOneVoiceRecordingStatusProvider {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     response) {
         return __awaiter(this, void 0, void 0, function* () {
+            if (this.isRecordingNotificationEnabled === null) {
+                this.isRecordingNotificationEnabled = yield CXoneClient.instance.agentPermission.checkPermissions(PermissionKeys.REALTIME_RECORDING_NOTIFICATION, PermissionValues.VIEW);
+            }
             this.logger.info('handleVoiceRecStatusPollingResponse', response);
             const recordingStatusInfo = new WemNotificationRecordingData();
             recordingStatusInfo.parseFromRecordingManagerApi(response.data);
+            recordingStatusInfo.isRealtimeNotificationEnabled = this.isRecordingNotificationEnabled;
             this.logger.info('handleVoiceRecStatusPollingResponse', 'Successfully fetched voice recording status');
             this.notificationBase.onCXoneNotificationEvent.next(recordingStatusInfo);
         });

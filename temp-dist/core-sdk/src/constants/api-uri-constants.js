@@ -53,9 +53,9 @@ ApiUriConstants.TRANSFER_WORK_ITEM_CONTACT_URI = '/InContactAPI/services/v33.0/a
 ApiUriConstants.SEND_DTMF = '/InContactAPI/services/v23.0/agent-sessions/{sessionId}/send-dtmf';
 ApiUriConstants.SKILL_CACHE_URI = '/InContactAPI/services/v23.0/cache/skills';
 ApiUriConstants.AGENT_QUEUE_URI = '/incontactapi/services/v33.0/agents/{agentId}/queues';
-ApiUriConstants.AGENT_QUEUE_URI_NEW = '/orch-queues-service/v1/agents/{agentId}/queues';
+ApiUriConstants.AGENT_QUEUE_URI_NEW = '/acd-queues-service/v1/agents/{agentId}/queues';
 ApiUriConstants.AGENT_QUEUE_DETAIL_URI = '/incontactapi/services/v33.0/agents/{agentId}/queues-detail';
-ApiUriConstants.AGENT_QUEUE_DETAIL_URI_NEW = '/orch-queues-details-service/v1/agents/{agentId}/queues-detail';
+ApiUriConstants.AGENT_QUEUE_DETAIL_URI_NEW = '/acd-queue-details-service/v1/agents/{agentId}/queues-detail';
 //Api uris to accept and reject inbound contact
 ApiUriConstants.ACCEPT_CONTACT_URI = '/InContactAPI/services/v23.0/agent-sessions/{sessionId}/interactions/{contactId}/accept';
 ApiUriConstants.REJECT_CONTACT_URI = '/InContactAPI/services/v23.0/agent-sessions/{sessionId}/interactions/{contactId}/reject';

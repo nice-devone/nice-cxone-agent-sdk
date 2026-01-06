@@ -13,6 +13,7 @@ export declare class CxOneVoiceRecordingStatusProvider {
     logger: Logger;
     protected utilService: HttpUtilService;
     private notificationBase;
+    private isRecordingNotificationEnabled;
     /**
     * constructor which sets agent session instance
     * @example

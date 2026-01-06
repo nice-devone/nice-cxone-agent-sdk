@@ -1374,5 +1374,11 @@ export declare const localeTranslationMap: Map<"en-US" | "es" | "es-MX" | "es-41
         group_others: string;
         group_renamed: string;
         group_left: string;
+        stopRecordingError: string;
+        goBackToQRMenu: string;
+        addQRToEditor: string;
+        previewQR: string;
+        expandQR: string;
+        expandedQR: string;
     };
 }>;

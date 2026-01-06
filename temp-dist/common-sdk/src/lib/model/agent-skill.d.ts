@@ -34,4 +34,12 @@ export interface AgentSkill {
      * @remarks -
      */
     isPriorityBlending: boolean;
+    /**
+     * @remarks - Digital POC channel type
+     */
+    digitalPOC?: string;
+    /**
+     * @remarks - Digital POC channel name
+     */
+    digitalPOCName?: string;
 }

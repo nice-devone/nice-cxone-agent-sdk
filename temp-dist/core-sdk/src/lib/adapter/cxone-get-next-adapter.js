@@ -33,12 +33,13 @@ export class CXoneGetNextAdapter {
             events.splice(0, 0, sessionStartEventObj);
         }
         events.forEach((event) => __awaiter(this, void 0, void 0, function* () {
-            var _a, _b, _c, _d, _e, _f, _g, _h, _j, _k;
+            var _a, _b, _c, _d, _e, _f, _g, _h, _j, _k, _l;
             switch ((event === null || event === void 0 ? void 0 : event.Type) || (event === null || event === void 0 ? void 0 : event.type)) {
                 case GetNextEventType.CALL_CONTACT_EVENT: {
                     const callContactEvent = CallContactEventYup.cast(event);
                     if (callContactEvent.status === CallContactEventStatus.DISCONNECTED && callContactEvent.finalState) {
                         this.agentSession.agentAssistWebSocketUnsubsribeSubject.next(callContactEvent.contactId.toString());
+                        this.agentSession.removeAgentAssistOmiliaGetNextEvent(callContactEvent);
                     }
                     this.agentSession.callContactEventSubject.next(callContactEvent);
                     this.agentSession.onContactEvent.next(event);
@@ -302,6 +303,9 @@ export class CXoneGetNextAdapter {
                     }
                     const agentAssistEvent = new CXoneAgentAssist(event);
                     this.agentSession.agentAssistGetNextEventSubject.next(agentAssistEvent);
+                    if ((_l = agentAssistJson === null || agentAssistJson === void 0 ? void 0 : agentAssistJson.Params) === null || _l === void 0 ? void 0 : _l.providerId.includes('omilia-voice-bio')) {
+                        yield this.agentSession.setAgentAssistOmiliaGetNextSubject(agentAssistEvent);
+                    }
                     break;
                 }
                 case GetNextEventType.UPDATE_CALLBACKS: {
@@ -332,7 +336,7 @@ export class CXoneGetNextAdapter {
                     break;
                 }
                 case GetNextEventType.NATURAL_CALLING_SKILL_LIST: {
-                    this.agentSession.naturalCallingSkillListEvent.next(!!(event === null || event === void 0 ? void 0 : event.Empty));
+                    this.agentSession.naturalCallingSkillListEvent.next(parseBooleanString(event === null || event === void 0 ? void 0 : event.Empty));
                     break;
                 }
                 case GetNextEventType.CONFERENCE: {

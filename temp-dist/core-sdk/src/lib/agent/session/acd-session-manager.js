@@ -1,3 +1,4 @@
+import { __awaiter } from "tslib";
 import { HttpClient, HttpUtilService } from '../../http/index';
 import { GetNextEventProvider } from '../providers/get-next-event-provider';
 import { Logger } from '../../../logger/logger';
@@ -10,6 +11,7 @@ import { CXoneGetNextAdapter } from '../../adapter/cxone-get-next-adapter';
 import { UIQueueWsProvider } from '../providers/ui-queue-ws-provider';
 import { AdminService } from '../../admin';
 import { OriginatingServiceIdentifier } from '../../../enum/originating-service-identifier';
+import { clearIndexDbKey, dbInstance, IndexDBKeyNames, IndexDBStoreNames } from '../../indexDB';
 /**
  * Utility for agent session management
  */
@@ -60,6 +62,8 @@ export class ACDSessionManager {
         this._onCommitmentStatusEvent = new Subject();
         this._agentAssistSummarySubject = new Subject;
         this._agentAssistWSSubject = new ReplaySubject(1);
+        this._agentAssistOmiliaGetNextSubject = new Subject();
+        this._closeOmiliaIFrameSubject = new Subject();
         this._voiceMailPlayBackSubject = new Subject();
         this._onNaturalCallingSkillListEvent = new Subject();
         this._onConferenceEvent = new Subject();
@@ -750,6 +754,74 @@ export class ACDSessionManager {
    */
     get agentAssistWSSubject() {
         return this._agentAssistWSSubject;
+    }
+    /**
+     * Signal to close the Omilia iframe in CXA custom workspace
+     * @example -
+     * ```
+     * const closeOmiliaIFrameSubject  = acdSession.closeOmiliaIFrameSubject
+     * ```
+     */
+    get closeOmiliaIFrameSubject() {
+        return this._closeOmiliaIFrameSubject;
+    }
+    /**
+     * @example -
+     * ```
+     * const agentAssistOmiliaGetNextSubject  = acdSession.agentAssistOmiliaGetNextSubject
+     * ```
+     */
+    get agentAssistOmiliaGetNextSubject() {
+        this.updateAgentAssistOmiliaGetNextSubjectFromIndexDB();
+        return this._agentAssistOmiliaGetNextSubject;
+    }
+    /**
+   * @example -
+   * ```
+   * const updateAgentAssistOmiliaGetNextSubjectFromIndexDB  = await acdSession.updateAgentAssistOmiliaGetNextSubjectFromIndexDB()
+   * ```
+   */
+    updateAgentAssistOmiliaGetNextSubjectFromIndexDB() {
+        return __awaiter(this, void 0, void 0, function* () {
+            // check index DB, if value exists there, update the subject
+            const db = yield dbInstance();
+            const value = yield (db === null || db === void 0 ? void 0 : db.get(IndexDBStoreNames.OMILIA_VOICE_BIO, IndexDBKeyNames.OMILIA_GET_NEXT));
+            if (value) {
+                this._agentAssistOmiliaGetNextSubject.next(value);
+            }
+        });
+    }
+    /**
+   * @param value - CXoneAgentAssist value
+   * @example -
+   * ```
+   * await acdSession.setAgentAssistOmiliaGetNextSubject(value)
+   * ```
+   */
+    setAgentAssistOmiliaGetNextSubject(value) {
+        return __awaiter(this, void 0, void 0, function* () {
+            if (value) {
+                this._agentAssistOmiliaGetNextSubject.next(value);
+                // Also save in index DB
+                const db = yield dbInstance();
+                yield (db === null || db === void 0 ? void 0 : db.put(IndexDBStoreNames.OMILIA_VOICE_BIO, value, IndexDBKeyNames.OMILIA_GET_NEXT));
+            }
+        });
+    }
+    /**
+     * @param callContactEvent - CallContactEvent value
+     * @example -
+     * ```
+     * await acdSession.removeAgentAssistOmiliaGetNextEvent(callContactEvent)
+     * ```
+     */
+    removeAgentAssistOmiliaGetNextEvent(callContactEvent) {
+        return __awaiter(this, void 0, void 0, function* () {
+            // send close event
+            this._closeOmiliaIFrameSubject.next(callContactEvent);
+            // remove from index DB
+            yield clearIndexDbKey(IndexDBStoreNames.OMILIA_VOICE_BIO, IndexDBKeyNames.OMILIA_GET_NEXT);
+        });
     }
     /**
      * @example -

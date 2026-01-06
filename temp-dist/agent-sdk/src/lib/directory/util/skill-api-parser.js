@@ -33,6 +33,8 @@ export class SkillApiParser {
                         isNaturalCallingRunning: respObj.isNaturalCallingRunning,
                         isPriorityBlending: respObj.priorityBlending,
                         useACW: respObj.useACW,
+                        digitalPOC: respObj === null || respObj === void 0 ? void 0 : respObj.digitalPOC,
+                        digitalPOCName: respObj === null || respObj === void 0 ? void 0 : respObj.digitalPOCName,
                     };
                     agentSkillLists.push(data);
                 }

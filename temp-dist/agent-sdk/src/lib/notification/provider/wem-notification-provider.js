@@ -1,8 +1,9 @@
 import { __awaiter } from "tslib";
-import { CXoneSdkError, CXoneSdkErrorType, CXoneLeaderElector, MessageBus, MessageType, WemNotificationDisplayData, NotificationEntities, WemNotificationRecordingData, RecordingNotificationTemplate, } from '@nice-devone/common-sdk';
+import { CXoneSdkError, CXoneSdkErrorType, CXoneLeaderElector, MessageBus, MessageType, WemNotificationDisplayData, NotificationEntities, WemNotificationRecordingData, RecordingNotificationTemplate, PermissionKeys, PermissionValues, } from '@nice-devone/common-sdk';
 import { Logger, ValidationUtils, WSEventType, LocalStorageHelper, StorageKeys, WemNotificationCommand, LoadWorker, dbInstance, IndexDBStoreNames } from '@nice-devone/core-sdk';
 import { WemNotificationService } from '../service/wem-notification-service';
 import { CXoneAuth, CXoneUser } from '@nice-devone/auth-sdk';
+import { CXoneClient } from '../../cxone-client';
 /**
  * This class to manage notification
  */
@@ -22,6 +23,7 @@ export class WemNotificationProvider {
         this.embeddedPagesLinks = [];
         this.wemNotificationSvc = {};
         this.notificationBase = {};
+        this.isRecordingNotificationEnabled = null;
         /**
        * Use to load initial wem notifications from index db for non-leader
        * @example
@@ -181,9 +183,13 @@ export class WemNotificationProvider {
     publishRecordingNotification(message) {
         var _a;
         return __awaiter(this, void 0, void 0, function* () {
+            if (this.isRecordingNotificationEnabled === null) {
+                this.isRecordingNotificationEnabled = (yield CXoneClient.instance.agentPermission.checkPermissions(PermissionKeys.REALTIME_RECORDING_NOTIFICATION, PermissionValues.VIEW)) || false;
+            }
             if (this.validationUtils.isNullOrEmpty((_a = message === null || message === void 0 ? void 0 : message.data) === null || _a === void 0 ? void 0 : _a.notificationURL)) {
                 const wemNotificationMessage = new WemNotificationRecordingData();
                 wemNotificationMessage.parse(message);
+                wemNotificationMessage.isRealtimeNotificationEnabled = this.isRecordingNotificationEnabled;
                 this.notificationBase.onCXoneNotificationEvent.next(wemNotificationMessage);
             }
         });

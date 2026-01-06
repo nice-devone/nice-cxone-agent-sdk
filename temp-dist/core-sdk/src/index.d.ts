@@ -48,3 +48,4 @@ export * from './lib/admin/model/agent-profile-settings';
 export * from './enum/agent-profile-configurations';
 export * from './enum/get-next-event-sub-category';
 export * from './enum/call-control-event-actions';
+export * from './lib/grafana/grafana';

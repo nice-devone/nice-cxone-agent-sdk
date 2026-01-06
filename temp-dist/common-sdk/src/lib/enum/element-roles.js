@@ -18,5 +18,13 @@ var ELEMENT_ROLES;
     * role alert is used for elements that needs to be announced to the user using screenreader
     */
     ELEMENT_ROLES["ALERT"] = "alert";
+    /**
+    * role button is used for elements that needs to be announced to the user using screenreader
+    */
+    ELEMENT_ROLES["BUTTON"] = "button";
+    /**
+    * role region is used for elements that needs to be announced to the user using screenreader
+    */
+    ELEMENT_ROLES["REGION"] = "region";
 })(ELEMENT_ROLES = exports.ELEMENT_ROLES || (exports.ELEMENT_ROLES = {}));
 //# sourceMappingURL=element-roles.js.map

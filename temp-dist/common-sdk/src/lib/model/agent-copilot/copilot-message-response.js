@@ -48,10 +48,7 @@ class CopilotMessageResponse extends agent_assist_base_response_1.AgentAssistBas
             copilotTaskAssistCardData: {},
             isFinalSummaryRegenerating: false,
         };
-        acpAppElements === null || acpAppElements === void 0 ? void 0 : acpAppElements.forEach((element) => {
-            const elemObj = CopilotMessageResponse.formatCopilotElement(element);
-            this.body.acpAppElements.push(elemObj);
-        });
+        this.body.acpAppElements = (acpAppElements !== null && acpAppElements !== void 0 ? acpAppElements : []).map((element) => (Object.assign({}, element)));
     }
     /**
      *

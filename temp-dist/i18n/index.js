@@ -1371,7 +1371,13 @@ const translations = {
     group_and: 'and',
     group_others: 'others',
     group_renamed: 'changed group name to',
-    group_left: 'left the group.'
+    group_left: 'left the group.',
+    stopRecordingError: 'Unable to stop call recording',
+    goBackToQRMenu: 'Go back to all quick replies menu',
+    addQRToEditor: 'Contains {x}, add to editor section',
+    previewQR: 'Contains {x}, preview',
+    expandQR: 'Contains {x}, expand',
+    expandedQR: '{x}, expanded, to navigate press tab'
   }
 };
 
@@ -2748,7 +2754,13 @@ const hebrewTranslations = {
     group_and: 'and',
     group_others: 'others',
     group_renamed: 'changed group name to',
-    group_left: 'left the group.'
+    group_left: 'left the group.',
+    stopRecordingError: 'Unable to stop call recording',
+    goBackToQRMenu: 'Go back to all quick replies menu',
+    addQRToEditor: 'Contains {x}, add to editor section',
+    previewQR: 'Contains {x}, preview',
+    expandQR: 'Contains {x}, expand',
+    expandedQR: '{x}, expanded, to navigate press tab'
   }
 };
 
@@ -4125,7 +4137,13 @@ const japaneseTranslations = {
     group_and: 'and',
     group_others: 'others',
     group_renamed: 'changed group name to',
-    group_left: 'left the group.'
+    group_left: 'left the group.',
+    stopRecordingError: 'Unable to stop call recording',
+    goBackToQRMenu: 'Go back to all quick replies menu',
+    addQRToEditor: 'Contains {x}, add to editor section',
+    previewQR: 'Contains {x}, preview',
+    expandQR: 'Contains {x}, expand',
+    expandedQR: '{x}, expanded, to navigate press tab'
   }
 };
 
@@ -5502,7 +5520,13 @@ const portugueseTranslations = {
     group_and: 'and',
     group_others: 'others',
     group_renamed: 'changed group name to',
-    group_left: 'left the group.'
+    group_left: 'left the group.',
+    stopRecordingError: 'Unable to stop call recording',
+    goBackToQRMenu: 'Go back to all quick replies menu',
+    addQRToEditor: 'Contains {x}, add to editor section',
+    previewQR: 'Contains {x}, preview',
+    expandQR: 'Contains {x}, expand',
+    expandedQR: '{x}, expanded, to navigate press tab'
   }
 };
 
@@ -6879,7 +6903,13 @@ const portugueseTranslationsPtBR = {
     group_and: 'and',
     group_others: 'others',
     group_renamed: 'changed group name to',
-    group_left: 'left the group.'
+    group_left: 'left the group.',
+    stopRecordingError: 'Unable to stop call recording',
+    goBackToQRMenu: 'Go back to all quick replies menu',
+    addQRToEditor: 'Contains {x}, add to editor section',
+    previewQR: 'Contains {x}, preview',
+    expandQR: 'Contains {x}, expand',
+    expandedQR: '{x}, expanded, to navigate press tab'
   }
 };
 
@@ -8256,7 +8286,13 @@ const spanishEUTranslations = {
     group_and: 'and',
     group_others: 'others',
     group_renamed: 'changed group name to',
-    group_left: 'left the group.'
+    group_left: 'left the group.',
+    stopRecordingError: 'Unable to stop call recording',
+    goBackToQRMenu: 'Go back to all quick replies menu',
+    addQRToEditor: 'Contains {x}, add to editor section',
+    previewQR: 'Contains {x}, preview',
+    expandQR: 'Contains {x}, expand',
+    expandedQR: '{x}, expanded, to navigate press tab'
   }
 };
 
@@ -8555,8 +8591,8 @@ const chineseTranslations = {
     newContactReply: '新联系人回复',
     endChatOrCall: '结束聊天或通话',
     panelOpenInBrowser: '在浏览器中打开面板',
-    panelOpenInBrowserGeneral: 'σ£¿µ╡ÅΦºêσÖ¿Σ╕¡µëôσ╝ÇΘ¥óµ¥┐∩╝Üσ╕╕Φºä',
-    panelOpenInBrowserPageAction: 'σ£¿µ╡ÅΦºêσÖ¿Σ╕¡µëôσ╝ÇΘ¥óµ¥┐∩╝ÜΣ╗àΘÖÉΘí╡Θ¥óµôìΣ╜£',
+    panelOpenInBrowserGeneral: '在浏览器中打开面板：常规',
+    panelOpenInBrowserPageAction: '在浏览器中打开面板：仅限页面操作',
     playRingtone: '播放铃声',
     ringTone: '铃声',
     secondaryDevice: '辅助设备',
@@ -8951,7 +8987,7 @@ const chineseTranslations = {
     autoSummaryBeingGenerated: '正在生成 AutoSummary完成后，您就可以编辑备注。',
     autoSummaryError: 'AutoSummary 错误',
     autoSummaryNotAvailable: 'AutoSummary 不可用',
-    autoSummaryTooShort: 'µùáµæÿΦªü - τ«Çτƒ¡Σ║ñΣ║Æ',
+    autoSummaryTooShort: '无摘要 - 简短交互',
     autoSummaryWillGenerate: '交互结束后将生成 AutoSummary',
     transferVoicemailSkill: '语音信箱转移成功',
     transferWorkItemSkill: '工作项转移成功',
@@ -9205,7 +9241,7 @@ const chineseTranslations = {
     voiceConnection: '电话号码或分机 ID',
     rightArrow: '右箭头键',
     leftArrow: '左箭头键',
-    dispositionNotes: 'σñäτ╜«Φ»┤µÿÄ',
+    dispositionNotes: '处置说明',
     downloadAll: '全部下载',
     changeStatus: '更改状态',
     endDateGreaterThanStartError: '开始日期必须是结束日期或早于结束日期',
@@ -9288,7 +9324,7 @@ const chineseTranslations = {
     verifyingEnrollment: '正在验证注册状态',
     processingOptOut: '正在处理选择退出请求',
     authenticated: '已认证',
-    voiceBioMetrics: 'Φ»¡Θƒ│τöƒτë⌐Φ»åσê½',
+    voiceBioMetrics: '语音生物识别',
     enrollmentRequest: '正在请求注册',
     verify: '证实',
     consentoptIn: '同意并选择加入',
@@ -9395,7 +9431,7 @@ const chineseTranslations = {
     adp_hideDetails: '隐藏详细信息',
     adp_autoSummary: '自动摘要',
     adp_last: '最后一个',
-    adp_interactions: 'Σ║ñΣ║Æ',
+    adp_interactions: '交互',
     addEntity: '添加实体',
     createNewEntity: '您想要创建一个新 {entityName} 实体吗？',
     createNewEntitySuccessful: '新实体已创建。',
@@ -9539,57 +9575,57 @@ const chineseTranslations = {
     renameGroupError: '群组名称太长',
     createGroupError: '创建聊天群组需要 2 名以上有效成员',
     createDuplicateGroupError: '群组已存在，且成员相同',
-    moreContactActions: 'µ¢┤σñÜΦüöτ│╗Σ║║µôìΣ╜£',
-    moreActionsOnThisMessage: 'µ¡ñµ╢êµü»τÜäµ¢┤σñÜµôìΣ╜£',
-    expandSoftphone: 'σÉ»τö¿σ¥Éσ╕¡Φç¬σè¿σ▒òσ╝Ç',
-    expandMailHeader: 'σ▒òσ╝ÇΣ╗Ñµ╖╗σèáµèäΘÇü/σ»åΣ╗╢µèäΘÇüµö╢Σ╗╢Σ║║',
-    collapseMailHeader: 'µèÿσÅáµèäΘÇü/σ»åΘÇüΘâ¿σêå',
-    richTextToolbar: 'σ»îµûçµ£¼σ╖Ñσà╖µáÅ',
-    colorPicker: 'Θó£Φë▓ΘÇëµï⌐σÖ¿',
-    selectRoutingQueue: 'ΘÇëµï⌐Φ╖»τö▒Θÿƒσêù',
+    moreContactActions: '更多联系人操作',
+    moreActionsOnThisMessage: '此消息的更多操作',
+    expandSoftphone: '启用坐席自动展开',
+    expandMailHeader: '展开以添加抄送/密件抄送收件人',
+    collapseMailHeader: '折叠抄送/密送部分',
+    richTextToolbar: '富文本工具栏',
+    colorPicker: '颜色选择器',
+    selectRoutingQueue: '选择路由队列',
     adp_autoSummaryTitle: 'AutoSummary',
-    adp_edit: 'τ╝ûΦ╛æ',
-    adp_save: 'Σ┐¥σ¡ÿ',
-    adp_copy: 'σñìσê╢',
-    translatedMessage: 'σ╖▓τ┐╗Φ»æµ╢êµü»',
-    searchChat: 'σ£¿Φüèσñ⌐Σ╕¡µÉ£τ┤ó',
-    adp_run: 'Φ┐ÉΦíî',
-    adp_open: 'µëôσ╝Ç',
-    emergencyCallingDisclaimer: 'σàìΦ┤úσú░µÿÄ∩╝ÜΣ╕║Σ║åΦÄ╖σ╛ùµ£ÇΣ╜│τÜäτ┤ºµÇÑσæ╝σÅ½Σ╜ôΘ¬î∩╝îµá╣µì«σ╜ôσ£░µ│òΦºäτÜäΦªüµ▒é∩╝îµëÇµ£ëσ¥Éσ╕¡τÜäσçåτí«σ£░σ¥ÇΘâ╜σ║öσ£¿τ│╗τ╗ƒΣ╕¡σ¡ÿµíúπÇé',
-    saveAndRedial: 'Σ┐¥σ¡ÿσ╣╢Θçìµï¿',
-    saveAndClose: 'Σ┐¥σ¡ÿσ╣╢σà│Θù¡',
-    showTranscript: 'µÿ╛τñ║Φ╜¼σ╜ò',
-    hideTranscript: 'ΘÜÉΦùÅΦ╜¼σ╜ò',
-    closeNotification: 'σà│Θù¡ΘÇÜτƒÑ',
-    nextContact: 'Σ╕ïΣ╕ÇΣ╕¬Φüöτ│╗Σ║║',
-    loadPreviousMessages: 'Σ╕èΣ╕ÇΣ╕¬Φüöτ│╗Σ║║',
-    ascendingSort: 'σìçσ║Å',
-    descendingSort: 'ΘÖìσ║Å',
-    fb_inbound: 'Facebook σæ╝σàÑ',
-    fb_outbound: 'Facebook σæ╝σç║',
-    ib_call: 'σæ╝σàÑτö╡Φ»¥',
-    ob_call: 'σæ╝σç║τö╡Φ»¥',
-    tw_inbound: 'Twitter σæ╝σàÑ',
-    tw_outbound: 'Twitter σæ╝σç║',
-    ig_inbound: 'Instagram σæ╝σàÑ',
-    ig_outbound: 'Instagram σæ╝σç║',
-    dialpadInputLabel: 'Θö«τ¢ÿσÅ╖τáüΦ╛ôσàÑσ¡ùµ«╡',
-    dialpadInputPlaceholder: 'Φ╛ôσàÑσÅ╖τáü',
-    callMasked: 'ΘÇÜΦ»¥σ▒ÅΦö╜',
-    callResumed: 'ΘÇÜΦ»¥µüóσñì',
-    callUnmasked: 'ΘÇÜΦ»¥σÅûµ╢êσ▒ÅΦö╜',
-    selectedColumns: 'ΘÇëσ«Üσêù',
-    nonSelectedColumns: 'Θ¥₧ΘÇëσ«Üσêù',
-    dragOrClickToReorder: 'µïûµ¢│ {x} Φç│Φ«░σ╜òσÖ¿',
-    moveItemUp: 'σÉæΣ╕èτº╗σè¿ {x}',
-    moveItemDown: 'σÉæΣ╕ïτº╗σè¿ {x}',
-    moveItemToSelected: 'σ░å {x} τº╗Φç│ΘÇëσ«Üσêù',
-    moveItemToNonSelected: 'σ░å {x} τº╗Φç│Θ¥₧ΘÇëσ«Üσêù',
-    connectionLatency: 'Φ┐₧µÄÑσ╗╢Φ┐ƒµù╢Θù┤∩╝êτºÆ∩╝ë',
-    connectionLatencyLabel: 'µé¿τÜäΦ┐₧µÄÑσ╗╢Φ┐ƒµù╢Θù┤Σ╕║',
-    seconds: 'τºÆ',
-    platformConnectionStatus: 'σ╣│σÅ░Φ┐₧µÄÑτè╢µÇü',
-    helpLink: 'σ£¿µû░τ¬ùσÅúΣ╕¡µëôσ╝Çσ╕«σè⌐Σ╕¡σ┐â',
+    adp_edit: '编辑',
+    adp_save: '保存',
+    adp_copy: '复制',
+    translatedMessage: '已翻译消息',
+    searchChat: '在聊天中搜索',
+    adp_run: '运行',
+    adp_open: '打开',
+    emergencyCallingDisclaimer: '免责声明：为了获得最佳的紧急呼叫体验，根据当地法规的要求，所有坐席的准确地址都应在系统中存档。',
+    saveAndRedial: '保存并重拨',
+    saveAndClose: '保存并关闭',
+    showTranscript: '显示转录',
+    hideTranscript: '隐藏转录',
+    closeNotification: '关闭通知',
+    nextContact: '下一个联系人',
+    loadPreviousMessages: '上一个联系人',
+    ascendingSort: '升序',
+    descendingSort: '降序',
+    fb_inbound: 'Facebook 呼入',
+    fb_outbound: 'Facebook 呼出',
+    ib_call: '呼入电话',
+    ob_call: '呼出电话',
+    tw_inbound: 'Twitter 呼入',
+    tw_outbound: 'Twitter 呼出',
+    ig_inbound: 'Instagram 呼入',
+    ig_outbound: 'Instagram 呼出',
+    dialpadInputLabel: '键盘号码输入字段',
+    dialpadInputPlaceholder: '输入号码',
+    callMasked: '通话屏蔽',
+    callResumed: '通话恢复',
+    callUnmasked: '通话取消屏蔽',
+    selectedColumns: '选定列',
+    nonSelectedColumns: '非选定列',
+    dragOrClickToReorder: '拖曳 {x} 至记录器',
+    moveItemUp: '向上移动 {x}',
+    moveItemDown: '向下移动 {x}',
+    moveItemToSelected: '将 {x} 移至选定列',
+    moveItemToNonSelected: '将 {x} 移至非选定列',
+    connectionLatency: '连接延迟时间（秒）',
+    connectionLatencyLabel: '您的连接延迟时间为',
+    seconds: '秒',
+    platformConnectionStatus: '平台连接状态',
+    helpLink: '在新窗口中打开帮助中心',
     transcriptionStopped: 'Transcription stopped - poor connection',
     connectionRestored: 'Connection restored',
     scrollToBottom: 'Scroll To Bottom',
@@ -9633,7 +9669,13 @@ const chineseTranslations = {
     group_and: 'and',
     group_others: 'others',
     group_renamed: 'changed group name to',
-    group_left: 'left the group.'
+    group_left: 'left the group.',
+    stopRecordingError: 'Unable to stop call recording',
+    goBackToQRMenu: 'Go back to all quick replies menu',
+    addQRToEditor: 'Contains {x}, add to editor section',
+    previewQR: 'Contains {x}, preview',
+    expandQR: 'Contains {x}, expand',
+    expandedQR: '{x}, expanded, to navigate press tab'
   }
 };
 
@@ -11010,7 +11052,13 @@ const dutchTranslations = {
     group_and: 'and',
     group_others: 'others',
     group_renamed: 'changed group name to',
-    group_left: 'left the group.'
+    group_left: 'left the group.',
+    stopRecordingError: 'Unable to stop call recording',
+    goBackToQRMenu: 'Go back to all quick replies menu',
+    addQRToEditor: 'Contains {x}, add to editor section',
+    previewQR: 'Contains {x}, preview',
+    expandQR: 'Contains {x}, expand',
+    expandedQR: '{x}, expanded, to navigate press tab'
   }
 };
 
@@ -12387,7 +12435,13 @@ const frenchTranslations = {
     group_and: 'and',
     group_others: 'others',
     group_renamed: 'changed group name to',
-    group_left: 'left the group.'
+    group_left: 'left the group.',
+    stopRecordingError: 'Unable to stop call recording',
+    goBackToQRMenu: 'Go back to all quick replies menu',
+    addQRToEditor: 'Contains {x}, add to editor section',
+    previewQR: 'Contains {x}, preview',
+    expandQR: 'Contains {x}, expand',
+    expandedQR: '{x}, expanded, to navigate press tab'
   }
 };
 
@@ -12431,7 +12485,7 @@ const frenchTranslationsFrCa = {
     myProfile: 'Mon profil',
     favorites: 'Favoris',
     allCodesX: 'Tous les codes ({x})',
-    logOut: 'Se déconnecter',
+    logOut: 'Déconnexion',
     participantX: 'Participants ({x})',
     waitingOnHold: 'En attente',
     inConsult: 'En consultation',
@@ -12583,7 +12637,7 @@ const frenchTranslationsFrCa = {
     clickToDisconnect: 'Cliquez pour vous déconnecter.',
     skills: 'Compétences',
     skillQueue: 'File d’attente',
-    skillWait: 'Patienter',
+    skillWait: 'Attente',
     includeExternalDir: 'Inclure les répertoires externes',
     externalDirectorylabel: 'Répertoires externes',
     on: 'Activé',
@@ -12682,7 +12736,7 @@ const frenchTranslationsFrCa = {
     endLiveContact: 'Mettre fin au contact en direct',
     newAgentMessage: 'Nouveau message d’agent',
     newContact: 'Nouveau contact',
-    newContactReply: 'Nouvelle réponse de contact',
+    newContactReply: 'Nouvelle réponse du contact',
     endChatOrCall: 'Terminer le clavardage ou l’appel',
     panelOpenInBrowser: 'Panel ouvert dans le navigateur',
     panelOpenInBrowserGeneral: 'Panneau ouvert dans le navigateur┬á: G├⌐n├⌐ral',
@@ -12756,7 +12810,7 @@ const frenchTranslationsFrCa = {
     outboundReplyGenericError: 'Impossible d’envoyer une réponse/sortante',
     genericErrorMsg: 'Erreur. Impossible d’effectuer la recherche.',
     startAnotherInteraction: 'Démarrer une autre interaction',
-    inboundVoice: 'Voix entrante',
+    inboundVoice: 'Appel entrant',
     digital: 'Numérique',
     wemDirectedToNewWindow: 'Vous avez été dirigé vers WEM dans une fenêtre séparée. Si vous ne voyez pas de fenêtre séparée, veuillez vérifier votre bloqueur de fenêtres publicitaires ou cliquer sur',
     searchDirectoryPlaceHolder: 'Rechercher dans le répertoire ou appuyer sur la touche Entrée pour afficher les résultats',
@@ -12943,7 +12997,7 @@ const frenchTranslationsFrCa = {
     textDirectionltr: 'Direction du texte de gauche à droite',
     textDirectionrtl: 'Direction du texte de droite à gauche',
     information: 'Informations',
-    reporting: 'Rapports',
+    reporting: 'Établissement de rapports',
     productivity: 'Productivité',
     yesterday: 'Hier',
     custom: 'Personnaliser',
@@ -13075,7 +13129,7 @@ const frenchTranslationsFrCa = {
     firstResponseTime: 'Temps de première réponse',
     resolutionTime: 'Temps de résolution',
     context: 'Contexte',
-    caseId: 'ID de cas',
+    caseId: 'IDENTIFIANT DU CAS',
     greaterThanTodayError: 'La date ne doit pas être supérieure à aujourd’hui',
     unableToRetrieveAutoSummary: 'Impossible de récupérer AutoSummary',
     autoSummaryCompleted: 'AutoSummary terminé',
@@ -13097,7 +13151,7 @@ const frenchTranslationsFrCa = {
     duration: 'Durée',
     dial: 'Composer',
     redial: 'Recomposer',
-    contactsInQueue: 'Contacts dans la file d’attente',
+    contactsInQueue: 'Contacts en attente',
     inQueue: 'En file d’attente',
     searchByCaseId: 'Rechercher par ID de cas',
     typePhoneNumberHere: 'Taper le numéro de téléphone',
@@ -13143,7 +13197,7 @@ const frenchTranslationsFrCa = {
     howCanIHelp: 'Comment puis-je vous aider?',
     reset: 'Réinitialiser',
     interactions: 'Interactions',
-    threads: 'Fils',
+    threads: 'Fil de discussion',
     customers: 'Clients',
     lv_customers: 'Clients',
     sendTranscript: 'Envoyer la transcription',
@@ -13764,7 +13818,13 @@ const frenchTranslationsFrCa = {
     group_and: 'and',
     group_others: 'others',
     group_renamed: 'changed group name to',
-    group_left: 'left the group.'
+    group_left: 'left the group.',
+    stopRecordingError: 'Unable to stop call recording',
+    goBackToQRMenu: 'Go back to all quick replies menu',
+    addQRToEditor: 'Contains {x}, add to editor section',
+    previewQR: 'Contains {x}, preview',
+    expandQR: 'Contains {x}, expand',
+    expandedQR: '{x}, expanded, to navigate press tab'
   }
 };
 
@@ -15141,7 +15201,13 @@ const germanTranslations = {
     group_and: 'and',
     group_others: 'others',
     group_renamed: 'changed group name to',
-    group_left: 'left the group.'
+    group_left: 'left the group.',
+    stopRecordingError: 'Unable to stop call recording',
+    goBackToQRMenu: 'Go back to all quick replies menu',
+    addQRToEditor: 'Contains {x}, add to editor section',
+    previewQR: 'Contains {x}, preview',
+    expandQR: 'Contains {x}, expand',
+    expandedQR: '{x}, expanded, to navigate press tab'
   }
 };
 
@@ -16518,7 +16584,13 @@ const italianTranslations = {
     group_and: 'and',
     group_others: 'others',
     group_renamed: 'changed group name to',
-    group_left: 'left the group.'
+    group_left: 'left the group.',
+    stopRecordingError: 'Unable to stop call recording',
+    goBackToQRMenu: 'Go back to all quick replies menu',
+    addQRToEditor: 'Contains {x}, add to editor section',
+    previewQR: 'Contains {x}, preview',
+    expandQR: 'Contains {x}, expand',
+    expandedQR: '{x}, expanded, to navigate press tab'
   }
 };
 
@@ -17895,7 +17967,13 @@ const koreanTranslations = {
     group_and: 'and',
     group_others: 'others',
     group_renamed: 'changed group name to',
-    group_left: 'left the group.'
+    group_left: 'left the group.',
+    stopRecordingError: 'Unable to stop call recording',
+    goBackToQRMenu: 'Go back to all quick replies menu',
+    addQRToEditor: 'Contains {x}, add to editor section',
+    previewQR: 'Contains {x}, preview',
+    expandQR: 'Contains {x}, expand',
+    expandedQR: '{x}, expanded, to navigate press tab'
   }
 };
 
@@ -19272,7 +19350,13 @@ const russianTranslations = {
     group_and: 'and',
     group_others: 'others',
     group_renamed: 'changed group name to',
-    group_left: 'left the group.'
+    group_left: 'left the group.',
+    stopRecordingError: 'Unable to stop call recording',
+    goBackToQRMenu: 'Go back to all quick replies menu',
+    addQRToEditor: 'Contains {x}, add to editor section',
+    previewQR: 'Contains {x}, preview',
+    expandQR: 'Contains {x}, expand',
+    expandedQR: '{x}, expanded, to navigate press tab'
   }
 };
 

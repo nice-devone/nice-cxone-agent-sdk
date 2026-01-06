@@ -232,6 +232,7 @@ export class CXoneClient {
      * ```
      */
     initAuthDependentModules() {
+        var _a, _b, _c, _d, _e, _f;
         return __awaiter(this, void 0, void 0, function* () {
             this.hasInitModuleInitiated = true;
             // eslint-disable-next-line @typescript-eslint/no-unused-expressions
@@ -273,10 +274,17 @@ export class CXoneClient {
             }).catch(() => {
                 this.logger.error('initAuthDependentModules', 'Failed to check UI Queue enablement');
             });
-            HttpUtilService.originatingServiceIdentifier =
-                CXoneAuth.instance.authSettings.originatingServiceIdentifier ||
+            // set originating service identifier for HttpUtilService
+            if (((_b = (_a = CXoneAuth.instance) === null || _a === void 0 ? void 0 : _a.authSettings) === null || _b === void 0 ? void 0 : _b.originatingServiceIdentifier) === OriginatingServiceIdentifier.CXONE_AGENT ||
+                ((_d = (_c = CXoneAuth.instance) === null || _c === void 0 ? void 0 : _c.authSettings) === null || _d === void 0 ? void 0 : _d.originatingServiceIdentifier) === OriginatingServiceIdentifier.CXONE_AGENT_CHAT) {
+                HttpUtilService.originatingServiceIdentifier =
+                    (_f = (_e = CXoneAuth.instance) === null || _e === void 0 ? void 0 : _e.authSettings) === null || _f === void 0 ? void 0 : _f.originatingServiceIdentifier;
+            }
+            else {
+                HttpUtilService.originatingServiceIdentifier =
                     LocalStorageHelper.getItem(StorageKeys.ORIGINATING_SERVICE_IDENTIFIER) ||
-                    OriginatingServiceIdentifier.CXONE_AGENT;
+                        OriginatingServiceIdentifier.CMA_SDK;
+            }
         });
     }
     /**

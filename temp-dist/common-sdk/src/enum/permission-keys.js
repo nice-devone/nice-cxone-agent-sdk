@@ -73,5 +73,9 @@ var PermissionKeys;
      * permission key for enabling or disabling the stop record feature
      */
     PermissionKeys["STOP_RECORDING"] = "StopRecording";
+    /**
+     * permission key for enabling or disabling the real-time recording notification feature
+     */
+    PermissionKeys["REALTIME_RECORDING_NOTIFICATION"] = "RealTimeRecordingNotification";
 })(PermissionKeys = exports.PermissionKeys || (exports.PermissionKeys = {}));
 //# sourceMappingURL=permission-keys.js.map
