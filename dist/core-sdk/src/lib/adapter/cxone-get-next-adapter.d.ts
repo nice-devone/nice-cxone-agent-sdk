@@ -1,10 +1,18 @@
 import { CallContactEvent, MuteEvent, UpdatePermissionsEvent, AgentSessionEndEvent, AgentSessionStartEvent, VoiceMailContactEvent, WorkItemContactEvent } from '@nice-devone/common-sdk';
+import { Subject } from 'rxjs';
 export declare type AdapterEvents = CallContactEvent | MuteEvent | UpdatePermissionsEvent | AgentSessionEndEvent | AgentSessionStartEvent | VoiceMailContactEvent | WorkItemContactEvent;
 /**
  * This class will handle all the get next event response according to event type
  */
 export declare class CXoneGetNextAdapter {
     private agentSession;
+    /**
+     * Subject to emit renew state events with contact IDs
+     * Subscribed to by ContactManager to handle stuck contacts
+     */
+    renewStateRequested: Subject<{
+        contactIds: string[];
+    }>;
     private isAgentAssistAppEnabled;
     private logger;
     /**
@@ -14,5 +22,5 @@ export declare class CXoneGetNextAdapter {
      */
     handleGetNextResponse(events: Array<{
         [key: string]: string;
-    }>): void;
+    }>, icBranchValue?: string): void;
 }

@@ -74,5 +74,13 @@ export declare enum CXoneProductFeature {
     /**
      * @remarks - Product feature Id for Desktop Profiles
      */
-    DESKTOP_PROFILES = 162
+    DESKTOP_PROFILES = 162,
+    /**
+     * @remarks - Product feature Id for Conversations
+     */
+    CONVERSATIONS = 707101,
+    /**
+     * @remarks - Product feature Id for Divisions Tenant Segmentation
+     */
+    DIVISIONS = 200
 }

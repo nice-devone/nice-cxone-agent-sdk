@@ -12,6 +12,7 @@ export declare class SkillService {
     private validationUtils;
     private GET_SKILL_NAME_BY_ROUTING_ID;
     private GET_SKILLS_URI;
+    private GET_SKILLS_URI_TS;
     private static cachedAgentSkills;
     /**
        * Create instance of CXoneAuth

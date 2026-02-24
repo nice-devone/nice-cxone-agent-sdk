@@ -51,6 +51,14 @@ export declare class WemNotificationRecordingData {
     */
     notificationType: NotificationType;
     /**
+     * @remarks Flag indicating if notification is enabled
+     */
+    isRealtimeNotificationEnabled: boolean;
+    /**
+     * @remarks Timestamp of the notification
+     */
+    timestamp?: Date;
+    /**
       * The parse will take the data object and assign the values to the WemNotificationDisplayData class properties
       * @param message - WemNotificationMessage type message
       * @example -

@@ -1,3 +1,4 @@
+import { DecisionTreeData } from './copilot-decision-tree-data';
 import { OverallContactFeedbackData } from './copilot-feedback-data';
 import { CopilotElement, CopilotFilterDetails, ContactHistoryData, CopilotTaskAssistCardData } from './index';
 /**
@@ -96,4 +97,12 @@ export interface CopilotMessageData {
      * flag for checking if auto summary is expanded
      */
     isAutoSummaryExpanded?: boolean;
+    /**
+     * flag for checking if decision tree is open
+     */
+    isDecisionTreeOpen?: boolean;
+    /**
+     * field for storing decision tree data
+     */
+    decisionTreeData: DecisionTreeData;
 }

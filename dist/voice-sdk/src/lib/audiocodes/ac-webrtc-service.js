@@ -183,6 +183,7 @@ class ACWebRtcService {
                 });
             }
             else {
+                this.audioCodeConnectRequested = false;
                 this.onConnectionStatusChanged.next({
                     status: cxone_voice_connection_status_1.CXoneVoiceConnectionStatus.MEDIA_DEVICE_NOT_FOUND,
                     isLoggedIn: false,
@@ -521,6 +522,7 @@ class ACWebRtcService {
                     contactId: this.agentLegId,
                 });
                 this.audioCodeCall = null;
+                this.audioCodeConnectRequested = false;
                 this.lastAgentLegIdCall = '';
                 core_sdk_1.LocalStorageHelper.removeItem(core_sdk_1.StorageKeys.AGENT_LEG_CALL);
                 this.removeConnectedSBC();

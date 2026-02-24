@@ -73,5 +73,9 @@ export declare enum AgentCopilotContentType {
     /**
      * Represents the copilot Task asist Request State content type.
      */
-    TASK_ASSIST = "taskAssist"
+    TASK_ASSIST = "taskAssist",
+    /**
+     * Represents the copilot decision tree content type.
+     */
+    DECISION_TREE = "decisionTree"
 }

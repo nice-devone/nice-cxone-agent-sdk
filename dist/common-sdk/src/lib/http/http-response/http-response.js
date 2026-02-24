@@ -25,7 +25,8 @@ class HttpResponse {
         // Map API response headers into the HttpHeader[] format for consumers
         const headerEntries = (0, utility_1.normalizeHeaders)(resp === null || resp === void 0 ? void 0 : resp.headers);
         (headerEntries).forEach(([name, value]) => {
-            if (Object.values(allowed_response_headers_1.AllowedResponseHeaders).includes(name)) {
+            const normalizedName = name.toLowerCase();
+            if (Object.values(allowed_response_headers_1.AllowedResponseHeaders).map(header => header.toLowerCase()).includes(normalizedName)) {
                 this.headers.push({ name, value });
             }
         });

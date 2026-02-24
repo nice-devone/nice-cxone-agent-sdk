@@ -286,3 +286,6 @@ export * from './lib/model/voice-transcription/interfaces/voice-transcription-it
 export * from './lib/model/voice-transcription/interfaces/voice-transcription-status-event';
 export * from './lib/model/voice-transcription/voice-transcription-response';
 export * from './lib/enum/allowed-response-headers';
+export * from './lib/enum/icon-variant';
+export * from './lib/model/digital/cxone-digital-skill';
+export * from './enum/agent-assist';

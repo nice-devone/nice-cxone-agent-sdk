@@ -34,4 +34,15 @@ export class DateTimeUtilService {
             today.getFullYear());
     }
 }
+/**
+ * Strips a Date or date-string to seconds precision.
+ *
+ * @param value - The date value to convert.
+ * @returns The ISO string truncated to seconds.
+ * @example  "2025-01-01T12:34:56.789Z" to "2025-01-01T12:34:56Z"
+ */
+DateTimeUtilService.stripToSeconds = (value) => {
+    const date = value instanceof Date ? value : new Date(value);
+    return date.toISOString().split('.')[0];
+};
 //# sourceMappingURL=datetime-util-service.js.map

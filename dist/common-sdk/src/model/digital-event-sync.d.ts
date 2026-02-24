@@ -1,3 +1,4 @@
+import { CXoneMessage } from '../lib/model/digital/schema/events/cxone-message';
 /**
  * Represents the synchronization details of a digital event.
  * This interface is used to process events through Digital Event Sync Service.
@@ -15,4 +16,8 @@ export interface DigitalEventSync {
      * The unique id for tracking the events and avoiding duplication.
      */
     traceId: string;
+    /**
+     * The response associated with the digital event, if applicable.
+     */
+    syncEventResponse?: CXoneMessage;
 }

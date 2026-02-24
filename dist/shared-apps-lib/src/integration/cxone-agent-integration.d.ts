@@ -10,6 +10,7 @@ import { CXonePartnerAccountDetails } from '../interfaces/cxone-partner-account-
 import { CXonePartnerPresenceSyncRule } from '../interfaces/cxone-partner-presence-sync-rule';
 import { CXoneContactData } from '../interfaces/cxone-contact-data';
 import { SessionSwitchData } from '../interfaces/session-switch-data';
+import { CXoneTranslations } from '../interfaces/cxone-translations';
 /**
  * Type alias for click to act callback, to be invoked from intergration apps
  */
@@ -100,4 +101,8 @@ export interface ICXoneAgentIntegration {
      * @param workItemContactData - Event Args
      */
     handleCXoneWorkItemContactEvent(workItemContactData: CXoneContactData): void;
+    /**
+     * Embedded app specific method to get the current locale
+     */
+    handleCurrentTranslations(localization: CXoneTranslations): void;
 }

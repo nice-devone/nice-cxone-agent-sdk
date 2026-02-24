@@ -10,6 +10,7 @@ export declare class VoiceService {
     protected utilService: HttpUtilService;
     private acdSession;
     private isAddContactInProgress;
+    private TRANSFER_VOICE_MAIL_SKILL_TS;
     private TRANSFER_VOICE_MAIL_SKILL;
     /**
      * @example

@@ -49,6 +49,7 @@ export declare class DigitalContactManager {
     private digitalEventSyncService;
     private digitalEventSyncDictionary;
     private isWSAPIIntegrationRevampToggleEnabled;
+    private readonly SYNC_ENABLED_EVENTS;
     /**
      * @example
      * ```
@@ -103,6 +104,28 @@ export declare class DigitalContactManager {
      * @example updateDESyncDictionary('contact1', 'event1', 'trace1');
      */
     private updateDESyncDictionary;
+    /**
+     * Check if the digital event sync dictionary should be updated for the given event
+     * @param eventName - The name of the event
+     * @param traceId - The trace ID associated with the event
+     * @returns - true if sync dictionary update is required, false otherwise
+     * @example isSyncDictionaryUpdateRequired(CXoneDigitalEventType.CASE_INBOX_ASSIGNEE_CHANGED, 'trace123');
+     */
+    private isSyncDictionaryUpdateRequired;
+    /**
+     * Handle Message Updated API response in case of message update event
+     * @param contactId - contact id
+     * @param traceId - Unique id for tracking the events and avoiding duplication
+     * @example handleMessageUpdatedEvent(contactId, traceId);
+     */
+    handleMessageUpdatedEvent(contactId: string, traceId: string, messageUpdatedEventData?: CXoneMessage): Promise<void>;
+    /**
+     * Handle Message Added Into Case API response in case of new message added to case
+     * @param contactId - contact id
+     * @param traceId - Unique id for tracking the events and avoiding duplication
+     * @example handleMessageAddedIntoCaseEvent(contactId, traceId);
+     */
+    handleMessageAddedIntoCaseEvent(contactId: string, traceId: string, messageAddedEventData?: CXoneMessage): Promise<void>;
     /**
      * Handle Assignee Changed API response in case of case assignment to agent inbox from
      * @param contactId - contact id

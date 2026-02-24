@@ -6,5 +6,9 @@ export declare enum AllowedResponseHeaders {
     /**
      * Content-Disposition header used for file downloads
      */
-    CONTENT_DISPOSITION = "content-disposition"
+    CONTENT_DISPOSITION = "content-disposition",
+    /**
+     * icBranchValue header
+     */
+    IC_BRANCH_VALUE = "icbranchvalue"
 }

@@ -8,12 +8,19 @@ import { StorageKeys } from '../../constants/storage-key';
 import { AcdCustomEventName } from '../../enum/acd-custom-event-name';
 import { Logger } from '../../logger/logger';
 import { CallContactEventStatus } from '../../enum/call-contact-event-status';
+import { Subject } from 'rxjs';
+import { FeatureToggleService } from '../../util/feature-toggle-services';
 /**
  * This class will handle all the get next event response according to event type
  */
 export class CXoneGetNextAdapter {
     constructor() {
         this.agentSession = ACDSessionManager.instance;
+        /**
+         * Subject to emit renew state events with contact IDs
+         * Subscribed to by ContactManager to handle stuck contacts
+         */
+        this.renewStateRequested = new Subject();
         // TODO: used to enable or disable agent assist app
         this.isAgentAssistAppEnabled = true;
         this.logger = new Logger('cxone-get-next-adapter', 'GetNextAdapter');
@@ -23,7 +30,36 @@ export class CXoneGetNextAdapter {
      * @param events- array of get next response with different event type
      * @example
      */
-    handleGetNextResponse(events) {
+    handleGetNextResponse(events, icBranchValue) {
+        const isRenewStateToggleEnabled = FeatureToggleService.instance.getFeatureToggleSync("release-renew-state-AW-48481" /* FeatureToggles.RENEW_STATE_FEATURE_TOGGLE */);
+        if (icBranchValue === '3' && isRenewStateToggleEnabled) {
+            const contactIds = [];
+            // Loop through all events and capture ACD contact IDs from contact events only
+            events.forEach((event) => {
+                const eventType = (event === null || event === void 0 ? void 0 : event.Type) || (event === null || event === void 0 ? void 0 : event.type);
+                // Only process contact events
+                if (eventType === GetNextEventType.CALL_CONTACT_EVENT) {
+                    const contactEvent = CallContactEventYup.cast(event);
+                    if (contactEvent === null || contactEvent === void 0 ? void 0 : contactEvent.contactId) {
+                        contactIds.push(contactEvent.contactId.toString());
+                    }
+                }
+                else if (eventType === GetNextEventType.WORKITEM_CONTACT_EVENT) {
+                    const contactEvent = WorkItemContactEventYup.cast(event);
+                    if (contactEvent === null || contactEvent === void 0 ? void 0 : contactEvent.contactId) {
+                        contactIds.push(contactEvent.contactId.toString());
+                    }
+                }
+                else if (eventType === GetNextEventType.VOICEMAIL_CONTACT_EVENT) {
+                    const contactEvent = VoiceMailContactEventYup.cast(event);
+                    if (contactEvent === null || contactEvent === void 0 ? void 0 : contactEvent.contactId) {
+                        contactIds.push(contactEvent.contactId.toString());
+                    }
+                }
+            });
+            this.logger.info('handleGetNextResponse', `icBranchValue=3 detected. Emitting ${contactIds.length} backend contact IDs for state renewal`);
+            this.renewStateRequested.next({ contactIds });
+        }
         this.agentSession.onGetNextEvent.next(events);
         const sessionStartEventIndex = events.findIndex(event => event.Type === GetNextEventType.AGENT_SESSION_START_EVENT);
         if (sessionStartEventIndex !== -1 && sessionStartEventIndex !== 0) {
@@ -32,12 +68,13 @@ export class CXoneGetNextAdapter {
             events.splice(0, 0, sessionStartEventObj);
         }
         events.forEach((event) => __awaiter(this, void 0, void 0, function* () {
-            var _a, _b, _c, _d, _e, _f, _g, _h, _j, _k;
+            var _a, _b, _c, _d, _e, _f, _g, _h, _j, _k, _l, _m;
             switch ((event === null || event === void 0 ? void 0 : event.Type) || (event === null || event === void 0 ? void 0 : event.type)) {
                 case GetNextEventType.CALL_CONTACT_EVENT: {
                     const callContactEvent = CallContactEventYup.cast(event);
                     if (callContactEvent.status === CallContactEventStatus.DISCONNECTED && callContactEvent.finalState) {
                         this.agentSession.agentAssistWebSocketUnsubsribeSubject.next(callContactEvent.contactId.toString());
+                        this.agentSession.removeAgentAssistOmiliaGetNextEvent(callContactEvent);
                     }
                     this.agentSession.callContactEventSubject.next(callContactEvent);
                     this.agentSession.onContactEvent.next(event);
@@ -93,6 +130,9 @@ export class CXoneGetNextAdapter {
                         status: AgentSessionStatus.SESSION_END,
                         data: agentSessionEndEvent,
                     });
+                    if (!this.renewStateRequested.closed) {
+                        (_a = this.renewStateRequested) === null || _a === void 0 ? void 0 : _a.complete();
+                    }
                     break;
                 }
                 case GetNextEventType.AGENT_STATE_EVENT: {
@@ -137,8 +177,8 @@ export class CXoneGetNextAdapter {
                 case GetNextEventType.DIGITAL_CONTACT_EVENT: {
                     const digitalContactEvent = new DigitalContactEvent();
                     digitalContactEvent.parse(event);
-                    const timeDifferenceinSec = (new Date().getTime() - ((_a = digitalContactEvent.startTime) === null || _a === void 0 ? void 0 : _a.getTime())) / 1000 || 0;
-                    if (!(((_b = digitalContactEvent.status) === null || _b === void 0 ? void 0 : _b.toLowerCase()) === 'incoming' && timeDifferenceinSec > 45)) {
+                    const timeDifferenceinSec = (new Date().getTime() - ((_b = digitalContactEvent.startTime) === null || _b === void 0 ? void 0 : _b.getTime())) / 1000 || 0;
+                    if (!(((_c = digitalContactEvent.status) === null || _c === void 0 ? void 0 : _c.toLowerCase()) === 'incoming' && timeDifferenceinSec > 45)) {
                         this.agentSession.digitalContactSubject.next(digitalContactEvent);
                     }
                     break;
@@ -204,8 +244,8 @@ export class CXoneGetNextAdapter {
                             this.agentSession.onAgentCustomEvent.next(parsedCustomEventData);
                         }
                     }
-                    if ((((_c = event === null || event === void 0 ? void 0 : event.data) === null || _c === void 0 ? void 0 : _c.includes('https://app.surfly')) && ((_d = event === null || event === void 0 ? void 0 : event.data) === null || _d === void 0 ? void 0 : _d.includes('agent_token='))) ||
-                        (((_e = event === null || event === void 0 ? void 0 : event.Data) === null || _e === void 0 ? void 0 : _e.includes('https://app.surfly')) && ((_f = event === null || event === void 0 ? void 0 : event.Data) === null || _f === void 0 ? void 0 : _f.includes('agent_token=')))) {
+                    if ((((_d = event === null || event === void 0 ? void 0 : event.data) === null || _d === void 0 ? void 0 : _d.includes('https://app.surfly')) && ((_e = event === null || event === void 0 ? void 0 : event.data) === null || _e === void 0 ? void 0 : _e.includes('agent_token='))) ||
+                        (((_f = event === null || event === void 0 ? void 0 : event.Data) === null || _f === void 0 ? void 0 : _f.includes('https://app.surfly')) && ((_g = event === null || event === void 0 ? void 0 : event.Data) === null || _g === void 0 ? void 0 : _g.includes('agent_token=')))) {
                         const coBrowseEvent = new CoBrowseEvent();
                         coBrowseEvent.parse(event);
                         this.agentSession.coBrowseEvent.next(coBrowseEvent);
@@ -245,7 +285,7 @@ export class CXoneGetNextAdapter {
                 case GetNextEventType.AGENT_ASSIST: {
                     const agentAssistJson = JSON.parse((event === null || event === void 0 ? void 0 : event.AgentAssistAppConfigJson) || '{}');
                     const contactId = event.ContactId;
-                    if (agentAssistJson && ((_g = agentAssistJson === null || agentAssistJson === void 0 ? void 0 : agentAssistJson.Params) === null || _g === void 0 ? void 0 : _g.providerId) === 'AutoSummary') {
+                    if (agentAssistJson && ((_h = agentAssistJson === null || agentAssistJson === void 0 ? void 0 : agentAssistJson.Params) === null || _h === void 0 ? void 0 : _h.providerId) === 'AutoSummary') {
                         if ((agentAssistJson === null || agentAssistJson === void 0 ? void 0 : agentAssistJson.MediaType) && parseInt(agentAssistJson === null || agentAssistJson === void 0 ? void 0 : agentAssistJson.MediaType) === MediaTypeId.Digital) {
                             const autoSummaryStart = {
                                 webSocketUri: agentAssistJson.WebSocketUri,
@@ -274,14 +314,14 @@ export class CXoneGetNextAdapter {
                             break;
                         }
                     }
-                    else if (agentAssistJson && (((_h = agentAssistJson === null || agentAssistJson === void 0 ? void 0 : agentAssistJson.Params) === null || _h === void 0 ? void 0 : _h.providerId.includes('nuance-voice-bio')) || ((_j = agentAssistJson === null || agentAssistJson === void 0 ? void 0 : agentAssistJson.Params) === null || _j === void 0 ? void 0 : _j.providerId.includes('enlighten-autopilot-voice-bio')))) {
+                    else if (agentAssistJson && (((_j = agentAssistJson === null || agentAssistJson === void 0 ? void 0 : agentAssistJson.Params) === null || _j === void 0 ? void 0 : _j.providerId.includes('nuance-voice-bio')) || ((_k = agentAssistJson === null || agentAssistJson === void 0 ? void 0 : agentAssistJson.Params) === null || _k === void 0 ? void 0 : _k.providerId.includes('enlighten-autopilot-voice-bio')))) {
                         const autoSummaryStart = {
                             webSocketUri: agentAssistJson.WebSocketUri,
                             contactId,
                             subscriptions: agentAssistJson.Subscriptions,
                             mediaType: MediaType.VOICE,
                             agentAssistType: 'voice-bio-hub',
-                            providerId: (_k = agentAssistJson === null || agentAssistJson === void 0 ? void 0 : agentAssistJson.Params) === null || _k === void 0 ? void 0 : _k.providerId,
+                            providerId: (_l = agentAssistJson === null || agentAssistJson === void 0 ? void 0 : agentAssistJson.Params) === null || _l === void 0 ? void 0 : _l.providerId,
                             profileName: agentAssistJson.Params.voiceBiometricProfileName,
                             customerId: agentAssistJson.Params.customerId,
                         };
@@ -290,6 +330,9 @@ export class CXoneGetNextAdapter {
                     }
                     const agentAssistEvent = new CXoneAgentAssist(event);
                     this.agentSession.agentAssistGetNextEventSubject.next(agentAssistEvent);
+                    if ((_m = agentAssistJson === null || agentAssistJson === void 0 ? void 0 : agentAssistJson.Params) === null || _m === void 0 ? void 0 : _m.providerId.includes('omilia-voice-bio')) {
+                        yield this.agentSession.setAgentAssistOmiliaGetNextSubject(agentAssistEvent);
+                    }
                     break;
                 }
                 case GetNextEventType.UPDATE_CALLBACKS: {
@@ -320,7 +363,7 @@ export class CXoneGetNextAdapter {
                     break;
                 }
                 case GetNextEventType.NATURAL_CALLING_SKILL_LIST: {
-                    this.agentSession.naturalCallingSkillListEvent.next(!!(event === null || event === void 0 ? void 0 : event.Empty));
+                    this.agentSession.naturalCallingSkillListEvent.next(parseBooleanString(event === null || event === void 0 ? void 0 : event.Empty));
                     break;
                 }
                 case GetNextEventType.CONFERENCE: {

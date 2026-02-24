@@ -35,6 +35,10 @@ export interface CXoneDigitalQuickReply extends CXoneDigitalQuickResponse {
     * @remarks - flag to indicate whether quick reply is selected or not
     */
     isSelected?: boolean;
+    /**
+   * @remarks - flag to indicate whether quick reply is favorite or not -- added post /favorite API support
+   */
+    isFavorite?: boolean;
 }
 /**
  * Interface for CXone digital contact quick replies

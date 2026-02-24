@@ -1,9 +1,9 @@
 "use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.AgentAssistConfigACPParamsKeys = exports.AgentAssistSettings = void 0;
 /**
  * model interface for agent assist Configuration
  */
-Object.defineProperty(exports, "__esModule", { value: true });
-exports.AgentAssistConfigACPParamsKeys = exports.AgentAssistSettings = void 0;
 /**
  * Enum for Agent Assist App Settings
  */
@@ -82,5 +82,6 @@ var AgentAssistConfigACPParamsKeys;
     AgentAssistConfigACPParamsKeys["AUTOSUMMARY_TO_OUTCOME_PANEL"] = "autoSummaryToOutcomePanel";
     AgentAssistConfigACPParamsKeys["SHOW_AUTOSUMMARY_CARD"] = "showAutoSummaryCard";
     AgentAssistConfigACPParamsKeys["AUTOSUMMARY_CARD_FEATURES"] = "autoSummaryCardFeatures";
+    AgentAssistConfigACPParamsKeys["SECONDARY_KNOWLEDGE_HUB_CONFIG"] = "secondaryKnowledgeHubConfig";
 })(AgentAssistConfigACPParamsKeys = exports.AgentAssistConfigACPParamsKeys || (exports.AgentAssistConfigACPParamsKeys = {}));
 //# sourceMappingURL=agent-assist-configuration.js.map

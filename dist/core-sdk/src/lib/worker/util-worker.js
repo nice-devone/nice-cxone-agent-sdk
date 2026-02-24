@@ -58,13 +58,15 @@ const workercode = `self.importScripts(
                 data = await response.text();
                 console.log('startPolling','Retry New events received');
               }
+              const icBranchValue = response.headers?.get && response.headers?.get?.('icbranchvalue');
               clearInterval(timerId);
-              self.postMessage({ type:'retry', data: parseResponse(data)});
+              self.postMessage({ type:'retry', data: { ...parseResponse(data), icBranchValue }});
               console.log('startPolling','Retry Response posted to main thread');
             } else{
               console.log('startPolling','Retry Error response posted to main thread');
               if(response && response.status === 409){
-                self.postMessage({ type:'retry', errorType: 'CXONE_API_ERROR', data: {status:response.status} }); 
+                  const icBranchValue = response.headers?.get && response.headers?.get?.('icbranchvalue');
+                  self.postMessage({ type:'retry', errorType: 'CXONE_API_ERROR', data: {status:response.status, icBranchValue} }); 
                 clearInterval(timerId);
                 console.log('startPolling','Retry Error for 409 posted to main thread');
               } else{
@@ -110,11 +112,13 @@ const workercode = `self.importScripts(
           if (response &&  response.status < 400 && response.status !== 304) {
             console.log('startPolling','Events received from getNextEvents');
             data = await response.text();
-            self.postMessage(parseResponse(data));
+            const icBranchValue = response.headers?.get && response.headers?.get?.('icbranchvalue');
+            self.postMessage({ ...parseResponse(data), icBranchValue });
             console.log('startPolling','Response posted to main thread');
           } else {
             console.log('startPolling','No new events received from getNextEvents');
-            self.postMessage({data: {status : response.status}});
+            const icBranchValue = response?.headers?.get && response.headers?.get?.('icbranchvalue');
+            self.postMessage({data: {status : response.status, icBranchValue }});
           }
         } catch (error) {
             console.log('startPolling','Error block of start polling for getNextEvents executed');

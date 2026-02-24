@@ -47,6 +47,22 @@ export interface CXoneWorkflowRequest {
          * Array of CRM Entities to search comma separated string
          */
         entites?: CXoneIntegrationEntity[];
+        /**
+         * string of action we want to take for Trigger worklows
+         */
+        action?: string;
+        /**
+         * string of entity type for screen pop workflow
+         */
+        type?: string;
+        /**
+         * String of ID for popping EPIC Health record
+         */
+        id?: string;
+        /**
+         * agent id will fill this value for the epic screen pop
+         */
+        recipientId?: string;
     };
     /**
      *  cxone contact information of different CRM flows

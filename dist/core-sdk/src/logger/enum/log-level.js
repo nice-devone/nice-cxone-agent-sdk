@@ -8,4 +8,13 @@ export var LogLevel;
     LogLevel[LogLevel["FATAL"] = 5] = "FATAL";
     LogLevel[LogLevel["OFF"] = 6] = "OFF";
 })(LogLevel || (LogLevel = {}));
+export var GrafanaConsoleLogLevel;
+(function (GrafanaConsoleLogLevel) {
+    GrafanaConsoleLogLevel["Log"] = "log";
+    GrafanaConsoleLogLevel["Info"] = "info";
+    GrafanaConsoleLogLevel["Debug"] = "debug";
+    GrafanaConsoleLogLevel["Error"] = "error";
+    GrafanaConsoleLogLevel["Warn"] = "warn";
+    GrafanaConsoleLogLevel["Trace"] = "trace";
+})(GrafanaConsoleLogLevel || (GrafanaConsoleLogLevel = {}));
 //# sourceMappingURL=log-level.js.map

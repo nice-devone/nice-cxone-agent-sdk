@@ -52,7 +52,9 @@ export class CXoneAgentQueuesDetailProvider {
             updatedSince: new Date(0).toISOString(),
         };
         if (this.baseUri && authToken) {
-            const queueUri = ApiUriConstants.AGENT_QUEUE_DETAIL_URI.replace('{agentId}', agentId);
+            const queueUri = (FeatureToggleService.instance.getFeatureToggleSync("release-cxa-tenant-segmentation-AW-28101" /* FeatureToggles.TENANT_SEGMENTATION */)
+                ? ApiUriConstants.AGENT_QUEUE_DETAIL_URI_TS
+                : ApiUriConstants.AGENT_QUEUE_DETAIL_URI).replace('{agentId}', agentId);
             const url = this.baseUri +
                 this.urlUtilService.appendQueryString(queueUri, requestParams);
             const reqInit = {
@@ -67,9 +69,7 @@ export class CXoneAgentQueuesDetailProvider {
             this.pollingWorker.postMessage({
                 type: 'agent-polling',
                 requestParams: { url: url, method: 'GET', request: reqInit },
-                pollingOptions: {
-                    pollingInterval: this.pollingInterval,
-                },
+                pollingOptions: { pollingInterval: this.pollingInterval },
             });
         }
     }

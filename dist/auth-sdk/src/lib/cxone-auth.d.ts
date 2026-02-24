@@ -1,5 +1,5 @@
 import { CXoneSdkError, HttpResponse, AuthToken, AuthState, CXoneConfiguration } from '@nice-devone/common-sdk';
-import { BusinessUnit, Permissions, BrandingProfile } from '@nice-devone/core-sdk';
+import { BusinessUnit, CXoneUserDetails, Permissions, BrandingProfile } from '@nice-devone/core-sdk';
 import { AuthResponse } from './model/auth-response';
 import { Subject } from 'rxjs';
 import { AuthWithCodeReq } from './model/auth-with-code-req';
@@ -275,6 +275,15 @@ export declare class CXoneAuth {
      * ```
      */
     getBusinessUnit(): Promise<BusinessUnit | CXoneSdkError>;
+    /**
+     * Method to return active user details
+     * @returns - returns the active user details
+     * ```
+     * @example
+     * getUserDetails()
+     * ```
+    */
+    getUserDetails(): Promise<CXoneUserDetails | CXoneSdkError>;
     /**
      * Method to return business unit features
      * @returns - returns the business unit features

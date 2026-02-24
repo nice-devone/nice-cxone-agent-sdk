@@ -539,15 +539,17 @@ export class CXoneDigitalContact extends CXoneContact {
     }
     /**
      * Method to rejectDraftMessage
-     * @returns - promise HttpResponce/error
+     * @param reason - reason for rejecting draft message
+     * @param draftMessageId - draft message Id
+     * @returns - promise HttpResponse/error
      * ```
      * @example
-     * rejectDraftMessage( id)
+     * rejectDraftMessage('123', 'please update the content')
      * ```
      */
-    rejectDraftMessage(draftMessageId) {
+    rejectDraftMessage(draftMessageId, reason) {
         return new Promise((resolve, reject) => {
-            this.digitalContactService.refuseDraftMessage(this.caseId, draftMessageId).then((response) => {
+            this.digitalContactService.refuseDraftMessage(this.caseId, draftMessageId, reason).then((response) => {
                 this.logger.info('refuseDraftMessage', 'refuse draft message success ' + JSON.stringify(response));
                 resolve(response);
             }, (error) => {

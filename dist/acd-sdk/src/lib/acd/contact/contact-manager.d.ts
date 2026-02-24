@@ -1,11 +1,11 @@
 import { CXoneVoiceContact } from './cxone-voice-contact';
 import { Subject } from 'rxjs';
-import { CXoneDisposition, CXoneSdkError, HttpResponse, CXoneDispositionDetails, TagsResponse, VoiceMailContactEvent, VoiceMailPlayBackEvent, CXoneMessage, WorkItemContactEvent, CXoneTypingMessageContent, CoBrowseEvent, MediaType, LocalPostEvent } from '@nice-devone/common-sdk';
+import { CallContactEvent, CXoneDisposition, CXoneSdkError, HttpResponse, CXoneDispositionDetails, TagsResponse, VoiceMailContactEvent, VoiceMailPlayBackEvent, CXoneMessage, WorkItemContactEvent, CXoneTypingMessageContent, CoBrowseEvent, MediaType, LocalPostEvent } from '@nice-devone/common-sdk';
 import { CXoneVoiceMailContact } from './cxone-voicemail-contact';
 import { CXoneWorkItemContact } from './cxone-workitem-contact';
 import { DispositionService, PersonalConnectionService, ContactService, VoiceService } from '@nice-devone/agent-sdk';
-declare type CXoneContactType = CXoneVoiceMailContact | CXoneWorkItemContact;
-declare type ContactEventTypeAlias = VoiceMailContactEvent | WorkItemContactEvent;
+declare type CXoneContactType = CXoneVoiceMailContact | CXoneWorkItemContact | CXoneVoiceContact;
+declare type ContactEventTypeAlias = VoiceMailContactEvent | WorkItemContactEvent | CallContactEvent;
 /**
  * Class to handle the contacts
  */
@@ -49,6 +49,7 @@ export declare class ContactManager {
     onVoiceTranscriptContactEndEvent: Subject<{
         contactId: string;
     }>;
+    private renewStateSubscription;
     /**
      * @example
      * ```
@@ -60,6 +61,64 @@ export declare class ContactManager {
      * Method to create instance for voice and contact service and update agent permissions and call contact event
      */
     private initialize;
+    /**
+     * Method to subscribe to renew state events from the GetNextAdapter
+     * This handles stuck contacts when icBranchValue === '3' is received
+     * Uses dynamic import to avoid circular dependency
+     */
+    private subscribeToRenewStateEvents;
+    /**
+     * Handle renew state event - compares backend contacts with UI contacts to find and clear stuck contacts
+     * @param backendContactIds - array of contact IDs currently active in the backend
+     * @example
+     * ```
+     * handleRenewState(['contactId1', 'contactId2'])
+     * ```
+     */
+    private handleRenewState;
+    /**
+     * Method to create contact event object based on contact type
+     * @param contact - CXoneContactType (CXoneVoiceContact | CXoneVoiceMailContact | CXoneWorkItemContact)
+     * @returns CallContactEvent | VoiceMailContactEvent | WorkItemContactEvent
+     * @example
+     * ```
+     * createContactEventObject(contact)
+     * ```
+     */
+    private createContactEventObject;
+    /**
+     * Maps CXoneVoiceContact to CallContactEvent
+     * @param contact - CXoneVoiceContact instance
+     * @returns CallContactEvent
+     */
+    private mapToCallContactEvent;
+    /**
+     * Maps CXoneVoiceMailContact to VoiceMailContactEvent
+     * @param contact - CXoneVoiceMailContact instance
+     * @returns VoiceMailContactEvent
+     */
+    private mapToVoiceMailContactEvent;
+    /**
+     * Maps CXoneWorkItemContact to WorkItemContactEvent
+     * @param contact - CXoneWorkItemContact instance
+     * @returns WorkItemContactEvent
+     */
+    private mapToWorkItemContactEvent;
+    /**
+     * Method to remove contact data from all maps and storage
+     * @param contact - the contact to remove data for
+     * @example - removeContactData(contact)
+     */
+    private removeContactData;
+    /**
+     * Method to clear a stuck contact from all maps and storage
+     * @param contact - the contact to clear
+     * @example
+     * ```
+     * clearContact(contact)
+     * ```
+     */
+    private clearContact;
     /**
      * Returns whether the agent has any PC dialer calls
      * @example hasAnyPersonalConnectionContact()

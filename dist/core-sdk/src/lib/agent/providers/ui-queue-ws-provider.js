@@ -63,6 +63,7 @@ export class UIQueueWsProvider {
         this.internetCheckTimer = undefined; // to store the internet check timer
         this.isCustomKeepAlivePollingTimeoutEnabled = FeatureToggleService.instance.getFeatureToggleSync("release-cxa-get-next-events-timeout-update-AW-45121" /* FeatureToggles.GET_NEXT_EVENT_POLLING_TIMEOUT_FEATURE_TOGGLE */);
         this.keepAliveTimeout = this.isCustomKeepAlivePollingTimeoutEnabled ? 15000 : 120000;
+        this.isConnectionInProgress = false; // Flag to track connection attempt in progress
         this.agentSession = ACDSessionManager.instance;
         this.adminService = AdminService.instance;
         window.addEventListener('RefreshTokenSuccess', () => {
@@ -115,9 +116,15 @@ export class UIQueueWsProvider {
         if (!this.keepAlivePollingWorker) {
             this.initAgentKeepAliveWorker();
             this.keepAlivePollingWorker.onmessage = (response) => {
-                var _a;
+                var _a, _b;
                 if (((_a = response === null || response === void 0 ? void 0 : response.data) === null || _a === void 0 ? void 0 : _a.type) === 'retry') {
                     this.logger.info('getNextEvents', 'Polling called successfully');
+                }
+                if (((_b = response === null || response === void 0 ? void 0 : response.data) === null || _b === void 0 ? void 0 : _b.status) === 302) {
+                    this.isUIQDegraded = true;
+                    this.disconnectConsumerAgent();
+                    this.failoverToGetNext(new CXoneSdkError(CXoneSdkErrorType.CXONE_API_ERROR, 'Keep alive API failed with 302 status'));
+                    this.logger.error('keepAlivePolling', 'Switching to get-next polling as keep alive API returned 302 status');
                 }
             };
         }
@@ -235,8 +242,18 @@ export class UIQueueWsProvider {
      * ```
      */
     connectAgent(userInfo, invokeSnapshot, sessionId) {
-        this.establishSocketConnection(userInfo, invokeSnapshot, sessionId).catch((error) => {
+        // Check if connection is already established, in progress, or being attempted
+        if (this.isConnectionInProgress) {
+            this.logger.info('connectAgent', 'UIQ Connection already established or in progress. Skipping connection attempt.');
+            return;
+        }
+        this.isConnectionInProgress = true;
+        this.establishSocketConnection(userInfo, invokeSnapshot, sessionId)
+            .catch((error) => {
             this.failoverToGetNext(error);
+        })
+            .finally(() => {
+            this.isConnectionInProgress = false;
         });
     }
     /**
@@ -261,8 +278,8 @@ export class UIQueueWsProvider {
              * ```
              */
             const establishHubConnectionWithRetry = () => __awaiter(this, void 0, void 0, function* () {
-                var _a;
-                if (((_a = this.hubConnection) === null || _a === void 0 ? void 0 : _a.state) === HubConnectionState.Connected)
+                var _a, _b;
+                if (((_a = this.hubConnection) === null || _a === void 0 ? void 0 : _a.state) === HubConnectionState.Connected || ((_b = this.hubConnection) === null || _b === void 0 ? void 0 : _b.state) === HubConnectionState.Connecting)
                     return;
                 try {
                     yield this.getHubUrl();
@@ -270,7 +287,7 @@ export class UIQueueWsProvider {
                         .withUrl(this.hubUrl, { httpClient: new CustomHttpClient(accessToken), accessTokenFactory: () => `Bearer ${accessToken}` })
                         .withAutomaticReconnect([0])
                         .build();
-                    this.hubConnection.serverTimeoutInMilliseconds = 60000;
+                    this.hubConnection.serverTimeoutInMilliseconds = 30000;
                     yield this.startConnection(userInfo);
                 }
                 catch (error) {
@@ -364,7 +381,7 @@ export class UIQueueWsProvider {
             this.logger.info('CustomDegradation', 'Received Custom Degradation event');
             this.isUIQDegraded = true;
             this.disconnectConsumerAgent();
-            this.agentSession.startGetNextEvents();
+            this.failoverToGetNext(new CXoneSdkError(CXoneSdkErrorType.CXONE_API_ERROR, 'UIQ is degraded'));
             this.logger.error('CustomDegradation', 'Switching to get-next polling as UIQ is degraded');
         });
         this.hubConnection.onreconnected((connectionId) => {

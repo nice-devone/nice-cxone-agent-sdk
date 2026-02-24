@@ -76,5 +76,13 @@ export var CXoneProductFeature;
      * @remarks - Product feature Id for Desktop Profiles
      */
     CXoneProductFeature[CXoneProductFeature["DESKTOP_PROFILES"] = 162] = "DESKTOP_PROFILES";
+    /**
+     * @remarks - Product feature Id for Conversations
+     */
+    CXoneProductFeature[CXoneProductFeature["CONVERSATIONS"] = 707101] = "CONVERSATIONS";
+    /**
+     * @remarks - Product feature Id for Divisions Tenant Segmentation
+     */
+    CXoneProductFeature[CXoneProductFeature["DIVISIONS"] = 200] = "DIVISIONS";
 })(CXoneProductFeature || (CXoneProductFeature = {}));
 //# sourceMappingURL=cxone-product-feature.js.map

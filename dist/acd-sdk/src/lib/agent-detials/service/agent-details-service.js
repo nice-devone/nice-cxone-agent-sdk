@@ -1,5 +1,6 @@
 import { CXoneAuth } from '@nice-devone/auth-sdk';
 import { Logger, HttpUtilService, HttpClient, UrlUtilsService, ApiUriConstants, LocalStorageHelper, StorageKeys } from '@nice-devone/core-sdk';
+import { FeatureToggleService } from '@nice-devone/agent-sdk';
 /**
  * Class to perform get Agent Details
  */
@@ -39,7 +40,9 @@ export class AgentDetailService {
                 const token = this.auth.getAuthToken();
                 const reqInit = this.utilService.initHeader(token.accessToken, 'application/json');
                 const cxOneConfig = this.auth.getCXoneConfig();
-                let agentUrl = cxOneConfig.acdApiBaseUri + ApiUriConstants.GET_AGENT_WITH_AGENT_ID.replace('{agentId}', agentId);
+                let agentUrl = cxOneConfig.acdApiBaseUri + (FeatureToggleService.instance.getFeatureToggleSync("release-cxa-tenant-segmentation-AW-28101" /* FeatureToggles.TENANT_SEGMENTATION */)
+                    ? ApiUriConstants.GET_AGENT_WITH_AGENT_ID_TS
+                    : ApiUriConstants.GET_AGENT_WITH_AGENT_ID).replace('{agentId}', agentId);
                 agentUrl = this.urlUtilsService.appendQueryString(agentUrl, requestParams);
                 HttpClient.get(agentUrl, reqInit).then((response) => {
                     const agentDetails = response.data.agents;

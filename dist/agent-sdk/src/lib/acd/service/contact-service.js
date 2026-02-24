@@ -1,6 +1,7 @@
 import { HttpUtilService, Logger, HttpClient, ACDSessionManager, ApiUriConstants } from '@nice-devone/core-sdk';
 import { validatePort } from '@nice-devone/common-sdk';
 import { amdOverrideType } from '../enum/amd-override-type';
+import { FeatureToggleService } from '../../feature-toggle';
 /**
  * Class to handling contact services
  */
@@ -15,6 +16,7 @@ export class ContactService {
         this.logger = new Logger('acd', 'ContactService');
         this.utilService = new HttpUtilService();
         this.acdSession = {};
+        this.TRANSFER_WORK_ITEM_SKILL_TS = '/InContactAPI/services/v33.0/agent-sessions/{sessionId}/interactions/{contactId}/transfer-work-item-to-skill';
         this.TRANSFER_WORK_ITEM_SKILL = '/InContactAPI/services/v23.0/agent-sessions/{sessionId}/interactions/{contactId}/transfer-work-item-to-skill';
         /**
            * Method to send payload sent via local post event
@@ -213,7 +215,9 @@ export class ContactService {
         const sessionId = this.acdSession.getSessionId();
         const baseUrl = this.acdSession.cxOneConfig.acdApiBaseUri;
         const url = baseUrl +
-            ApiUriConstants.TRANSFER_WORK_ITEM_CONTACT_URI.replace('{sessionId}', sessionId).replace('{contactId}', contactId);
+            (FeatureToggleService.instance.getFeatureToggleSync("release-cxa-tenant-segmentation-AW-28101" /* FeatureToggles.TENANT_SEGMENTATION */)
+                ? ApiUriConstants.TRANSFER_WORK_ITEM_CONTACT_URI_TS
+                : ApiUriConstants.TRANSFER_WORK_ITEM_CONTACT_URI).replace('{sessionId}', sessionId).replace('{contactId}', contactId);
         const authToken = this.acdSession.accessToken;
         const reqInit = {
             headers: this.utilService.initHeader(authToken).headers,
@@ -240,8 +244,9 @@ export class ContactService {
     transferWorkItemSkill(contactId, skillName) {
         const sessionId = this.acdSession.getSessionId();
         const baseUrl = this.acdSession.cxOneConfig.acdApiBaseUri;
+        const isTenantSegmentationEnabled = FeatureToggleService.instance.getFeatureToggleSync("release-cxa-tenant-segmentation-AW-28101" /* FeatureToggles.TENANT_SEGMENTATION */);
         const url = baseUrl +
-            this.TRANSFER_WORK_ITEM_SKILL.replace('{sessionId}', sessionId).replace('{contactId}', contactId);
+            (isTenantSegmentationEnabled ? this.TRANSFER_WORK_ITEM_SKILL_TS : this.TRANSFER_WORK_ITEM_SKILL).replace('{sessionId}', sessionId).replace('{contactId}', contactId);
         const authToken = this.acdSession.accessToken;
         const reqInit = {
             headers: this.utilService.initHeader(authToken).headers,

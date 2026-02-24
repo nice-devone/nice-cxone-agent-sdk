@@ -198,7 +198,9 @@ const userSlotWorkerCode = `self.importScripts(
           if (response.status !== 304) {
             data = await response.text();
           }
-          self.postMessage(parseResponse(data));
+          data = parseResponse(data);
+          data.status = response.status
+          self.postMessage(data);
         }
       }
       catch(error){

@@ -1,4 +1,5 @@
 export * from './components/integration-component-loader';
+export * from './components/global-context';
 export * from './enums/ccf-app-type';
 export * from './enums/ccf-generic-constants';
 export * from './enums/ccf-message-type';
@@ -34,6 +35,7 @@ export * from './interfaces/cxone-auth-response-data';
 export * from './interfaces/integration-i18n-data';
 export * from './interfaces/embedded-app-initialized-event-data';
 export * from './interfaces/cxs/ccf-action-editors';
+export * from './interfaces/cxone-translations';
 export * from './models/watch-rtc-options';
 export * from './services/watch-rtc-service';
 export * from './interfaces/cxone-partner-account-details';

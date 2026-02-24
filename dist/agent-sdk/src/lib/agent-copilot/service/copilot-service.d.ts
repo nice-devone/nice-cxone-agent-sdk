@@ -1,5 +1,5 @@
 import { CXoneAuth } from '@nice-devone/auth-sdk';
-import { AgentCopilotSearchRequest, CopilotMessageData, CustomCopilotFilterTags, GuidanceFeedbackData, ContactFeedbackData, CopilotProfileConfig, ContactHistoryData, IntentConfig } from '@nice-devone/common-sdk';
+import { AgentCopilotSearchRequest, CopilotMessageData, CustomCopilotFilterTags, GuidanceFeedbackData, ContactFeedbackData, CopilotProfileConfig, ContactHistoryData, IntentConfig, DecisionTreeElement, DecisionTreeData } from '@nice-devone/common-sdk';
 import { Logger, HttpUtilService, HttpRequestInit, ValidationUtils } from '@nice-devone/core-sdk';
 /**
  * Represents a collection of Copilot message data indexed by case ID.
@@ -35,6 +35,10 @@ export declare class CopilotService {
     private AGENT_COPILOT_GET_ALL_ADAPTIVE_CARDS_SCHEMAS;
     private AGENT_COPILOT_GET_TASK_ASSIST_FORM_PREFILLED_DATA;
     private TASK_ASSIST_FORM_ADAPTIVE_CARD_SCHEMAS_URL;
+    private REFRESH_TOKENS;
+    private AGENT_COPILOT_DECISION_TREE_BASE_URI;
+    private DECISION_TREE_BASE;
+    private AGENT_COPILOT_DECISION_TREE_APIS;
     /**
      * Create instance of CXoneAuth
      * ```
@@ -190,6 +194,25 @@ export declare class CopilotService {
      */
     storeAgentAssistConfig: (contactId: string, mediaType?: string, agentAssistId?: string) => Promise<any>;
     /**
+     * Ensures the Agent Assist configuration for the given contactId is available in memory.
+     * If the configuration is not already cached (in the in-memory store or localStorage),
+     * it will be retrieved from the backend API and then returned.
+     *
+     * Unlike {@link storeAgentAssistConfig}, this method only attempts a backend retrieval
+     * when no cached configuration exists; it does not validate agentAssistId/mediaType changes.
+     *
+     * @param contactId - The contact (case) identifier whose Agent Assist configuration is required.
+     * @returns The loaded {@link CopilotProfileConfig} if available after cache check / retrieval; otherwise `undefined` if retrieval failed silently.
+     * @example
+     * ```ts
+     * const aahConfig = copilotService.resolveAgentAssistConfig('12321');
+     * if (aahConfig?.Params?.emailChannel) {
+     *   // proceed with email specific logic
+     * }
+     * ```
+     */
+    resolveAgentAssistConfig: (contactId: string) => Promise<CopilotProfileConfig | undefined>;
+    /**
      * Used to get the last generated list of topics for the contact id
      * @param contactId - contact Id
      * @example -
@@ -336,5 +359,146 @@ export declare class CopilotService {
      * ```
      */
     saveEditedSummary(channel: string, contactNumber: number, summary: string): Promise<string>;
+    /**
+     * Refreshes authentication tokens for the current agent session.
+     * @param idToken - The current ID token to refresh.
+     * @param accessToken - The current access token to refresh.
+     * @returns A promise that resolves with the refreshed idToken and accessToken.
+     * @example
+     * ```
+     * const tokens = await copilotService.refreshTokens('newIdToken', 'newAccessToken');
+     * ```
+     */
+    refreshTokens(idToken: string, accessToken: string): Promise<{
+        idToken: string;
+        accessToken: string;
+    }>;
+    /**
+   * Fetches the Decision Tree configuration (sections, metadata, UI schema)
+   * for a given Decision Tree element.
+   *
+   * @param decisionTreeId - Unique ID of the Decision Tree element.
+   * @returns Promise resolving the Decision Tree element definition.
+   *
+   * @example
+   * ```ts
+   * const element = await copilotService.getDecisionTreeElement("dt-001");
+   * console.log(element.config.sections);
+   * ```
+   */
+    getDecisionTreeElement(decisionTreeId: string): Promise<DecisionTreeElement>;
+    /**
+   * Posts a Decision Tree section-change event to the backend.
+   *
+   * This is triggered when the agent switches to another section in the UI.
+   * Used for analytics, tracking, and server-side decision logic.
+   *
+   * @param taskSessionUid - Unique ID for the task session.
+   * @param contactId - Contact/Interaction ID associated with the tree.
+   * @param decisionTreeId - Decision Tree session/element ID.
+   * @param sectionId - The newly selected active section ID.
+   *
+   * @returns Promise resolving the raw API response.
+   *
+   * @example
+   * ```ts
+   * await copilotService.postDecisionTreeSectionChange(
+   *   "task-session-001",
+   *   "203444780887",
+   *   "a75bf9bb-203c-4850-b743-35e31f2f4421",
+   *   "22414-4141-4141-4242"
+   * );
+   * ```
+   */
+    postDecisionTreeSectionChange(taskSessionUid: string, contactId: string, decisionTreeId: string, sectionId: string): Promise<DecisionTreeData>;
+    /**
+   * Updates the answer for a single Decision Tree question.
+   *
+   * This is called when the user edits a field and clicks the ✓ save icon.
+   *
+   * @param taskSessionUid - unique ID for the task session.
+   * @param contactId - Contact/Interaction ID.
+   * @param decisionTreeId - Decision Tree ID related to the question.
+   * @param sectionId - Section containing the question.
+   * @param questionId - The specific Question ID to update.
+   * @param newResponse - The new answer/value for the question.
+   *
+   * @returns Promise resolving API response containing update summary.
+   *
+   * @example
+   * ```ts
+   * await copilotService.updateDecisionTreeResponse(
+   *  "task-session-001",
+   *   "203444780887",
+   *   "a75bf9bb-203c-4850-b743-35e31f2f4421",
+   *   "12414-4141-4141-4141",
+   *   "213123-3131-13131-3132",
+   *   "New Answer"
+   * );
+   * ```
+   */
+    updateDecisionTreeResponse(updateDecisionTreeResponsePayload: {
+        taskSessionUid: string;
+        contactId: string;
+        decisionTreeId: string;
+        sectionId: string;
+        questionId: string;
+        newResponse: string;
+    }): Promise<DecisionTreeData>;
+    /**
+   * Submits the fully completed Decision Tree to the backend.
+   *
+   * After submission, the backend may trigger follow-up workflows,
+   * notifications, or task-assist events.
+   *
+   * @param contactId - Contact/Interaction ID.
+   * @param decisionTreeId - ID of the Decision Tree being submitted.
+   *
+   * @returns Promise resolving server confirmation payload.
+   *
+   * @example
+   * ```ts
+   * await copilotService.submitDecisionTree(
+   *  "taskSessionUid",
+   *   "203444780887",
+   *   "a75bf9bb-203c-4850-b743-35e31f2f4421"
+   * );
+   * ```
+   */
+    submitDecisionTree(taskSessionUid: string, contactId: string, decisionTreeId: string): Promise<string>;
+    /**
+    * Skips a decision tree question for a given contact and question.
+     * @param taskSessionUid - The task session unique ID.
+     * @param contactId - The contact ID.
+     * @param decisionTreeId - The decision tree ID.
+     * @param questionId - The question ID to be skipped.
+     * @param sectionId - The section ID containing the question.
+     * @returns A promise that resolves with the response data.
+     * @example
+     * ```
+     * copilotService.skipDecisionTreeQuestion('taskSessionUid', 'contactId', 'decisionTreeId', 'questionId', 'sectionId');
+     * ```
+     */
+    skipDecisionTreeQuestion(taskSessionUid: string, contactId: string, decisionTreeId: string, questionId: string, sectionId: string): Promise<string>;
+    /**
+     * Cancels the Decision Tree session for a given contact.
+     *
+     * This is typically called when the agent decides to exit the Decision Tree
+     * without submitting it.
+     *
+     * @param taskSessionUid - The task session unique ID.
+     * @param contactId - Contact/Interaction ID.
+     * @param decisionTreeId - ID of the Decision Tree to be closed.
+     * @returns Promise resolving server confirmation payload.
+     * @example
+     * ```ts
+     * await copilotService.cancelDecisionTree(
+     * "taskSessionUid",
+     * "203444780887",
+     * "a75bf9bb-203c-4850-b743-35e31f2f4421"
+     * );
+     * ```
+     */
+    cancelDecisionTree(taskSessionUid: string, contactId: string, decisionTreeId: string): Promise<string>;
 }
 export {};

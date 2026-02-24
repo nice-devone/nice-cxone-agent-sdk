@@ -8,6 +8,7 @@ export declare class ContactService {
     logger: Logger;
     protected utilService: HttpUtilService;
     private acdSession;
+    private TRANSFER_WORK_ITEM_SKILL_TS;
     private TRANSFER_WORK_ITEM_SKILL;
     /**
      * @example

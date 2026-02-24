@@ -6,6 +6,7 @@ import { mergeCustomerCardRequest } from './customer-card-merge';
 import { createCustomerNote, deleteCustomerNote, editCustomerNote, fetchCustomerNotes, } from './customer-card-notes';
 import { getCustomerList } from './customer-card-search';
 import dayjs from 'dayjs';
+import { FeatureToggleService } from '../../feature-toggle';
 /**
  * Enum for Customer Card Workflow Actions
  */
@@ -15,6 +16,7 @@ var workflowActions;
     workflowActions["DATAMEMORIALIZATION"] = "datamemorialization";
     workflowActions["TIMELINE"] = "timeline";
     workflowActions["RELATESTO"] = "relatesto";
+    workflowActions["TRIGGER"] = "trigger";
 })(workflowActions || (workflowActions = {}));
 /**
  * Class to handle Customer Card API calls
@@ -69,6 +71,11 @@ export class CustomerCardService {
                         entity: request === null || request === void 0 ? void 0 : request.entity,
                         entityId: request === null || request === void 0 ? void 0 : request.entityId,
                         relatedObject: request === null || request === void 0 ? void 0 : request.relatedObject,
+                    };
+                case workflowActions.TRIGGER:
+                    return {
+                        action: request === null || request === void 0 ? void 0 : request.action,
+                        workflowInput: request === null || request === void 0 ? void 0 : request.workflowInput,
                     };
                 default: {
                     return {};
@@ -277,8 +284,10 @@ export class CustomerCardService {
                 queryParams.push(`${paramName}=${paramValue}`);
             }
         });
+        const isTenantSegmentationEnabled = FeatureToggleService.instance.getFeatureToggleSync("release-cxa-tenant-segmentation-AW-28101" /* FeatureToggles.TENANT_SEGMENTATION */);
+        const endpointUri = isTenantSegmentationEnabled ? ApiUriConstants.GET_AGENT_VOICE_CONTACT_HISTORY_TS : ApiUriConstants.GET_AGENT_VOICE_CONTACT_HISTORY;
         const url = baseUrl
-            + ApiUriConstants.GET_AGENT_VOICE_CONTACT_HISTORY
+            + endpointUri
             + `?${queryParams.join('&')}`;
         const reqInit = {
             headers: this.utilService.initHeader(authToken, 'application/json')

@@ -7,7 +7,9 @@ import { CommitmentRequest, CommitmentResponse } from './model/commitment';
  */
 export declare class CommitmentService {
     private static GET_COMMITMENTS;
+    private static CREATE_COMMITMENT_TS;
     private static CREATE_COMMITMENT;
+    private static EDIT_COMMITMENT_TS;
     private static EDIT_COMMITMENT;
     private static DELETE_COMMITMENT;
     private static MAKE_COMMITMENT_CALL;

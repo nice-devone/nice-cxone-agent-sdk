@@ -66,8 +66,16 @@ var PermissionKeys;
      */
     PermissionKeys["VOICE_TRANSCRIPT"] = "VoiceTranscript";
     /**
-     * Realtime recording status update
+     * permission key for enabling or disabling the real-time recording status update feature
      */
     PermissionKeys["REALTIME_RECORDING_STATUS_UPDATE"] = "realtimeRecordingStatusUpdate";
+    /**
+     * permission key for enabling or disabling the stop record feature
+     */
+    PermissionKeys["STOP_RECORDING"] = "StopRecording";
+    /**
+     * permission key for enabling or disabling the real-time recording notification feature
+     */
+    PermissionKeys["REALTIME_RECORDING_NOTIFICATION"] = "RealTimeRecordingNotification";
 })(PermissionKeys = exports.PermissionKeys || (exports.PermissionKeys = {}));
 //# sourceMappingURL=permission-keys.js.map

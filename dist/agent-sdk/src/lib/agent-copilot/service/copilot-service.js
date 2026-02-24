@@ -43,6 +43,16 @@ export class CopilotService {
         this.AGENT_COPILOT_GET_ALL_ADAPTIVE_CARDS_SCHEMAS = this.AGENT_COPILOT_BASE_URI + 'adaptive-card/get-all-adaptive-cards';
         this.AGENT_COPILOT_GET_TASK_ASSIST_FORM_PREFILLED_DATA = '/agent-copilot/v1/contacts/{contactId}/taskassist/form-data';
         this.TASK_ASSIST_FORM_ADAPTIVE_CARD_SCHEMAS_URL = '/agent-copilot/v2/adaptive-cards/taskassist/profiles/{agentAssistId}/bots/{botName}/intents/{intentName}/cards';
+        this.REFRESH_TOKENS = '/agent-copilot/v1/agent-idtoken';
+        this.AGENT_COPILOT_DECISION_TREE_BASE_URI = '/agent-copilot/v1/';
+        this.DECISION_TREE_BASE = `${this.AGENT_COPILOT_DECISION_TREE_BASE_URI}contacts/{contactId}/decision-tree`;
+        this.AGENT_COPILOT_DECISION_TREE_APIS = {
+            SKIP: `${this.DECISION_TREE_BASE}/skip-question`,
+            CANCEL: `${this.DECISION_TREE_BASE}/cancel`,
+            SUBMIT: `${this.DECISION_TREE_BASE}/submit`,
+            UPDATE: `${this.DECISION_TREE_BASE}/update-response`,
+            LOAD: `${this.DECISION_TREE_BASE}/load-section`,
+        };
         /**
          * @returns base url for ACP backend
          * @example getBaseHttpRequest()
@@ -282,6 +292,31 @@ export class CopilotService {
             let aahConfig = this.getAgentAssistConfig(contactId, true);
             if (!aahConfig || ((_a = aahConfig === null || aahConfig === void 0 ? void 0 : aahConfig.Params) === null || _a === void 0 ? void 0 : _a.agentAssistId) !== agentAssistId) {
                 aahConfig = yield this.retriveAgentAssistConfig(contactId, mediaType, agentAssistId);
+            }
+            return aahConfig;
+        });
+        /**
+         * Ensures the Agent Assist configuration for the given contactId is available in memory.
+         * If the configuration is not already cached (in the in-memory store or localStorage),
+         * it will be retrieved from the backend API and then returned.
+         *
+         * Unlike {@link storeAgentAssistConfig}, this method only attempts a backend retrieval
+         * when no cached configuration exists; it does not validate agentAssistId/mediaType changes.
+         *
+         * @param contactId - The contact (case) identifier whose Agent Assist configuration is required.
+         * @returns The loaded {@link CopilotProfileConfig} if available after cache check / retrieval; otherwise `undefined` if retrieval failed silently.
+         * @example
+         * ```ts
+         * const aahConfig = copilotService.resolveAgentAssistConfig('12321');
+         * if (aahConfig?.Params?.emailChannel) {
+         *   // proceed with email specific logic
+         * }
+         * ```
+         */
+        this.resolveAgentAssistConfig = (contactId) => __awaiter(this, void 0, void 0, function* () {
+            let aahConfig = this.getAgentAssistConfig(contactId, true);
+            if (!aahConfig) {
+                aahConfig = yield this.retriveAgentAssistConfig(contactId);
             }
             return aahConfig;
         });
@@ -800,5 +835,267 @@ export class CopilotService {
         });
     }
     ;
+    /**
+     * Refreshes authentication tokens for the current agent session.
+     * @param idToken - The current ID token to refresh.
+     * @param accessToken - The current access token to refresh.
+     * @returns A promise that resolves with the refreshed idToken and accessToken.
+     * @example
+     * ```
+     * const tokens = await copilotService.refreshTokens('newIdToken', 'newAccessToken');
+     * ```
+     */
+    refreshTokens(idToken, accessToken) {
+        return new Promise((resolve, reject) => {
+            const reqInit = this.getBaseHttpRequest({
+                idToken,
+                accessToken,
+            });
+            const baseUrl = this.getBaseUrlForAcp();
+            const refreshTokenUrl = baseUrl + this.REFRESH_TOKENS;
+            HttpClient === null || HttpClient === void 0 ? void 0 : HttpClient.post(refreshTokenUrl, reqInit).then((response) => {
+                resolve(response.data);
+            }, (error) => {
+                const errorResponse = new CXoneSdkError(CXoneSdkErrorType.CXONE_API_ERROR, 'Failed to refresh tokens', error);
+                this.logger.error('refreshTokens', errorResponse.toString());
+                reject(errorResponse);
+            });
+        });
+    }
+    /**
+   * Fetches the Decision Tree configuration (sections, metadata, UI schema)
+   * for a given Decision Tree element.
+   *
+   * @param decisionTreeId - Unique ID of the Decision Tree element.
+   * @returns Promise resolving the Decision Tree element definition.
+   *
+   * @example
+   * ```ts
+   * const element = await copilotService.getDecisionTreeElement("dt-001");
+   * console.log(element.config.sections);
+   * ```
+   */
+    getDecisionTreeElement(decisionTreeId) {
+        return new Promise((resolve, reject) => {
+            const baseUrl = this.getBaseUrlForAcp();
+            const elementUrl = `${baseUrl}/profile-hub/v1/elements/${decisionTreeId}`;
+            const reqInit = this.getBaseHttpRequest({}); // include default headers, auth, etc.
+            HttpClient === null || HttpClient === void 0 ? void 0 : HttpClient.get(elementUrl, reqInit).then((response) => {
+                const decisionTreeElement = response.data;
+                resolve(decisionTreeElement);
+            }, (error) => {
+                const errorResponse = new CXoneSdkError(CXoneSdkErrorType.CXONE_API_ERROR, 'Failed to fetch Decision Tree Element', error);
+                this.logger.error('getDecisionTreeElement', errorResponse.toString());
+                reject(errorResponse);
+            });
+        });
+    }
+    /**
+   * Posts a Decision Tree section-change event to the backend.
+   *
+   * This is triggered when the agent switches to another section in the UI.
+   * Used for analytics, tracking, and server-side decision logic.
+   *
+   * @param taskSessionUid - Unique ID for the task session.
+   * @param contactId - Contact/Interaction ID associated with the tree.
+   * @param decisionTreeId - Decision Tree session/element ID.
+   * @param sectionId - The newly selected active section ID.
+   *
+   * @returns Promise resolving the raw API response.
+   *
+   * @example
+   * ```ts
+   * await copilotService.postDecisionTreeSectionChange(
+   *   "task-session-001",
+   *   "203444780887",
+   *   "a75bf9bb-203c-4850-b743-35e31f2f4421",
+   *   "22414-4141-4141-4242"
+   * );
+   * ```
+   */
+    postDecisionTreeSectionChange(taskSessionUid, contactId, decisionTreeId, sectionId) {
+        return new Promise((resolve, reject) => {
+            const reqInit = this.getBaseHttpRequest({
+                taskSessionUid,
+                contactId,
+                decisionTreeId,
+                sectionId,
+                agentUUID: CXoneUser.instance.getUserInfo().userId,
+            });
+            const baseUrl = this.getBaseUrlForAcp();
+            const endpoint = baseUrl + this.AGENT_COPILOT_DECISION_TREE_APIS.LOAD.replace('{contactId}', contactId);
+            HttpClient === null || HttpClient === void 0 ? void 0 : HttpClient.post(endpoint, reqInit).then((response) => {
+                const decisionTreeData = response.data;
+                resolve(decisionTreeData);
+            }, (error) => {
+                const errorResponse = new CXoneSdkError(CXoneSdkErrorType.CXONE_API_ERROR, 'Failed to send Decision Tree section change', error);
+                this.logger.error('postDecisionTreeSectionChange', errorResponse.toString());
+                reject(errorResponse);
+            });
+        });
+    }
+    /**
+   * Updates the answer for a single Decision Tree question.
+   *
+   * This is called when the user edits a field and clicks the ✓ save icon.
+   *
+   * @param taskSessionUid - unique ID for the task session.
+   * @param contactId - Contact/Interaction ID.
+   * @param decisionTreeId - Decision Tree ID related to the question.
+   * @param sectionId - Section containing the question.
+   * @param questionId - The specific Question ID to update.
+   * @param newResponse - The new answer/value for the question.
+   *
+   * @returns Promise resolving API response containing update summary.
+   *
+   * @example
+   * ```ts
+   * await copilotService.updateDecisionTreeResponse(
+   *  "task-session-001",
+   *   "203444780887",
+   *   "a75bf9bb-203c-4850-b743-35e31f2f4421",
+   *   "12414-4141-4141-4141",
+   *   "213123-3131-13131-3132",
+   *   "New Answer"
+   * );
+   * ```
+   */
+    updateDecisionTreeResponse(updateDecisionTreeResponsePayload) {
+        return new Promise((resolve, reject) => {
+            const { taskSessionUid, contactId, decisionTreeId, sectionId, questionId, newResponse } = updateDecisionTreeResponsePayload;
+            const baseUrl = this.getBaseUrlForAcp();
+            const endpoint = baseUrl + this.AGENT_COPILOT_DECISION_TREE_APIS.UPDATE.replace('{contactId}', contactId);
+            const reqInit = this.getBaseHttpRequest({
+                taskSessionUid,
+                contactId,
+                decisionTreeId,
+                sectionId,
+                questionId,
+                questionResponse: newResponse,
+                agentUUID: CXoneUser.instance.getUserInfo().userId,
+            });
+            HttpClient === null || HttpClient === void 0 ? void 0 : HttpClient.put(endpoint, reqInit).then((response) => {
+                const decisionTreeData = response.data;
+                resolve(decisionTreeData);
+            }, (error) => {
+                const errorResponse = new CXoneSdkError(CXoneSdkErrorType.CXONE_API_ERROR, 'Failed to send Decision Tree section change', error);
+                this.logger.error('updateDecisionTreeResponse', errorResponse.toString());
+                reject(errorResponse);
+            });
+        });
+    }
+    /**
+   * Submits the fully completed Decision Tree to the backend.
+   *
+   * After submission, the backend may trigger follow-up workflows,
+   * notifications, or task-assist events.
+   *
+   * @param contactId - Contact/Interaction ID.
+   * @param decisionTreeId - ID of the Decision Tree being submitted.
+   *
+   * @returns Promise resolving server confirmation payload.
+   *
+   * @example
+   * ```ts
+   * await copilotService.submitDecisionTree(
+   *  "taskSessionUid",
+   *   "203444780887",
+   *   "a75bf9bb-203c-4850-b743-35e31f2f4421"
+   * );
+   * ```
+   */
+    submitDecisionTree(taskSessionUid, contactId, decisionTreeId) {
+        return new Promise((resolve, reject) => {
+            const baseUrl = this.getBaseUrlForAcp();
+            const submitUrl = baseUrl + this.AGENT_COPILOT_DECISION_TREE_APIS.SUBMIT.replace('{contactId}', contactId);
+            const reqInit = this.getBaseHttpRequest({
+                taskSessionUid,
+                contactId,
+                decisionTreeId,
+                agentUUID: CXoneUser.instance.getUserInfo().userId,
+                // agentId optional → inherited automatically from base request if defined
+            });
+            HttpClient === null || HttpClient === void 0 ? void 0 : HttpClient.post(submitUrl, reqInit).then((response) => {
+                resolve(response.data);
+            }, (error) => {
+                const errorResponse = new CXoneSdkError(CXoneSdkErrorType.CXONE_API_ERROR, 'Failed to submit Decision Tree', error);
+                this.logger.error('submitDecisionTree', errorResponse.toString());
+                reject(errorResponse);
+            });
+        });
+    }
+    /**
+    * Skips a decision tree question for a given contact and question.
+     * @param taskSessionUid - The task session unique ID.
+     * @param contactId - The contact ID.
+     * @param decisionTreeId - The decision tree ID.
+     * @param questionId - The question ID to be skipped.
+     * @param sectionId - The section ID containing the question.
+     * @returns A promise that resolves with the response data.
+     * @example
+     * ```
+     * copilotService.skipDecisionTreeQuestion('taskSessionUid', 'contactId', 'decisionTreeId', 'questionId', 'sectionId');
+     * ```
+     */
+    skipDecisionTreeQuestion(taskSessionUid, contactId, decisionTreeId, questionId, sectionId) {
+        return new Promise((resolve, reject) => {
+            const reqInit = this.getBaseHttpRequest({
+                taskSessionUid,
+                contactId,
+                decisionTreeId,
+                questionId,
+                sectionId,
+                agentUUID: CXoneUser.instance.getUserInfo().userId,
+            });
+            const baseUrl = this.getBaseUrlForAcp();
+            const skipQuestionUrl = baseUrl + this.AGENT_COPILOT_DECISION_TREE_APIS.SKIP.replace('{contactId}', contactId);
+            HttpClient === null || HttpClient === void 0 ? void 0 : HttpClient.post(skipQuestionUrl, reqInit).then((response) => {
+                resolve(response.data);
+            }, (error) => {
+                const errorResponse = new CXoneSdkError(CXoneSdkErrorType.CXONE_API_ERROR, 'Failed to skip decision tree question', error);
+                this.logger.error('skipDecisionTreeQuestion', errorResponse.toString());
+                reject(errorResponse);
+            });
+        });
+    }
+    ;
+    /**
+     * Cancels the Decision Tree session for a given contact.
+     *
+     * This is typically called when the agent decides to exit the Decision Tree
+     * without submitting it.
+     *
+     * @param taskSessionUid - The task session unique ID.
+     * @param contactId - Contact/Interaction ID.
+     * @param decisionTreeId - ID of the Decision Tree to be closed.
+     * @returns Promise resolving server confirmation payload.
+     * @example
+     * ```ts
+     * await copilotService.cancelDecisionTree(
+     * "taskSessionUid",
+     * "203444780887",
+     * "a75bf9bb-203c-4850-b743-35e31f2f4421"
+     * );
+     * ```
+     */
+    cancelDecisionTree(taskSessionUid, contactId, decisionTreeId) {
+        return new Promise((resolve, reject) => {
+            const baseUrl = this.getBaseUrlForAcp();
+            const cancelUrl = baseUrl + this.AGENT_COPILOT_DECISION_TREE_APIS.CANCEL.replace('{contactId}', contactId);
+            const reqInit = this.getBaseHttpRequest({
+                taskSessionUid,
+                contactId,
+                decisionTreeId,
+                agentUUID: CXoneUser.instance.getUserInfo().userId,
+            });
+            HttpClient === null || HttpClient === void 0 ? void 0 : HttpClient.post(cancelUrl, reqInit).then((response) => {
+                resolve(response.data);
+            }, (error) => {
+                const errorResponse = new CXoneSdkError(CXoneSdkErrorType.CXONE_API_ERROR, 'Failed to cancel Decision Tree', error);
+                this.logger.error('cancelDecisionTree', errorResponse.toString());
+                reject(errorResponse);
+            });
+        });
+    }
 }
 //# sourceMappingURL=copilot-service.js.map

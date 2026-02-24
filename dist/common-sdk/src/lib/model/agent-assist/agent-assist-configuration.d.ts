@@ -1,3 +1,4 @@
+import { TaskAssistConfig } from '../agent-copilot/copilot-interfaces/copilot-task-assist';
 /**
  * model interface for agent assist Configuration
  */
@@ -76,7 +77,8 @@ export declare enum AgentAssistConfigACPParamsKeys {
     KNOWLEDGE_HUB_CONFIG = "knowledgeHubConfig",
     AUTOSUMMARY_TO_OUTCOME_PANEL = "autoSummaryToOutcomePanel",
     SHOW_AUTOSUMMARY_CARD = "showAutoSummaryCard",
-    AUTOSUMMARY_CARD_FEATURES = "autoSummaryCardFeatures"
+    AUTOSUMMARY_CARD_FEATURES = "autoSummaryCardFeatures",
+    SECONDARY_KNOWLEDGE_HUB_CONFIG = "secondaryKnowledgeHubConfig"
 }
 export interface CopilotProfileConfig {
     /**
@@ -196,6 +198,22 @@ export interface CopilotProfileConfig {
          * Features available for the auto summary card.
          */
         autoSummaryCardFeatures: AutoSummaryCardFeature[] | [];
+        /**
+         * Indicates configuration for the secondary Knowledge Hub in the agent assist app.
+         */
+        secondaryKnowledgeHubConfig?: KnowledgeHubConfiguration;
+        /**
+         * Indicates if the email channel features (creation / response cards) are enabled for this contact.
+         */
+        emailChannel?: boolean;
+        /**
+         * Indicates if the legal disclosure card should be rendered for this contact.
+         */
+        legalDisclosure?: boolean;
+        /**
+         * Configuration object for Task Assist feature (virtual agent + intents). Present only when task assist is enabled.
+         */
+        taskAssistConfig?: TaskAssistConfig;
     };
 }
 /**
@@ -254,4 +272,8 @@ export interface KnowledgeHubConfiguration {
     * The maximum number of web links that can be included in the knowledge hub.
     */
     webLinksMaximumCount: number;
+    /**
+     * Indicates if feedback for secondary knowledge hub articles is enabled.
+     */
+    secondaryFeedbackEnabled?: boolean;
 }
