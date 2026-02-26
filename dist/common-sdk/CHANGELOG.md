@@ -19,7 +19,7 @@
 - `[Added]`: New storage key added for Focus API revamp for Preview Digitals contacts
 - `[Added]` : New models added & existing HttpClient updated for API WS listener revamp
 
-## 26.1 - 2026-02-26 ##
+## 26.1.1 - 2026-02-26 ##
 
 - `[Updated]`: Modified schemas to include new optional fields for reject reason feature for message approval flow
 - `[Updated]`: Modified schemas to include new fields for revamped unified Quick responses
