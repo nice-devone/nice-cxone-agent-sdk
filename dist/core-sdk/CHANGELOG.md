@@ -17,7 +17,7 @@
 - `[Added]:` Upgraded the Agent Settings API  to v33 & Added new versioning service API (FT Controlled)
 
 
-## [0.0.1] - 2026-02-26 - 26.1.1 ##
+## 2026-02-26 - 26.1.1 ##
 
 - `[Updated]`: Added Failover to GNE on 302 response for keepalive and event-queue-resize apis.
 - `[Fixed]`: CFB Fix for multiple uiq connections are established when only one voice preference i.e. integrated softphone is enabled

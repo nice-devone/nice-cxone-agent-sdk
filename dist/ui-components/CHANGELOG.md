@@ -2,7 +2,7 @@
 
 All notable changes to the @nice-devone/ui-components package will be documented in this file.
 
-## [0.0.1] - 2026-02-26
+## [26.1.1] - 2026-02-26
 
 ### Added
 - Initial public release exposing 4 components:
