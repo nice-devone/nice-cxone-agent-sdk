@@ -118,7 +118,9 @@ export class CXoneSkillActivityProvider {
             this.isOutbound = skillActivityPollingRequest.isOutbound ? skillActivityPollingRequest.isOutbound : false;
             let activityUpdatedSinceValue = LocalStorageHelper.getItem(StorageKeys.ACTIVITY_POLLING_UPDATED_SINCE) || new Date(0).toISOString();
             if (this.baseUri && authToken && !this.pollingWorker) {
-                const Url = new URL(ApiUriConstants.SKILL_ACTIVITY_URI, this.baseUri);
+                const isTenantSegmentationEnabled = FeatureToggleService.instance.getFeatureToggleSync("release-cxa-tenant-segmentation-AW-28101" /* FeatureToggles.TENANT_SEGMENTATION */);
+                const endpointUri = isTenantSegmentationEnabled ? ApiUriConstants.SKILL_ACTIVITY_URI_TS : ApiUriConstants.SKILL_ACTIVITY_URI;
+                const Url = new URL(endpointUri, this.baseUri);
                 Url.searchParams.set('fields', 'agentsAvailable,agentsUnavailable,agentsLoggedIn,agentsWorking,campaignId,earliestQueueTime,emailFromAddress,inSLA,isActive,isNaturalCalling,isOutbound,mediaTypeId,mediaTypeName,outSLA,personalQueueCount,queueCount,serviceLevel,serviceLevelGoal,skillId,skillName,skillQueueCount');
                 Url.searchParams.set('updatedSince', activityUpdatedSinceValue);
                 const reqInit = {

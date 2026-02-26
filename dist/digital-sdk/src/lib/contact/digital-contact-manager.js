@@ -61,6 +61,12 @@ export class DigitalContactManager {
         // Dictionary for synchronizing digital events. [eventName -> (contactId -> traceId)]
         this.digitalEventSyncDictionary = new Map();
         this.isWSAPIIntegrationRevampToggleEnabled = FeatureToggleService.instance.getFeatureToggleSync("release-cx-agent-API-websocket-integration-revamp-AW-42181" /* FeatureToggles.REVAMPED_WEBSOCKET_INTEGRATION_PATTERN */) || false;
+        // Event types that require dictionary sync updates
+        this.SYNC_ENABLED_EVENTS = new Set([
+            CXoneDigitalEventType.CASE_INBOX_ASSIGNEE_CHANGED,
+            CXoneDigitalEventType.MESSAGE_UPDATED,
+            CXoneDigitalEventType.MESSAGE_ADDED_INTO_CASE
+        ]);
         /**
          * Method to handle digital sync events from the DigitalEventSyncService
          * @example handleDigitalSyncEvent(event);
@@ -69,8 +75,8 @@ export class DigitalContactManager {
         this.handleDigitalSyncEvent = (event) => __awaiter(this, void 0, void 0, function* () {
             try {
                 this.logger.info('handleDigitalSyncEvent', 'Handling digital sync event: ' + JSON.stringify(event));
-                const { eventName, contactId, traceId } = event;
-                const result = yield this.addTraceIdInEventSyncDictionary(eventName, contactId, traceId);
+                const { eventName, contactId, traceId, syncEventResponse } = event;
+                const result = yield this.addTraceIdInEventSyncDictionary(eventName, contactId, traceId, syncEventResponse);
                 return Promise.resolve(result);
             }
             catch (error) {
@@ -204,7 +210,7 @@ export class DigitalContactManager {
     * @param traceId - The trace ID associate with the event and contact
     * @example addTraceIdInEventSyncDictionary('event1', 'contact1', 'trace1');
     */
-    addTraceIdInEventSyncDictionary(eventName, contactId, traceId) {
+    addTraceIdInEventSyncDictionary(eventName, contactId, traceId, eventData) {
         return __awaiter(this, void 0, void 0, function* () {
             try {
                 const currentEventName = this.getActualEventName(eventName);
@@ -215,6 +221,12 @@ export class DigitalContactManager {
                     }
                     else if (eventName === CXoneDigitalEventType.CASE_INBOX_UNASSIGNED) {
                         yield this.handleUnAssigneeChangedEvent(contactId, traceId);
+                    }
+                    else if (eventName === CXoneDigitalEventType.MESSAGE_ADDED_INTO_CASE) {
+                        yield this.handleMessageAddedIntoCaseEvent(contactId, traceId, eventData);
+                    }
+                    else if (eventName === CXoneDigitalEventType.MESSAGE_UPDATED) {
+                        yield this.handleMessageUpdatedEvent(contactId, traceId, eventData);
                     }
                     return Promise.resolve(false);
                 }
@@ -245,6 +257,81 @@ export class DigitalContactManager {
         catch (error) {
             this.logger.error('updateDESyncDictionary', 'Failed to update Digital Event Sync Dictionary: ' + JSON.stringify(error));
         }
+    }
+    /**
+     * Check if the digital event sync dictionary should be updated for the given event
+     * @param eventName - The name of the event
+     * @param traceId - The trace ID associated with the event
+     * @returns - true if sync dictionary update is required, false otherwise
+     * @example isSyncDictionaryUpdateRequired(CXoneDigitalEventType.CASE_INBOX_ASSIGNEE_CHANGED, 'trace123');
+     */
+    isSyncDictionaryUpdateRequired(eventName, traceId) {
+        return Boolean(this.isWSAPIIntegrationRevampToggleEnabled &&
+            this.SYNC_ENABLED_EVENTS.has(eventName) &&
+            traceId);
+    }
+    /**
+     * Handle Message Updated API response in case of message update event
+     * @param contactId - contact id
+     * @param traceId - Unique id for tracking the events and avoiding duplication
+     * @example handleMessageUpdatedEvent(contactId, traceId);
+     */
+    handleMessageUpdatedEvent(contactId, traceId, messageUpdatedEventData) {
+        var _a, _b, _c, _d;
+        return __awaiter(this, void 0, void 0, function* () {
+            try {
+                if (contactId && this.digitalContactMap.has(contactId)) {
+                    const contact = this.digitalContactMap.get(contactId);
+                    if (contact) {
+                        const currentCase = (_b = (_a = this.digitalContactMap) === null || _a === void 0 ? void 0 : _a.get(contactId)) === null || _b === void 0 ? void 0 : _b.case;
+                        const currentChannels = (_d = (_c = this.digitalContactMap) === null || _c === void 0 ? void 0 : _c.get(contactId)) === null || _d === void 0 ? void 0 : _d.channel;
+                        const message = messageUpdatedEventData;
+                        const apiResponseToPublish = { 'case': currentCase, 'channel': currentChannels, 'message': message };
+                        const eventDetailsToPublish = { eventId: CXoneDigitalEventType.MESSAGE_UPDATED, eventObject: 'Message', eventType: CXoneDigitalEventType.MESSAGE_UPDATED, traceId: traceId };
+                        const eventDataToPublish = Object.assign(Object.assign(Object.assign({}, messageUpdatedEventData), eventDetailsToPublish), { data: apiResponseToPublish });
+                        this.checkSchemaAndPublishForMessage(contact, eventDataToPublish);
+                    }
+                }
+            }
+            catch (error) {
+                this.logger.error('handleMessageUpdatedEvent', `Failed to handle message updated event for contactId=${contactId}, traceId=${traceId}: ` + JSON.stringify(error));
+            }
+        });
+    }
+    /**
+     * Handle Message Added Into Case API response in case of new message added to case
+     * @param contactId - contact id
+     * @param traceId - Unique id for tracking the events and avoiding duplication
+     * @example handleMessageAddedIntoCaseEvent(contactId, traceId);
+     */
+    handleMessageAddedIntoCaseEvent(contactId, traceId, messageAddedEventData) {
+        var _a, _b, _c, _d, _e, _f;
+        return __awaiter(this, void 0, void 0, function* () {
+            try {
+                if (contactId && this.digitalContactMap.has(contactId)) {
+                    this.logger.info('handleMessageAddedIntoCaseEvent', 'Message added into case to be published to map ' + contactId + ' ' + traceId);
+                    if (contactId) {
+                        const currentCase = (_b = (_a = this.digitalContactMap) === null || _a === void 0 ? void 0 : _a.get(contactId)) === null || _b === void 0 ? void 0 : _b.case;
+                        const currentChannels = (_d = (_c = this.digitalContactMap) === null || _c === void 0 ? void 0 : _c.get(contactId)) === null || _d === void 0 ? void 0 : _d.channel;
+                        const message = messageAddedEventData;
+                        const apiResponseToPublish = { 'case': currentCase, 'channel': currentChannels, 'message': message };
+                        const eventDetailsToPublish = { eventId: CXoneDigitalEventType.MESSAGE_ADDED_INTO_CASE, eventObject: 'case', eventType: CXoneDigitalEventType.MESSAGE_ADDED_INTO_CASE, traceId: traceId };
+                        const eventDataToPublish = Object.assign(Object.assign(Object.assign({}, messageAddedEventData), eventDetailsToPublish), { data: apiResponseToPublish });
+                        const schemaValidatedMessage = this.cxoneDigitalContactHelper.validateResponseSchema(eventDataToPublish);
+                        const contact = this.digitalContactMap.get((_f = (_e = schemaValidatedMessage === null || schemaValidatedMessage === void 0 ? void 0 : schemaValidatedMessage.data) === null || _e === void 0 ? void 0 : _e.case) === null || _f === void 0 ? void 0 : _f.id);
+                        if (contact) {
+                            const currentContact = contact;
+                            schemaValidatedMessage.data.channel = currentContact.channel;
+                            currentContact.parse(schemaValidatedMessage);
+                            this.updatePublishDigitalContactMap(currentContact);
+                        }
+                    }
+                }
+            }
+            catch (error) {
+                this.logger.error('handleMessageAddedIntoCaseEvent', `Failed to handle message added into case event for contactId=${contactId}, traceId=${traceId}: ` + JSON.stringify(error));
+            }
+        });
     }
     /**
      * Handle Assignee Changed API response in case of case assignment to agent inbox from
@@ -658,9 +745,10 @@ export class DigitalContactManager {
                 return;
             }
             this.publishContact(currentContact);
-            // If revamp FT is on and event is CASE_INBOX_ASSIGNEE_CHANGED, update the dictionary with latest traceId
-            if (this.isWSAPIIntegrationRevampToggleEnabled && actualEventName === CXoneDigitalEventType.CASE_INBOX_ASSIGNEE_CHANGED && currentContactTraceId)
-                this.updateDESyncDictionary(currentContact.caseId, actualEventName, currentContactTraceId); // updating the dictionary with latest traceId
+            // Update the dictionary with latest traceId for sync-enabled events
+            if (currentContactTraceId && this.isSyncDictionaryUpdateRequired(actualEventName, currentContactTraceId)) {
+                this.updateDESyncDictionary(currentContact.caseId, actualEventName, currentContactTraceId);
+            }
         }
     }
     /**

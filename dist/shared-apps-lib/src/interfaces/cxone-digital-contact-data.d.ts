@@ -49,4 +49,8 @@ export interface CXoneDigitalContactData extends CXoneContactData {
     scriptVariables?: {
         [key: string]: string;
     };
+    /**
+     * @remarks - Duration in seconds indicating the total time the Digital interaction remained active.
+     * */
+    callDurationInSeconds?: number | string;
 }

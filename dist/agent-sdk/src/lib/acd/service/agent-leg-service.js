@@ -1,4 +1,5 @@
 import { HttpUtilService, Logger, HttpClient, ACDSessionManager, ApiUriConstants, } from '@nice-devone/core-sdk';
+import { FeatureToggleService } from '../../feature-toggle';
 /**
  * Class to handle agent leg
  */
@@ -50,7 +51,9 @@ export class AgentLegService {
         const baseUrl = this.acdSession.cxOneConfig.acdApiBaseUri;
         const authToken = this.acdSession.accessToken;
         const reqInit = this.utilService.initHeader(authToken);
-        const url = baseUrl + ApiUriConstants.END_AGENT_LEG_URI.replace('{sessionId}', sessionId);
+        const isTenantSegmentationEnabled = FeatureToggleService.instance.getFeatureToggleSync("release-cxa-tenant-segmentation-AW-28101" /* FeatureToggles.TENANT_SEGMENTATION */);
+        const endpointUri = isTenantSegmentationEnabled ? ApiUriConstants.END_AGENT_LEG_URI_TS : ApiUriConstants.END_AGENT_LEG_URI;
+        const url = baseUrl + endpointUri.replace('{sessionId}', sessionId);
         return new Promise((resolve, reject) => {
             HttpClient.post(url, reqInit).then((response) => {
                 this.logger.info('endAgentLeg', 'end agent leg success');

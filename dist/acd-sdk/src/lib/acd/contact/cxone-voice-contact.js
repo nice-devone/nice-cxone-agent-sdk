@@ -1,6 +1,6 @@
 import { CallContactEventStatus, LocalStorageHelper, StorageKeys, } from '@nice-devone/core-sdk';
-import { CXoneSdkError, CXoneSdkErrorType, } from '@nice-devone/common-sdk';
-import { CXoneContact, ContactType, ControlButtonText, VoiceControlService } from '@nice-devone/agent-sdk';
+import { CXoneSdkError, CXoneSdkErrorType, PermissionKeys, } from '@nice-devone/common-sdk';
+import { CXoneContact, ContactType, ControlButtonText, FeatureToggleService, VoiceControlService } from '@nice-devone/agent-sdk';
 /**
  * Class to perform the business logic for show / hide and enable / disable the voice contact buttons
  */
@@ -17,6 +17,7 @@ export class CXoneVoiceContact extends CXoneContact {
         this.isMuteVisible = false;
         this.isMaskVisible = false;
         this.isRecordVisible = false;
+        this.isStopRecordEnabled = false;
         this.hideInboundHangup = false;
         this.voiceControlService = new VoiceControlService();
         this.callControlButton = {};
@@ -84,8 +85,10 @@ export class CXoneVoiceContact extends CXoneContact {
         this.isMuteVisible = false;
         this.isMaskVisible = false;
         this.isRecordVisible = false;
+        this.isStopRecordEnabled = false;
         this.hideInboundHangup = false;
         const agentPermissions = LocalStorageHelper.getItem(StorageKeys.PERMISSIONS);
+        const isStopRecordFTEnabled = FeatureToggleService.instance.getFeatureToggleSync("release-cma-stop-recording-AW-48493" /* FeatureToggles.STOP_RECORD_FEATURE_TOGGLE */) || false;
         if (agentPermissions) {
             const permissions = JSON.parse(agentPermissions);
             permissions.forEach((permission) => {
@@ -98,6 +101,9 @@ export class CXoneVoiceContact extends CXoneContact {
                         break;
                     case 'recordcontact':
                         this.isRecordVisible = true;
+                        break;
+                    case PermissionKeys.STOP_RECORDING.toLowerCase():
+                        this.isStopRecordEnabled = isStopRecordFTEnabled;
                         break;
                     case 'hideinboundhangup':
                         this.hideInboundHangup = true;
@@ -190,8 +196,14 @@ export class CXoneVoiceContact extends CXoneContact {
      */
     updateCallControlButtonsOnRecord() {
         this.callControlButton.record.isVisible = true;
-        this.callControlButton.record.isEnable = false;
+        this.callControlButton.record.isEnable = this.isStopRecordEnabled;
         this.callControlButton.record.controlText = ControlButtonText.RECORDING;
+    }
+    /**
+     * Method to set state of the Record button when isLogging is false
+     */
+    updateCallControlButtonsOnStopRecord() {
+        this.callControlButton.record.controlText = ControlButtonText.RECORD;
     }
     /**
      * Method to set state of the call control when status is incoming
@@ -264,8 +276,11 @@ export class CXoneVoiceContact extends CXoneContact {
             if (status === CallContactEventStatus.MASKING) {
                 this.updateCallControlButtonsOnMask();
             }
-            if (isLogging) {
+            if (isLogging && (status !== CallContactEventStatus.HOLDING && status !== CallContactEventStatus.MASKING)) {
                 this.updateCallControlButtonsOnRecord();
+            }
+            else {
+                this.updateCallControlButtonsOnStopRecord();
             }
             if (status === CallContactEventStatus.JOINED) {
                 this.callControlButton.hold.isEnable = false;
@@ -298,8 +313,11 @@ export class CXoneVoiceContact extends CXoneContact {
         if (this.agentMuted) {
             this.updateCallControlButtonsOnMute();
         }
-        if (this.isLogging) {
+        if (this.isLogging && (status !== CallContactEventStatus.HOLDING && status !== CallContactEventStatus.MASKING)) {
             this.updateCallControlButtonsOnRecord();
+        }
+        else {
+            this.updateCallControlButtonsOnStopRecord();
         }
         if (this.status === CallContactEventStatus.MASKING) {
             this.updateCallControlButtonsOnMask();
@@ -546,8 +564,32 @@ export class CXoneVoiceContact extends CXoneContact {
     record() {
         return new Promise((resolve, reject) => {
             if (this.callControlButton.record.isVisible &&
-                this.callControlButton.record.isEnable) {
+                this.callControlButton.record.isEnable &&
+                this.callControlButton.record.controlText === ControlButtonText.RECORD) {
                 this.voiceControlService.recordCall(this.contactID).then((resp) => {
+                    resolve(resp);
+                }, (err) => {
+                    reject(err);
+                });
+            }
+            else {
+                reject(new CXoneSdkError(CXoneSdkErrorType.INVALID_METHOD_INVOCATION, 'Unauthorized method invocation'));
+            }
+        });
+    }
+    /**
+     * Method to validate the contact has record button then invoke the stopCallRecording method.
+     * @example
+     * ```
+     * stopRecord();
+     * ```
+     */
+    stopRecord() {
+        return new Promise((resolve, reject) => {
+            if (this.callControlButton.record.isVisible &&
+                this.callControlButton.record.isEnable &&
+                this.callControlButton.record.controlText === ControlButtonText.RECORDING) {
+                this.voiceControlService.stopCallRecording(this.contactID).then((resp) => {
                     resolve(resp);
                 }, (err) => {
                     reject(err);

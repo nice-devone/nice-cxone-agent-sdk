@@ -487,11 +487,13 @@ export class CXoneDirectoryProvider {
         const requests = [];
         const isFTUnifyAgentStateOn = FeatureToggleService.instance.getFeatureToggleSync("release-cx-directory-agent-state-working-digital-AW-28472" /* FeatureToggles.DIRECTORY_AGENT_STATE_WORKING_DIGITAL_FEATURE_TOGGLE */);
         this.baseUri = isFTUnifyAgentStateOn ? this.acdSession.cxOneConfig.apiFacadeBaseUri : this.acdSession.cxOneConfig.acdApiBaseUri;
+        const isTenantSegmentationEnabled = FeatureToggleService.instance.getFeatureToggleSync("release-cxa-tenant-segmentation-AW-28101" /* FeatureToggles.TENANT_SEGMENTATION */);
         const authToken = this.acdSession.accessToken;
         if (this.baseUri && authToken) {
             if (entity.includes(DirectoryEntities.AGENT_LIST)) {
                 if (isFTUnifyAgentStateOn) {
-                    const agentStateUrl = new URL(ApiUriConstants.AGENT_STATE_UNIFY_URI, this.baseUri);
+                    const agentStateApiUri = isTenantSegmentationEnabled ? ApiUriConstants.AGENT_STATE_UNIFY_URI_TS : ApiUriConstants.AGENT_STATE_UNIFY_URI;
+                    const agentStateUrl = new URL(agentStateApiUri, this.baseUri);
                     agentStateUrl.searchParams.set('updatedSince', updatedSinceValue);
                     const agentStateRequest = {
                         headers: this.utilService.initHeader(authToken).headers,
@@ -503,7 +505,10 @@ export class CXoneDirectoryProvider {
                     });
                 }
                 else {
-                    const agentStateUrl = new URL(ApiUriConstants.AGENT_STATE_URI, this.baseUri);
+                    const agentStateUriConstant = isTenantSegmentationEnabled
+                        ? ApiUriConstants.AGENT_STATE_URI_TS
+                        : ApiUriConstants.AGENT_STATE_URI;
+                    const agentStateUrl = new URL(agentStateUriConstant, this.baseUri);
                     agentStateUrl.searchParams.set('fields', 'agentId,agentStateName,contactId,firstName,isActive,isOutbound,lastName,lastPollTime,lastUpdateTime,mediaName,outStateCode,outStateDescription,skillId,skillName,startDate,stationPhoneNumber,teamId,teamName,userName,userId');
                     if (updatedSinceValue) {
                         agentStateUrl.searchParams.set('updatedSince', updatedSinceValue);
@@ -519,7 +524,8 @@ export class CXoneDirectoryProvider {
                 }
             }
             if (entity.includes(DirectoryEntities.SKILL_LIST)) {
-                const skillUrl = new URL(ApiUriConstants.SKILL_ACTIVITY_URI, this.baseUri);
+                const endpointUri = isTenantSegmentationEnabled ? ApiUriConstants.SKILL_ACTIVITY_URI_TS : ApiUriConstants.SKILL_ACTIVITY_URI;
+                const skillUrl = new URL(endpointUri, this.baseUri);
                 skillUrl.searchParams.set('fields', 'isActive,isOutbound,mediaTypeId,mediaTypeName,skillId,skillName');
                 skillUrl.searchParams.set('updatedSince', skillUpdatedSinceValue);
                 const skillRequest = {
@@ -544,7 +550,7 @@ export class CXoneDirectoryProvider {
                 });
             }
             if (entity.includes(DirectoryEntities.TEAM_LIST)) {
-                const teamListUrl = new URL(ApiUriConstants.GET_TEAMS, this.baseUri);
+                const teamListUrl = new URL(isTenantSegmentationEnabled ? ApiUriConstants.GET_TEAMS_TS : ApiUriConstants.GET_TEAMS, this.baseUri);
                 teamListUrl.searchParams.set('fields', 'teamId,teamName,isActive,agentCount');
                 teamListUrl.searchParams.set('isActive', 'true');
                 teamListUrl.searchParams.set('updatedSince', teamUpdatedSinceValue);
@@ -1795,6 +1801,7 @@ export class CXoneDirectoryProvider {
                             // Remove entries present in currentAddressBookEntries but not in addressBookEntries
                             currentAddressBookEntries = currentAddressBookEntries.filter((currentAddressBookEntry) => addressBookEntries.some((addressBookEntry) => addressBookEntry.addressBookEntryId === currentAddressBookEntry.addressBookEntryId));
                             addressBookEntries.forEach((addressBookEntry, entryIndex) => {
+                                var _a;
                                 addressBookEntry.addressBookName = addressBook.addressBookName;
                                 const matchedEntryIndex = currentAddressBookEntries.findIndex((currentAddressBookEntry) => currentAddressBookEntry.addressBookEntryId === addressBookEntry.addressBookEntryId);
                                 // FAVORITES SYNC LOGIC
@@ -1807,7 +1814,15 @@ export class CXoneDirectoryProvider {
                                         currentFavAddressBookList[favIndex] = addressBookEntry;
                                     }
                                     else {
-                                        addressBookEntry.isFavorite = false;
+                                        // Added the following check to handle cases where the user searches using the favorites dropdown and no items match. 
+                                        // In such scenarios, currentFavAddressBookList becomes empty. This check also includes validation from local storage.
+                                        if (currentAddressBookEntries[matchedEntryIndex].isFavorite
+                                            && (currFavListInLS === null || currFavListInLS === void 0 ? void 0 : currFavListInLS.includes((_a = currentAddressBookEntries[matchedEntryIndex]) === null || _a === void 0 ? void 0 : _a.addressBookEntryId))) {
+                                            addressBookEntry.isFavorite = true;
+                                        }
+                                        else {
+                                            addressBookEntry.isFavorite = false;
+                                        }
                                     }
                                 }
                                 if (matchedEntryIndex >= 0)

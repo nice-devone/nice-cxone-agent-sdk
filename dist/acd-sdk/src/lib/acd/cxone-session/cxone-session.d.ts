@@ -9,6 +9,7 @@ export declare class CXoneSession {
     private user;
     private cxoneAcdClient;
     private cxoneClient;
+    private postContactDialerSkill;
     agentStateService: AgentStateService;
     personalConnectionService: PersonalConnectionService;
     onAgentSessionChange: Subject<AgentSessionResponse>;
@@ -91,4 +92,8 @@ export declare class CXoneSession {
      * Method to subscribe to the agent custom event
      */
     private subscribeOnAgentCustomEvent;
+    /**
+     * Method to subscribe to agent state changes, to handle PC dialer re-login if needed
+     */
+    private subscribeToAgentStateChange;
 }

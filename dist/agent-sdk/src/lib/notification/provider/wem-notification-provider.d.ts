@@ -12,6 +12,7 @@ export declare class WemNotificationProvider {
     private embeddedPagesLinks;
     private wemNotificationSvc;
     private notificationBase;
+    private isRecordingNotificationEnabled;
     /**
      * get instance for wemNotificationProvider and wemNotificationService
      * @example

@@ -1,4 +1,5 @@
 import { HttpUtilService, Logger, HttpClient, ACDSessionManager, ApiUriConstants, } from '@nice-devone/core-sdk';
+import { FeatureToggleService } from '../../feature-toggle';
 /**
  * Class to handling voice controls
  */
@@ -14,6 +15,7 @@ export class VoiceService {
         this.utilService = new HttpUtilService();
         this.acdSession = {};
         this.isAddContactInProgress = false;
+        this.TRANSFER_VOICE_MAIL_SKILL_TS = '/InContactAPI/services/V33.0/agent-sessions/{sessionId}/interactions/{contactId}/transfer-voicemail-to-skill';
         this.TRANSFER_VOICE_MAIL_SKILL = '/InContactAPI/services/V4.0/agent-sessions/{sessionId}/interactions/{contactId}/transfer-voicemail-to-skill';
         this.acdSession = ACDSessionManager.instance;
     }
@@ -29,7 +31,9 @@ export class VoiceService {
         const sessionId = this.acdSession.getSessionId();
         const baseUrl = this.acdSession.cxOneConfig.acdApiBaseUri;
         const authToken = this.acdSession.accessToken;
-        const url = baseUrl + ApiUriConstants.DIAL_PHONE_URI.replace('{sessionId}', sessionId);
+        const isTenantSegmentationEnabled = FeatureToggleService.instance.getFeatureToggleSync("release-cxa-tenant-segmentation-AW-28101" /* FeatureToggles.TENANT_SEGMENTATION */);
+        const endpointUri = isTenantSegmentationEnabled ? ApiUriConstants.DIAL_PHONE_URI_TS : ApiUriConstants.DIAL_PHONE_URI;
+        const url = baseUrl + endpointUri.replace('{sessionId}', sessionId);
         const reqInit = {
             headers: this.utilService.initHeader(authToken).headers,
             body: dialPhoneRequest,
@@ -84,7 +88,9 @@ export class VoiceService {
         const sessionId = this.acdSession.getSessionId();
         const baseUrl = this.acdSession.cxOneConfig.acdApiBaseUri;
         const authToken = this.acdSession.accessToken;
-        const url = baseUrl + ApiUriConstants.CONSULT_AGENT_URI.replace('{sessionId}', sessionId);
+        const url = baseUrl + (FeatureToggleService.instance.getFeatureToggleSync("release-cxa-tenant-segmentation-AW-28101" /* FeatureToggles.TENANT_SEGMENTATION */)
+            ? ApiUriConstants.CONSULT_AGENT_URI_TS
+            : ApiUriConstants.CONSULT_AGENT_URI).replace('{sessionId}', sessionId);
         const targetAgentId = {
             targetAgentId: agentId.toString(),
         };
@@ -139,7 +145,9 @@ export class VoiceService {
         const sessionId = this.acdSession.getSessionId();
         const baseUrl = this.acdSession.cxOneConfig.acdApiBaseUri;
         const authToken = this.acdSession.accessToken;
-        const url = baseUrl + ApiUriConstants.DIAL_AGENT_URI.replace('{sessionId}', sessionId);
+        const url = baseUrl + (FeatureToggleService.instance.getFeatureToggleSync("release-cxa-tenant-segmentation-AW-28101" /* FeatureToggles.TENANT_SEGMENTATION */)
+            ? ApiUriConstants.DIAL_AGENT_URI_TS
+            : ApiUriConstants.DIAL_AGENT_URI).replace('{sessionId}', sessionId);
         const payloadData = {
             targetAgentId: agentId,
             parentContactId: parentContactId,
@@ -170,7 +178,9 @@ export class VoiceService {
         const sessionId = this.acdSession.getSessionId();
         const baseUrl = this.acdSession.cxOneConfig.acdApiBaseUri;
         const authToken = this.acdSession.accessToken;
-        const url = baseUrl + ApiUriConstants.DIAL_SKILL_URI.replace('{sessionId}', sessionId);
+        const isTenantSegmentationEnabled = FeatureToggleService.instance.getFeatureToggleSync("release-cxa-tenant-segmentation-AW-28101" /* FeatureToggles.TENANT_SEGMENTATION */);
+        const endpointUri = isTenantSegmentationEnabled ? ApiUriConstants.DIAL_SKILL_URI_TS : ApiUriConstants.DIAL_SKILL_URI;
+        const url = baseUrl + endpointUri.replace('{sessionId}', sessionId);
         const payloadData = {
             skillId: skillId,
         };
@@ -224,7 +234,9 @@ export class VoiceService {
         const sessionId = this.acdSession.getSessionId();
         const baseUrl = this.acdSession.cxOneConfig.acdApiBaseUri;
         const url = baseUrl +
-            ApiUriConstants.TRANSFER_VOICEMAIL_CONTACT_URI.replace('{sessionId}', sessionId).replace('{contactId}', contactId);
+            (FeatureToggleService.instance.getFeatureToggleSync("release-cxa-tenant-segmentation-AW-28101" /* FeatureToggles.TENANT_SEGMENTATION */)
+                ? ApiUriConstants.TRANSFER_VOICEMAIL_CONTACT_URI_TS
+                : ApiUriConstants.TRANSFER_VOICEMAIL_CONTACT_URI).replace('{sessionId}', sessionId).replace('{contactId}', contactId);
         const authToken = this.acdSession.accessToken;
         const reqInit = {
             headers: this.utilService.initHeader(authToken).headers,
@@ -285,8 +297,9 @@ export class VoiceService {
     transferVoicemailSkill(contactId, skillId) {
         const sessionId = this.acdSession.getSessionId();
         const baseUrl = this.acdSession.cxOneConfig.acdApiBaseUri;
+        const isTenantSegmentationEnabled = FeatureToggleService.instance.getFeatureToggleSync("release-cxa-tenant-segmentation-AW-28101" /* FeatureToggles.TENANT_SEGMENTATION */);
         const url = baseUrl +
-            this.TRANSFER_VOICE_MAIL_SKILL.replace('{sessionId}', sessionId).replace('{contactId}', contactId);
+            (isTenantSegmentationEnabled ? this.TRANSFER_VOICE_MAIL_SKILL_TS : this.TRANSFER_VOICE_MAIL_SKILL).replace('{sessionId}', sessionId).replace('{contactId}', contactId);
         const authToken = this.acdSession.accessToken;
         const reqInit = {
             headers: this.utilService.initHeader(authToken).headers,

@@ -94,7 +94,11 @@ export interface EndUserRecipients {
  * Interface for handling contact payload during elevations
  */
 export interface ContactPayload {
-    elevation: ElevationPayload;
+    elevation?: ElevationPayload;
+    /**
+     * @remarks - Skill ID to which the contact is being initiated
+     */
+    skillId?: number;
 }
 export interface ElevationPayload {
     /**

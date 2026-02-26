@@ -48,6 +48,7 @@ class CXoneConfiguration {
             this.uiQueueWSBaseUri = this.getUIQueueWSBaseUri(userHubArea, this.domain);
             this.dfoAppBaseUri = this.getDfoAppBaseUri(userHubArea, this.domain);
             this.aaiTranscriptWsUri = this.getAaiTranscriptWsUri(userHubArea, this.domain);
+            this.grafanaFaroUri = this.getGrafanaFaroUri(userHubArea, this.domain);
         }
     }
     /**
@@ -239,6 +240,30 @@ class CXoneConfiguration {
      */
     getAaiTranscriptWsUri(userHubArea, domain) {
         return 'wss://websocket-' + userHubArea + '.' + domain + '/aai-notification/transcript/ws';
+    }
+    ;
+    /**
+   * This method returns the  grafana faro uri
+   * @returns - api end point
+   * @param userHubArea - userHubArea
+   * @param domain - domain
+   * @example
+   * ```
+   * getGrafanaFaroUri('na1','nicecxone-dev.com');
+   * ```
+   */
+    getGrafanaFaroUri(userHubArea, domain) {
+        const isNonProdEnv = ['dev', 'test', 'staging', 'performance'].includes(process.env.NX_DEST_ENV || '');
+        let grafanaDomain = domain;
+        // hardcoding below values for FedRamp and Non prod environments since domain received from api is different from what grafana AWS url expects
+        if (userHubArea === 'na2') {
+            grafanaDomain = 'nicecxone-gov.com';
+        }
+        else if (isNonProdEnv) {
+            const envName = process.env.NX_DEST_ENV === 'performance' ? 'perf' : process.env.NX_DEST_ENV;
+            grafanaDomain = `nicecxone-${envName}.com`;
+        }
+        return `https://mon-public-${userHubArea}.${grafanaDomain}:12345/collect`;
     }
     ;
 }

@@ -45,6 +45,7 @@ const mockWorkItemContactCard = {
     isDocked: true,
     callType: 'Regular',
 };
+//type this to CXoneWorkItemContact
 const mockWorkItemContactData = {
     contactID: '900719925474010002',
     contactStatus: WorkItemContactStatus.ACTIVE,

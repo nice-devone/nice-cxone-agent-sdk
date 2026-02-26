@@ -2,7 +2,7 @@ import { ACDSessionManager, ApiUriConstants, HttpClient, HttpUtilService, LocalS
 import { CXoneSdkError, CXoneSdkErrorType, UnavailableCode, } from '@nice-devone/common-sdk';
 import { Subject } from 'rxjs';
 import { CXoneAuth, CXoneUser } from '@nice-devone/auth-sdk';
-import { AgentStates } from '@nice-devone/agent-sdk';
+import { AgentStates, FeatureToggleService } from '@nice-devone/agent-sdk';
 /**
  * Class to perform Agent state's
  */
@@ -161,8 +161,9 @@ export class AgentStateService {
                 const cxOneConfig = this.auth.getCXoneConfig();
                 teamId = teamId ? teamId : (_a = CXoneUser.instance.getUserInfo().teamId) === null || _a === void 0 ? void 0 : _a.toString();
                 if (teamId) {
-                    let unavailableCodeUrl = cxOneConfig.acdApiBaseUri +
-                        ApiUriConstants.GET_UNAVAILABLE_CODES_URI.replace('{teamId}', teamId);
+                    const isTenantSegmentationEnabled = FeatureToggleService.instance.getFeatureToggleSync("release-cxa-tenant-segmentation-AW-28101" /* FeatureToggles.TENANT_SEGMENTATION */);
+                    const apiUri = isTenantSegmentationEnabled ? ApiUriConstants.GET_UNAVAILABLE_CODES_URI_TS : ApiUriConstants.GET_UNAVAILABLE_CODES_URI;
+                    let unavailableCodeUrl = cxOneConfig.acdApiBaseUri + apiUri.replace('{teamId}', teamId);
                     const params = { activityOnly: true };
                     unavailableCodeUrl = this.urlUtilSvc.appendQueryString(unavailableCodeUrl, params);
                     HttpClient.get(unavailableCodeUrl, reqInit).then((resp) => {

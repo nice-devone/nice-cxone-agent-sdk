@@ -1,6 +1,7 @@
 import { CXoneAuth } from '@nice-devone/auth-sdk';
 import { ACDSessionManager, HttpClient, HttpUtilService, LocalStorageHelper, Logger } from '@nice-devone/core-sdk';
 import { Subject } from 'rxjs';
+import { FeatureToggleService } from '../feature-toggle/feature-toggle-services';
 /**
  * Class to manage all commitments related methods
  */
@@ -180,7 +181,11 @@ export class CommitmentService {
     createCommitment(commitmentRequest) {
         const baseUrl = this.acdSession.cxOneConfig.acdApiBaseUri;
         const authToken = this.acdSession.accessToken;
-        const url = baseUrl + CommitmentService.CREATE_COMMITMENT;
+        const isTenantSegmentationEnabled = FeatureToggleService.instance.getFeatureToggleSync("release-cxa-tenant-segmentation-AW-28101" /* FeatureToggles.TENANT_SEGMENTATION */);
+        const createCommitmentUri = isTenantSegmentationEnabled
+            ? CommitmentService.CREATE_COMMITMENT_TS
+            : CommitmentService.CREATE_COMMITMENT;
+        const url = baseUrl + createCommitmentUri;
         const reqInit = {
             headers: this.utilService.initHeader(authToken).headers,
             body: commitmentRequest,
@@ -207,7 +212,11 @@ export class CommitmentService {
     editCommitment(callbackId, commitmentRequest) {
         const baseUrl = this.acdSession.cxOneConfig.acdApiBaseUri;
         const authToken = this.acdSession.accessToken;
-        const url = baseUrl + CommitmentService.EDIT_COMMITMENT.replace('{callbackId}', callbackId.toString());
+        const isTenantSegmentationEnabled = FeatureToggleService.instance.getFeatureToggleSync("release-cxa-tenant-segmentation-AW-28101" /* FeatureToggles.TENANT_SEGMENTATION */);
+        const editCommitmentUri = isTenantSegmentationEnabled
+            ? CommitmentService.EDIT_COMMITMENT_TS
+            : CommitmentService.EDIT_COMMITMENT;
+        const url = baseUrl + editCommitmentUri.replace('{callbackId}', callbackId.toString());
         const reqInit = {
             headers: this.utilService.initHeader(authToken).headers,
             body: commitmentRequest,
@@ -251,7 +260,9 @@ export class CommitmentService {
 }
 //Api uris to get, create, edit, delete commitments
 CommitmentService.GET_COMMITMENTS = '/incontactapi/services/v25.0/agents/{agentId}/scheduled-callbacks';
+CommitmentService.CREATE_COMMITMENT_TS = '/incontactapi/services/v33.0/scheduled-callbacks';
 CommitmentService.CREATE_COMMITMENT = '/incontactapi/services/v25.0/scheduled-callbacks';
+CommitmentService.EDIT_COMMITMENT_TS = '/incontactapi/services/v33.0/scheduled-callbacks/{callbackId}';
 CommitmentService.EDIT_COMMITMENT = '/incontactapi/services/v25.0/scheduled-callbacks/{callbackId}';
 CommitmentService.DELETE_COMMITMENT = '/incontactapi/services/v25.0/scheduled-callbacks/{callbackId}';
 // Api uri to make commitment call

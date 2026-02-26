@@ -80,6 +80,10 @@ export declare class CXoneConfiguration {
      */
     aaiTranscriptWsUri: string;
     /**
+   * @remarks - grafana faro URI for log collection
+   */
+    grafanaFaroUri: string;
+    /**
      * This method to parse CXoneConfiguration data
      * @param data - CXoneConfiguration API response
      * ```
@@ -251,4 +255,15 @@ export declare class CXoneConfiguration {
      * ```
      */
     private getAaiTranscriptWsUri;
+    /**
+   * This method returns the  grafana faro uri
+   * @returns - api end point
+   * @param userHubArea - userHubArea
+   * @param domain - domain
+   * @example
+   * ```
+   * getGrafanaFaroUri('na1','nicecxone-dev.com');
+   * ```
+   */
+    private getGrafanaFaroUri;
 }

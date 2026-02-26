@@ -78,5 +78,9 @@ var AgentCopilotContentType;
      * Represents the copilot Task asist Request State content type.
      */
     AgentCopilotContentType["TASK_ASSIST"] = "taskAssist";
+    /**
+     * Represents the copilot decision tree content type.
+     */
+    AgentCopilotContentType["DECISION_TREE"] = "decisionTree";
 })(AgentCopilotContentType = exports.AgentCopilotContentType || (exports.AgentCopilotContentType = {}));
 //# sourceMappingURL=agent-copilot-content-type.js.map

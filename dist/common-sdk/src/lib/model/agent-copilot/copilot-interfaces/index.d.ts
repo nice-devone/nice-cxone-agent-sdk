@@ -7,3 +7,4 @@ export * from './copilot-request-status';
 export * from './copilot-filter-details';
 export * from './contact-history';
 export * from './copilot-task-assist';
+export * from './copilot-decision-tree-data';

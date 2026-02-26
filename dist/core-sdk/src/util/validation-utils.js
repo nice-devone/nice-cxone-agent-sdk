@@ -104,24 +104,19 @@ export class ValidationUtils {
     }
     /**
      * Checks the value is valid email address or not
-     * @param emailAddress  - accepts string
-     * @example - validateEmail(test\@test.com);
-     * @returns  - true/false
+     * @param emailAddress - accepts string
+     * @example - `validateEmail('e.g.@i.au')`
+     * @returns - true/false
      *
      * * REGEX Explanation:
-     *
-     * Local Part (before the \@ symbol):
-     * - ^[a-zA-Z0-9!#$%&'*+/=?^_`{|}~-]+ // Must start with an alphanumeric character or special character (e.g., !#$%&'*+/=?^_`\{|\}~-).
-     * - (\.[a-zA-Z0-9!#$%&'*+/=?^_\`\{|\}~-]+)* --- Optional additional parts separated by periods.
-     * - \@ // The required \@ symbol separating local and domain parts.
-     
-     * Domain Part (after the \@ symbol):
-     * - ((\[[0-9]\{1,3\}\.[0-9]\{1,3\}\.[0-9]\{1,3\}\.[0-9]\{1,3\}\])| // Allows for an IP address in square brackets.
-     * - (([a-zA-Z0-9-])+\.)+ // Must start with an alphanumeric character and can contain hyphens and periods.
-     * - ([a-zA-Z0-9]\{2,4\})+$/ // TLD (top-level domain) must be 2 to 4 alphanumeric characters long.
+     * `[^\s@]+`: Local-part. Allows any character except a space or an `@`. (Matches e.g.)
+     * `@`: Separator. Mandatory
+     * `[^\s@]+`: Domain. Allows any character except space or an `@`. (Matches i)
+     * `\.`: Dot. Mandatory literal dot
+     * `[^\s@]{2,}`: TLD (Top-Level Domain). At least two characters, no spaces/at-signs. (Matches au)
      */
     validateEmail(emailAddress) {
-        return (/^[a-zA-Z0-9!#$%&'*+/=?^_`{|}~-]+(\.[a-zA-Z0-9!#$%&'*+/=?^_`{|}~-]+)*@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z0-9][a-zA-Z0-9-.]*[a-zA-Z0-9])+\.)+([a-zA-Z0-9]{2,15})+)$/).test(emailAddress);
+        return /^[^\s@]+@[^\s@/]+\.[^\s@/]{2,}$/.test(emailAddress);
     }
     /**
      * Checks the value is number or not for Directory search

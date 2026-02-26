@@ -1,5 +1,6 @@
 import { Logger } from '../../../logger/logger';
 import { HttpUtilService } from '../../http/http-util-service';
+import { CXoneGetNextAdapter } from '../../adapter/cxone-get-next-adapter';
 /**
  * GetNextEventProvider to perform getNextEvent polling
  */
@@ -27,6 +28,14 @@ export declare class GetNextEventProvider {
      * ```
      */
     static get instance(): GetNextEventProvider;
+    /**
+     * Getter to access the get next event adapter instance
+     * @example
+     * ```
+     * const adapter = GetNextEventProvider.instance.adapter;
+     * ```
+     */
+    get adapter(): CXoneGetNextAdapter;
     /**
      * Starts GetNextEvents for specified agent session
      * @example

@@ -14,5 +14,9 @@ var AllowedResponseHeaders;
      * Content-Disposition header used for file downloads
      */
     AllowedResponseHeaders["CONTENT_DISPOSITION"] = "content-disposition";
+    /**
+     * icBranchValue header
+     */
+    AllowedResponseHeaders["IC_BRANCH_VALUE"] = "icbranchvalue";
 })(AllowedResponseHeaders = exports.AllowedResponseHeaders || (exports.AllowedResponseHeaders = {}));
 //# sourceMappingURL=allowed-response-headers.js.map

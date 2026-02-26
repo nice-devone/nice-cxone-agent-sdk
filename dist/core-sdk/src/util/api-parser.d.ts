@@ -55,6 +55,17 @@ export declare class ApiParser {
      */
     parseAgentConfiguration(AgentProfileResponse: HttpResponse): AgentProfileSettings;
     /**
+     * This method to parse Desktop Profile Response and return configuration
+     *
+     * @param desktopProfileResponse  - Desktop Profile Response
+     * @returns - configuration data
+     * @example -
+     * ```
+     * parseDesktopProfileConfiguration(desktopProfileResponse)
+     * ```
+     */
+    parseDesktopProfileConfiguration(desktopProfileResponse: HttpResponse): AgentProfileSettings;
+    /**
      * Method to parse Central Branding Profile response
      *
      * @param settings  - CentralBrandingProfile response

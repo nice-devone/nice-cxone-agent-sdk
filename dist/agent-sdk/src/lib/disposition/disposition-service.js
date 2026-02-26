@@ -2,6 +2,7 @@ import { CXoneAuth } from '@nice-devone/auth-sdk';
 import { CXoneSdkError, CXoneSdkErrorType, CXoneDisposition, CXoneTagYup, CXoneSavedDispositionResponse, } from '@nice-devone/common-sdk';
 import { ACDSessionManager, ApiUriConstants, HttpClient, HttpUtilService, } from '@nice-devone/core-sdk';
 import { CcfLogger } from '../logger/ccf-logger';
+import { FeatureToggleService } from '../feature-toggle';
 /**
  * Class to handle dispositions
  */
@@ -118,8 +119,10 @@ export class DispositionService {
             const token = this.auth.getAuthToken();
             const reqInit = this.utilService.initHeader(token.accessToken, 'application/json');
             const cxOneConfig = this.auth.getCXoneConfig();
+            const isTenantSegmentationEnabled = FeatureToggleService.instance.getFeatureToggleSync("release-cxa-tenant-segmentation-AW-28101" /* FeatureToggles.TENANT_SEGMENTATION */);
+            const endpointUri = isTenantSegmentationEnabled ? ApiUriConstants.GET_DISPOSITION_URI_TS : ApiUriConstants.GET_DISPOSITION_URI;
             const url = cxOneConfig.acdApiBaseUri +
-                ApiUriConstants.GET_DISPOSITION_URI.replace('{skillId}', skillId);
+                endpointUri.replace('{skillId}', skillId);
             HttpClient.get(url, reqInit).then((response) => {
                 var _a, _b;
                 this.logger.info('getDispositions', 'dispositions using skill id' + response.toString());
@@ -161,8 +164,10 @@ export class DispositionService {
             const token = this.auth.getAuthToken();
             const reqInit = this.utilService.initHeader(token.accessToken, 'application/json');
             const cxOneConfig = this.auth.getCXoneConfig();
+            const isTenantSegmentationEnabled = FeatureToggleService.instance.getFeatureToggleSync("release-cxa-tenant-segmentation-AW-28101" /* FeatureToggles.TENANT_SEGMENTATION */);
+            const endpointUri = isTenantSegmentationEnabled ? ApiUriConstants.GET_TAGS_URI_TS : ApiUriConstants.GET_TAGS_URI;
             const url = cxOneConfig.acdApiBaseUri +
-                ApiUriConstants.GET_TAGS_URI.replace('{skillId}', skillId);
+                endpointUri.replace('{skillId}', skillId);
             HttpClient.get(url, reqInit).then((response) => {
                 var _a;
                 this.logger.info('getTags', 'tags using skill id' + response.toString());

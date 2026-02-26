@@ -23,6 +23,7 @@ export declare class UIQueueWsProvider {
     private internetCheckTimer;
     private isCustomKeepAlivePollingTimeoutEnabled;
     private keepAliveTimeout;
+    private isConnectionInProgress;
     /**
    * constructor which sets agent session instance
    * @example

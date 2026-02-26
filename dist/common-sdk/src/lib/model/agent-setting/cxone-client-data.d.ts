@@ -118,9 +118,7 @@ export declare class CXoneClientData {
          * @remarks - Favorite Skill Activity
          **/
         CXASecondaryDeviceName: any;
-        CXARingtone: any; /**
-           * @remarks - Favorite State Selector
-           */
+        CXARingtone: any;
         SecondaryDeviceDelay: any;
         AudioAgentMessage: any;
         AudioEndContact: any;
@@ -167,9 +165,7 @@ export declare class CXoneClientData {
          * @remarks - Favorite Skill Activity
          **/
         CXASecondaryDeviceName: any;
-        CXARingtone: any; /**
-           * @remarks - Favorite State Selector
-           */
+        CXARingtone: any;
         SecondaryDeviceDelay: any;
         AudioAgentMessage: any;
         AudioEndContact: any;

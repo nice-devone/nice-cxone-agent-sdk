@@ -26,6 +26,7 @@ import { PresenceSyncService } from './presence-sync/service/presence-sync-servi
 import { AgentAssistWSService } from './agent-assist/agent-assist-ws-service';
 import { VoiceBioHubService } from './voice-bio-hub/voice-bio-hub-service';
 import { CXoneAgentContactHistory } from './acd/cxone-agent-contact-history/cxone-agent-contact-history';
+import { SessionSwitchData } from './interfaces/session-switch-data';
 /** This is the base class for ACD */
 export declare class CXoneClient {
     private logger;
@@ -61,6 +62,19 @@ export declare class CXoneClient {
     agentAssistWSService: AgentAssistWSService;
     voiceBioHubService: VoiceBioHubService;
     isUIQueueEnabled: boolean;
+    private static isCopilotWsConnected;
+    /**
+     * Gets the Copilot notification WebSocket connection status.
+     * @returns True if the websocket is connected (or connection is in progress).
+     * @example CXoneClient.getCopilotWsConnected();
+     */
+    static getCopilotWsConnected(): boolean;
+    /**
+     * Sets the Copilot notification WebSocket connection flag.
+     * @param isConnected - True if the websocket is connected (or connection is in progress).
+     * @example CXoneClient.setCopilotWsConnected(false);
+     */
+    static setCopilotWsConnected(isConnected: boolean): void;
     /**
      * get instance for agent auth and session
      * @example
@@ -148,6 +162,26 @@ export declare class CXoneClient {
      */
     subscribeAgentAssistEvent: () => void;
     /**
+     * Lazily establishes the Copilot (Agent Assist) WebSocket connection when enabled and not already connected.
+     *
+     * This method checks the {@link FeatureToggles.LAZY_LOAD_COPILOT_WEBSOCKET} feature toggle and only attempts
+     * to connect if the Copilot WebSocket has not yet been marked as connected via {@link CXoneClient.getCopilotWsConnected}.
+     *
+     * Connection details are derived from:
+     * - CXone configuration: `aahNotificationWssUri`
+     * - Current user context: `icAgentId`, `userId`, `icBUId`
+     *
+     * If {@link FeatureToggles.MULTI_ACD_WEBSOCKET} is enabled, the connection identifier uses `userId`;
+     * otherwise it uses `icAgentId`. The WebSocket URL is constructed as:
+     * `aahNotificationWssUri?agentId=<connectionIdentifier>&BUid=<icBUId>`.
+     *
+     * On connection attempt, the internal "connected" flag is set optimistically. If the connection attempt throws,
+     * the flag is reset and an error is logged.
+     *
+     * @returns void
+     */
+    connectCopilotWebSocket: () => void;
+    /**
      * create Agent Assist Web Socket service object
      * @example this.createAgentAssistWSService();
      */
@@ -170,4 +204,13 @@ export declare class CXoneClient {
      * ```
      */
     submitFeedback(feedbackData: FeedbackData): Promise<import("@nice-devone/common-sdk").HttpResponse | import("@nice-devone/common-sdk").CXoneSdkError>;
+    /**
+     * Assigns selected case id to user in CXone sdk
+     * @param sessionDetails - contactId, interactionId, mediaType
+     * @example -
+     * ```
+     * switchContacts(sessionDetails);
+     * ```
+     */
+    switchContacts(sessionDetails: SessionSwitchData): void;
 }

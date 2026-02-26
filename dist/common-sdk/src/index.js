@@ -289,4 +289,7 @@ tslib_1.__exportStar(require("./lib/model/voice-transcription/interfaces/voice-t
 tslib_1.__exportStar(require("./lib/model/voice-transcription/interfaces/voice-transcription-status-event"), exports);
 tslib_1.__exportStar(require("./lib/model/voice-transcription/voice-transcription-response"), exports);
 tslib_1.__exportStar(require("./lib/enum/allowed-response-headers"), exports);
+tslib_1.__exportStar(require("./lib/enum/icon-variant"), exports);
+tslib_1.__exportStar(require("./lib/model/digital/cxone-digital-skill"), exports);
+tslib_1.__exportStar(require("./enum/agent-assist"), exports);
 //# sourceMappingURL=index.js.map

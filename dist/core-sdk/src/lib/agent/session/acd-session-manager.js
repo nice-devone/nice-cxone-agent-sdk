@@ -1,3 +1,4 @@
+import { __awaiter } from "tslib";
 import { HttpClient, HttpUtilService } from '../../http/index';
 import { GetNextEventProvider } from '../providers/get-next-event-provider';
 import { Logger } from '../../../logger/logger';
@@ -10,6 +11,8 @@ import { CXoneGetNextAdapter } from '../../adapter/cxone-get-next-adapter';
 import { UIQueueWsProvider } from '../providers/ui-queue-ws-provider';
 import { AdminService } from '../../admin';
 import { OriginatingServiceIdentifier } from '../../../enum/originating-service-identifier';
+import { clearIndexDbKey, dbInstance, IndexDBKeyNames, IndexDBStoreNames } from '../../indexDB';
+import { FeatureToggleService } from '../../../util/feature-toggle-services';
 /**
  * Utility for agent session management
  */
@@ -60,6 +63,8 @@ export class ACDSessionManager {
         this._onCommitmentStatusEvent = new Subject();
         this._agentAssistSummarySubject = new Subject;
         this._agentAssistWSSubject = new ReplaySubject(1);
+        this._agentAssistOmiliaGetNextSubject = new Subject();
+        this._closeOmiliaIFrameSubject = new Subject();
         this._voiceMailPlayBackSubject = new Subject();
         this._onNaturalCallingSkillListEvent = new Subject();
         this._onConferenceEvent = new Subject();
@@ -481,7 +486,8 @@ export class ACDSessionManager {
      */
     startSession(startSessionRequest, isUIQueueEnabled) {
         const baseUri = this.cxOneConfig.acdApiBaseUri;
-        const endpoint = baseUri + ApiUriConstants.AGENT_SESSION_URI;
+        const isTenantSegmentationEnabled = FeatureToggleService.instance.getFeatureToggleSync("release-cxa-tenant-segmentation-AW-28101" /* FeatureToggles.TENANT_SEGMENTATION */);
+        const endpoint = baseUri + (isTenantSegmentationEnabled ? ApiUriConstants.AGENT_SESSION_URI_TS : ApiUriConstants.AGENT_SESSION_URI);
         return new Promise((resolve, reject) => {
             const reqInit = {
                 headers: this.utilService.initHeader(this.accessToken, '').headers,
@@ -527,7 +533,8 @@ export class ACDSessionManager {
      */
     joinSession(options) {
         const baseUri = this.cxOneConfig.acdApiBaseUri;
-        const endpoint = baseUri + ApiUriConstants.JOIN_AGENT_SESSION_URI;
+        const isTenantSegmentationEnabled = FeatureToggleService.instance.getFeatureToggleSync("release-cxa-tenant-segmentation-AW-28101" /* FeatureToggles.TENANT_SEGMENTATION */);
+        const endpoint = baseUri + (isTenantSegmentationEnabled ? ApiUriConstants.JOIN_AGENT_SESSION_URI_TS : ApiUriConstants.JOIN_AGENT_SESSION_URI);
         return new Promise((resolve, reject) => {
             const reqInit = {
                 headers: this.utilService.initHeader(this.accessToken, '').headers,
@@ -588,7 +595,8 @@ export class ACDSessionManager {
      */
     endSession(endSessionRequest) {
         const baseUri = this.cxOneConfig.acdApiBaseUri;
-        const endpoint = baseUri + ApiUriConstants.AGENT_SESSION_URI + '/' + this.sessionId;
+        const isTenantSegmentationEnabled = FeatureToggleService.instance.getFeatureToggleSync("release-cxa-tenant-segmentation-AW-28101" /* FeatureToggles.TENANT_SEGMENTATION */);
+        const endpoint = baseUri + (isTenantSegmentationEnabled ? ApiUriConstants.AGENT_SESSION_URI_TS : ApiUriConstants.AGENT_SESSION_URI) + '/' + this.sessionId;
         return new Promise((resolve, reject) => {
             const reqInit = {
                 headers: this.utilService.initHeader(this.accessToken, '').headers,
@@ -664,7 +672,10 @@ export class ACDSessionManager {
      */
     startGetNextEvents(sessionId) {
         if (this.isEventQueueResized) {
-            this.adminService.resizeEventQueue(this.sessionId, false).then(() => {
+            if (!sessionId) {
+                sessionId = this.getSessionId();
+            }
+            this.adminService.resizeEventQueue(sessionId, false).then(() => {
                 this.isEventQueueResized = false;
                 this.logger.info('startGetNextEvents', 'Resized event queue');
             }, error => {
@@ -693,7 +704,10 @@ export class ACDSessionManager {
      */
     establishUIQSocketConnection(invokeSnapshot, sessionId) {
         this.terminateGetNextPolling();
-        this.adminService.resizeEventQueue(this.sessionId, true)
+        if (!sessionId) {
+            sessionId = this.getSessionId();
+        }
+        this.adminService.resizeEventQueue(sessionId, true)
             .then(() => {
             this.isEventQueueResized = true;
             UIQueueWsProvider.instance.connectAgent(this.userInfo, invokeSnapshot, sessionId);
@@ -743,6 +757,74 @@ export class ACDSessionManager {
    */
     get agentAssistWSSubject() {
         return this._agentAssistWSSubject;
+    }
+    /**
+     * Signal to close the Omilia iframe in CXA custom workspace
+     * @example -
+     * ```
+     * const closeOmiliaIFrameSubject  = acdSession.closeOmiliaIFrameSubject
+     * ```
+     */
+    get closeOmiliaIFrameSubject() {
+        return this._closeOmiliaIFrameSubject;
+    }
+    /**
+     * @example -
+     * ```
+     * const agentAssistOmiliaGetNextSubject  = acdSession.agentAssistOmiliaGetNextSubject
+     * ```
+     */
+    get agentAssistOmiliaGetNextSubject() {
+        this.updateAgentAssistOmiliaGetNextSubjectFromIndexDB();
+        return this._agentAssistOmiliaGetNextSubject;
+    }
+    /**
+   * @example -
+   * ```
+   * const updateAgentAssistOmiliaGetNextSubjectFromIndexDB  = await acdSession.updateAgentAssistOmiliaGetNextSubjectFromIndexDB()
+   * ```
+   */
+    updateAgentAssistOmiliaGetNextSubjectFromIndexDB() {
+        return __awaiter(this, void 0, void 0, function* () {
+            // check index DB, if value exists there, update the subject
+            const db = yield dbInstance();
+            const value = yield (db === null || db === void 0 ? void 0 : db.get(IndexDBStoreNames.OMILIA_VOICE_BIO, IndexDBKeyNames.OMILIA_GET_NEXT));
+            if (value) {
+                this._agentAssistOmiliaGetNextSubject.next(value);
+            }
+        });
+    }
+    /**
+   * @param value - CXoneAgentAssist value
+   * @example -
+   * ```
+   * await acdSession.setAgentAssistOmiliaGetNextSubject(value)
+   * ```
+   */
+    setAgentAssistOmiliaGetNextSubject(value) {
+        return __awaiter(this, void 0, void 0, function* () {
+            if (value) {
+                this._agentAssistOmiliaGetNextSubject.next(value);
+                // Also save in index DB
+                const db = yield dbInstance();
+                yield (db === null || db === void 0 ? void 0 : db.put(IndexDBStoreNames.OMILIA_VOICE_BIO, value, IndexDBKeyNames.OMILIA_GET_NEXT));
+            }
+        });
+    }
+    /**
+     * @param callContactEvent - CallContactEvent value
+     * @example -
+     * ```
+     * await acdSession.removeAgentAssistOmiliaGetNextEvent(callContactEvent)
+     * ```
+     */
+    removeAgentAssistOmiliaGetNextEvent(callContactEvent) {
+        return __awaiter(this, void 0, void 0, function* () {
+            // send close event
+            this._closeOmiliaIFrameSubject.next(callContactEvent);
+            // remove from index DB
+            yield clearIndexDbKey(IndexDBStoreNames.OMILIA_VOICE_BIO, IndexDBKeyNames.OMILIA_GET_NEXT);
+        });
     }
     /**
      * @example -

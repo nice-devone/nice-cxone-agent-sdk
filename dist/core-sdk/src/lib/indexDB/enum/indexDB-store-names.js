@@ -14,5 +14,6 @@ export var IndexDBStoreNames;
     IndexDBStoreNames["CONTACT_HISTORY"] = "ContactHistory";
     IndexDBStoreNames["CONVERSATIONS"] = "Conversations";
     IndexDBStoreNames["VOICE_TRANSCRIPTION"] = "VoiceTranscription";
+    IndexDBStoreNames["OMILIA_VOICE_BIO"] = "OmiliaVoiceBio";
 })(IndexDBStoreNames || (IndexDBStoreNames = {}));
 //# sourceMappingURL=indexDB-store-names.js.map

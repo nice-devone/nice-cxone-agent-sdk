@@ -57,6 +57,16 @@ export interface IntentConfig {
      *  flag indicating whether this element is used for task assist form capture functionality.
      */
     formCapture: boolean;
+    elements: {
+        failure: {
+            name: string;
+            value: string;
+        };
+        success: {
+            name: string;
+            value: string;
+        };
+    };
 }
 /**
  * Configuration for task assist, holding agent and task settings.
@@ -90,6 +100,10 @@ export interface TaskAssistConfig {
      * Identifier for the virtual agent.
      */
     virtualAgentId: string;
+    /**
+     * Friendly bot name exposed to UI (optional if backend omits it).
+     */
+    botName?: string;
 }
 /**
  * Contains detailed validation error information.
@@ -153,6 +167,10 @@ export interface CopilotTaskAssistCardData {
     data?: {
         [key: string]: string;
     };
+    isOpenButton: boolean;
+    isRunButton: boolean;
+    sendIconVisible: boolean;
+    insertIconVisible: boolean;
 }
 /**
  * Represents the possible statuses for the Task Assist feature.

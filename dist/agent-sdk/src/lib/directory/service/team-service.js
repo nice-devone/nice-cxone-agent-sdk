@@ -1,6 +1,7 @@
 import { CXoneAuth, CXoneUser } from '@nice-devone/auth-sdk';
 import { CXoneSdkError, CXoneSdkErrorType, Team } from '@nice-devone/common-sdk';
 import { Logger, HttpUtilService, HttpClient, ApiUriConstants, ValidationUtils, } from '@nice-devone/core-sdk';
+import { FeatureToggleService } from '../../feature-toggle/feature-toggle-services';
 /**
  * Class to perform get agents by team id
  */
@@ -30,7 +31,9 @@ export class TeamService {
         const token = this.auth.getAuthToken();
         const reqInit = this.utilService.initHeader(token.accessToken, 'application/json');
         const cxOneConfig = this.auth.getCXoneConfig();
-        const url = cxOneConfig.acdApiBaseUri + ApiUriConstants.GET_AGENT_WITH_TEAM_ID.replace('{teamId}', fetchAgentByTeamIdReq.teamId);
+        const isTenantSegmentationEnabled = FeatureToggleService.instance.getFeatureToggleSync("release-cxa-tenant-segmentation-AW-28101" /* FeatureToggles.TENANT_SEGMENTATION */);
+        const apiUri = isTenantSegmentationEnabled ? ApiUriConstants.GET_AGENT_WITH_TEAM_ID_TS : ApiUriConstants.GET_AGENT_WITH_TEAM_ID;
+        const url = cxOneConfig.acdApiBaseUri + apiUri.replace('{teamId}', fetchAgentByTeamIdReq.teamId);
         return new Promise((resolve, reject) => {
             if (this.validationUtils.isNotNullOrEmpty(fetchAgentByTeamIdReq.teamId)) {
                 HttpClient.get(url, reqInit).then((response) => {
@@ -91,7 +94,9 @@ export class TeamService {
         teamId = teamId ? teamId : (_a = CXoneUser.instance.getUserInfo().teamId) === null || _a === void 0 ? void 0 : _a.toString();
         return new Promise((resolve, reject) => {
             if (teamId) {
-                const url = cxOneConfig.acdApiBaseUri + ApiUriConstants.GET_TEAM_WITH_TEAM_ID.replace('{teamId}', teamId);
+                const isTenantSegmentationEnabled = FeatureToggleService.instance.getFeatureToggleSync("release-cxa-tenant-segmentation-AW-28101" /* FeatureToggles.TENANT_SEGMENTATION */);
+                const apiUri = isTenantSegmentationEnabled ? ApiUriConstants.GET_TEAM_WITH_TEAM_ID_TS : ApiUriConstants.GET_TEAM_WITH_TEAM_ID;
+                const url = cxOneConfig.acdApiBaseUri + apiUri.replace('{teamId}', teamId);
                 HttpClient.get(url, reqInit).then((response) => {
                     const team = new Team();
                     team.parse(response.data.teams[0]);

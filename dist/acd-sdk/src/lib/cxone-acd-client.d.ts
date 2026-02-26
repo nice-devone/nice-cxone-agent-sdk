@@ -91,4 +91,13 @@ export declare class CXoneAcdClient {
      * ```
      */
     private updateUIQInstanceManagerURL;
+    /**
+     * Set the custom agent URL for the Click to Dial extension
+     * @param customAgentUrl - The custom agent URL to be updated
+     * @example
+     * ```
+     * setClickToDialCustomAgentUrl('https://custom-agent-url.com');
+     * ```
+     */
+    setClickToDialCustomAgentUrl: (customAgentUrl: string) => void;
 }

@@ -8,6 +8,8 @@ import { CXoneIndicatorManager } from './acd/contact/cxone-indicator-manager';
 import { CXoneScreenPop } from './acd/contact/cxone-screen-pop';
 import { ContactManager } from './acd/contact/contact-manager';
 import { AgentDetailService } from './agent-detials/service/agent-details-service';
+import { CcfMessageType, CxaExtensionAdapter } from '@nice-devone/shared-apps-lib';
+import { CXoneAuth } from '@nice-devone/auth-sdk';
 /** This is the base class for ACD */
 export class CXoneAcdClient {
     /**
@@ -79,6 +81,28 @@ export class CXoneAcdClient {
                         break;
                 }
             });
+        };
+        /**
+         * Set the custom agent URL for the Click to Dial extension
+         * @param customAgentUrl - The custom agent URL to be updated
+         * @example
+         * ```
+         * setClickToDialCustomAgentUrl('https://custom-agent-url.com');
+         * ```
+         */
+        this.setClickToDialCustomAgentUrl = (customAgentUrl) => {
+            if (customAgentUrl && CXoneAuth.instance.getAuthState().isTokenValid) {
+                CxaExtensionAdapter.instance.cxoneExtensionId = 'anehaijgfhlkchmihoaklaimlclnomag';
+                CxaExtensionAdapter.instance.sendMessageToExtension({
+                    type: CcfMessageType.SetCtdCustomAgentUrl,
+                    data: {
+                        customAgentUrl,
+                    },
+                });
+            }
+            else {
+                this.logger.error('setCtdCustomAgentUrl', 'Failed to set CTD custom agent URL: Invalid token or missing parameters');
+            }
         };
         this.skillService = new SkillService();
         this.agentStateService = AgentStateService.instance;

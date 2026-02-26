@@ -3,6 +3,9 @@ import { CXoneAuth, CXoneUser } from '@nice-devone/auth-sdk';
 import { CXoneSdkError, CXoneSdkErrorType, CXoneRoutingQueueArray, SkillDeliveryParametersYupSchema, SkillDeliveryCPAManagementYupSchema as SkillCPAManagementYupSchema } from '@nice-devone/common-sdk';
 import { Logger, HttpUtilService, HttpClient, UrlUtilsService, ApiUriConstants, ValidationUtils, dbInstance, IndexDBKeyNames, IndexDBStoreNames } from '@nice-devone/core-sdk';
 import { SkillApiParser } from '../util/skill-api-parser';
+import { CXoneProductFeature } from '../../acd/enum/cxone-product-feature';
+import { CXoneClient } from '../../cxone-client';
+import { FeatureToggleService } from '../../feature-toggle/feature-toggle-services';
 /**
  * Class to perform get skills
  */
@@ -22,6 +25,7 @@ export class SkillService {
         this.validationUtils = new ValidationUtils();
         this.GET_SKILL_NAME_BY_ROUTING_ID = '/dfo/3.0/routing-queues?size=500';
         this.GET_SKILLS_URI = '/InContactAPI/services/v27.0/skills';
+        this.GET_SKILLS_URI_TS = '/acd-skills/v1/skills';
         this.auth = CXoneAuth.instance;
         SkillService.cachedAgentSkills = [];
     }
@@ -35,39 +39,50 @@ export class SkillService {
        * ```
        */
     getAgentSkills(agentId) {
-        const requiredAttributes = [
-            'skillId', 'skillName', 'isOutbound', 'isDialer', 'isNaturalCalling',
-            'outboundStrategy', 'priorityBlending', 'mediaTypeId', 'isRestricted',
-            'isActive', 'useDisposition', 'useACW', 'useSecondaryDispositions',
-            'requireDisposition', 'isNaturalCallingRunning'
-        ];
-        const requestParams = {
-            fields: requiredAttributes.join(','),
-            isSkillActive: true,
-        };
-        return new Promise((resolve, reject) => {
-            const token = this.auth.getAuthToken();
-            const user = CXoneUser.instance.getUserInfo();
-            const reqInit = this.utilService.initHeader(token.accessToken, 'application/json');
-            const cxOneConfig = this.auth.getCXoneConfig();
-            agentId = agentId ? agentId : user.icAgentId;
-            let skillUrl = cxOneConfig.acdApiBaseUri + ApiUriConstants.GET_AGENT_SKILLS_URI.replace('{agentId}', agentId);
-            skillUrl = this.urlUtilsService.appendQueryString(skillUrl, requestParams);
-            if (this.validationUtils.isNotNullOrEmpty(agentId)) {
-                HttpClient.get(skillUrl, reqInit).then((resp) => {
-                    this.logger.info('getAgentSkills', 'Get Agent skills Success');
-                    const skills = this.apiParser.parseAgentSkills(resp);
-                    resolve(skills);
-                    SkillService.cachedAgentSkills = skills;
-                }, (err) => {
-                    this.logger.error('getAgentSkills', 'Get Agent skills Failed ' + err.toString());
-                    reject(err);
-                });
+        return __awaiter(this, void 0, void 0, function* () {
+            const requiredAttributes = [
+                'skillId', 'skillName', 'isOutbound', 'isDialer', 'isNaturalCalling',
+                'outboundStrategy', 'priorityBlending', 'mediaTypeId', 'isRestricted',
+                'isActive', 'useDisposition', 'useACW', 'useSecondaryDispositions',
+                'requireDisposition', 'isNaturalCallingRunning'
+            ];
+            const isTSEnabled = yield CXoneClient.instance.cxoneTenant.checkProductEnablementFromTenantData([CXoneProductFeature.DIVISIONS]).catch(() => false);
+            const isTSObContactsFTEnabled = FeatureToggleService.instance.getFeatureToggleSync("release-cx-ts-digital-outbound-contacts-AW-36771" /* FeatureToggles.TS_DIGITAL_OB_CONTACTS_TOGGLE */);
+            if (isTSEnabled && isTSObContactsFTEnabled) {
+                requiredAttributes.push('digitalPOC', 'digitalPOCName');
             }
-            else {
-                this.logger.error('getAgentSkills', 'agentId is empty');
-                reject(new CXoneSdkError(CXoneSdkErrorType.INVALID_METHOD_INVOCATION, 'agentId is empty'));
-            }
+            const requestParams = {
+                fields: requiredAttributes.join(','),
+                isSkillActive: true,
+            };
+            return new Promise((resolve, reject) => {
+                const token = this.auth.getAuthToken();
+                const user = CXoneUser.instance.getUserInfo();
+                const reqInit = this.utilService.initHeader(token.accessToken, 'application/json');
+                const cxOneConfig = this.auth.getCXoneConfig();
+                agentId = agentId ? agentId : user.icAgentId;
+                const isTenantSegmentationEnabled = FeatureToggleService.instance.getFeatureToggleSync("release-cxa-tenant-segmentation-AW-28101" /* FeatureToggles.TENANT_SEGMENTATION */);
+                const skillUriConstant = isTenantSegmentationEnabled
+                    ? ApiUriConstants.GET_AGENT_SKILLS_URI_TS
+                    : ApiUriConstants.GET_AGENT_SKILLS_URI;
+                let skillUrl = cxOneConfig.acdApiBaseUri + skillUriConstant.replace('{agentId}', agentId);
+                skillUrl = this.urlUtilsService.appendQueryString(skillUrl, requestParams);
+                if (this.validationUtils.isNotNullOrEmpty(agentId)) {
+                    HttpClient.get(skillUrl, reqInit).then((resp) => {
+                        this.logger.info('getAgentSkills', 'Get Agent skills Success');
+                        const skills = this.apiParser.parseAgentSkills(resp);
+                        resolve(skills);
+                        SkillService.cachedAgentSkills = skills;
+                    }, (err) => {
+                        this.logger.error('getAgentSkills', 'Get Agent skills Failed ' + err.toString());
+                        reject(err);
+                    });
+                }
+                else {
+                    this.logger.error('getAgentSkills', 'agentId is empty');
+                    reject(new CXoneSdkError(CXoneSdkErrorType.INVALID_METHOD_INVOCATION, 'agentId is empty'));
+                }
+            });
         });
     }
     /**
@@ -107,7 +122,10 @@ export class SkillService {
                         const token = this.auth.getAuthToken();
                         const reqInit = this.utilService.initHeader(token.accessToken, 'application/json');
                         const cxOneConfig = this.auth.getCXoneConfig();
-                        const url = cxOneConfig.acdApiBaseUri + ApiUriConstants.GET_SKILL_WITH_ID_URI.replace('{skillId}', skillId);
+                        const isTenantSegmentationEnabled = FeatureToggleService.instance.getFeatureToggleSync("release-cxa-tenant-segmentation-AW-28101" /* FeatureToggles.TENANT_SEGMENTATION */);
+                        const baseUri = isTenantSegmentationEnabled ? cxOneConfig.apiFacadeBaseUri : cxOneConfig.acdApiBaseUri;
+                        const apiUri = isTenantSegmentationEnabled ? ApiUriConstants.GET_SKILL_WITH_ID_URI_TS : ApiUriConstants.GET_SKILL_WITH_ID_URI;
+                        const url = baseUri + apiUri.replace('{skillId}', skillId);
                         HttpClient.get(url, reqInit).then((response) => {
                             const skillDetail = this.apiParser.parseSkillDetails(response);
                             this.logger.info('getSkillById', 'skill details using skill id' + skillDetail);
@@ -149,7 +167,10 @@ export class SkillService {
                 const token = this.auth.getAuthToken();
                 const reqInit = this.utilService.initHeader(token.accessToken, 'application/json');
                 const cxOneConfig = this.auth.getCXoneConfig();
-                let skillUrl = cxOneConfig.acdApiBaseUri + this.GET_SKILLS_URI;
+                const isTenantSegmentationEnabled = FeatureToggleService.instance.getFeatureToggleSync("release-cxa-tenant-segmentation-AW-28101" /* FeatureToggles.TENANT_SEGMENTATION */);
+                const skillUri = isTenantSegmentationEnabled ? this.GET_SKILLS_URI_TS : this.GET_SKILLS_URI;
+                const baseUri = isTenantSegmentationEnabled ? cxOneConfig.apiFacadeBaseUri : cxOneConfig.acdApiBaseUri;
+                let skillUrl = baseUri + skillUri;
                 skillUrl = this.urlUtilsService.appendQueryString(skillUrl, requestParams);
                 HttpClient.get(skillUrl, reqInit).then((resp) => __awaiter(this, void 0, void 0, function* () {
                     this.logger.info('getAllSkillsList', 'Get Agent skills Success');

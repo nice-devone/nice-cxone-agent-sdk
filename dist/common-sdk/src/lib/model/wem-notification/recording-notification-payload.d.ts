@@ -27,4 +27,8 @@ export interface RecordingNotificationPayload {
      * @remarks - The unique identifier for the recording.
      */
     recordingId: string;
+    /**
+     * @remarks - The timestamp of the recording notification.
+     */
+    timestamp?: string;
 }

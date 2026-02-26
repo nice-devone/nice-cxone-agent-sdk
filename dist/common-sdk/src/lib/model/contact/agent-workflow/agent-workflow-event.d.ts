@@ -15,6 +15,10 @@ export declare class AgentWorkflowResponseEvent {
      */
     result: AgentWorkflowEventResult[];
     /**
+     * Base64 encoded string for CRM icon
+     */
+    iconBase64string?: string;
+    /**
      * used to parse the data
      * @example
      * ```

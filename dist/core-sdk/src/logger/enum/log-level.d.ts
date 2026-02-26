@@ -7,3 +7,11 @@ export declare enum LogLevel {
     FATAL = 5,
     OFF = 6
 }
+export declare enum GrafanaConsoleLogLevel {
+    Log = "log",
+    Info = "info",
+    Debug = "debug",
+    Error = "error",
+    Warn = "warn",
+    Trace = "trace"
+}

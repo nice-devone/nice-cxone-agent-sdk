@@ -1,3 +1,4 @@
+import { __awaiter } from "tslib";
 import { ACDSessionManager } from '@nice-devone/core-sdk';
 import { CXoneSdkError, CXoneSdkErrorType, CXoneLeaderElector, MessageType, MessageBus, AgentSessionStatus } from '@nice-devone/common-sdk';
 import { AgentStateService } from '../../agent-state/service/agent-state-service';
@@ -21,6 +22,7 @@ export class CXoneSession {
         this.user = {};
         this.cxoneAcdClient = {};
         this.cxoneClient = {};
+        this.postContactDialerSkill = null;
         this.agentStateService = {};
         this.personalConnectionService = {};
         this.onAgentSessionChange = new Subject();
@@ -45,6 +47,7 @@ export class CXoneSession {
         this.subscribeNaturalCallingSkillListEvent();
         this.subscribeHoursOfOperationEvent();
         this.subscribeOnAgentCustomEvent();
+        this.subscribeToAgentStateChange();
     }
     /**
     * Method to start the session
@@ -119,33 +122,44 @@ export class CXoneSession {
      */
     setAgentState(agentState) {
         var _a, _b;
-        const sessionIdValid = this.acdSessionManager.getSessionId();
-        const currentlyInPcDialer = sessionIdValid && ((_b = (_a = this.agentStateService) === null || _a === void 0 ? void 0 : _a.getAgentStateDetails()) === null || _b === void 0 ? void 0 : _b.isPersonalConnection);
-        const loginPcDialer = sessionIdValid && agentState.isPersonalConnection;
-        const onPcCall = this.cxoneAcdClient.contactManager.hasAnyPersonalConnectionContact();
-        let stateChangeResult = new Promise(() => {
-            Promise.resolve(new CXoneSdkError(CXoneSdkErrorType.INVALID_METHOD_INVOCATION, 'Failed to update the agent state'));
-        });
-        if ((currentlyInPcDialer || onPcCall) && loginPcDialer) {
-            this.personalConnectionService.pcDialerLogout().then(() => {
+        return __awaiter(this, void 0, void 0, function* () {
+            const sessionIdValid = this.acdSessionManager.getSessionId();
+            const currentlyInPcDialer = sessionIdValid && ((_b = (_a = this.agentStateService) === null || _a === void 0 ? void 0 : _a.getAgentStateDetails()) === null || _b === void 0 ? void 0 : _b.isPersonalConnection);
+            const loginPcDialer = sessionIdValid && agentState.isPersonalConnection;
+            const onPcCall = this.cxoneAcdClient.contactManager.hasAnyPersonalConnectionContact();
+            this.postContactDialerSkill = null;
+            let stateChangeResult = new Promise(() => {
+                Promise.resolve(new CXoneSdkError(CXoneSdkErrorType.INVALID_METHOD_INVOCATION, 'Failed to update the agent state'));
+            });
+            if ((currentlyInPcDialer || onPcCall) && loginPcDialer) {
+                if (onPcCall) {
+                    // If we are switching dialer skills while on a PC call,
+                    // we need to wait for the call to end before logging in again
+                    this.postContactDialerSkill = agentState;
+                    stateChangeResult = this.personalConnectionService.pcDialerLogout();
+                }
+                else {
+                    yield this.personalConnectionService.pcDialerLogout().then(() => {
+                        stateChangeResult = this.personalConnectionService.pcDialerLogin(agentState);
+                    });
+                }
+            }
+            else if (loginPcDialer) {
                 stateChangeResult = this.personalConnectionService.pcDialerLogin(agentState);
-            });
-        }
-        else if (loginPcDialer) {
-            stateChangeResult = this.personalConnectionService.pcDialerLogin(agentState);
-        }
-        else if (currentlyInPcDialer || onPcCall) {
-            this.personalConnectionService.pcDialerLogout().then(() => {
+            }
+            else if (currentlyInPcDialer || onPcCall) {
+                yield this.personalConnectionService.pcDialerLogout().then(() => {
+                    stateChangeResult = this.agentStateService.setAgentState(agentState);
+                });
+            }
+            else if (sessionIdValid) {
                 stateChangeResult = this.agentStateService.setAgentState(agentState);
-            });
-        }
-        else if (sessionIdValid) {
-            stateChangeResult = this.agentStateService.setAgentState(agentState);
-        }
-        else {
-            stateChangeResult = Promise.reject(new CXoneSdkError(CXoneSdkErrorType.INVALID_METHOD_INVOCATION, 'Session not started'));
-        }
-        return stateChangeResult;
+            }
+            else {
+                stateChangeResult = Promise.reject(new CXoneSdkError(CXoneSdkErrorType.INVALID_METHOD_INVOCATION, 'Session not started'));
+            }
+            return stateChangeResult;
+        });
     }
     /**
      * Method to subscribe start session data
@@ -181,7 +195,6 @@ export class CXoneSession {
             this.naturalCallingSkillListSubject.next(naturalCallingSkillList);
         });
     }
-    ;
     /**
      * Method to subscribe to the hours of operation event
      */
@@ -196,6 +209,18 @@ export class CXoneSession {
     subscribeOnAgentCustomEvent() {
         this.acdSessionManager.onAgentCustomEvent.subscribe((event) => {
             this.onAgentCustomEvent.next(event);
+        });
+    }
+    /**
+     * Method to subscribe to agent state changes, to handle PC dialer re-login if needed
+     */
+    subscribeToAgentStateChange() {
+        this.acdSessionManager.agentStateSubject.subscribe(() => {
+            const onAcdContact = this.cxoneAcdClient.contactManager.checkAcdContactsAvailable();
+            if (this.postContactDialerSkill && !onAcdContact) {
+                this.personalConnectionService.pcDialerLogin(this.postContactDialerSkill);
+                this.postContactDialerSkill = null;
+            }
         });
     }
 }

@@ -12,5 +12,6 @@ export declare enum IndexDBStoreNames {
     AGENT_ASSIST = "AgentAssist",
     CONTACT_HISTORY = "ContactHistory",
     CONVERSATIONS = "Conversations",
-    VOICE_TRANSCRIPTION = "VoiceTranscription"
+    VOICE_TRANSCRIPTION = "VoiceTranscription",
+    OMILIA_VOICE_BIO = "OmiliaVoiceBio"
 }

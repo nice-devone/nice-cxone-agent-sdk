@@ -193,6 +193,31 @@ export class VoiceControlService {
         });
     }
     /**
+     * Method to stop call recording
+     * @param contactId - contact Id
+     * @example -
+     * ```
+     * stopCallRecording(contactId);
+     * ```
+     */
+    stopCallRecording(contactId) {
+        const sessionId = this.acdSession.getSessionId();
+        const baseUrl = this.acdSession.cxOneConfig.acdApiBaseUri;
+        const authToken = this.acdSession.accessToken;
+        const reqInit = this.utilService.initHeader(authToken);
+        const url = baseUrl +
+            ApiUriConstants.STOP_CALL_RECORDING_URI.replace('{sessionId}', sessionId).replace('{contactId}', contactId);
+        return new Promise((resolve, reject) => {
+            HttpClient.post(url, reqInit).then((response) => {
+                this.logger.info('stopCallRecording', 'stop call recording success');
+                resolve(response);
+            }, (error) => {
+                this.logger.error('stopCallRecording', 'stop call recording failed :-' + error.toString());
+                reject(error);
+            });
+        });
+    }
+    /**
      * This method to end the contact
      * @param contactId -  contact id
      * @example

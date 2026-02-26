@@ -30,6 +30,11 @@ export class GetNextEventProvider {
         this.onPollingExecuted = (response) => {
             var _a;
             const errorResponse = response === null || response === void 0 ? void 0 : response.data;
+            const isRenewStateToggleEnabled = FeatureToggleService.instance.getFeatureToggleSync("release-renew-state-AW-48481" /* FeatureToggles.RENEW_STATE_FEATURE_TOGGLE */);
+            // Pass to handleGetNextResponse when icBranchValue is 3
+            if ((response === null || response === void 0 ? void 0 : response.icBranchValue) === '3' && isRenewStateToggleEnabled) {
+                this.getNextEventAdapter.handleGetNextResponse(response === null || response === void 0 ? void 0 : response.events, response === null || response === void 0 ? void 0 : response.icBranchValue);
+            }
             //NOTE: This is for the Errors from the API failure PoV
             //NOTE: This is for the offline error which we get when the user is disconnected with the internet.
             if ((errorResponse &&
@@ -158,6 +163,16 @@ export class GetNextEventProvider {
             GetNextEventProvider.singleton = new GetNextEventProvider();
         }
         return GetNextEventProvider.singleton;
+    }
+    /**
+     * Getter to access the get next event adapter instance
+     * @example
+     * ```
+     * const adapter = GetNextEventProvider.instance.adapter;
+     * ```
+     */
+    get adapter() {
+        return this.getNextEventAdapter;
     }
     /**
      * Starts GetNextEvents for specified agent session

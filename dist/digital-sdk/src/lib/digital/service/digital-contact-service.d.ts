@@ -23,8 +23,6 @@ export declare class DigitalContactService {
     private DIGITAL_QUICK_REPLIES_OUTBOUND;
     private DIGITAL_QR_REPLACE_VARIABLES;
     private QUICK_RESPONSE_REPLACE_VARIABLES;
-    private digitalEventSyncService;
-    private isWSAPIIntegrationRevampToggleEnabled;
     /**
      * @example
      * ```
@@ -69,16 +67,6 @@ export declare class DigitalContactService {
      * @example -
     */
     changeRoutingQueue(contactId: string, skillId: string): Promise<HttpResponse | CXoneSdkError>;
-    /**
-     * Method to check if event is already consumed
-     * @param response - Http response from API
-     * @param contactId - Contact Id of the digital contact
-     * @param eventName - Event name to check
-     * @returns - isEventConsumed
-     * @example -
-     * checkIfEventConsumed(response, '645337', 'CASE_INBOX_ASSIGNED')
-    */
-    private checkIfEventConsumed;
     /**
      * Method to get logged in user id from local storage
      * @returns - User Id of the logged in user
@@ -238,10 +226,11 @@ export declare class DigitalContactService {
      * Method to refuseDraftMessage
      * @param contactId - contact Id
      * @param messageDraftId - draft message id
+     * @param reason - reason for refusal
      * @returns response from API
      * @example
     */
-    refuseDraftMessage(contactId: string, messageDraftId: string): Promise<HttpResponse>;
+    refuseDraftMessage(contactId: string, messageDraftId: string, reason?: string): Promise<HttpResponse>;
     /**
      * Method to focus a digital contact
      * @param messageId - case id of the selected digital contact

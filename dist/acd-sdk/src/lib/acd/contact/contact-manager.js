@@ -2,7 +2,7 @@ import { __awaiter } from "tslib";
 import { AdminService, CallContactEventStatus, ACDSessionManager, Logger, VoiceMailContactEventStatus, dbInstance, IndexDBStoreNames, LocalStorageHelper, StorageKeys, isVoiceBioHubFeatureEnabled, } from '@nice-devone/core-sdk';
 import { CXoneVoiceContact } from './cxone-voice-contact';
 import { Subject } from 'rxjs';
-import { CXoneSdkError, CXoneSdkErrorType, WorkItemContactStatus, DirectoryEntities, MediaType, } from '@nice-devone/common-sdk';
+import { CXoneSdkError, CXoneSdkErrorType, WorkItemContactStatus, DirectoryEntities, MediaType, CallContactEventYup, VoiceMailContactEventYup, WorkItemContactEventYup, } from '@nice-devone/common-sdk';
 import { CXoneVoiceMailContact } from './cxone-voicemail-contact';
 import { CXoneWorkItemContact } from './cxone-workitem-contact';
 import { CXoneAcdClient } from '../../cxone-acd-client';
@@ -50,6 +50,7 @@ export class ContactManager {
         this.allContacts = {};
         this.voiceCallRecordServicePollingEvent = new Subject();
         this.onVoiceTranscriptContactEndEvent = new Subject();
+        this.renewStateSubscription = null;
         /**
          * Method used to get the CXoneContact
          */
@@ -98,6 +99,237 @@ export class ContactManager {
             this.connectVoiceBioHubWebSocket();
         }
         this.conferenceCallEventHandler();
+        const isRenewStateToggleEnabled = FeatureToggleService.instance.getFeatureToggleSync("release-renew-state-AW-48481" /* FeatureToggles.RENEW_STATE_FEATURE_TOGGLE */);
+        if (isRenewStateToggleEnabled) {
+            this.subscribeToRenewStateEvents();
+        }
+    }
+    /**
+     * Method to subscribe to renew state events from the GetNextAdapter
+     * This handles stuck contacts when icBranchValue === '3' is received
+     * Uses dynamic import to avoid circular dependency
+     */
+    subscribeToRenewStateEvents() {
+        // Prevent multiple subscriptions
+        if (this.renewStateSubscription && !this.renewStateSubscription.closed)
+            return;
+        // Dynamic import to avoid circular dependency between common-core-sdk and common-acd-sdk
+        import('@nice-devone/core-sdk').then(({ GetNextEventProvider }) => {
+            this.renewStateSubscription = GetNextEventProvider.instance.adapter.renewStateRequested.subscribe((data) => {
+                this.logger.info('subscribeToRenewStateEvents', `Renew state requested for ${data.contactIds.length} backend contacts`);
+                this.handleRenewState(data.contactIds);
+            });
+        }).catch((error) => {
+            this.logger.error('subscribeToRenewStateEvents', 'Failed to subscribe to renew state events: ' + error);
+        });
+    }
+    /**
+     * Handle renew state event - compares backend contacts with UI contacts to find and clear stuck contacts
+     * @param backendContactIds - array of contact IDs currently active in the backend
+     * @example
+     * ```
+     * handleRenewState(['contactId1', 'contactId2'])
+     * ```
+     */
+    handleRenewState(backendContactIds) {
+        this.logger.info('handleRenewState', `Renew State: Backend has ${backendContactIds.length} active contacts`);
+        const contactMaps = [
+            { map: this.voiceContactMap, type: 'voice' },
+            { map: this.voiceMailContactMap, type: 'voicemail' },
+            { map: this.workItemContactMap, type: 'workitem' }
+        ];
+        contactMaps.forEach(({ map, type }) => {
+            Array.from(map.keys()).forEach((contactId) => {
+                if (!backendContactIds.includes(contactId)) {
+                    const contact = map.get(contactId);
+                    if (contact) {
+                        this.logger.info('handleRenewState', `Renew State: Clearing ${type} contactID: ${contactId}`);
+                        contact.status = contact.type === ContactType.VOICEMAIL_CONTACT ? VoiceMailContactEventStatus.DISCARDED : CallContactEventStatus.DISCONNECTED;
+                        contact.finalState = true;
+                        this.clearContact(contact);
+                    }
+                }
+            });
+        });
+    }
+    /**
+     * Method to create contact event object based on contact type
+     * @param contact - CXoneContactType (CXoneVoiceContact | CXoneVoiceMailContact | CXoneWorkItemContact)
+     * @returns CallContactEvent | VoiceMailContactEvent | WorkItemContactEvent
+     * @example
+     * ```
+     * createContactEventObject(contact)
+     * ```
+     */
+    createContactEventObject(contact) {
+        switch (contact.type) {
+            case ContactType.VOICE_CONTACT:
+                return this.mapToCallContactEvent(contact);
+            case ContactType.VOICEMAIL_CONTACT:
+                return this.mapToVoiceMailContactEvent(contact);
+            case ContactType.WORKITEM_CONTACT:
+                return this.mapToWorkItemContactEvent(contact);
+            default:
+                throw new Error(`Unknown contact type: ${contact.type}`);
+        }
+    }
+    /**
+     * Maps CXoneVoiceContact to CallContactEvent
+     * @param contact - CXoneVoiceContact instance
+     * @returns CallContactEvent
+     */
+    mapToCallContactEvent(contact) {
+        return CallContactEventYup.cast({
+            contactId: contact.contactID,
+            masterId: contact.contactID,
+            status: CallContactEventStatus.DISCONNECTED,
+            originalState: contact.originalState,
+            callType: contact.type,
+            isInbound: contact.isInbound,
+            startTime: contact.startTime,
+            lastStateChangeTime: contact.lastStateChangeTime,
+            screenPopUrl: contact.screenPopUrl,
+            disconnectCode: contact.disconnectCode,
+            isLogging: contact.isLogging,
+            timeout: contact.timeout,
+            allowDispositions: contact.allowDispositions,
+            label: contact.label,
+            isLinked: contact.isLinked,
+            timeZones: contact.timeZones,
+            finalState: true,
+            otherInformation: contact.otherInformation,
+            otherInformationNewFormat: contact.otherInformationNewFormat,
+            blendingToSkillName: contact.blendingToSkillName,
+            deliveryType: contact.deliveryType,
+            customData: contact.customData,
+            complianceRecord: contact.complianceRecord,
+            confirmationRequired: contact.confirmationRequired,
+            parentContactId: contact.parentContactId,
+            omniGroupId: contact.omniGroupId,
+            externalId: contact.externalId,
+            ansMachineOverride: contact.ansMachineOverride,
+            ansMachineOverrideEndTime: contact.ansMachineOverrideEndTime,
+            customerCardUrl: contact.customerCardUrl,
+            interactionId: contact.interactionId,
+            isRequireManualAccept: contact.isRequireManualAccept,
+            ani: contact.ani,
+            dnis: contact.dnis,
+            skill: contact.skill,
+            lastStateChangeTimeUtc: contact.lastStateChangeTime,
+            startTimeUtc: contact.startTime,
+            screenPopUrlVariables: contact.screenPopUrlVariables,
+        });
+    }
+    /**
+     * Maps CXoneVoiceMailContact to VoiceMailContactEvent
+     * @param contact - CXoneVoiceMailContact instance
+     * @returns VoiceMailContactEvent
+     */
+    mapToVoiceMailContactEvent(contact) {
+        var _a, _b, _c, _d, _e, _f, _g, _h, _j, _k, _l, _m, _o;
+        return VoiceMailContactEventYup.cast({
+            contactId: contact.contactID,
+            createdDate: ((_a = contact.voiceMailEventData) === null || _a === void 0 ? void 0 : _a.createdDate) || new Date(),
+            customData: ((_b = contact.voiceMailEventData) === null || _b === void 0 ? void 0 : _b.customData) || '',
+            fileDuration: ((_c = contact.voiceMailEventData) === null || _c === void 0 ? void 0 : _c.fileDuration) || 0,
+            fileName: ((_d = contact.voiceMailEventData) === null || _d === void 0 ? void 0 : _d.fileName) || '',
+            finalState: true,
+            from: contact.from || '',
+            isInbound: ((_e = contact.voiceMailEventData) === null || _e === void 0 ? void 0 : _e.isInbound) || true,
+            label: ((_f = contact.voiceMailEventData) === null || _f === void 0 ? void 0 : _f.label) || '',
+            lastStateChangeTime: contact.lastStateChangeTime,
+            masterID: contact.contactID,
+            omniGroupId: ((_g = contact.voiceMailEventData) === null || _g === void 0 ? void 0 : _g.omniGroupId) || '',
+            parentContactId: ((_h = contact.voiceMailEventData) === null || _h === void 0 ? void 0 : _h.parentContactId) || '',
+            requireDisposition: contact.requireDisposition || false,
+            screenPopUrl: ((_j = contact.voiceMailEventData) === null || _j === void 0 ? void 0 : _j.screenPopUrl) || '',
+            skill: contact.skill || '',
+            skillName: contact.skillName || '',
+            startTime: ((_k = contact.voiceMailEventData) === null || _k === void 0 ? void 0 : _k.startTime) || new Date(),
+            status: VoiceMailContactEventStatus.DISCARDED,
+            to: ((_l = contact.voiceMailEventData) === null || _l === void 0 ? void 0 : _l.to) || '',
+            type: ((_m = contact.voiceMailEventData) === null || _m === void 0 ? void 0 : _m.type) || 'VoiceMailContactEvent',
+            voiceMailType: ((_o = contact.voiceMailEventData) === null || _o === void 0 ? void 0 : _o.voiceMailType) || '',
+        });
+    }
+    /**
+     * Maps CXoneWorkItemContact to WorkItemContactEvent
+     * @param contact - CXoneWorkItemContact instance
+     * @returns WorkItemContactEvent
+     */
+    mapToWorkItemContactEvent(contact) {
+        var _a, _b, _c, _d, _e, _f, _g, _h, _j, _k, _l, _m, _o, _p, _q, _r, _s, _t, _u, _v, _w, _x;
+        return WorkItemContactEventYup.cast({
+            agentId: ((_a = contact.workItemEventData) === null || _a === void 0 ? void 0 : _a.agentId) || 0,
+            contactId: contact.contactID,
+            customData: ((_b = contact.workItemEventData) === null || _b === void 0 ? void 0 : _b.customData) || '',
+            closePopoutUponTermination: ((_c = contact.workItemEventData) === null || _c === void 0 ? void 0 : _c.closePopoutUponTermination) || false,
+            finalState: true,
+            iisHost: ((_d = contact.workItemEventData) === null || _d === void 0 ? void 0 : _d.iisHost) || '',
+            inFocus: ((_e = contact.workItemEventData) === null || _e === void 0 ? void 0 : _e.inFocus) || false,
+            lastStateChangeTime: contact.lastStateChangeTime,
+            lastStateChangeTimeUtc: contact.lastStateChangeTime,
+            masterId: contact.contactID,
+            omniGroupId: ((_f = contact.workItemEventData) === null || _f === void 0 ? void 0 : _f.omniGroupId) || '',
+            parentContactId: ((_g = contact.workItemEventData) === null || _g === void 0 ? void 0 : _g.parenContactId) || '',
+            popDestination: ((_h = contact.workItemEventData) === null || _h === void 0 ? void 0 : _h.popDestination) || '',
+            popoutWindowHeight: ((_j = contact.workItemEventData) === null || _j === void 0 ? void 0 : _j.popoutWindowHeight) || 0,
+            popoutWindowWidth: ((_k = contact.workItemEventData) === null || _k === void 0 ? void 0 : _k.popoutWindowWidth) || 0,
+            refusalTimeout: ((_l = contact.workItemEventData) === null || _l === void 0 ? void 0 : _l.refusalTimeout) || 0,
+            screenPopUrl: ((_m = contact.workItemEventData) === null || _m === void 0 ? void 0 : _m.screenPopUrl) || '',
+            skillId: contact.skill || '',
+            startTime: ((_o = contact.workItemEventData) === null || _o === void 0 ? void 0 : _o.startTime) || new Date(),
+            startTimeUtc: ((_p = contact.workItemEventData) === null || _p === void 0 ? void 0 : _p.startTime) || new Date(),
+            status: WorkItemContactStatus.DISCONNECTED,
+            tabTitle: ((_q = contact.workItemEventData) === null || _q === void 0 ? void 0 : _q.tabTitle) || '',
+            type: ((_r = contact.workItemEventData) === null || _r === void 0 ? void 0 : _r.type) || 'WorkItemContactEvent',
+            url: ((_s = contact.workItemEventData) === null || _s === void 0 ? void 0 : _s.url) || '',
+            vcHost: ((_t = contact.workItemEventData) === null || _t === void 0 ? void 0 : _t.vcHost) || '',
+            workItemId: ((_u = contact.workItemEventData) === null || _u === void 0 ? void 0 : _u.workItemId) || '',
+            workItemPayload: ((_v = contact.workItemEventData) === null || _v === void 0 ? void 0 : _v.workItemPayload) || '',
+            workItemType: ((_w = contact.workItemEventData) === null || _w === void 0 ? void 0 : _w.workItemType) || '',
+            sessionId: ((_x = contact.workItemEventData) === null || _x === void 0 ? void 0 : _x.sessionId) || '',
+        });
+    }
+    /**
+     * Method to remove contact data from all maps and storage
+     * @param contact - the contact to remove data for
+     * @example - removeContactData(contact)
+     */
+    removeContactData(contactID) {
+        delete this.allContacts[contactID];
+        delete this.dispositionsData[contactID];
+        delete this.tagsData[contactID];
+    }
+    /**
+     * Method to clear a stuck contact from all maps and storage
+     * @param contact - the contact to clear
+     * @example
+     * ```
+     * clearContact(contact)
+     * ```
+     */
+    clearContact(contact) {
+        this.logger.info('clearContact', `Clearing ${contact.type} contact: ${contact.contactID}`);
+        this.publishContact(contact);
+        const contactEvent = this.createContactEventObject(contact);
+        this.removeContactData(contact.contactID);
+        switch (contact.type) {
+            case ContactType.VOICE_CONTACT:
+                this.acdSession.callContactEventSubject.next(contactEvent);
+                break;
+            case ContactType.VOICEMAIL_CONTACT:
+                this.acdSession.voiceMailContactEventSubject.next(contactEvent);
+                break;
+            case ContactType.WORKITEM_CONTACT:
+                this.acdSession.workItemContactEventSubject.next(contactEvent);
+                break;
+            default:
+                this.logger.error('clearContact', `Unknown contact type "${contact.type}" for contact: ${JSON.stringify(contact)}`);
+                break;
+        }
+        this.acdSession.onContactEvent.next([contactEvent]);
+        this.acdSession.onGetNextEvent.next([JSON.parse(JSON.stringify(contactEvent))]);
     }
     /**
      * Returns whether the agent has any PC dialer calls

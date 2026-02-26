@@ -1,5 +1,5 @@
 import { __awaiter } from "tslib";
-import { ACDSessionManager, AdminService, clearIndexDbKey, clearIndexDbStore, HttpUtilService, IndexDBKeyNames, IndexDBStoreNames, LocalStorageHelper, Logger, NotificationSettings, OriginatingServiceIdentifier, SessionStorageHelper, StorageKeys, } from '@nice-devone/core-sdk';
+import { ACDSessionManager, AdminService, clearIndexDbKey, clearIndexDbStore, FeatureToggleService, HttpUtilService, IndexDBKeyNames, IndexDBStoreNames, LocalStorageHelper, Logger, NotificationSettings, OriginatingServiceIdentifier, SessionStorageHelper, StorageKeys, } from '@nice-devone/core-sdk';
 import { CXoneLeaderElector, MessageBus, MessageType, } from '@nice-devone/common-sdk';
 import { CXoneDirectory } from './directory/cxone-directory';
 import { CopilotNotificationClient } from './agent-copilot/copilot-notification-client';
@@ -200,9 +200,50 @@ export class CXoneClient {
                 const agentAssistJson = JSON.parse(acpConfig);
                 const providerId = (_a = agentAssistJson === null || agentAssistJson === void 0 ? void 0 : agentAssistJson.Params) === null || _a === void 0 ? void 0 : _a.providerId;
                 if (agentAssistJson && providerId === AgentAssistProvider.AGENT_COPILOT) {
+                    this.connectCopilotWebSocket();
                     this.copilotService.storeAgentAssistConfig(agentAssistJson === null || agentAssistJson === void 0 ? void 0 : agentAssistJson.ContactId.toString(), agentAssistJson === null || agentAssistJson === void 0 ? void 0 : agentAssistJson.MediaType, agentAssistJson === null || agentAssistJson === void 0 ? void 0 : agentAssistJson.AgentAssistId);
                 }
             });
+        };
+        /**
+         * Lazily establishes the Copilot (Agent Assist) WebSocket connection when enabled and not already connected.
+         *
+         * This method checks the {@link FeatureToggles.LAZY_LOAD_COPILOT_WEBSOCKET} feature toggle and only attempts
+         * to connect if the Copilot WebSocket has not yet been marked as connected via {@link CXoneClient.getCopilotWsConnected}.
+         *
+         * Connection details are derived from:
+         * - CXone configuration: `aahNotificationWssUri`
+         * - Current user context: `icAgentId`, `userId`, `icBUId`
+         *
+         * If {@link FeatureToggles.MULTI_ACD_WEBSOCKET} is enabled, the connection identifier uses `userId`;
+         * otherwise it uses `icAgentId`. The WebSocket URL is constructed as:
+         * `aahNotificationWssUri?agentId=<connectionIdentifier>&BUid=<icBUId>`.
+         *
+         * On connection attempt, the internal "connected" flag is set optimistically. If the connection attempt throws,
+         * the flag is reset and an error is logged.
+         *
+         * @returns void
+         */
+        this.connectCopilotWebSocket = () => {
+            const shouldLazyLoadCopilotWS = FeatureToggleService.instance.getFeatureToggleSync("release-agentcopilot-lazy-load-websocket-CSA-58356" /* FeatureToggles.LAZY_LOAD_COPILOT_WEBSOCKET */);
+            //CSA-55632: setup copilot websocket connection lazily on first agent assist event
+            if (shouldLazyLoadCopilotWS && !CXoneClient.getCopilotWsConnected()) {
+                const userInfo = this.cxoneUser.getUserInfo();
+                const cxoneConfig = this.auth.getCXoneConfig();
+                const { aahNotificationWssUri } = cxoneConfig;
+                const { icAgentId, userId, icBUId } = userInfo;
+                const isMultiACDWebsocketEnabled = FeatureToggleService.instance.getFeatureToggleSync("release-agentcopilot-multiacd-websocket-CSA-28481" /* FeatureToggles.MULTI_ACD_WEBSOCKET */);
+                const connectionIdentifier = isMultiACDWebsocketEnabled ? userId : icAgentId;
+                const copilotNotificationWssUri = `${aahNotificationWssUri}?agentId=${connectionIdentifier}&BUid=${icBUId}`;
+                CXoneClient.setCopilotWsConnected(true);
+                try {
+                    this.copilotNotificationClient.connect(copilotNotificationWssUri, connectionIdentifier);
+                }
+                catch (error) {
+                    CXoneClient.setCopilotWsConnected(false);
+                    this.logger.error('subscribeAgentAssistEvent', 'Failed to connect Copilot websocket: ' + JSON.stringify(error));
+                }
+            }
         };
         this.auth = CXoneAuth.instance;
         this.cxoneUser = CXoneUser.instance;
@@ -210,6 +251,22 @@ export class CXoneClient {
         this.subscribeRequestMessage();
         this.subscribeResponseMessage();
         window.addEventListener(AuthStatus.REFRESH_TOKEN_SUCCESS, this.handleRefreshTokenSuccess.bind(this));
+    }
+    /**
+     * Gets the Copilot notification WebSocket connection status.
+     * @returns True if the websocket is connected (or connection is in progress).
+     * @example CXoneClient.getCopilotWsConnected();
+     */
+    static getCopilotWsConnected() {
+        return CXoneClient.isCopilotWsConnected;
+    }
+    /**
+     * Sets the Copilot notification WebSocket connection flag.
+     * @param isConnected - True if the websocket is connected (or connection is in progress).
+     * @example CXoneClient.setCopilotWsConnected(false);
+     */
+    static setCopilotWsConnected(isConnected) {
+        CXoneClient.isCopilotWsConnected = isConnected;
     }
     /**
      * Method to create singleton object of the class
@@ -232,6 +289,7 @@ export class CXoneClient {
      * ```
      */
     initAuthDependentModules() {
+        var _a, _b, _c, _d, _e, _f;
         return __awaiter(this, void 0, void 0, function* () {
             this.hasInitModuleInitiated = true;
             // eslint-disable-next-line @typescript-eslint/no-unused-expressions
@@ -273,10 +331,17 @@ export class CXoneClient {
             }).catch(() => {
                 this.logger.error('initAuthDependentModules', 'Failed to check UI Queue enablement');
             });
-            HttpUtilService.originatingServiceIdentifier =
-                CXoneAuth.instance.authSettings.originatingServiceIdentifier ||
+            // set originating service identifier for HttpUtilService
+            if (((_b = (_a = CXoneAuth.instance) === null || _a === void 0 ? void 0 : _a.authSettings) === null || _b === void 0 ? void 0 : _b.originatingServiceIdentifier) === OriginatingServiceIdentifier.CXONE_AGENT ||
+                ((_d = (_c = CXoneAuth.instance) === null || _c === void 0 ? void 0 : _c.authSettings) === null || _d === void 0 ? void 0 : _d.originatingServiceIdentifier) === OriginatingServiceIdentifier.CXONE_AGENT_CHAT) {
+                HttpUtilService.originatingServiceIdentifier =
+                    (_f = (_e = CXoneAuth.instance) === null || _e === void 0 ? void 0 : _e.authSettings) === null || _f === void 0 ? void 0 : _f.originatingServiceIdentifier;
+            }
+            else {
+                HttpUtilService.originatingServiceIdentifier =
                     LocalStorageHelper.getItem(StorageKeys.ORIGINATING_SERVICE_IDENTIFIER) ||
-                    OriginatingServiceIdentifier.CXONE_AGENT;
+                        OriginatingServiceIdentifier.CMA_SDK;
+            }
         });
     }
     /**
@@ -374,10 +439,20 @@ export class CXoneClient {
      * handler for update the refresh token
      */
     handleRefreshTokenSuccess() {
-        this.logger.info('handleRefreshTokenSuccess', 'Token updated successfully through refresh token flow');
-        const accessToken = this.auth.getAuthToken().accessToken;
-        AdminService.instance.setAccessToken(accessToken);
-        ACDSessionManager.instance.setAccessToken(accessToken);
+        return __awaiter(this, void 0, void 0, function* () {
+            this.logger.info('handleRefreshTokenSuccess', 'Token updated successfully through refresh token flow');
+            const accessToken = this.auth.getAuthToken().accessToken;
+            const idToken = this.auth.getAuthToken().idToken;
+            AdminService.instance.setAccessToken(accessToken);
+            ACDSessionManager.instance.setAccessToken(accessToken);
+            try {
+                //invoke acp token refresh service
+                yield this.copilotService.refreshTokens(idToken, accessToken);
+            }
+            catch (error) {
+                this.logger.error('handleRefreshTokenSuccess', 'Error in refreshing ACP tokens' + JSON.stringify(error));
+            }
+        });
     }
     /**
      * create auto summary service object
@@ -454,5 +529,32 @@ export class CXoneClient {
     submitFeedback(feedbackData) {
         return AdminService.instance.submitFeedback(feedbackData);
     }
+    /**
+     * Assigns selected case id to user in CXone sdk
+     * @param sessionDetails - contactId, interactionId, mediaType
+     * @example -
+     * ```
+     * switchContacts(sessionDetails);
+     * ```
+     */
+    switchContacts(sessionDetails) {
+        var _a;
+        const isSdkMsdContextSwitchEnabled = FeatureToggleService.instance.getFeatureToggleSync("release-cxa-sdk-MSD-context-switch-AW-47558" /* FeatureToggles.SDK_MSD_CONTEXT_SWITCHING */);
+        if (!isSdkMsdContextSwitchEnabled) {
+            return;
+        }
+        this.logger.info('switchContacts', `param sessionDetails: ${sessionDetails}`);
+        const message = {
+            issuer: 'CMASDK',
+            messageType: 'ContactSwitch',
+            contactId: sessionDetails === null || sessionDetails === void 0 ? void 0 : sessionDetails.contactId,
+            interactionId: sessionDetails === null || sessionDetails === void 0 ? void 0 : sessionDetails.interactionId,
+            mediaType: sessionDetails === null || sessionDetails === void 0 ? void 0 : sessionDetails.mediaType,
+        };
+        const iFrame = document.getElementById('launchCXAFrame');
+        if (iFrame)
+            (_a = iFrame === null || iFrame === void 0 ? void 0 : iFrame.contentWindow) === null || _a === void 0 ? void 0 : _a.postMessage(message, '*');
+    }
 }
+CXoneClient.isCopilotWsConnected = false;
 //# sourceMappingURL=cxone-client.js.map

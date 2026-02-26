@@ -41,4 +41,12 @@ export interface CXoneVoiceContactData extends CXoneContactData {
     scriptVariables?: {
         [key: string]: string;
     };
+    /**
+     * @remarks - Duration in seconds indicating the total time the interaction remained active.
+     * */
+    callDurationInSeconds?: number | string;
+    /**
+     * @remarks - Whether the contact is Inbound or not
+     * */
+    isInbound?: boolean;
 }

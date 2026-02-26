@@ -6,4 +6,8 @@ export interface GetNextEventResponse {
     sessionId: string;
     data: HttpResponse;
     errorType: CXoneSdkErrorType;
+    /**
+     * Optional icBranchValue response header propagated from get-next-event polling.
+     */
+    icBranchValue?: string;
 }

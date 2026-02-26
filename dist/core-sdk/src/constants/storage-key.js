@@ -64,6 +64,7 @@ export const StorageKeys = {
     CRM_PIN_RECORDS: 'crmPinRecords',
     SELECTED_INTERACTION_ID: 'selected_interaction_id',
     CRM_NAVIGATION_DATA: 'crmNavigationData',
+    CRM_USER_ID: 'crm_user_id',
     COBROWSE_DATA: 'coBrowseData',
     LOGGING_LEVEL: 'loggingLevel',
     DIGITAL_ATTACHMENTS: 'digital_attachments_',
@@ -104,6 +105,7 @@ export const StorageKeys = {
     AGENT_HIVE_CHANNEL_INFO: 'agentHiveChannelInfo',
     IS_CONVERSATIONS_STANDALONE: 'isConversationsStandAlone',
     IS_CONVERSATIONS_STANDALONE_FIRST_LAUNCH: 'isConversationsStandAloneFirstLaunch',
+    SHOULD_GRAFANA_FARO_LOGS_BE_COLLECTED: 'shouldGrafanaFaroLogsBeCollected',
 };
 export const NotificationSettings = {
     ACCESSIBILITY: 'Accessibility',

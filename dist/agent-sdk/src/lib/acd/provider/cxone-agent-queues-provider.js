@@ -1,6 +1,7 @@
 import { AuthStatus } from '@nice-devone/auth-sdk';
 import { CXoneLeaderElector, MessageBus, MessageType, Queue } from '@nice-devone/common-sdk';
-import { ACDSessionManager, ApiUriConstants, FeatureToggleService, HttpUtilService, LoadWorker, Logger, UrlUtilsService, } from '@nice-devone/core-sdk';
+import { ACDSessionManager, ApiUriConstants, HttpUtilService, LoadWorker, Logger, UrlUtilsService, } from '@nice-devone/core-sdk';
+import { FeatureToggleService } from '../../feature-toggle/feature-toggle-services';
 /**
  * Agent Queues Provider Class
  */
@@ -55,7 +56,9 @@ export class CXoneAgentQueuesProvider {
             updatedSince: new Date(0).toISOString(),
         };
         if (this.baseUri && authToken) {
-            const queueUri = ApiUriConstants.AGENT_QUEUE_URI.replace('{agentId}', agentId);
+            const queueUri = (FeatureToggleService.instance.getFeatureToggleSync("release-cxa-tenant-segmentation-AW-28101" /* FeatureToggles.TENANT_SEGMENTATION */)
+                ? ApiUriConstants.AGENT_QUEUE_URI_TS
+                : ApiUriConstants.AGENT_QUEUE_URI).replace('{agentId}', agentId);
             const url = this.baseUri +
                 this.urlUtilService.appendQueryString(queueUri, requestParams);
             const reqInit = {
@@ -70,9 +73,7 @@ export class CXoneAgentQueuesProvider {
             this.pollingWorker.postMessage({
                 type: 'agent-polling',
                 requestParams: { url: url, method: 'GET', request: reqInit },
-                pollingOptions: {
-                    pollingInterval: this.pollingInterval,
-                },
+                pollingOptions: { pollingInterval: this.pollingInterval },
             });
         }
     }
