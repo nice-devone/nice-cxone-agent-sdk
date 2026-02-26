@@ -1,0 +1,206 @@
+/**
+ * @example styles for digital attachments component
+ */
+const CcfDigitalAttachmentsStyles = (theme, _isRegularSize) => {
+    var _a, _b, _c, _d, _e, _f;
+    const styles = {
+        modal: {
+            display: 'flex',
+            flexDirection: 'column',
+            position: 'fixed',
+            zIndex: 999,
+            left: 0,
+            top: 0,
+            width: '100%',
+            height: '100%',
+            overflow: 'auto',
+            background: 'rgba(0, 0, 0, 0.8)',
+        },
+        modalImageWrapper: {
+            height: '100%',
+            display: 'flex',
+            flexDirection: 'column',
+            justifyContent: 'center',
+            alignItems: 'center',
+        },
+        modalImageSubWrapper: {
+            display: 'flex',
+            alignItems: 'center',
+        },
+        topMenuBar: {
+            top: '0px',
+            left: '0px',
+            height: '56px',
+            background: `${theme.palette.background.paper} 0% 0% no-repeat padding-box`,
+            opacity: '1',
+        },
+        zoomBar: {
+            height: '40px',
+            width: '120px',
+            backgroundColor: theme.palette.background.paper,
+            marginTop: '30px',
+            borderRadius: '2px',
+            display: 'flex',
+        },
+        zoomMinusIcon: {
+            width: '33%',
+            height: '100%',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            cursor: 'pointer',
+            fontSize: '25px',
+        },
+        zoomSearchIcon: {
+            width: '33%',
+            height: '100%',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            opacity: '0.7',
+        },
+        zoomPlusIcon: {
+            width: '33%',
+            height: '100%',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            cursor: 'pointer',
+            fontSize: '25px',
+        },
+        bottomBar: {
+            bottom: '0px',
+            height: '56px',
+            opacity: 1,
+            display: 'flex',
+            alignItems: 'flex-start',
+            marginLeft: '20px',
+            position: 'absolute',
+            left: 0,
+        },
+        back: {
+            top: '14px',
+            left: '39px',
+            height: '20px',
+            font: 'normal normal 600 15px/20px Open Sans',
+            letterSpacing: '0px',
+            color: theme.palette.text.main,
+            opacity: 1,
+            position: 'absolute',
+            cursor: 'pointer',
+        },
+        arrowLeft: {
+            border: `solid ${theme.palette.text.main}`,
+            borderWidth: '0 3px 3px 0',
+            display: 'inline-block',
+            padding: '3px',
+            transform: 'rotate(135deg)',
+            marginRight: '5px',
+            cursor: 'pointer',
+            zIndex: 999,
+        },
+        arrowRight: {
+            border: `solid ${theme.palette.background.paper}`,
+            borderWidth: '0 3px 3px 0',
+            display: 'inline-block',
+            padding: '8px',
+            transform: 'rotate(-45deg)',
+            marginRight: '5px',
+            position: 'absolute',
+            right: '20%',
+            cursor: 'pointer',
+            zIndex: 999,
+        },
+        closeIcon: {
+            position: 'absolute',
+            right: '30px',
+            top: '14px',
+            color: theme.palette.text.main,
+            cursor: 'pointer',
+        },
+        downloadIcon: {
+            position: 'absolute',
+            right: '70px',
+            top: '14px',
+            color: theme.palette.text.main,
+        },
+        previousAttachmentArrow: {
+            position: 'absolute',
+            left: '20%',
+            padding: '8px',
+            borderColor: theme.palette.background.paper,
+        },
+        disabled: {
+            cursor: 'not-allowed',
+            borderColor: theme.palette.text.main,
+        },
+        zoomDisabled: {
+            color: theme.palette.text.main,
+            opacity: 0.7,
+            cursor: 'not-allowed',
+        },
+        attachmentDetails: {
+            color: theme.palette.background.paper,
+            marginTop: '6px',
+            marginLeft: '5px',
+        },
+        fileIcon: {
+            height: '40px',
+            flexBasis: '25%',
+            color: '#ffffff',
+        },
+        previewImage: {
+            transition: 'transform ease-in-out 0.3s',
+            marginBottom: '20px',
+            [theme.breakpoints.down('xl')]: {
+                height: '35vw',
+            },
+            [theme.breakpoints.up('xl')]: {
+                height: '28vw',
+            },
+        },
+        icon: {
+            display: 'flex !important',
+            gap: '10px',
+            padding: '9px 8px',
+            alignItems: 'center',
+            textDecoration: 'none',
+            color: (_b = (_a = theme === null || theme === void 0 ? void 0 : theme.palette) === null || _a === void 0 ? void 0 : _a.primary) === null || _b === void 0 ? void 0 : _b.main,
+            '&:hover': {
+                textDecoration: 'none',
+                background: '#05131A0A',
+            },
+            cursor: 'pointer',
+            width: '100%',
+        },
+        downloadAll: {
+            fontSize: '12px',
+            fontWeight: 600,
+        },
+        audioAttachmentContainer: {
+            display: 'flex',
+            flexDirection: 'column',
+            marginLeft: 'auto',
+            width: 'fit-content',
+        },
+        listItemStyles: {
+            fontSize: '0.75rem',
+            fontWeight: 600,
+            overflow: 'hidden',
+            textOverflow: 'ellipsis',
+            whiteSpace: 'nowrap',
+            transform: 'translateY(-0.313rem)',
+        },
+        previewIconStyles: {
+            color: (_d = (_c = theme === null || theme === void 0 ? void 0 : theme.palette) === null || _c === void 0 ? void 0 : _c.text) === null || _d === void 0 ? void 0 : _d.contrastText,
+            transform: 'translate(0.563rem, -0.313rem)',
+        },
+        downloadIconStyles: {
+            color: (_f = (_e = theme === null || theme === void 0 ? void 0 : theme.palette) === null || _e === void 0 ? void 0 : _e.text) === null || _f === void 0 ? void 0 : _f.contrastText,
+            marginLeft: '1rem',
+        },
+    };
+    return styles;
+};
+export default CcfDigitalAttachmentsStyles;
+//# sourceMappingURL=ccf-digital-attachments-style.js.map

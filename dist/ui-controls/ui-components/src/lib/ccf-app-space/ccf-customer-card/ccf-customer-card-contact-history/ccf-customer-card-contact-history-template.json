@@ -1,0 +1,164 @@
+{
+    "data": {
+        "type": "AdaptiveCard",
+        "body": [
+            {
+                "type": "Container",
+                "$data": "${$root.data}",
+                "selectAction": {
+                    "type": "Action.Submit",
+                    "id": "${id}"
+                },
+                "items": [
+                    {
+                        "id": "activityCard",
+                        "type": "ColumnSet",
+                        "columns": [
+                            {
+                                "type": "Column",
+                                "width": 30,
+                                "items": [
+                                    {
+                                        "type": "ColumnSet",
+                                        "columns": [
+                                            {
+                                                "type": "Column",
+                                                "items": [
+                                                    {
+                                                        "id": "contactHistoryChannelIcon",
+                                                        "type": "Image",
+                                                        "url": "${image}",
+                                                        "size": "Small",
+                                                        "altText": "${channelAltTxt}"
+                                                    }
+                                                ],
+                                                "width": "auto"
+                                            },
+                                            {
+                                                "type": "Column",
+                                                "items": [
+                                                    {
+                                                        "id": "ccfAppSpaceActivityContactNumber",
+                                                        "type": "TextBlock",
+                                                        "weight": "Bolder",
+                                                        "text": "${name}",
+                                                        "spacing": "None",
+                                                        "horizontalAlignment": "Left",
+                                                        "fontType": "Default",
+                                                        "size": "Default",
+                                                        "isSubtle": true,
+                                                        "wrap": true
+                                                    }
+                                                ],
+                                                "width": "stretch",
+                                                "horizontalAlignment": "Center",
+                                                "height": "stretch",
+                                                "wrap": true
+                                            }
+                                        ],
+                                        "horizontalAlignment": "Center"
+                                    },
+                                    {
+                                        "type": "TextBlock",
+                                        "id": "deliveryStatus",
+                                        "spacing": "Small",
+                                        "text": "${skill}",
+                                        "isSubtle": false,
+                                        "weight": "Default",
+                                        "size": "Default",
+                                        "wrap": true
+                                    },
+                                    {
+                                        "type": "ColumnSet",
+                                        "columns": [
+                                            {
+                                                "type": "Column",
+                                                "items": [
+                                                    {
+                                                        "id": "agentNameId",
+                                                        "type": "TextBlock",
+                                                        "text": "#${id}",
+                                                        "spacing": "None",
+                                                        "horizontalAlignment": "Left",
+                                                        "fontType": "Default",
+                                                        "size": "Small",
+                                                        "isSubtle": true,
+                                                        "weight": "Bolder",
+                                                        "wrap": true
+                                                    }
+                                                ],
+                                                "width": "auto",
+                                                "horizontalAlignment": "Center",
+                                                "height": "auto"
+                                            },
+                                            {
+                                                "type": "Column",
+                                                "items": [
+                                                    {
+                                                        "id": "agentName",
+                                                        "type": "TextBlock",
+                                                        "text": "${agentName}",
+                                                        "spacing": "None",
+                                                        "horizontalAlignment": "Left",
+                                                        "fontType": "Default",
+                                                        "size": "Small",
+                                                        "isSubtle": true,
+                                                        "weight": "Bolder",
+                                                        "wrap": true
+                                                    }
+                                                ],
+                                                "width": "auto",
+                                                "horizontalAlignment": "Center",
+                                                "height": "auto"
+                                            }
+                                        ],
+                                        "horizontalAlignment": "Left"
+                                    }
+                                ]
+                            },
+                            {
+                                "type": "Column",
+                                "width": 12,
+                                "items": [
+                                    {
+                                        "type": "TextBlock",
+                                        "weight": "Bolder",
+                                        "text": "${createdAt}",
+                                        "size": "Small",
+                                        "color": "Default",
+                                        "horizontalAlignment": "Center",
+                                        "verticalAlignment": "Center",
+                                        "isSubtle": true,
+                                        "wrap": true
+                                    },
+                                    {
+                                        "id": "positive",
+                                        "type": "TextBlock",
+                                        "weight": "Bolder",
+                                        "text": "${status}",
+                                        "size": "Small",
+                                        "horizontalAlignment": "Center",
+                                        "verticalAlignment": "Center",
+                                        "isSubtle": true
+                                    }
+                                ],
+                                "verticalContentAlignment": "Center",
+                                "bleed": true,
+                                "style": "default",
+                                "separator": true
+                            }
+                        ],
+                        "horizontalAlignment": "Left",
+                        "verticalAlignment": "Top",
+                        "separator": true,
+                        "spacing": "Small",
+                        "bleed": true
+                    }
+                ]
+            }
+        ],
+        "$schema": "http://adaptivecards.io/schemas/adaptive-card.json",
+        "version": "1.5",
+        "verticalContentAlignment": "Center"
+    }
+}

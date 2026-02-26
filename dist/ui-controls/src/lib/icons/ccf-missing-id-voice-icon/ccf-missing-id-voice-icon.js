@@ -1,0 +1,13 @@
+import { jsx as _jsx, jsxs as _jsxs } from "react/jsx-runtime";
+import { SvgIcon } from '@mui/material';
+/**
+ * component used to display Missing id voice icon in inbox card
+ * @param props - SvgIconProps
+ * @example - <CcfMissingIdVoiceIcon />
+ * @returns SVG of Missing id voice icon
+ */
+export function CcfMissingIdVoiceIcon(props) {
+    return (_jsx(SvgIcon, Object.assign({}, props, { children: _jsx("g", Object.assign({ id: "Tile_Voice", "data-name": "Tile Voice" }, { children: _jsxs("g", Object.assign({ id: "Group_119165", "data-name": "Group 119165", transform: "translate(-8 -10.6)" }, { children: [_jsx("rect", { id: "Rectangle_80616", "data-name": "Rectangle 80616", width: "0.8", height: "2.4", transform: "translate(8 19.4)" }), _jsx("rect", { id: "Rectangle_80617", "data-name": "Rectangle 80617", width: "0.8", height: "4", transform: "translate(9.6 18.6)" }), _jsx("rect", { id: "Rectangle_80618", "data-name": "Rectangle 80618", width: "0.8", height: "5.6", transform: "translate(11.2 17.8)" }), _jsx("rect", { id: "Rectangle_80619", "data-name": "Rectangle 80619", width: "0.8", height: "8.8", transform: "translate(12.8 16.2)" }), _jsx("rect", { id: "Rectangle_80620", "data-name": "Rectangle 80620", width: "0.8", height: "15.2", transform: "translate(14.4 13)" }), _jsx("rect", { id: "Rectangle_80621", "data-name": "Rectangle 80621", width: "0.8", height: "12", transform: "translate(16 14.6)" }), _jsx("rect", { id: "Rectangle_80622", "data-name": "Rectangle 80622", width: "0.8", height: "8.8", transform: "translate(17.6 16.2)" }), _jsx("rect", { id: "Rectangle_80623", "data-name": "Rectangle 80623", width: "0.8", height: "4", transform: "translate(19.2 18.6)" }), _jsx("rect", { id: "Rectangle_80624", "data-name": "Rectangle 80624", width: "0.8", height: "7.2", transform: "translate(20.8 17)" }), _jsx("rect", { id: "Rectangle_80625", "data-name": "Rectangle 80625", width: "0.8", height: "10.4", transform: "translate(22.4 15.4)" }), _jsx("rect", { id: "Rectangle_80626", "data-name": "Rectangle 80626", width: "0.8", height: "7.2", transform: "translate(24 17)" }), _jsx("rect", { id: "Rectangle_80627", "data-name": "Rectangle 80627", width: "0.8", height: "4", transform: "translate(25.6 18.6)" }), _jsx("rect", { id: "Rectangle_80628", "data-name": "Rectangle 80628", width: "0.8", height: "2.4", transform: "translate(27.2 19.4)" })] })) })) })));
+}
+export default CcfMissingIdVoiceIcon;
+//# sourceMappingURL=ccf-missing-id-voice-icon.js.map

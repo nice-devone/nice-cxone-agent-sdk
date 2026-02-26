@@ -1,0 +1,13 @@
+import { jsx as _jsx, jsxs as _jsxs } from "react/jsx-runtime";
+import { SvgIcon } from '@mui/material';
+/**
+ * component used to display not authenticated voice icon in inbox card panel
+ * @param props - SvgIconProps
+ * @example - <CcfNotAuthenticatedVoiceIcon />
+ * @returns SVG of not authenticated voice icon
+ */
+export function CcfNotAuthenticatedVoiceIcon(props) {
+    return (_jsx(SvgIcon, Object.assign({ viewBox: "0 0 34 34" }, props, { children: _jsx("g", Object.assign({ id: "RTA_Red", "data-name": "RTA Red" }, { children: _jsxs("g", Object.assign({ id: "Group_119868", "data-name": "Group 119868", transform: "translate(-1410 -317.763)" }, { children: [_jsxs("g", Object.assign({ id: "Layer_5", "data-name": "Layer 5", transform: "translate(1411 323.763)" }, { children: [_jsx("rect", { id: "Rectangle_1", "data-name": "Rectangle 1", width: "7.348", height: "2.999", rx: "1.5", transform: "translate(2.999 6.598) rotate(90)", fill: "#d82132" }), _jsx("rect", { id: "Rectangle_2", "data-name": "Rectangle 2", width: "7.348", height: "2.999", rx: "1.5", transform: "translate(26.543 6.598) rotate(90)", fill: "#d82132" }), _jsx("rect", { id: "Rectangle_3", "data-name": "Rectangle 3", width: "14.546", height: "2.999", rx: "1.5", transform: "translate(8.998 2.999) rotate(90)", fill: "#d82132" }), _jsx("rect", { id: "Rectangle_4", "data-name": "Rectangle 4", width: "14.546", height: "2.999", rx: "1.5", transform: "translate(20.545 2.999) rotate(90)", fill: "#d82132" }), _jsx("rect", { id: "Rectangle_5", "data-name": "Rectangle 5", width: "20.545", height: "2.999", rx: "1.5", transform: "translate(14.734) rotate(90)", fill: "#d82132" }), _jsx("circle", { id: "Ellipse_4761", "data-name": "Ellipse 4761", cx: "6.473", cy: "6.473", r: "6.473", transform: "translate(18.569 9.5)", fill: "#d82132", stroke: "#fff", strokeWidth: "1" })] })), _jsx("path", { id: "Union_2745", "data-name": "Union 2745", d: "M18564.951-14148.636l-1.414-1.415-1.414,1.415a1,1,0,0,1-1.416,0,.994.994,0,0,1,0-1.412l1.416-1.416-1.416-1.417a.993.993,0,0,1,0-1.411,1,1,0,0,1,1.416,0l1.414,1.414,1.414-1.414a1,1,0,0,1,1.412,0,1,1,0,0,1,0,1.411l-1.414,1.415,1.414,1.414a1,1,0,0,1,0,1.416.994.994,0,0,1-.707.294A.986.986,0,0,1,18564.951-14148.636Z", transform: "translate(-17127.344 14491.349)", fill: "#fff" })] })) })) })));
+}
+export default CcfNotAuthenticatedVoiceIcon;
+//# sourceMappingURL=ccf-not-authenticated-voice-icon.js.map
