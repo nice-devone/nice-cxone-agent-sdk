@@ -7,3 +7,8 @@
 
 - `[Fixed]` : CFB fix for strings not translated to japanese
 - `[Added]` : Added translations for strings added in 25.3
+
+## 26.1 - 2026-02-26 ##
+
+- `[Fixed]`: Fixed Canadian French translations.
+- `[Fixed]`: CFB Fix for garbled characters in Chinese.

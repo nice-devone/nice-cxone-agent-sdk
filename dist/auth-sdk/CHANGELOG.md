@@ -7,3 +7,7 @@
 ## 25.2.0 - 2025-05-27 ##
 
 - `[Added]`: Added changes for storing token in encrypted format in localstorage, controlled by a feature toggle
+
+## 26.1 - 2026-02-26 ##
+
+- `[Updated]`: Updated originatingServiceIdentifier field as nullable, CMA SDK consumers should no longer pass a static value; the identifier is derived internally as CMASDK.

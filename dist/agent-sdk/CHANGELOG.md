@@ -21,3 +21,10 @@
 ## 25.4.0 - 2025-10-29 ##
 
 - `[Fixed]` : CFB fix for Agent Skill listing in Directory search showing wrong queue counts and wait times
+
+## 26.1 - 2026-02-26 ##
+
+- `[Added]`: Updated /agents/{agentId}/skills API call to get digitalPOC and digitalPOCName fields controlled by Feature toggle and Division license.
+- `[Added]`: Added /stopRecord API integration.
+- `[Updated]`: Added change for honoring recording notification permission to show recording notifications.
+- `[Added]`: Added function to handle contact switch in custom agent built using CMA SDK when CRM session is switched.
