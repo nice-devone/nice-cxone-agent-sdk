@@ -1,1 +1,0 @@
-{"version":3,"file":"svgTransform.js","sourceRoot":"","sources":["../../../../libs/react/ui-components/svgTransform.ts"],"names":[],"mappings":";AAAA,MAAM,CAAC,OAAO,GAAG;IACf;;;;OAIG;IACH,OAAO;QACL,OAAO,EAAE,IAAI,EAAE,sBAAsB,EAAE,CAAC;IAC1C,CAAC;IACD;;;;OAIG;IACH,WAAW;QACT,iCAAiC;QACjC,OAAO,cAAc,CAAC;IACxB,CAAC;CACF,CAAC"}
