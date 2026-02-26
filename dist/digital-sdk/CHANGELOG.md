@@ -14,3 +14,11 @@
 - `[Updated]` : Digital Websocket cell based architecture revamp (WS URL replace method added in digital client)
 - `[Added]` : New DESS service integrated for Revamped API based handling on CMA UI
 - `[Added]`: New public object added for exposing Next contacts of Digital interactions to UI
+
+## 26.1.1 - 2026-02-26 ##
+
+- `[Added]`: New public methods to handle new reject reason feature for message approval flow
+- `[Added]`: New public methods for revamped unified Quick responses (new DX APIs)
+- `[Updated]`: Included new Message related events on DESS to handle API based UI updates
+- `[Updated]`: Modified CXoneDigitalContact schema to include optional field digitalSkillId added for digital outbound flow.
+- `[Updated]`: Modified ContactPayload to include optional field skillId added for digital outbound flow.
