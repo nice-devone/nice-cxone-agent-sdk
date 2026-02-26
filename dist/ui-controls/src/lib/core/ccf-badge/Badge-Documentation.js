@@ -1,0 +1,9 @@
+import { jsx as _jsx, jsxs as _jsxs } from "react/jsx-runtime";
+/**
+ * @example -
+ * @returns
+ */
+export const BadgeDocumentationComponent = () => {
+    return (_jsxs("div", { children: [_jsx("h1", { children: "Badge" }), _jsx("h4", { children: "Badge generates a small badge to the top-right of its child(ren)." }), _jsxs("p", { children: ["Different Flavours of Badges:-", _jsxs("ul", { children: [_jsx("li", { children: "Basic Badge - Badges containing text, using primary and secondary colors. The badge is applied to its children." }), _jsx("li", { children: "Color - Use color prop to apply theme palette to component." }), _jsx("li", { children: "Badge Visibility - The visibility of badges can be controlled using the invisible prop." }), _jsx("li", { children: "Maximum Value - You can use the max prop to cap the value of the badge content." }), _jsx("li", { children: "Dot Badge - The dot prop changes a badge into a small dot. This can be used as a notification that something has changed without giving a count." }), _jsx("li", { children: "Badge Accessibility - You can't rely on the content of the badge to be announced correctly. You should provide a full description, for instance, with aria-label:" }), _jsx("li", { children: "Badge Alignment - You can use the anchorOrigin prop to move the badge to any corner of the wrapped element." }), _jsx("li", { children: "Badge Overlap - You can use the overlap prop to place the badge relative to the corner of the wrapped element." }), _jsx("li", { children: "Badge with Icon As Content - You can place the Icon in the Badge Content" })] })] })] }));
+};
+//# sourceMappingURL=Badge-Documentation.js.map
