@@ -1,0 +1,95 @@
+# NICE - CXone SDK
+ 
+Copyright 2021-2026 NICE Ltd. licensed under the NICE LICENSE
+
+## CXone UI Controls
+
+This product includes software from Meta Platforms, Inc. and affiliates, react project
+    * Copyright (c) Meta Platforms, Inc. and affiliates.
+    * Licensed under the MIT License
+    * https://github.com/facebook/react/blob/main/LICENSE
+
+This product includes software from MUI, Material-UI project
+    * Copyright (c) 2014 Call-Em-All
+    * Licensed under the MIT License
+    * https://github.com/mui/material-ui/blob/master/LICENSE
+
+This product includes software from Mark Erikson, @reduxjs/toolkit project
+    * Copyright (c) 2018 Mark Erikson
+    * Licensed under the MIT License
+    * https://github.com/reduxjs/redux-toolkit/blob/master/LICENSE
+
+This product includes software from Google, Inc., Netflix, Inc., Microsoft Corp. and contributors, rxjs project
+    * Copyright (c) 2015-2018 Google, Inc., Netflix, Inc., Microsoft Corp. and contributors
+    * Licensed under the Apache License, Version 2.0
+    * https://github.com/ReactiveX/rxjs/blob/master/LICENSE.txt
+
+This product includes software from Emotion, @emotion/react project
+    * Copyright (c) Emotion team and other contributors
+    * Licensed under the MIT License
+    * https://github.com/emotion-js/emotion/blob/main/LICENSE
+
+This product includes software from FullCalendar, @fullcalendar/react project
+    * Copyright (c) 2023 Adam Shaw
+    * Licensed under the MIT License
+    * https://github.com/fullcalendar/fullcalendar/blob/main/LICENSE.txt
+
+This product includes software from GN Audio A/S, @gnaudio/jabra-js project
+    * Copyright (c) GN Audio A/S
+    * Licensed under the MIT License
+    * https://github.com/gnaudio/jabra-browser-integration/blob/master/LICENSE
+
+This product includes software from Grafana Labs, @grafana/faro-web-sdk project
+    * Copyright (c) 2022 Grafana Labs
+    * Licensed under the Apache License, Version 2.0
+    * https://github.com/grafana/faro-web-sdk/blob/main/LICENSE
+
+This product includes software from Fadi Khadra, react-toastify project
+    * Copyright (c) 2023 Fadi Khadra
+    * Licensed under the MIT License
+    * https://github.com/fkhadra/react-toastify/blob/main/LICENSE
+
+This product includes software from nolimits4web, swiper project
+    * Copyright (c) 2019 Vladimir Kharlampidi
+    * Licensed under the MIT License
+    * https://github.com/nolimits4web/swiper/blob/master/LICENSE
+
+This product includes software from remarkablemark, html-react-parser project
+    * Copyright (c) 2016 remarkablemark
+    * Licensed under the MIT License
+    * https://github.com/remarkablemark/html-react-parser/blob/master/LICENSE
+
+This product includes software from Microsoft, adaptivecards project
+    * Copyright (c) Microsoft Corporation
+    * Licensed under the MIT License
+    * https://github.com/microsoft/AdaptiveCards/blob/main/LICENSE
+
+This product includes software from Luke Edwards, clsx project
+    * Copyright (c) Luke Edwards <luke.edwards05@gmail.com> (lukeed.com)
+    * Licensed under the MIT License
+    * https://github.com/lukeed/clsx/blob/master/license
+
+This product includes software from iamkun, dayjs project
+    * Copyright (c) 2018-present, iamkun
+    * Licensed under the MIT License
+    * https://github.com/iamkun/dayjs/blob/dev/LICENSE
+
+This product includes software from Feross Aboukhadijeh, buffer project
+    * Copyright (c) Feross Aboukhadijeh, and other contributors
+    * Licensed under the MIT License
+    * https://github.com/feross/buffer/blob/master/LICENSE
+
+This product includes software from amitanand3, react-timer-hook project
+    * Copyright (c) 2019 Amitanand3
+    * Licensed under the MIT License
+    * https://github.com/amitanand3/react-timer-hook/blob/master/LICENSE
+
+This product includes software from testRTC, @testrtc/watchrtc-sdk project
+    * Copyright (c) testRTC
+    * Licensed under the ISC License
+    * https://github.com/testRTC/watchRTC-SDK/blob/master/LICENSE
+
+This product includes software from css-mediaquery contributors project
+    * Copyright (c) 2014 ericf
+    * Licensed under the BSD-3-Clause License
+    * https://github.com/ericf/css-mediaquery/blob/master/LICENSE
