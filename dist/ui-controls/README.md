@@ -37,9 +37,9 @@ This library requires the following peer dependencies:
   "react": "17.0.2",
   "@mui/material": "5.10.16",
   "@mui/icons-material": "5.16.7",
-  "@nice-devone/shared-apps-lib": "26.1.0",
-  "@nice-devone/common-sdk": "26.1.0",
-  "@nice-devone/i18n": "26.1.0",
+  "@nice-devone/shared-apps-lib": "26.1.1",
+  "@nice-devone/common-sdk": "26.1.1",
+  "@nice-devone/i18n": "26.1.1",
   "@reduxjs/toolkit": "1.9.1",
   "react-toastify": "9.1.1",
   "@testrtc/watchrtc-sdk": "1.38.3"
@@ -114,7 +114,7 @@ For detailed documentation and developer-related queries, please visit:
 ### Compatibility
 
 This library is compatible with:
-* NICE CXone SDKs version 26.1.0
+* NICE CXone SDKs version 26.1.1
 * React 17.0.2
 * Material-UI 5.x
 * TypeScript 4.7+

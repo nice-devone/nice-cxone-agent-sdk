@@ -34,10 +34,10 @@ This library requires the following peer dependencies:
 ```json
 {
   "react": "17.0.2",
-  "@nice-devone/agent-sdk": "26.1.0",
-  "@nice-devone/core-sdk": "26.1.0",
-  "@nice-devone/common-sdk": "26.1.0",
-  "@nice-devone/shared-apps-lib": "26.1.0",
+  "@nice-devone/agent-sdk": "26.1.1",
+  "@nice-devone/core-sdk": "26.1.1",
+  "@nice-devone/common-sdk": "26.1.1",
+  "@nice-devone/shared-apps-lib": "26.1.1",
   "@reduxjs/toolkit": "1.9.1",
   "broadcast-channel": "7.1.0",
   "rxjs": "7.8.1",
@@ -175,7 +175,7 @@ For detailed documentation and developer-related queries, please visit:
 ### Compatibility
 
 This library is compatible with:
-* NICE CXone Agent SDK 26.1.0
+* NICE CXone Agent SDK 26.1.1
 * React 17.0.2
 * Material-UI 5.x
 
