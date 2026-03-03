@@ -15,7 +15,7 @@
 - `[Added]` : New DESS service integrated for Revamped API based handling on CMA UI
 - `[Added]`: New public object added for exposing Next contacts of Digital interactions to UI
 
-## 26.1.1 - 2026-03-26 ##
+## 26.1.1 - 2026-03-03 ##
 
 - `[Added]`: New public methods to handle new reject reason feature for message approval flow
 - `[Added]`: New public methods for revamped unified Quick responses (new DX APIs)

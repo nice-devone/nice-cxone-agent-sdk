@@ -2,7 +2,7 @@
 
 All notable changes to the @nice-devone/ui-controls package will be documented in this file.
 
-## 26.1.1 - 2026-03-26 ##
+## 26.1.1 - 2026-03-03 ##
 
 ### Added
 - Initial public release of foundational UI Controls library
