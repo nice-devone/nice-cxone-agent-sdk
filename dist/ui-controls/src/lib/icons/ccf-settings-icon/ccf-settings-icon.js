@@ -1,0 +1,12 @@
+import { jsx as _jsx, jsxs as _jsxs } from "react/jsx-runtime";
+import { SvgIcon } from '@mui/material';
+/**
+ * CcfSettingsIcon used to disply Settings icon in the navigation panel
+ * @param props - SvgIconProps
+ * @example -- <CcfSettingsIcon />
+ */
+export function CcfSettingsIcon(props) {
+    return (_jsx(SvgIcon, Object.assign({}, props, { children: _jsxs("g", Object.assign({ id: "Settings", clipPath: "url(#clip-Settings)" }, { children: [_jsx("rect", { width: "20", height: "20", fill: "none" }), _jsxs("g", Object.assign({ id: "Group_118166", "data-name": "Group 118166", transform: "translate(0 24020)" }, { children: [_jsx("rect", { id: "Rectangle_80238", "data-name": "Rectangle 80238", width: "44", height: "44", rx: "2", transform: "translate(0 -24020)", opacity: "0" }), _jsxs("g", Object.assign({ id: "Icons_svg_setup", transform: "translate(-0.001 -24020)" }, { children: [_jsx("path", { id: "Path_24881", "data-name": "Path 24881", d: "M18.05,10.5v-1l1.488-1.4a.8.8,0,0,0,.2-1L18.942,5c-.1-.3-.5-.5-.893-.6l-1.984.1-.694-.7.1-2a.961.961,0,0,0-.6-.9L12.793,0h-.4A1.067,1.067,0,0,0,11.7.3L10.313,1.8H9.321L8.032.3a.705.705,0,0,0-.6-.3c-.2,0-.3,0-.4.1L4.957.9a.876.876,0,0,0-.5.9l.1,2-.694.8L1.882,4.5A1.092,1.092,0,0,0,.89,5L.1,7.1c-.1.4-.1.8.2,1L1.783,9.5v1L.3,11.9a.8.8,0,0,0-.2,1L.89,15a1,1,0,0,0,.893.6h0l1.984-.1.694.7-.1,2a.961.961,0,0,0,.6.9L7.04,20h.4a.9.9,0,0,0,.694-.3L9.52,18.2h.992L11.9,19.7a.9.9,0,0,0,.694.3.362.362,0,0,0,.3-.1l2.083-.9a.875.875,0,0,0,.6-.9l-.1-2,.694-.7,2.083.1a.755.755,0,0,0,.793-.6l.893-2.1a.924.924,0,0,0-.2-1Zm-.694,3-1.289-.1h-.893l-1.885,1.9v.9l.1,1.3-.694.3-.793-1-.6-.7H8.528l-.6.7-.793.9-.694-.3.1-1.3v-.9l-.6-.5L4.659,13.4H3.767l-1.289.1-.3-.7.992-.8.694-.6V8.6L3.172,8,2.18,7.2l.3-.7,1.289.1h.893L6.544,4.7V3.8l-.1-1.3.694-.3.793,1,.6.7H11.3l.6-.7.793-.9.694.3-.1,1.3v.9l.6.5,1.289,1.3h.893l1.289-.1.3.7-.992.8-.694.6v2.8l.694.6.893.8Z", transform: "translate(0.006)", fill: "#333333" }), _jsx("path", { id: "Path_24882", "data-name": "Path 24882", d: "M13.75,10.08a3.7,3.7,0,0,0,0,7.4,3.7,3.7,0,0,0,0-7.4Zm0,5.4a1.7,1.7,0,1,1,1.686-1.7,1.745,1.745,0,0,1-1.686,1.7Z", transform: "translate(-3.827 -3.78)", fill: "#333333" })] }))] }))] })) })));
+}
+export default CcfSettingsIcon;
+//# sourceMappingURL=ccf-settings-icon.js.map

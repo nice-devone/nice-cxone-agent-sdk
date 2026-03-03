@@ -1,0 +1,10 @@
+import { jsx as _jsx } from "react/jsx-runtime";
+/**
+ * CcfCopilotLikeIcon used to display copilot like icon
+ * @example -- <CcfCopilotLikeIcon />
+ */
+export function CcfCopilotLikeIcon() {
+    return (_jsx("svg", Object.assign({ width: "18", height: "18", viewBox: "0 0 18 18", fill: "none", xmlns: "http://www.w3.org/2000/svg" }, { children: _jsx("path", { "fill-rule": "evenodd", "clip-rule": "evenodd", d: "M7.42402 0.88526C7.6688 0.346933 8.21496 0 8.81765 0C10.4199 0 11.7187 1.26958 11.7187 2.83569V5.72727H14.6511C16.7031 5.72727 18.2724 7.51516 17.9603 9.49764L17.0589 15.2249C16.8076 16.8215 15.4022 18 13.7496 18H2.51116C1.12428 18 0 16.9011 0 15.5455V9.81818C0 8.46257 1.12428 7.36364 2.51116 7.36364H4.47834L7.42402 0.88526ZM5.85937 16.3636H13.7496C14.5759 16.3636 15.2786 15.7744 15.4043 14.9761L16.3057 9.24882C16.4617 8.25758 15.6771 7.36364 14.6511 7.36364H11.7187C10.7942 7.36364 10.0446 6.63101 10.0446 5.72727V2.83569C10.0446 2.20464 9.54602 1.68743 8.91289 1.63992L6.00815 8.02823C5.96626 8.12036 5.91633 8.20739 5.85937 8.28866V16.3636ZM4.18526 9V16.3636H2.51116C2.04887 16.3636 1.67411 15.9973 1.67411 15.5455V9.81818C1.67411 9.36631 2.04887 9 2.51116 9H4.18526Z", fill: "#3F5C69" }) })));
+}
+export default CcfCopilotLikeIcon;
+//# sourceMappingURL=ccf-copilot-like-icon.js.map

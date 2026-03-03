@@ -1,0 +1,10 @@
+import { jsx as _jsx } from "react/jsx-runtime";
+/**
+ * CcfCopilotRetryIcon used to display copilot retry  icon
+ * @example -- <CcfCopilotRetryIcon />
+ */
+export function CcfCopilotRetryIcon() {
+    return (_jsx("svg", Object.assign({ width: "18", height: "18", viewBox: "0 0 18 18", fill: "none", xmlns: "http://www.w3.org/2000/svg" }, { children: _jsx("path", { d: "M16.2732 6.22561H12.6732C12.2446 6.22561 11.9875 5.88103 11.9875 5.4503C11.9875 5.01958 12.3303 4.675 12.6732 4.76114H14.1303C12.8446 3.21053 10.9589 2.17679 8.81606 2.17679C5.04463 2.17679 1.95891 5.27801 1.95891 9.0684C1.95891 12.8588 5.04463 15.96 8.81606 15.96C12.5875 15.96 15.6732 12.8588 15.6732 9.0684H17.3875C17.3875 13.8064 13.5303 17.6829 8.81606 17.6829C4.10177 17.6829 0.244629 13.8925 0.244629 9.15454C0.244629 4.41656 4.10177 0.540039 8.81606 0.540039C11.5589 0.540039 13.9589 1.83221 15.5875 3.89969V1.91836C15.5875 1.48763 15.9303 1.14305 16.2732 1.2292C16.6161 1.2292 16.9589 1.48763 16.9589 1.91836V5.62259C16.9589 5.96717 16.6161 6.31175 16.2732 6.22561V6.22561Z", fill: "#333333" }) })));
+}
+export default CcfCopilotRetryIcon;
+//# sourceMappingURL=ccf-copilot-retry-icon.js.map

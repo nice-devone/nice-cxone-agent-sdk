@@ -1,0 +1,15 @@
+/// <reference types="react" />
+import { withTranslationProps } from '../../ccf-translator/ccf-translator';
+export declare const CcfTypography: import("react").FC<Omit<import("@mui/system").SystemProps<import("@mui/material").Theme> & {
+    align?: "inherit" | "left" | "right" | "center" | "justify" | undefined;
+    children?: import("react").ReactNode;
+    classes?: Partial<import("@mui/material").TypographyClasses> | undefined;
+    gutterBottom?: boolean | undefined;
+    noWrap?: boolean | undefined;
+    paragraph?: boolean | undefined;
+    sx?: import("@mui/material").SxProps<import("@mui/material").Theme> | undefined;
+    variant?: "h1" | "h2" | "h3" | "h4" | "h5" | "h6" | "subtitle1" | "subtitle2" | "body1" | "body2" | "caption" | "button" | "overline" | "inherit" | undefined;
+    variantMapping?: Partial<Record<"h1" | "h2" | "h3" | "h4" | "h5" | "h6" | "subtitle1" | "subtitle2" | "body1" | "body2" | "caption" | "button" | "overline" | "inherit", string>> | undefined;
+} & import("@mui/material/OverridableComponent").CommonProps & Omit<Pick<import("react").DetailedHTMLProps<import("react").HTMLAttributes<HTMLSpanElement>, HTMLSpanElement>, "key" | keyof import("react").HTMLAttributes<HTMLSpanElement>> & {
+    ref?: ((instance: HTMLSpanElement | null) => void) | import("react").RefObject<HTMLSpanElement> | null | undefined;
+}, "children" | keyof import("@mui/material/OverridableComponent").CommonProps | ("zIndex" | "typography" | "fontFamily" | "fontSize" | "textTransform" | "display" | "left" | "right" | "p" | "border" | "borderTop" | "borderRight" | "borderBottom" | "borderLeft" | "borderColor" | "borderRadius" | "displayPrint" | "overflow" | "textOverflow" | "visibility" | "whiteSpace" | "flexBasis" | "flexDirection" | "flexWrap" | "justifyContent" | "alignItems" | "alignContent" | "order" | "flex" | "flexGrow" | "flexShrink" | "alignSelf" | "justifyItems" | "justifySelf" | "gap" | "columnGap" | "rowGap" | "gridColumn" | "gridRow" | "gridAutoFlow" | "gridAutoColumns" | "gridAutoRows" | "gridTemplateColumns" | "gridTemplateRows" | "gridTemplateAreas" | "gridArea" | "bgcolor" | "color" | "position" | "top" | "bottom" | "boxShadow" | "width" | "maxWidth" | "minWidth" | "height" | "maxHeight" | "minHeight" | "boxSizing" | "m" | "mt" | "mr" | "mb" | "ml" | "mx" | "my" | "pt" | "pr" | "pb" | "pl" | "px" | "py" | "margin" | "marginTop" | "marginRight" | "marginBottom" | "marginLeft" | "marginX" | "marginY" | "marginInline" | "marginInlineStart" | "marginInlineEnd" | "marginBlock" | "marginBlockStart" | "marginBlockEnd" | "padding" | "paddingTop" | "paddingRight" | "paddingBottom" | "paddingLeft" | "paddingX" | "paddingY" | "paddingInline" | "paddingInlineStart" | "paddingInlineEnd" | "paddingBlock" | "paddingBlockStart" | "paddingBlockEnd" | "fontStyle" | "fontWeight" | "letterSpacing" | "lineHeight" | "textAlign") | "align" | "gutterBottom" | "noWrap" | "paragraph" | "sx" | "variant" | "variantMapping"> & withTranslationProps, keyof withTranslationProps> & import("../../ccf-translator/ccf-translator").CcfTranslatorProps>;
