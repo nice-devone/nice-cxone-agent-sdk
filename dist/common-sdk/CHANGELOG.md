@@ -13,7 +13,7 @@
 - `[Updated]`: Updated client data API model for Email Revamp sorting feature
 - `[Updated]:` FT updated on the list for new versioning service beta release
 
-## 2026-02-26 - 26.1.1 ##
+## 26.1.1 - 2026-03-26 ##
 
 - `[Added]` : FT added for Websocket architecture revamp & new response interface introduced
 - `[Added]`: New storage key added for Focus API revamp for Preview Digitals contacts

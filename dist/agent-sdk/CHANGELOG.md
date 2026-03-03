@@ -22,7 +22,7 @@
 
 - `[Fixed]` : CFB fix for Agent Skill listing in Directory search showing wrong queue counts and wait times
 
-## 2026-02-26 - 26.1.1 ##
+## 26.1.1 - 2026-03-26 ##
 
 - `[Added]`: Updated /agents/{agentId}/skills API call to get digitalPOC and digitalPOCName fields controlled by Feature toggle and Division license.
 - `[Added]`: Added /stopRecord API integration.
