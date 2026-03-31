@@ -1,16 +1,18 @@
 import React, { useEffect } from "react";
-import { ccfAccessTokenFlowStyles } from "../../side-navbar/NavBar";
-import { useTheme } from "@mui/material/styles";
-import { Box, Button } from "@mui/material";
+
+import { Button, Stack } from "@mui/material";
 import { useState } from "react";
 import {  CXoneVoiceContact } from "@nice-devone/acd-sdk";
 import { CXoneClient, VoiceControlService} from "@nice-devone/agent-sdk"
 import { CXoneSdkError } from "@nice-devone/common-sdk";
+import PauseIcon from "@mui/icons-material/Pause";
+import PlayArrowIcon from "@mui/icons-material/PlayArrow";
+import CallEndIcon from "@mui/icons-material/CallEnd";
+import FiberManualRecordIcon from "@mui/icons-material/FiberManualRecord";
+import StopIcon from "@mui/icons-material/Stop";
 
 
 const VoiceControls = ({voiceContact}:{voiceContact:CXoneVoiceContact}) => {
-  const theme = useTheme();
-  const accessTokenFlowStyles = ccfAccessTokenFlowStyles(theme);
   const [holdeResume, setHoldeResume] = useState('Hold');;
   const [hangUpButtonIsEnabled, setHangUpButtonIsEnabled] = useState(true);
   const [isRecordButtonVisible, setIsRecordButtonVisible] = useState(false);
@@ -76,50 +78,43 @@ const VoiceControls = ({voiceContact}:{voiceContact:CXoneVoiceContact}) => {
       }
 
   return (
-    <div>
-      <Box sx={accessTokenFlowStyles.inputs_alignment}>
-      
-        <Button
-          color="primary"
-          variant="contained"
-          size="large"
-          sx={accessTokenFlowStyles.margin}
-          onClick={(e)=>handleHold(e)}
-        >
-          {holdeResume}
-        </Button>
-        <Button
-          color="primary"
-          variant="contained"
-          size="large"
-          sx={accessTokenFlowStyles.margin}
-          disabled={!hangUpButtonIsEnabled}
-          onClick={(e)=>handleHangUp(e)}
-        >
-          Hang Up
-        </Button>
-         <Button
-        onClick={startRecord}
-        color="secondary"
-         disabled={isRecordButtonVisible}
+    <Stack direction="row" spacing={1.5} flexWrap="wrap" useFlexGap>
+      <Button
+        variant={holdeResume === 'Hold' ? "outlined" : "contained"}
+        color="warning"
+        startIcon={holdeResume === 'Hold' ? <PauseIcon /> : <PlayArrowIcon />}
+        onClick={(e)=>handleHold(e)}
+      >
+        {holdeResume}
+      </Button>
+      <Button
         variant="contained"
-        size="large"
-        sx={accessTokenFlowStyles.margin}
+        color="error"
+        startIcon={<CallEndIcon />}
+        disabled={!hangUpButtonIsEnabled}
+        onClick={(e)=>handleHangUp(e)}
+      >
+        Hang Up
+      </Button>
+      <Button
+        onClick={startRecord}
+        variant="contained"
+        color="secondary"
+        disabled={isRecordButtonVisible}
+        startIcon={<FiberManualRecordIcon />}
       >
         Start Record
       </Button>
-        <Button
+      <Button
         onClick={stopRecord}
+        variant="outlined"
         color="secondary"
         disabled={!isRecordButtonVisible}
-        variant="contained"
-        size="large"
-        sx={accessTokenFlowStyles.margin}
+        startIcon={<StopIcon />}
       >
         Stop Record
       </Button>
-      </Box>
-    </div>
+    </Stack>
   );
 };
 export default VoiceControls;
