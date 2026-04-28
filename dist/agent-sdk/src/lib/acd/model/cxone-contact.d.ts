@@ -51,4 +51,8 @@ export declare class CXoneContact {
     * @remarks - represent model for denoting type of parent interaction while elevating
     */
     fromProvider?: string;
+    /**
+     * @remarks - represent outbound strategy for the contact
+     */
+    outboundStrategy?: string;
 }

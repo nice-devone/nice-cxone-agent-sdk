@@ -63,15 +63,29 @@ export declare class AdminService {
      * ```
      */
     static get instance(): AdminService;
+    /** @internal Cached permissions array, null if not yet fetched */
+    private permissionsCache;
+    /** @internal Deduplicates concurrent permissions fetch requests */
+    private pendingPermissionsRequest;
     /**
-     * Method to return agent permissions
-     * @returns - return the agent permissions
-     * ```
-     * @example
-     * getPermissions()
-     * ```
+   * Retrieves the list of permissions for the current agent.
+   * @param forceFetch - When `true`, bypasses all caches and forces a new API call. Defaults to `false`.
+   * @returns A promise resolving to the agent's {@link Permissions} array.
+   * @throws `{CXoneSdkError}` when the API request fails.
+   *
+   * @example
+   * ```
+   * const permissions = await service.getPermissions();
+   * const fresh = await service.getPermissions(true);
+   * ```
+   */
+    getPermissions(forceFetch?: boolean): Promise<Permissions[]>;
+    /**
+     * Performs the actual HTTP request to fetch permissions from the ACD API.
+     * @returns A promise resolving to the fetched {@link Permissions} array.
+     * @throws Re-throws any error from the HTTP layer (typically a {@link CXoneSdkError}).
      */
-    getPermissions(forceFetch?: boolean): Promise<Permissions[] | CXoneSdkError>;
+    private fetchPermissions;
     /**
      * Method to return agent settings
      * @returns - return the agent settings
@@ -90,14 +104,17 @@ export declare class AdminService {
      * ```
      */
     getBusinessUnit(): Promise<BusinessUnit | CXoneSdkError>;
+    /** @internal Deduplicates concurrent tenant data fetch requests */
+    private tenantDataPromise;
     /**
-     *  Method to return all tenant data
-     * @example
-     * ```
-     * getTenantManagementData()
-     * ```
-     */
-    getTenantData(): Promise<Tenant | CXoneSdkError>;
+   * Retrieves tenant data for the current user's organization.
+   * On failure, resets the in-flight promise so subsequent calls can retry.
+   * @returns A promise resolving to the {@link Tenant} data object.
+   * @throws `{CXoneSdkError}` when the API request fails.
+   * @example
+   * const tenant = await getTenantData();
+   */
+    getTenantData(): Promise<Tenant>;
     /**
      * Method to return client data
      * @returns - returns the client data

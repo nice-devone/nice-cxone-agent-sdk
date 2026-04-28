@@ -1,8 +1,8 @@
 import { __awaiter } from "tslib";
-import { BulkReplyHistoryResponse, BulkReplyResponse, CcfLogger } from '@nice-devone/agent-sdk';
+import { BulkReplyHistoryResponse, BulkReplyResponse, CcfLogger, FeatureToggleService } from '@nice-devone/agent-sdk';
 import { CXoneAuth } from '@nice-devone/auth-sdk';
-import { CXoneSdkError, CXoneSdkErrorType, AllowedResponseHeaders, CXoneDigitalEventType, } from '@nice-devone/common-sdk';
-import { HttpUtilService, HttpClient, ApiUriConstants, UrlUtilsService, AdminService, LocalStorageHelper, StorageKeys, } from '@nice-devone/core-sdk';
+import { CXoneSdkError, CXoneSdkErrorType, AllowedResponseHeaders, CXoneDigitalEventType, RequestControlMode, } from '@nice-devone/common-sdk';
+import { HttpUtilService, HttpClient, ApiUriConstants, UrlUtilsService, AdminService, LocalStorageHelper, StorageKeys, RequestManager, } from '@nice-devone/core-sdk';
 import { CXoneDigitalUtil } from '../util/cxone-digital-util';
 /**
  * Class to handle digital contact related API calls
@@ -33,6 +33,8 @@ export class DigitalContactService {
         this.DIGITAL_QUICK_REPLIES_OUTBOUND = '/dfo/3.0/quick-responses';
         this.DIGITAL_QR_REPLACE_VARIABLES = '/dfo/3.0/quick-responses/{quickResponseId}/replace-variables'; // TODO: To be replaced by below API facade in future release
         this.QUICK_RESPONSE_REPLACE_VARIABLES = '/rich-message-settings/1.0/quick-responses/{quickResponseId}/replace-variables';
+        this.requestManager = RequestManager.getInstance();
+        this.isAbortDelayDigitialApiEnabled = FeatureToggleService.instance.getFeatureToggleSync("release-cx-agent-abort-delay-API-on-contact-switch-AW-48514" /* FeatureToggles.ABORT_DELAY_DIGITAL_API_TOGGLE */) || false;
         this.auth = CXoneAuth.instance;
         this.adminService = AdminService.instance;
     }
@@ -55,10 +57,12 @@ export class DigitalContactService {
             body: targetStatus,
         };
         return new Promise((resolve, reject) => {
-            HttpClient.put(url, reqInit).then((response) => {
+            HttpClient.put(url, reqInit).then((response) => __awaiter(this, void 0, void 0, function* () {
                 this.logger.info('changeCustomerContactStatus', 'Case Status Changed Success');
+                const traceId = this.getTraceIdFromResponseHeader(response);
+                yield CXoneDigitalUtil.instance.checkIfEventConsumed(response, caseId, CXoneDigitalEventType.CASE_STATUS_CHANGED, status, traceId);
                 resolve(response);
-            }, (error) => {
+            }), (error) => {
                 const errorResponse = new CXoneSdkError(CXoneSdkErrorType.CXONE_API_ERROR, 'Case status change failed', error);
                 this.logger.error('changeCustomerContactStatus', errorResponse.toString());
                 reject(errorResponse);
@@ -278,15 +282,29 @@ export class DigitalContactService {
         const authToken = this.auth.getAuthToken().accessToken;
         const url = baseUrl + ApiUriConstants.DIGITAL_CONTACT_DETAILS.replace('{contactId}', contactId);
         const reqInit = this.utilService.initHeader(authToken);
-        return new Promise((resolve, reject) => {
-            HttpClient.get(url, reqInit).then((response) => {
-                resolve(response);
-            }, (error) => {
-                const errorResponse = new CXoneSdkError(CXoneSdkErrorType.CXONE_API_ERROR, 'Contact detail fetch failed', error);
-                this.logger.error('getDigitalContactDetails', errorResponse.toString());
-                reject(errorResponse);
+        if (this.isAbortDelayDigitialApiEnabled) {
+            /* CONTROLLED GET LOGIC */
+            const uniqueKey = contactId;
+            const debugLabel = 'DigitalContactDetails API';
+            return HttpClient.controlledGet(this.requestManager, {
+                uniqueKey,
+                url,
+                requestInit: reqInit,
+                debugLabel,
+                requestType: RequestControlMode.DELAY_AND_ABORT,
             });
-        });
+        }
+        else {
+            return new Promise((resolve, reject) => {
+                HttpClient.get(url, reqInit).then((response) => {
+                    resolve(response);
+                }, (error) => {
+                    const errorResponse = new CXoneSdkError(CXoneSdkErrorType.CXONE_API_ERROR, 'Contact detail fetch failed', error);
+                    this.logger.error('getDigitalContactDetails', errorResponse.toString());
+                    reject(errorResponse);
+                });
+            });
+        }
     }
     /**
      * Method to get all related message threads for a public channel digital contact

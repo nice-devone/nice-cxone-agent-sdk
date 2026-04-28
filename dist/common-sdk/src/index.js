@@ -292,4 +292,8 @@ tslib_1.__exportStar(require("./lib/enum/allowed-response-headers"), exports);
 tslib_1.__exportStar(require("./lib/enum/icon-variant"), exports);
 tslib_1.__exportStar(require("./lib/model/digital/cxone-digital-skill"), exports);
 tslib_1.__exportStar(require("./enum/agent-assist"), exports);
+tslib_1.__exportStar(require("./lib/model/digital/schema/events/cxone-base-delta-event"), exports);
+tslib_1.__exportStar(require("./lib/model/digital/schema/events/cxone-case-status-delta-events"), exports);
+tslib_1.__exportStar(require("./lib/model/digital/schema/events/cxone-message-added-delta-events"), exports);
+tslib_1.__exportStar(require("./lib/enum/request-control-mode"), exports);
 //# sourceMappingURL=index.js.map

@@ -27,7 +27,7 @@ export interface DirectoryEntryAttribute {
  * Interface for Directory entry
  */
 export interface DirectoryEntry {
-    unifiedSocketStatus: string;
+    unifiedSocketStatus?: string;
     /**
      * @remarks - User mapping id
      */

@@ -22,4 +22,8 @@ export declare class CXoneDispositionDetails {
      * @remarks - Callback number
      */
     primaryCallbackNumber?: string;
+    /**
+     * @remarks - Customer Id
+     */
+    customerId?: string;
 }

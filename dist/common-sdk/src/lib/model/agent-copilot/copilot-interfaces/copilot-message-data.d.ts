@@ -1,6 +1,6 @@
 import { DecisionTreeData } from './copilot-decision-tree-data';
 import { OverallContactFeedbackData } from './copilot-feedback-data';
-import { CopilotElement, CopilotFilterDetails, ContactHistoryData, CopilotTaskAssistCardData } from './index';
+import { CopilotElement, CopilotFilterDetails, ContactHistoryData, CopilotTaskAssistCardData, CopilotChecklistData } from './index';
 /**
  * model interface for agent assist payload data
  */
@@ -105,4 +105,16 @@ export interface CopilotMessageData {
      * field for storing decision tree data
      */
     decisionTreeData: DecisionTreeData;
+    /**
+     * Flag for checking if finalSummary fire-forget API is called already
+     */
+    isFinalSummaryAPICalled: boolean;
+    /**
+     * flag for checking if checklist is open
+     */
+    isChecklistOpen?: boolean;
+    /**
+     * field for storing checklist data
+     */
+    checklistData: CopilotChecklistData;
 }

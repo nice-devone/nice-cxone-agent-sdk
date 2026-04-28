@@ -21,6 +21,7 @@ class CXoneConfiguration {
         this.domain = data.domain;
         this.acdDomain = data.acdDomain;
         this.userHubDomain = data.uhDomain;
+        this.globaldomain = data.globaldomain_v1;
     }
     /**
      * This method is to set the endpoints for user hub and central systems
@@ -31,6 +32,7 @@ class CXoneConfiguration {
      * ```
      */
     setAuthEndPoints(isUserHub, wsQueryParams) {
+        var _a;
         this.isUserHub = false;
         if (isUserHub) {
             // Check for User Hub
@@ -48,7 +50,7 @@ class CXoneConfiguration {
             this.uiQueueWSBaseUri = this.getUIQueueWSBaseUri(userHubArea, this.domain);
             this.dfoAppBaseUri = this.getDfoAppBaseUri(userHubArea, this.domain);
             this.aaiTranscriptWsUri = this.getAaiTranscriptWsUri(userHubArea, this.domain);
-            this.grafanaFaroUri = this.getGrafanaFaroUri(userHubArea, this.domain);
+            this.grafanaFaroUri = this.getGrafanaFaroUri(userHubArea, this.globaldomain || ((_a = this.domain) === null || _a === void 0 ? void 0 : _a.replace('niceincontact', 'nicecxone')));
         }
     }
     /**
@@ -253,17 +255,7 @@ class CXoneConfiguration {
    * ```
    */
     getGrafanaFaroUri(userHubArea, domain) {
-        const isNonProdEnv = ['dev', 'test', 'staging', 'performance'].includes(process.env.NX_DEST_ENV || '');
-        let grafanaDomain = domain;
-        // hardcoding below values for FedRamp and Non prod environments since domain received from api is different from what grafana AWS url expects
-        if (userHubArea === 'na2') {
-            grafanaDomain = 'nicecxone-gov.com';
-        }
-        else if (isNonProdEnv) {
-            const envName = process.env.NX_DEST_ENV === 'performance' ? 'perf' : process.env.NX_DEST_ENV;
-            grafanaDomain = `nicecxone-${envName}.com`;
-        }
-        return `https://mon-public-${userHubArea}.${grafanaDomain}:12345/collect`;
+        return `https://mon-public-${userHubArea}.${domain}:12345/collect`;
     }
     ;
 }

@@ -76,11 +76,35 @@ export declare enum CXoneProductFeature {
      */
     DESKTOP_PROFILES = 162,
     /**
+     * @remarks - Product feature Id for MPower SNOW Agent
+     */
+    MPOWER_SNOW_AGENT = 220,
+    /**
      * @remarks - Product feature Id for Conversations
      */
     CONVERSATIONS = 707101,
     /**
      * @remarks - Product feature Id for Divisions Tenant Segmentation
      */
-    DIVISIONS = 200
+    DIVISIONS = 200,
+    /**
+     * @remarks - Product feature Id for Unified Agent State Management
+     */
+    UNIFIED_AGENT_STATE = 708012,
+    /**
+     * @remarks - Product feature Id for Enlighten Agent Copilot
+     */
+    ENLIGHTEN_AGENT_COPILOT = 351,
+    /**
+     * @remarks - Product feature Id for Attendant Plus
+     */
+    ATTENDANT_PLUS = 129,
+    /**
+     * @remarks - Product feature Id for Attendant Lite
+     */
+    ATTENDANT_LITE = 290,
+    /**
+     * @remarks - Product feature Id for NewGen Directories
+     */
+    DIRECTORY_SYNC_NEWGEN = 708009
 }

@@ -9,12 +9,18 @@ export declare class CXoneDynamicDirectory {
     private utilService;
     private urlUtilsService;
     private wsProvider;
+    private newGenWsProvider;
     private currentSearchDirectoriesRequest;
+    private currentNewGenSearchDirectoriesRequest?;
     private searchDirectoriesResponse;
+    private searchNewGenDirectoriesResponse;
     onMessageReceived: Subject<DynamicDirectoyMessage>;
+    onNewGenMessageReceived: Subject<DynamicDirectoyMessage>;
     searchDirectoryResult: Subject<unknown>;
+    searchNewGenDirectoryResult: Subject<unknown>;
     private directory;
-    private messageReceivedSubscription;
+    private messageReceivedSubscription?;
+    private newGenMessageReceivedSubscription?;
     /**
      * Create instance for dynamic directory session and initialize it
      * @example
@@ -49,6 +55,19 @@ export declare class CXoneDynamicDirectory {
      * ```
      */
     getDirectories(agentId: string, startIndex?: number, totalRecords?: number): Promise<Directories | CXoneSdkError>;
+    /**
+     * Method used to get new gen directories
+     * @param agentId - Agent id for which directories are fetched
+     * @param startIndex - start index for pagination
+     * @param totalRecords - total records to be fetched
+     * @returns - return the list of new gen directories
+     * ```
+     * @example
+     * getNewGenDirectories(1234,0,25)
+     * This will get new gen directories from 0 to 25 for agent id 1234
+     * ```
+     */
+    getNewGenDirectories(agentId: string, startIndex?: number, totalRecords?: number): Promise<Directories | CXoneSdkError>;
     /** Method used to get Directory metadata
      * @param directoryId - Directory id for which we need to get metadata
      * @param agentId - Agent id for which directories are fetched
@@ -70,6 +89,15 @@ export declare class CXoneDynamicDirectory {
      * ```
      */
     toggleFavoriteForExternalDirectory(extDirectoryEntries: DirectoryAdditionalAtrributes[]): Promise<void>;
+    /**
+     * Used to toggle the favorite marker for newgen directory and store it in Index DB
+     * @param newGenDirectoryEntries - Information of the newgen directory of whom favorite field needs to be toggled
+     * @example -
+     * ```
+     * directoryProvider.toggleFavoriteForNewGenDirectory(newGenDirectoryEntries);
+     * ```
+     */
+    toggleFavoriteForNewGenDirectory(newGenDirectoryEntries: DirectoryAdditionalAtrributes[]): Promise<void>;
     /** Method used to update favorite directory entries from client data
      * @example -
      * ```
@@ -77,6 +105,13 @@ export declare class CXoneDynamicDirectory {
      * ```
   */
     updateFavExtDirEntriesFromClientData: () => Promise<void>;
+    /** Method used to update favorite directory entries from client data
+     * @example -
+     * ```
+     * updateFavNewGenDirEntriesFromClientData();
+     * ```
+  */
+    updateFavNewGenDirEntriesFromClientData: () => Promise<void>;
     /**
    * Used to sort external directory entries based on first name and last name
    *  @param externalDirectoryEntries - array of external directory entries
@@ -86,6 +121,15 @@ export declare class CXoneDynamicDirectory {
    * ```
    */
     private sortExternalDirectory;
+    /**
+   * Used to sort new gen directory entries based on first name and last name
+   *  @param newGenDirectoryEntries - array of new gen directory entries
+   * @example -
+   * ```
+   * sortNewGenDirectory(newGenDirectoryEntries)
+   * ```
+   */
+    private sortNewGenDirectory;
     /**
    * get filtered External Directory List based on search text
    * @param extDirectories - array of external directory entries
@@ -97,6 +141,16 @@ export declare class CXoneDynamicDirectory {
    */
     private getFilteredExtDirList;
     /**
+   * get filtered New Gen Directory List based on search text
+   * @param newGenDirectories - array of new gen directory entries
+   * @param searchText - search string
+   * @example -
+   * ```
+   * getFilteredNewGenDirList(searchText, newGenDirectories)
+   * ```
+   */
+    private getFilteredNewGenDirList;
+    /**
     * Function to add external directory entries favorite in Index DB from store
     * @param directoryEntries - Array of directory entries to update favorites.
     * @example -
@@ -105,6 +159,15 @@ export declare class CXoneDynamicDirectory {
     * ```
     */
     private updateExtDirectoryEntriesFavListInDB;
+    /**
+    * Function to add newgen directory entries favorite in Index DB from store
+    * @param directoryEntries - Array of newgen directory entries to update favorites.
+    * @example -
+    * ```
+    * updateNewGenDirectoryEntriesFavListInDB(newGenDirectoryEntries)
+    * ```
+    */
+    private updateNewGenDirectoryEntriesFavListInDB;
     /**
    * Used to retrieve external directory entries and filter out favorites
    * @param directoryEntries - array of directory entries to filter
@@ -117,6 +180,17 @@ export declare class CXoneDynamicDirectory {
    */
     getFavoritesByExtDirectory(directoryEntries: DirectoryAdditionalAtrributes[], extDirectoryName: string): Promise<DirectoryAdditionalAtrributes[]>;
     /**
+   * Used to retrieve external directory entries and filter out favorites
+   * @param directoryEntries - array of directory entries to filter
+   * @param extDirectoryName - external directory name to filter
+   * @returns - returns the filtered favorite external directory entries
+   * @example -
+   * ```
+   * directoryProvider.getFavoritesByNewGenDirectory(directoryEntries, newGenDirectoryName);
+   * ```
+   */
+    getFavoritesByNewGenDirectory(newGenDirectoryEntries: DirectoryAdditionalAtrributes[], newGenDirectoryName: string): Promise<DirectoryAdditionalAtrributes[]>;
+    /**
      * Method is used to search directories
      * @param searchDirectoriesRequest -- pass the SearchDirectoriesRequest type object
      * @returns - return object of type SearchDirectoriesResponse. Containing filtered directories based on search parameter
@@ -126,6 +200,16 @@ export declare class CXoneDynamicDirectory {
      * ```
      */
     searchDirectories(searchDirectoriesRequest: SearchDirectoriesRequest): void;
+    /**
+     * Method is used to search newgen directories
+     * @param searchNewGenDirectoriesRequest -- pass the searchNewGenDirectoriesRequest type object
+     * @returns - return object of type SearchNewGenDirectoriesResponse. Containing filtered newgen directories based on search parameter
+     * @example -
+     * ```
+     * searchNewGenDirectories(searchDirectoriesRequest)
+     * ```
+     */
+    searchNewGenDirectories(searchNewGenDirectoriesRequest: SearchDirectoriesRequest): void;
     /**
      * Use get the selected tab
      * @example
@@ -173,5 +257,5 @@ export declare class CXoneDynamicDirectory {
      * this.publishFinalDynamicDirectoryResponse();
      * ```
      */
-    publishFinalDynamicDirectoryResponse(data: SearchDirectoriesResponse): void;
+    publishFinalDynamicDirectoryResponse(data: SearchDirectoriesResponse, isNewGen?: boolean): void;
 }

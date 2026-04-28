@@ -33,5 +33,6 @@ export var GetNextEventType;
     GetNextEventType["CONFERENCE"] = "Conference";
     GetNextEventType["HOURS_OF_OPERATION"] = "HoursOfOperation";
     GetNextEventType["AGENT_WORKFLOW_CREATE_PAYLOAD"] = "AgentWorkflowCreatePayload";
+    GetNextEventType["SMART_REACH_VALIDATION"] = "SmartReachValidation";
 })(GetNextEventType || (GetNextEventType = {}));
 //# sourceMappingURL=get-next-event-type.js.map

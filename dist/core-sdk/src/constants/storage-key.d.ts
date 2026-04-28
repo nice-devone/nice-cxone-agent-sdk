@@ -74,6 +74,7 @@ export declare const StorageKeys: {
     VOICE_PREFERENCE: string;
     SHOW_VOICE_TRANSCRIPT: string;
     TENANT_DATA: string;
+    AUTH_CONSUMER: string;
     /**
      * This key is used to store the ACS email id used during session initiation
      */
@@ -89,7 +90,6 @@ export declare const StorageKeys: {
     ENCRYPTED_KEY: string;
     ENCRYPTION_IV: string;
     ORIGINATING_SERVICE_IDENTIFIER: string;
-    FAVORITE_AGENT_STATES: string;
     CXA_FAV_AGENT_STATES: string;
     AGENT_PROFILE_CONFIGURATION: string;
     AGENT_SCREEN_SIZE: string;
@@ -100,9 +100,23 @@ export declare const StorageKeys: {
     SKILL_POLLING_UPDATED_SINCE: string;
     FAVORITE_IDS_TOGGLED: string;
     WEM_WS_CONNECTION_STATUS: string;
+    ACTIVE_CALL_CONTEXT: string;
+    ACTIVE_CALL_CONTACT_ID: string;
+    AGENT_CURRENT_STATE: string;
+    INCOMING_CALL_CONTACT_ID: string;
+    AGENT_LEG_STATUS: string;
+    AGENT_LEG_ID: string;
+    ACTIVE_CALL_SYS_ID: string;
+    ACTIVE_CALL_CONTACT_DETAILS: string;
+    AGENT_SYS_ID: string;
+    AGENT_OB_SKILL: string;
+    RECORDING_NOTIFICATION: string;
     AGENT_HIVE_CHANNEL_INFO: string;
     IS_CONVERSATIONS_STANDALONE: string;
     IS_CONVERSATIONS_STANDALONE_FIRST_LAUNCH: string;
+    CXONE_VOICE_CONTACT: string;
+    IS_VOICE_TRANSCRIPT_ENABLED: string;
+    IS_AGENT_COPILOT_ENABLED: string;
     SHOULD_GRAFANA_FARO_LOGS_BE_COLLECTED: string;
 };
 export declare const NotificationSettings: {

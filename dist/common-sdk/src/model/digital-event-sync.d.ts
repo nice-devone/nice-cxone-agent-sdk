@@ -19,5 +19,5 @@ export interface DigitalEventSync {
     /**
      * The response associated with the digital event, if applicable.
      */
-    syncEventResponse?: CXoneMessage;
+    syncEventResponse?: CXoneMessage | string;
 }

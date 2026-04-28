@@ -35,6 +35,7 @@ export class SkillApiParser {
                         useACW: respObj.useACW,
                         digitalPOC: respObj === null || respObj === void 0 ? void 0 : respObj.digitalPOC,
                         digitalPOCName: respObj === null || respObj === void 0 ? void 0 : respObj.digitalPOCName,
+                        requireCustomerId: respObj === null || respObj === void 0 ? void 0 : respObj.requireCustomerId,
                     };
                     agentSkillLists.push(data);
                 }
@@ -73,6 +74,7 @@ export class SkillApiParser {
                     timeExtensionEnabled: respObj.timeExtensionEnabled,
                     requireDisposition: respObj.requireDisposition,
                     workItemQueueType: respObj.workItemQueueType,
+                    requireCustomerId: respObj === null || respObj === void 0 ? void 0 : respObj.requireCustomerId,
                 };
                 allSkillLists.push(data);
             }
@@ -165,6 +167,7 @@ export class SkillApiParser {
         skills.priorityInterrupt = data === null || data === void 0 ? void 0 : data.priorityInterrupt;
         skills.outboundTelecomRouteId = data === null || data === void 0 ? void 0 : data.outboundTelecomRouteId;
         skills.isRequireManualAccept = data === null || data === void 0 ? void 0 : data.isRequireManualAccept;
+        skills.requireCustomerId = data === null || data === void 0 ? void 0 : data.requireCustomerId;
         return skills;
     }
 }

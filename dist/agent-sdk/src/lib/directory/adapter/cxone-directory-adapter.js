@@ -1,6 +1,6 @@
 import { __awaiter } from "tslib";
 import { AgentStateResponse, SkillEvent, DirectoryEntities, Team, } from '@nice-devone/common-sdk';
-import { FeatureToggleService } from '../../feature-toggle/feature-toggle-services';
+import { isUnifiedAgentStateEnabled } from '../../utils/unified-agent-state-utils';
 /**
  * Directory Adapter class to handle the agent api's data response
  */
@@ -23,7 +23,7 @@ export class CXoneDirectoryAdapter {
             const teamList = [];
             let addressBookEntriesCount = 0;
             if (response.get(DirectoryEntities.AGENT_LIST)) {
-                const isFTUnifyAgentStateOn = FeatureToggleService.instance.getFeatureToggleSync("release-cx-directory-agent-state-working-digital-AW-28472" /* FeatureToggles.DIRECTORY_AGENT_STATE_WORKING_DIGITAL_FEATURE_TOGGLE */);
+                const isFTUnifyAgentStateOn = yield isUnifiedAgentStateEnabled();
                 const agentStateValue = response.get(DirectoryEntities.AGENT_LIST);
                 if (isFTUnifyAgentStateOn) {
                     if (agentStateValue.status === 'fulfilled' && ((_a = agentStateValue === null || agentStateValue === void 0 ? void 0 : agentStateValue.value) === null || _a === void 0 ? void 0 : _a.agentStates)) {

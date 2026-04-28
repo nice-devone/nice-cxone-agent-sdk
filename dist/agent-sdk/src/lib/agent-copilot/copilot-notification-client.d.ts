@@ -8,6 +8,10 @@ export declare class CopilotNotificationClient extends AgentAssistNotificationSe
     private agentId;
     private webSocketUri;
     private subscriptionTopics;
+    private heartbeatMonitorTimer;
+    private heartbeatAckReceived;
+    private heartbeatMissCount;
+    private lastHeartbeatReceivedAt;
     onMessageNotification: Subject<AgentAssistBaseResponse>;
     onVoiceTranscriptionMessage: Subject<VoiceTranscriptionResponse>;
     onVoiceTranscriptionError: Subject<AgentAssistErrorResponse>;
@@ -60,6 +64,28 @@ export declare class CopilotNotificationClient extends AgentAssistNotificationSe
      * @param message - message to broadcast
      */
     broadcastCopilotNotifications(message: any): void;
+    /**
+     * Starts monitoring heartbeat acknowledgments for the active connection.
+     * If three consecutive acknowledgment windows are missed, the connection is closed and reconnected.
+     * @example - startHeartbeatMonitor()
+     */
+    private startHeartbeatMonitor;
+    /**
+     * Stops the heartbeat monitor timer and resets its state.
+     * @example - stopHeartbeatMonitor()
+     */
+    private stopHeartbeatMonitor;
+    /**
+     * Handles a HEARTBEAT_ACK message received from the server.
+     * Resets the missed heartbeat count for the active connection.
+     * @example - handleHeartbeatAck()
+     */
+    private handleHeartbeatAck;
+    /**
+     * Returns whether the heartbeat monitor logic is enabled for agent copilot websocket reconnects.
+     * @example - isHeartbeatMonitorEnabled()
+     */
+    private isHeartbeatMonitorEnabled;
     /**
      * Callback method when a connection is open and ready to send and receive data
      * @example - onOpen()

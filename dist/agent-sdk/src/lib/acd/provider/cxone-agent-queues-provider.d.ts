@@ -6,13 +6,16 @@ export declare class CXoneAgentQueuesProvider {
     private logger;
     private acdSession;
     private baseUri;
+    private apiFacadeBaseUri;
     private utilService;
     private cxoneClient;
     private urlUtilService;
     pollingWorker: any;
     private agentId;
     private isIncreasedQueuesPolling;
+    private readonly boundHandleWorkerMessage;
     private pollingInterval;
+    private isQueuesFeatureToggleEnabled;
     /**
      * Creates agent queue provider
      * @example - const provider = new CXoneAgentQueuesProvider()
@@ -35,7 +38,12 @@ export declare class CXoneAgentQueuesProvider {
      * this.agentQueuesProvider.agentQueuesPolling();
      * ```
      */
-    agentQueuesPolling(agentId: string): void;
+    agentQueuesPolling(agentId: string): Promise<void>;
+    /**
+     * Pre-bound worker message handler to prevent function recreation
+     * @param response - Worker response event
+     */
+    private handleWorkerMessage;
     /**
      * Callback method which will passed on to the worker and will be executed after the polling api response
      * then will publish to the subject subscriber with the agent queue data

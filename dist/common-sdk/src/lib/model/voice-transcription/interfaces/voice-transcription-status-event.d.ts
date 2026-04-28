@@ -4,8 +4,10 @@ export interface VoiceTranscriptionStatusEvent {
     timestamp: string;
 }
 export declare enum TranscriptionStatus {
-    UNMASKED = "unmasked",
     CONNECTION_RESTORED = "connectionRestored",
     ERROR = "error",
-    RESUMED = "resumed"
+    MUTED = "muted",
+    RESUMED = "resumed",
+    UNMASKED = "unmasked",
+    UNMUTED = "unmuted"
 }

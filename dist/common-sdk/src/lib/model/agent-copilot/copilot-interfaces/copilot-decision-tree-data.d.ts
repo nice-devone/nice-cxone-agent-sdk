@@ -31,6 +31,13 @@ export interface CapturedQuestion extends DecisionTreeQuestion {
      * The options available for multiple choice questions.
      */
     options?: string[];
+    /**
+     * The available choices for ChoiceSet and MultiChoiceSet questions.
+     */
+    choices?: Array<{
+        title: string;
+        value: string;
+    }>;
 }
 /**
  * model interface for Suggested Questions Section
@@ -154,7 +161,7 @@ export interface DecisionTreeData {
 /**
  * Enumeration of supported decision tree question primitive types.
  */
-export declare type QuestionType = 'Date' | 'String' | 'Number' | 'Boolean';
+export declare type QuestionType = 'Date' | 'String' | 'Number' | 'Boolean' | 'Text' | 'Toggle' | 'Time' | 'ChoiceSet' | 'MultiChoiceSet';
 /**
  * Props for Decision Tree Capture Details component
  */
@@ -164,7 +171,7 @@ export interface DecisionTreeCaptureDetailsProps {
 /**
  * Primitive values supported by decision tree inputs.
  */
-export declare type DecisionTreeInputValue = string | number | boolean | Date;
+export declare type DecisionTreeInputValue = string | number | boolean | Date | string[];
 /**
  * Represents the root element of a decision tree definition returned from the API.
  *
@@ -212,15 +219,77 @@ export interface SectionPreCondition {
     conditionValue?: CriteriaSelector;
 }
 /**
- * Individual question/field
+ * Represents a single question or input field in the decision tree.
  */
 export interface DecisionTreeField {
+    /**
+     * Unique identifier for the field within the decision tree.
+     */
     fieldId: string;
+    /**
+     * Runtime identifier used by the API.
+     * Typically matches `CapturedQuestion.questionId` from backend responses.
+     */
+    questionId?: string;
+    /**
+     * Display label shown to the user for this field.
+     */
     label: string;
-    dataType: 'String' | 'Number' | 'Boolean' | 'Date' | 'MultipleChoice' | 'SingleChoice' | string;
+    /**
+     * Defines the type of input expected for this field.
+     *
+     * Known supported types:
+     * - String / Text → free text input
+     * - Number → numeric input
+     * - Boolean / Toggle → true/false switch
+     * - Date → date picker
+     * - Time → time picker
+     * - SingleChoice → single select option
+     * - MultipleChoice → multiple select options
+     * - ChoiceSet → structured single select (title/value pairs)
+     * - MultiChoiceSet → structured multi select (title/value pairs)
+     *
+     * Can also accept custom string types for extensibility.
+     */
+    dataType: 'String' | 'Number' | 'Boolean' | 'Date' | 'Text' | 'Toggle' | 'Time' | 'MultipleChoice' | 'SingleChoice' | 'ChoiceSet' | 'MultiChoiceSet' | string;
+    /**
+     * Indicates whether this field is required.
+     * If true, validation should ensure a value is provided before submission.
+     */
     mandatory: boolean;
+    /**
+     * Current value of the field.
+     * The type depends on the `dataType`.
+     *
+     * Example:
+     * - String/Text → string
+     * - Number → number
+     * - Boolean/Toggle → boolean
+     * - Choice → string or string[]
+     */
     value: DecisionTreeInputValue;
+    /**
+     * List of options for simple choice-based fields.
+     * Primarily used for `MultipleChoice` and `SingleChoice`.
+     *
+     * Example: ["Yes", "No"]
+     */
     options?: string[];
+    /**
+     * Structured choices for advanced selection fields.
+     * Used in `ChoiceSet` and `MultiChoiceSet`.
+     *
+     * Each choice contains:
+     * - `title`: Display label shown to the user
+     * - `value`: Actual value sent to backend
+     *
+     * Example:
+     * `[{ title: "High", value: "H" }, { title: "Low", value: "L" }]`
+     */
+    choices?: Array<{
+        title: string;
+        value: string;
+    }>;
 }
 /**
  * Supported comparison operators.

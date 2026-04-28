@@ -1,6 +1,5 @@
 import { __awaiter } from "tslib";
 import { CXoneClient } from '../../cxone-client';
-import { FeatureToggleService } from '../../feature-toggle';
 import { LocalStorageHelper, Logger, StorageKeys } from '@nice-devone/core-sdk';
 /**
 * Method to filter, sort and truncate data based on searchText, offset and Limit
@@ -96,11 +95,7 @@ const sortDirectoryData = (data, filterType, searchText) => {
 * ```
 */
 const handleDirectoryPagination = (data, limit, offset) => {
-    const isFavoritesFTEnabled = FeatureToggleService.instance.getFeatureToggleSync("release-cxa-favorites-AW-40314" /* FeatureToggles.CXA_FAVORITES_FEATURE_TOGGLE */);
-    if (isFavoritesFTEnabled && offset && offset > 0 && limit && limit > 0) {
-        return data === null || data === void 0 ? void 0 : data.slice(offset - 1, offset + limit - 1);
-    }
-    else if (!isFavoritesFTEnabled && offset && limit) {
+    if (offset && offset > 0 && limit && limit > 0) {
         return data === null || data === void 0 ? void 0 : data.slice(offset - 1, offset + limit - 1);
     }
     return data;
@@ -135,7 +130,7 @@ export function handleDirectoryItemDeletion(options) {
             listFromDB = listFromDB.filter(item => item.isActive);
         }
         const listFromDBIds = new Set(listFromDB.map(item => item[idName])) || new Set();
-        const filteredClientData = favClientList.filter(item => listFromDBIds.has(item)) || [];
+        const filteredClientData = (favClientList === null || favClientList === void 0 ? void 0 : favClientList.filter(item => listFromDBIds.has(item))) || [];
         const noDirectoryItemDeleted = Array.isArray(filteredClientData) &&
             Array.isArray(favClientList) &&
             filteredClientData.length === favClientList.length &&

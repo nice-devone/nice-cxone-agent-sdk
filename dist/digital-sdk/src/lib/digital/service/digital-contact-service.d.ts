@@ -23,6 +23,8 @@ export declare class DigitalContactService {
     private DIGITAL_QUICK_REPLIES_OUTBOUND;
     private DIGITAL_QR_REPLACE_VARIABLES;
     private QUICK_RESPONSE_REPLACE_VARIABLES;
+    private readonly requestManager;
+    private isAbortDelayDigitialApiEnabled;
     /**
      * @example
      * ```

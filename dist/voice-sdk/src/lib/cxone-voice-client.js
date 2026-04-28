@@ -88,7 +88,6 @@ class CXoneVoiceClient {
      * ```
      */
     handleAgentLegEvent(agentLeg) {
-        this.logger.info('handleAgentLegEvent', `param agentLeg: ${JSON.stringify(agentLeg)}`);
         this.webRtcService.handleAgentLegEvent(agentLeg);
     }
     /**

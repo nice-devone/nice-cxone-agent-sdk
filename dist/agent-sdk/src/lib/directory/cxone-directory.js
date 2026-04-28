@@ -171,6 +171,17 @@ export class CXoneDirectory {
         this.dynamicDirectory.toggleFavoriteForExternalDirectory(externalDirectoryEntries);
     }
     /**
+   * Method to toggle favorites for NewGen Directory
+   * @param newGenDirectoryEntries - NewGen directory entries for which you want to toggle favorite for
+   * @example -
+   * ```
+   * this.toggleFavoriteForNewGenDirectories(newGenDirectoryEntries);
+   * ```
+   */
+    toggleFavoriteForNewGenDirectories(newGenDirectoryEntries) {
+        this.dynamicDirectory.toggleFavoriteForNewGenDirectory(newGenDirectoryEntries);
+    }
+    /**
      * Method to get favorites for Agents
      * @param agentName - agent name for filtering the list
      * @example -

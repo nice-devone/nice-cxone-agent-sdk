@@ -80,7 +80,7 @@ export declare class CXoneUserDetails {
      * parse(data);
      * ```
      */
-    parse(data: {
+    parse(data?: {
         [key: string]: unknown;
     }): void;
 }

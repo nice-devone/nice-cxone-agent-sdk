@@ -188,6 +188,17 @@ export declare const CallContactEventYup: import("yup/lib/object").OptionalObjec
      * @remarks - If Require Manual Agent Accept setting is enabled, value will be set to true
      */
     isRequireManualAccept: import("yup").BooleanSchema<boolean, import("yup/lib/types").AnyObject, boolean>;
+    /**
+     * @remarks - The unique ID for the contact in the external system, if it exists.
+     * Available for contacts that are created through an integration with SmartReach
+     *  This value is optional and may not be present on all contacts.
+     */
+    externalCustomerId: import("yup").StringSchema<string, import("yup/lib/types").AnyObject, string>;
+    /**
+     * @remarks - The unique transaction ID for SmartReach,
+     * This value is optional and may not be present on all contacts.
+     */
+    smartReachTransactionId: import("yup").StringSchema<string, import("yup/lib/types").AnyObject, string>;
 }, import("yup/lib/object").AnyObject, import("yup/lib/object").TypeOfShape<{
     /**
      * @remarks -
@@ -377,5 +388,16 @@ export declare const CallContactEventYup: import("yup/lib/object").OptionalObjec
      * @remarks - If Require Manual Agent Accept setting is enabled, value will be set to true
      */
     isRequireManualAccept: import("yup").BooleanSchema<boolean, import("yup/lib/types").AnyObject, boolean>;
+    /**
+     * @remarks - The unique ID for the contact in the external system, if it exists.
+     * Available for contacts that are created through an integration with SmartReach
+     *  This value is optional and may not be present on all contacts.
+     */
+    externalCustomerId: import("yup").StringSchema<string, import("yup/lib/types").AnyObject, string>;
+    /**
+     * @remarks - The unique transaction ID for SmartReach,
+     * This value is optional and may not be present on all contacts.
+     */
+    smartReachTransactionId: import("yup").StringSchema<string, import("yup/lib/types").AnyObject, string>;
 }>>;
 export declare type CallContactEvent = InferType<typeof CallContactEventYup>;

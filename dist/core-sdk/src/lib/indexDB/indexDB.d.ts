@@ -8,7 +8,7 @@ declare type CcfCopilotData = {
 };
 export interface storeSchema extends DBSchema {
     Directory: {
-        key: DirectoryEntities | IndexDBKeyNames.DIRECTORY_SEARCH_RESPONSE | IndexDBKeyNames.ALL_SKILLS | IndexDBKeyNames.FAVORITE_AGENTS | IndexDBKeyNames.FAVORITE_TEAMS | IndexDBKeyNames.FAVORITE_STANDARD_ADDRESS_BOOK | IndexDBKeyNames.FAVORITE_SKILLS | IndexDBKeyNames.FAVORITE_DIGITAL_SKILLS | IndexDBKeyNames.FAVORITE_EXT_DIR_ENTRIES | IndexDBKeyNames.WEM_NOTIFICATIONS;
+        key: DirectoryEntities | IndexDBKeyNames.DIRECTORY_SEARCH_RESPONSE | IndexDBKeyNames.ALL_SKILLS | IndexDBKeyNames.FAVORITE_AGENTS | IndexDBKeyNames.FAVORITE_TEAMS | IndexDBKeyNames.FAVORITE_STANDARD_ADDRESS_BOOK | IndexDBKeyNames.FAVORITE_SKILLS | IndexDBKeyNames.FAVORITE_DIGITAL_SKILLS | IndexDBKeyNames.FAVORITE_EXT_DIR_ENTRIES | IndexDBKeyNames.WEM_NOTIFICATIONS | IndexDBKeyNames.FAVORITE_NEWGEN_DIR_ENTRIES;
         value: Array<AgentStateResponse | SkillEvent | AddressBooks | Team | SkillActivityEvent | DirectoryAdditionalAtrributes> | DirectoryResponse | Array<AddressBooksEntries> | Array<Skills>;
     };
     Digital: {

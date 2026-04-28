@@ -1,6 +1,7 @@
+import { __awaiter } from "tslib";
 import { AuthStatus } from '@nice-devone/auth-sdk';
 import { CXoneLeaderElector, MessageBus, MessageType, Queue } from '@nice-devone/common-sdk';
-import { ACDSessionManager, ApiUriConstants, HttpUtilService, LoadWorker, Logger, UrlUtilsService, } from '@nice-devone/core-sdk';
+import { HttpClient, ACDSessionManager, ApiUriConstants, HttpUtilService, LoadWorker, Logger, UrlUtilsService, } from '@nice-devone/core-sdk';
 import { FeatureToggleService } from '../../feature-toggle/feature-toggle-services';
 /**
  * Agent Queues Provider Class
@@ -14,13 +15,17 @@ export class CXoneAgentQueuesProvider {
         this.logger = new Logger('SDK', 'CXoneAgentQueuesProvider');
         this.acdSession = ACDSessionManager.instance;
         this.baseUri = '';
+        this.apiFacadeBaseUri = '';
         this.utilService = new HttpUtilService();
         this.cxoneClient = {};
         this.urlUtilService = new UrlUtilsService();
         this.agentId = '';
         this.isIncreasedQueuesPolling = FeatureToggleService.instance.getFeatureToggleSync("release-cx-agent-increase-queues-api-polling-AW-46709" /* FeatureToggles.INCREASE_QUEUES_POLLING_TOGGLE */);
+        // Pre-bound method to prevent anonymous function creation
+        this.boundHandleWorkerMessage = this.handleWorkerMessage.bind(this);
         // if the FT is enabled then polling interval will be 30 seconds else 5 seconds
         this.pollingInterval = this.isIncreasedQueuesPolling ? 30000 : 5000;
+        this.isQueuesFeatureToggleEnabled = FeatureToggleService.instance.getFeatureToggleSync("release-cxa-queue-detail-microservice-integration-AW-42779" /* FeatureToggles.QUEUES_FEATURE_TOGGLE */) || false;
         window.addEventListener(AuthStatus.REFRESH_TOKEN_SUCCESS, () => this.restartWorker(this.agentId));
     }
     /**
@@ -43,39 +48,71 @@ export class CXoneAgentQueuesProvider {
      * ```
      */
     agentQueuesPolling(agentId) {
-        this.agentId = agentId;
-        if (this.pollingWorker) {
-            this.logger.info('agentQueuesPolling', 'agentQueuesPolling is already started');
-            return;
-        }
-        this.logger.info('agentQueuesPolling', 'agentQueuesPolling in CXoneAgentQueuesProvider');
-        this.baseUri = this.acdSession.cxOneConfig.acdApiBaseUri;
-        const authToken = this.acdSession.accessToken;
-        const requestParams = {
-            fields: '',
-            updatedSince: new Date(0).toISOString(),
-        };
-        if (this.baseUri && authToken) {
-            const queueUri = (FeatureToggleService.instance.getFeatureToggleSync("release-cxa-tenant-segmentation-AW-28101" /* FeatureToggles.TENANT_SEGMENTATION */)
-                ? ApiUriConstants.AGENT_QUEUE_URI_TS
-                : ApiUriConstants.AGENT_QUEUE_URI).replace('{agentId}', agentId);
-            const url = this.baseUri +
-                this.urlUtilService.appendQueryString(queueUri, requestParams);
-            const reqInit = {
-                headers: this.utilService.initHeader(authToken).headers,
-            };
-            if (!this.pollingWorker) {
-                this.initAgentQueuesWorker();
-                this.pollingWorker.onmessage = (response) => {
-                    this.handleAgentQueueResponse(response.data);
-                };
+        return __awaiter(this, void 0, void 0, function* () {
+            this.agentId = agentId;
+            if (this.pollingWorker) {
+                this.logger.info('agentQueuesPolling', 'agentQueuesPolling is already started');
+                return;
             }
-            this.pollingWorker.postMessage({
-                type: 'agent-polling',
-                requestParams: { url: url, method: 'GET', request: reqInit },
-                pollingOptions: { pollingInterval: this.pollingInterval },
-            });
-        }
+            this.logger.info('agentQueuesPolling', 'agentQueuesPolling in CXoneAgentQueuesProvider');
+            this.baseUri = this.acdSession.cxOneConfig.acdApiBaseUri;
+            this.apiFacadeBaseUri = this.acdSession.cxOneConfig.apiFacadeBaseUri;
+            const authToken = this.acdSession.accessToken;
+            const requestParams = {
+                fields: '',
+                updatedSince: new Date(0).toISOString(),
+            };
+            if (this.baseUri && authToken) {
+                const isTenantSegmentationEnabled = FeatureToggleService.instance.getFeatureToggleSync("release-cxa-tenant-segmentation-AW-28101" /* FeatureToggles.TENANT_SEGMENTATION */);
+                let queueUri = ApiUriConstants.AGENT_QUEUE_URI;
+                let requestBaseUri = this.baseUri;
+                if (this.isQueuesFeatureToggleEnabled) {
+                    queueUri = ApiUriConstants.AGENT_QUEUE_URI_NEW;
+                    requestBaseUri = this.apiFacadeBaseUri;
+                }
+                else if (isTenantSegmentationEnabled) {
+                    queueUri = ApiUriConstants.AGENT_QUEUE_URI_TS;
+                }
+                queueUri = queueUri.replace('{agentId}', agentId);
+                let url = requestBaseUri +
+                    this.urlUtilService.appendQueryString(queueUri, requestParams);
+                const reqInit = {
+                    headers: this.utilService.initHeader(authToken).headers,
+                };
+                if (!this.pollingWorker) {
+                    this.initAgentQueuesWorker();
+                    this.pollingWorker.onmessage = this.boundHandleWorkerMessage;
+                }
+                if (this.isQueuesFeatureToggleEnabled) {
+                    yield HttpClient.get(url, reqInit).then(() => {
+                        this.logger.info('agentQueuesPolling', 'Polling will continue with AGENT_QUEUE_URI_NEW');
+                    }, (error) => {
+                        var _a;
+                        if (((_a = error === null || error === void 0 ? void 0 : error.data) === null || _a === void 0 ? void 0 : _a.status) === 302) {
+                            let fallbackQueueUri = isTenantSegmentationEnabled
+                                ? ApiUriConstants.AGENT_QUEUE_URI_TS
+                                : ApiUriConstants.AGENT_QUEUE_URI;
+                            fallbackQueueUri = fallbackQueueUri.replace('{agentId}', agentId);
+                            const fallbackUrl = this.baseUri + this.urlUtilService.appendQueryString(fallbackQueueUri, requestParams);
+                            url = fallbackUrl;
+                            this.logger.info('agentQueuesPolling', 'AGENT_QUEUE_URI_NEW returned 302, fallback to AGENT_QUEUE_URI');
+                        }
+                    });
+                }
+                this.pollingWorker.postMessage({
+                    type: 'agent-polling',
+                    requestParams: { url: url, method: 'GET', request: reqInit },
+                    pollingOptions: { pollingInterval: this.pollingInterval },
+                });
+            }
+        });
+    }
+    /**
+     * Pre-bound worker message handler to prevent function recreation
+     * @param response - Worker response event
+     */
+    handleWorkerMessage(response) {
+        this.handleAgentQueueResponse(response.data);
     }
     /**
      * Callback method which will passed on to the worker and will be executed after the polling api response

@@ -20,7 +20,6 @@ export declare class CXoneSkillActivityProvider {
     private totalSearchResultCount;
     private skillActivityPollingRequest;
     private favoriteSkillList;
-    private readonly isFavoritesFTEnabled;
     /**
      * Creates skill activity provider
      * @example - const provider = new CXoneSkillActivityProvider();

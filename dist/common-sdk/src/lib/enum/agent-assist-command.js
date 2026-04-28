@@ -6,6 +6,7 @@ var AgentAssistCommand;
     AgentAssistCommand["connect"] = "CONNECT";
     AgentAssistCommand["connected"] = "CONNECTED";
     AgentAssistCommand["heartbeat"] = "HEARTBEAT";
+    AgentAssistCommand["heartbeatAck"] = "HEARTBEAT_ACK";
     AgentAssistCommand["subscribe"] = "SUBSCRIBE";
     AgentAssistCommand["subscribed"] = "SUBSCRIBED";
     AgentAssistCommand["unsubscribe"] = "UNSUBSCRIBE";

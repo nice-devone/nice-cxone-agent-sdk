@@ -84,6 +84,10 @@ export declare class CXoneConfiguration {
    */
     grafanaFaroUri: string;
     /**
+   * @remarks - global domain URI
+   */
+    globaldomain: string;
+    /**
      * This method to parse CXoneConfiguration data
      * @param data - CXoneConfiguration API response
      * ```

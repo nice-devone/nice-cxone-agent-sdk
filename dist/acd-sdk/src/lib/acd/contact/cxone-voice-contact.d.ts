@@ -49,6 +49,8 @@ export declare class CXoneVoiceContact extends CXoneContact {
     customerCardUrl: string;
     customerName: string;
     voiceBioHubPatronId: string;
+    externalCustomerId: string;
+    smartReachTransactionId: string;
     /**
      * @example
      * ```

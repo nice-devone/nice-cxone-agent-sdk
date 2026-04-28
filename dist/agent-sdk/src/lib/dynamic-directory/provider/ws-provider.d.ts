@@ -6,6 +6,7 @@ import { CXoneDynamicDirectory } from '../cxone-dynamic-directory';
  */
 export declare class WSProvider extends WebsocketClient {
     wsWorker: any;
+    wsWorkerNewGen: Worker | undefined;
     private logger;
     private wsService;
     private heartbeatTimer;
@@ -13,6 +14,7 @@ export declare class WSProvider extends WebsocketClient {
     private dynamicDirectory;
     private auth;
     private subscribed;
+    private isNewGen;
     /**
      * Create instance for dynamic directory WSProvider
      * @param directory - Instance of CXoneDynamicDirectory class
@@ -30,6 +32,14 @@ export declare class WSProvider extends WebsocketClient {
      * ```
      */
     initAgentStateSocketWorker(): any;
+    /**
+     * Use to initializing the web socket worker for newgen and will return the method inside the worker
+     * @example
+     * ```
+     * this.initNewGenAgentStateSocketWorker();
+     * ```
+     */
+    initNewGenAgentStateSocketWorker(): Worker;
     /**
      * Use to close the web socket worker
      * @example
@@ -104,6 +114,14 @@ export declare class WSProvider extends WebsocketClient {
      * ```
      */
     connectSocket(): void;
+    /**
+     * Method used to connect the WebSocket - NewGen
+     * @example
+     * ```
+     * this.connectNewGenSocket();
+     * ```
+     */
+    connectNewGenSocket(): void;
     /**
      * Use to subscribe to search results
      * @example

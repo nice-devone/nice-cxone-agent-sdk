@@ -45,4 +45,6 @@ export interface ContactData {
     finalState?: boolean;
     otherInformationNewFormat?: string;
     receivedInInboxTime: string;
+    externalCustomerId?: string;
+    smartReachTransactionId?: string;
 }

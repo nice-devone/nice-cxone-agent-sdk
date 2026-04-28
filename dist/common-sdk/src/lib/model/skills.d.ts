@@ -307,4 +307,8 @@ export interface Skills {
      * @remarks - timer extension enabled
      */
     timeExtensionEnabled?: boolean;
+    /**
+     * @remarks - requires customer ID
+     */
+    requireCustomerId?: boolean;
 }
