@@ -25,3 +25,13 @@
 - `[Updated]`: Modified schemas to include new fields for revamped unified Quick responses
 - `[Updated]`: Modified schema to include new Message related events on DESS
 - `[Added]`: Added a new schema CXoneDigitalSkill for digital data retrieved from agent skills
+
+## 26.2 - 2026-04-29 ##
+
+- `[Updated]`: Modified schemas to support SmartReach Integration - Voice - Preview Dialing
+- `[Updated]`: Updated models to termination codes (dispositions) for SmartReach (ACD voice call only)
+- `[Updated]`: Modified schema to include feature toggle for digital private channel visual indicators for freshly sent messages
+- `[Updated]`: Modified schema to include digital event sync model for CaseStatusChanged API-based integration pattern
+- `[Added]`: Added & Modified schemas and HTTP client to support delay and abort of API invocations during digital contact switch
+- `[Added]`: Modified schemas to include delta event models for WebSocket event delta publishing for digital contacts
+

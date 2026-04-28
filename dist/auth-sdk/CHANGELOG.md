@@ -11,3 +11,7 @@
 ## 26.1.1 - 2026-03-03 ##
 
 - `[Updated]`: Updated originatingServiceIdentifier field as nullable, CMA SDK consumers should no longer pass a static value; the identifier is derived internally as CMASDK.
+
+## 26.2 - 2026-04-29 ##
+
+- `[Updated]`: Updated code to incorporate the new Queue and Queue Details microservice
