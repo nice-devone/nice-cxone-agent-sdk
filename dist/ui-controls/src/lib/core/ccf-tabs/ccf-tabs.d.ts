@@ -24,6 +24,11 @@ export interface CcfTabsProps extends TabsProps {
      * default true
      */
     focusFirstTab?: boolean;
+    /**
+     * ariaLabel - string - accessibility label for the Tabs component
+     * Should follow pattern : " \{ title \} categories" for consistency
+     */
+    ariaLabel?: string;
 }
 /**
  *
@@ -33,7 +38,7 @@ export interface CcfTabsProps extends TabsProps {
  * @example <CcfTabs />
  * @returns CcfTabs Component
  */
-export declare function CcfTabs({ children, currentTab, setCurrentTab, textColor, indicatorColor, variant, tabClassname, classes, bottomBorder, focusFirstTab, ...rest }: CcfTabsProps): JSX.Element;
+export declare function CcfTabs({ children, currentTab, setCurrentTab, textColor, indicatorColor, variant, tabClassname, classes, bottomBorder, focusFirstTab, ariaLabel, ...rest }: CcfTabsProps): JSX.Element;
 export declare namespace CcfTabs {
     var TabPanel: typeof CcfTabsPanel;
     var Color: typeof import("./ccf-tabs").Color;

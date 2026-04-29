@@ -18,6 +18,7 @@ interface CcfVoicePreferenceProps {
         defaultSelected: string;
     };
     isLocationFTEnabled: boolean | string;
+    isLogoFTEnabled?: boolean;
     voiceConnection: string;
     showSpinner: boolean | undefined;
     stationOptionsChangeHandler: (e: React.ChangeEvent<HTMLInputElement>) => void;
@@ -52,5 +53,5 @@ interface CcfVoicePreferenceProps {
  * <CcfAcdSession isLocationFTEnabled={true} authError={true} />
  * ```
  */
-export declare function CcfVoicePreference({ theme, isLocationFTEnabled, radioButtonState, voiceConnection, showSpinner, stationOptionsChangeHandler, inputBoxState, inputNumberChangeHandler, sessionResponseState, validationError, rememberSetting, setRememberSetting, buttonState, launchBtnClickHandler, useLocationOptionHook, }: CcfVoicePreferenceProps): JSX.Element;
+export declare function CcfVoicePreference({ theme, isLocationFTEnabled, isLogoFTEnabled, radioButtonState, voiceConnection, showSpinner, stationOptionsChangeHandler, inputBoxState, inputNumberChangeHandler, sessionResponseState, validationError, rememberSetting, setRememberSetting, buttonState, launchBtnClickHandler, useLocationOptionHook, }: CcfVoicePreferenceProps): JSX.Element;
 export default CcfVoicePreference;

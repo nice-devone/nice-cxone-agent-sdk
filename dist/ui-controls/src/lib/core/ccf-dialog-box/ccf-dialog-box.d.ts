@@ -11,9 +11,11 @@ export interface CcfDialogBoxProps {
     primaryButtonProps?: ButtonProps;
     secondaryButtonProps?: ButtonProps;
     dialogTitleProps?: TypographyProps;
+    dialogContentProps?: TypographyProps;
     component?: React.ReactElement;
     dividers?: boolean;
     showTitle?: boolean;
+    showCloseButton?: boolean;
 }
 /**
  * Component used to display dialog box
@@ -21,5 +23,5 @@ export interface CcfDialogBoxProps {
  * @example <CCfDialogBox />
  * @returns dialog box
  */
-export declare function CcfDialogBox({ isOpen, handleOnClickOfHeaderCloseButton, handleOnClose, children, title, primaryButtonText, secondaryButtonText, primaryButtonProps, secondaryButtonProps, dialogTitleProps, component, dividers, showTitle, }: CcfDialogBoxProps): JSX.Element;
+export declare function CcfDialogBox({ isOpen, handleOnClickOfHeaderCloseButton, handleOnClose, children, title, primaryButtonText, secondaryButtonText, primaryButtonProps, secondaryButtonProps, dialogTitleProps, dialogContentProps, component, dividers, showTitle, showCloseButton, }: CcfDialogBoxProps): JSX.Element;
 export default CcfDialogBox;

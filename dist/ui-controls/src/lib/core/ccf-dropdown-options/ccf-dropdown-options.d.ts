@@ -159,6 +159,11 @@ export interface CcfDropdownOptionsProps {
      * optional flag to identify if this is for copilot filters
      */
     copilotFilter?: boolean;
+    /**
+     * optional render function for agent status icons; receives the agent status string
+     * and an optional style object, returns a React node
+     */
+    renderAgentStatusIcon?: (agentStatus: string, iconStyle?: object) => React.ReactNode;
     extraInitialParams?: InitialParams;
 }
 interface buttonProperties {
@@ -253,5 +258,5 @@ export declare const CustomListboxComponent: React.ForwardRefExoticComponent<Cus
  * <CcfDropdownOptions/>
  * ```
  */
-export declare const CcfDropdownOptions: ({ dropdownItems, menuItemStyles, dropdownTextStyles, placeholder, buttons, listSubheaderStyles, listSubheaderTitle, datePicker, showOnlyDropDownBox, onCloseIconClick, MultiSelectPaginationDropdown, open, handleOpen, copilotFilter, extraInitialParams, }: CcfDropdownOptionsProps) => JSX.Element;
+export declare const CcfDropdownOptions: ({ dropdownItems, menuItemStyles, dropdownTextStyles, placeholder, buttons, listSubheaderStyles, listSubheaderTitle, datePicker, showOnlyDropDownBox, onCloseIconClick, MultiSelectPaginationDropdown, open, handleOpen, copilotFilter, renderAgentStatusIcon, extraInitialParams, }: CcfDropdownOptionsProps) => JSX.Element;
 export {};

@@ -11,6 +11,10 @@ interface CcfMenuProps {
      * linkStyles - styles for the download link
      */
     linkStyles?: object;
+    /**
+     * moreButtonAriaLabel - accessible label for the more/kebab button
+     */
+    moreButtonAriaLabel?: string;
 }
 export interface CcfMenuOptions {
     name: string;
@@ -33,5 +37,5 @@ export interface CcfMenuOptions {
     />
  * ```
  */
-export declare const CcfMenu: ({ options, handleMenuSelection, menuItemStyles, menuTextStyles, moreIconStyles, menuStyles, }: CcfMenuProps) => JSX.Element;
+export declare const CcfMenu: ({ options, handleMenuSelection, menuItemStyles, menuTextStyles, moreIconStyles, menuStyles, moreButtonAriaLabel, }: CcfMenuProps) => JSX.Element;
 export {};

@@ -6,7 +6,7 @@ export interface RowDataStructure {
     data: any;
 }
 /**
- * basic structure for accepatable props for CcfSortItems component
+ * basic structure for accepatable props for CcfTable component
  */
 export interface CcfTableProps {
     headersData?: string[];
@@ -17,7 +17,7 @@ export interface CcfTableProps {
     tableStyle?: SxProps;
     containerStyle?: SxProps;
     stickyHeader?: boolean;
-    onRowClick?: (arg: any) => void;
+    onRowClick?: (arg: RowDataStructure) => void;
     tabIndexForCells?: boolean;
 }
 /**

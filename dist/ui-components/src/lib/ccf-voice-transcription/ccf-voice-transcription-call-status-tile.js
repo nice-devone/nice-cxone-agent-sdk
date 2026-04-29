@@ -1,7 +1,7 @@
 import { jsx as _jsx, jsxs as _jsxs } from "react/jsx-runtime";
 import { Paper, Box, Stack, Typography, useTheme } from '@mui/material';
 import { formatTimestamp, VoiceContactStatus, TranscriptionStatus } from '@nice-devone/common-sdk';
-import { CcfCallHoldIcon, CcfCallMaskIcon, CcfCallResumedIcon, CcfCallUnmaskIcon, CcfCopilotSuccessIcon, CcfTranscriptionErrorIcon, useTranslator, } from '@nice-devone/ui-controls';
+import { CcfCallHoldIcon, CcfCallMaskIcon, CcfCallMuteIcon, CcfCallResumedIcon, CcfCallUnmaskIcon, CcfCopilotSuccessIcon, CcfTranscriptionErrorIcon, CcfUnMuteIcon, useTranslator, } from '@nice-devone/ui-controls';
 import React from 'react';
 export const CcfVoiceTranscriptionCallStatusTile = React.forwardRef(({ statusEvent }, ref) => {
     const theme = useTheme();
@@ -14,13 +14,17 @@ export const CcfVoiceTranscriptionCallStatusTile = React.forwardRef(({ statusEve
     const getStatusIcon = () => {
         switch (statusEvent.status) {
             case VoiceContactStatus.HOLDING:
-                return _jsx(CcfCallHoldIcon, { htmlColor: theme.palette.text.contrastText, sx: { width: 25, height: 18 } });
+                return _jsx(CcfCallHoldIcon, { htmlColor: theme.palette.text.header, sx: { width: 25, height: 18 } });
             case VoiceContactStatus.MASKING:
-                return _jsx(CcfCallMaskIcon, { htmlColor: theme.palette.text.contrastText, sx: { width: 25, height: 18 } });
+                return _jsx(CcfCallMaskIcon, { htmlColor: theme.palette.text.header, sx: { width: 25, height: 18 } });
             case TranscriptionStatus.RESUMED:
-                return _jsx(CcfCallResumedIcon, { htmlColor: theme.palette.text.contrastText, sx: { width: 25, height: 18 } });
+                return _jsx(CcfCallResumedIcon, { htmlColor: theme.palette.text.header, sx: { width: 25, height: 18 } });
             case TranscriptionStatus.UNMASKED:
-                return _jsx(CcfCallUnmaskIcon, { htmlColor: theme.palette.text.contrastText, sx: { width: 25, height: 18 } });
+                return _jsx(CcfCallUnmaskIcon, { htmlColor: theme.palette.text.header, sx: { width: 25, height: 18 } });
+            case TranscriptionStatus.MUTED:
+                return _jsx(CcfUnMuteIcon, { htmlColor: theme.palette.text.header, showBackground: false, sx: { width: 25, height: 18 }, viewBox: "0 0 25 24" });
+            case TranscriptionStatus.UNMUTED:
+                return _jsx(CcfCallMuteIcon, { htmlColor: theme.palette.text.header, sx: { width: 25, height: 18 }, viewBox: "0 0 25 24" });
             case TranscriptionStatus.ERROR:
                 return _jsx(CcfTranscriptionErrorIcon, { sx: { width: 25, height: 18 } });
             case TranscriptionStatus.CONNECTION_RESTORED:
@@ -45,6 +49,10 @@ export const CcfVoiceTranscriptionCallStatusTile = React.forwardRef(({ statusEve
                 return translate('callResumed');
             case TranscriptionStatus.UNMASKED:
                 return translate('callUnmasked');
+            case TranscriptionStatus.MUTED:
+                return translate('callMuted');
+            case TranscriptionStatus.UNMUTED:
+                return translate('callUnmuted');
             case TranscriptionStatus.ERROR:
                 return translate('transcriptionStopped');
             case TranscriptionStatus.CONNECTION_RESTORED:
@@ -53,6 +61,6 @@ export const CcfVoiceTranscriptionCallStatusTile = React.forwardRef(({ statusEve
                 return translate('unknown');
         }
     };
-    return (_jsxs(Paper, Object.assign({ elevation: 0, ref: ref, sx: { p: 1, display: 'flex', gap: 1, alignItems: 'center' } }, { children: [getStatusIcon(), _jsx(Box, { children: _jsxs(Stack, Object.assign({ direction: "row", spacing: 1, alignItems: "center" }, { children: [_jsx(Typography, Object.assign({ variant: "body2", color: theme.palette.text.contrastText }, { children: getStatusMessage() })), _jsx(Typography, Object.assign({ variant: "body2", color: theme.palette.text.header, sx: { marginLeft: '12px' } }, { children: formatTimestamp('en-US', statusEvent.timestamp) }))] })) })] })));
+    return (_jsxs(Paper, Object.assign({ elevation: 0, ref: ref, sx: { p: 1, display: 'flex', gap: 1, alignItems: 'center' } }, { children: [getStatusIcon(), _jsx(Box, { children: _jsxs(Stack, Object.assign({ direction: "row", spacing: 1, alignItems: "center" }, { children: [_jsx(Typography, Object.assign({ variant: "body2", color: theme.palette.text.header }, { children: getStatusMessage() })), _jsx(Typography, Object.assign({ variant: "body2", color: theme.palette.text.header, sx: { marginLeft: '12px' } }, { children: formatTimestamp('en-US', statusEvent.timestamp) }))] })) })] })));
 });
 //# sourceMappingURL=ccf-voice-transcription-call-status-tile.js.map

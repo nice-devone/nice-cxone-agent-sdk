@@ -12,6 +12,9 @@ declare const ccfLocationOptionStyles: (theme: Theme) => {
         fontWeight: number;
         padding: string;
     };
+    locationLabelDisabled: {
+        color: string;
+    };
     locationItem: {
         color: string;
         textAlign: string;

@@ -13,7 +13,7 @@ import CcfBox from '../ccf-box/ccf-box';
  */
 export const CcfAttachmentButton = forwardRef((props, ref) => {
     const iconSize = props.isEmailRevamp ? { height: '1.625rem', width: '1.625rem' } : {};
-    return (_jsxs(_Fragment, { children: [_jsx("input", { hidden: true, multiple: true, type: "file", "data-testid": 'upload-input-box', onChange: (event) => props.onChange(event), onClick: (event) => props.onClick(event), ref: ref }), _jsx("section", { children: _jsx(CcfBox, Object.assign({ style: { width: 'max-content' } }, { children: _jsx(CcfPaperclipIcon, { style: iconSize }) })) })] }));
+    return (_jsxs(_Fragment, { children: [_jsx("input", { hidden: true, multiple: true, type: "file", "data-testid": 'upload-input-box', onChange: (event) => props.onChange(event), onClick: (event) => props.onClick(event), ref: ref }), _jsx(CcfBox, Object.assign({ style: { width: 'max-content' } }, { children: _jsx(CcfPaperclipIcon, { style: iconSize }) }))] }));
 });
 export default CcfAttachmentButton;
 //# sourceMappingURL=ccf-attachmentbutton.js.map

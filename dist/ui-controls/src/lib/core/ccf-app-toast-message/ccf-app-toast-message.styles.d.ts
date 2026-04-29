@@ -52,5 +52,15 @@ declare const CcfAppToastMessageStyles: (theme: Theme) => {
             boxShadow: string;
         };
     };
+    buttonStyles: {
+        '&:focus': {
+            border: string;
+            borderRadius: string;
+        };
+        '&:hover': {
+            border: string;
+            borderRadius: string;
+        };
+    };
 };
 export default CcfAppToastMessageStyles;
