@@ -22,7 +22,7 @@
 - `[Updated]`: Added Failover to GNE on 302 response for keepalive and event-queue-resize apis.
 - `[Fixed]`: CFB Fix for multiple uiq connections are established when only one voice preference i.e. integrated softphone is enabled
 
-## 26.2 - 2026-04-29 ##
+## 26.2.0 - 2026-04-29 ##
 
 - `[Fixed] `: CFB Fix -  Handled null response by rejecting the Promise with an error and Error handling. 
 - `[Added]`: Added new Queue and Queue details microservices urls
