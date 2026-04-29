@@ -24,7 +24,7 @@
 - `[Updated]`: Modified ContactPayload to include optional field skillId added for digital outbound flow.
 
 
-## 26.2 - 2026-04-29 ##
+## 26.2.0 - 2026-04-29 ##
 
 - `[Updated]`: Updated digital contact manager and services to support API-based integration pattern for CaseStatusChanged (Digital WS to API - Part 3)
 - `[Updated]`: Updated existing API consumers for Delay / Abort API invocation for Digital contact switch
