@@ -11,18 +11,19 @@
  * 
  * @returns {JSX.Element} A div element with id "launchCXA" that serves as a placeholder for the CXone Agent.
  */
-import { Button } from '@mui/material';
+import { Box, Button, Card, CardContent, Divider, Stack, Typography } from '@mui/material';
 import { CXoneClient } from '@nice-devone/agent-sdk';
 import { CXoneAuth } from '@nice-devone/auth-sdk';
 import React, { useEffect } from 'react'
+import SwapHorizIcon from "@mui/icons-material/SwapHoriz";
+import WidgetsIcon from "@mui/icons-material/Widgets";
 
 
 const CxaPlaceholder=()=>{
     const cxoneAuth = CXoneAuth.instance;
 
     useEffect(()=>{
-            // Launch CXone Agent in iframe
-                    cxoneAuth.launchCXoneAgent(
+            cxoneAuth.launchCXoneAgent(
                       "launchCXA",
                       "https://cxagent.nicecxone.com?src=sdk",
                       { width: "400px", height: "500px" }
@@ -30,7 +31,6 @@ const CxaPlaceholder=()=>{
     },[])
 
   const handleSwitchContact = () => {
-    // customer should provide actual values here for switching contacts
     const sessionDetails =
     {
       interactionId: '123456789',
@@ -38,14 +38,50 @@ const CxaPlaceholder=()=>{
       mediaType: 'Mock'
     };
 
-
     CXoneClient.instance.switchContacts(sessionDetails);
   }
+
   return (
-    <> 
-      <Button onClick={handleSwitchContact}>Switch Contact</Button>
-      <div id="launchCXA">CXA Placeholder </div>
-    </>
+    <Box sx={{ maxWidth: 900, mx: "auto", py: 2 }}>
+      <Typography variant="h5" sx={{ mb: 3, fontWeight: 700, color: "primary.dark" }}>
+        CXA Widget
+      </Typography>
+      <Card>
+        <CardContent sx={{ p: 3 }}>
+          <Stack direction="row" alignItems="center" spacing={1.5} sx={{ mb: 2 }}>
+            <WidgetsIcon color="primary" />
+            <Typography variant="h6" sx={{ fontSize: "1.1rem" }}>
+              CXone Agent Embed
+            </Typography>
+          </Stack>
+          <Divider sx={{ mb: 2 }} />
+          <Button
+            onClick={handleSwitchContact}
+            variant="outlined"
+            startIcon={<SwapHorizIcon />}
+            sx={{ mb: 2 }}
+          >
+            Switch Contact
+          </Button>
+          <Box
+            id="launchCXA"
+            sx={{
+              border: "1px solid",
+              borderColor: "divider",
+              borderRadius: 2,
+              minHeight: 500,
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              backgroundColor: "#fafafa",
+              color: "text.secondary",
+            }}
+          >
+            CXA Widget Loading...
+          </Box>
+        </CardContent>
+      </Card>
+    </Box>
   )
 }
 export default CxaPlaceholder;
