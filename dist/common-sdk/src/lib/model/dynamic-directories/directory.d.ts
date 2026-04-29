@@ -18,4 +18,8 @@ export interface Directory {
      * @remarks - Partners of directory.
     */
     partners: string[];
+    /**
+     * @remarks - Platform of directory.
+    */
+    platform: string;
 }

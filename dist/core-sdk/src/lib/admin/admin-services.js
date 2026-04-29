@@ -29,6 +29,12 @@ export class AdminService {
         this.validationUtils = new ValidationUtils();
         this.logger = new Logger('SDK', 'AdminService');
         this.utilService = new HttpUtilService();
+        /** @internal Cached permissions array, null if not yet fetched */
+        this.permissionsCache = null;
+        /** @internal Deduplicates concurrent permissions fetch requests */
+        this.pendingPermissionsRequest = null;
+        /** @internal Deduplicates concurrent tenant data fetch requests */
+        this.tenantDataPromise = null;
     }
     /**
      * Method to initialize the user details
@@ -81,33 +87,62 @@ export class AdminService {
         return AdminService.singleton;
     }
     /**
-     * Method to return agent permissions
-     * @returns - return the agent permissions
-     * ```
-     * @example
-     * getPermissions()
-     * ```
-     */
+   * Retrieves the list of permissions for the current agent.
+   * @param forceFetch - When `true`, bypasses all caches and forces a new API call. Defaults to `false`.
+   * @returns A promise resolving to the agent's {@link Permissions} array.
+   * @throws `{CXoneSdkError}` when the API request fails.
+   *
+   * @example
+   * ```
+   * const permissions = await service.getPermissions();
+   * const fresh = await service.getPermissions(true);
+   * ```
+   */
     getPermissions(forceFetch = false) {
-        return new Promise((resolve, reject) => {
-            const permissionFromStorage = localStorage.getItem(StorageKeys.PERMISSIONS);
-            if (forceFetch || !permissionFromStorage) {
-                const reqInit = this.utilService.initHeader(this.accessToken, 'application/json');
-                const permissionUrl = this.cxOneConfig.acdApiBaseUri +
-                    AdminApis.getPermissionsUri.replace('{agentId}', this.userInfo.icAgentId);
-                HttpClient.get(permissionUrl, reqInit).then((resp) => {
-                    this.logger.info('getPermissions', 'Get Permissions Success');
-                    const permission = this.apiParser.parsePermissions(resp);
-                    localStorage.setItem(StorageKeys.PERMISSIONS, JSON.stringify(permission));
-                    resolve(permission);
-                }, (err) => {
-                    this.logger.error('getPermissions', 'Get Permissions Failed ' + err.toString());
-                    reject(err);
-                });
+        return __awaiter(this, void 0, void 0, function* () {
+            if (!forceFetch && this.permissionsCache) {
+                return this.permissionsCache;
             }
-            else {
-                this.logger.info('getPermissions', 'Get Permissions from storage');
-                resolve(JSON.parse(permissionFromStorage));
+            if (!forceFetch) {
+                const permissionFromStorage = LocalStorageHelper.getItem(StorageKeys.PERMISSIONS, true);
+                if (permissionFromStorage) {
+                    return (this.permissionsCache = permissionFromStorage);
+                }
+            }
+            if (this.pendingPermissionsRequest) {
+                return this.pendingPermissionsRequest;
+            }
+            this.pendingPermissionsRequest = this.fetchPermissions();
+            try {
+                return yield this.pendingPermissionsRequest;
+            }
+            finally {
+                this.pendingPermissionsRequest = null;
+            }
+        });
+    }
+    /**
+     * Performs the actual HTTP request to fetch permissions from the ACD API.
+     * @returns A promise resolving to the fetched {@link Permissions} array.
+     * @throws Re-throws any error from the HTTP layer (typically a {@link CXoneSdkError}).
+     */
+    fetchPermissions() {
+        var _a, _b;
+        return __awaiter(this, void 0, void 0, function* () {
+            const reqInit = this.utilService.initHeader(this.accessToken, 'application/json');
+            const permissionUrl = ((_a = this.cxOneConfig) === null || _a === void 0 ? void 0 : _a.acdApiBaseUri) + (AdminApis === null || AdminApis === void 0 ? void 0 : AdminApis.getPermissionsUri.replace('{agentId}', (_b = this.userInfo) === null || _b === void 0 ? void 0 : _b.icAgentId));
+            try {
+                const resp = yield HttpClient.get(permissionUrl, reqInit);
+                const permissions = this.apiParser.parsePermissions(resp);
+                this.permissionsCache = permissions;
+                LocalStorageHelper.setItem(StorageKeys.PERMISSIONS, permissions);
+                return permissions;
+            }
+            catch (err) {
+                this.logger.error('fetchPermissions', 'Get Permissions Failed ' + err.toString());
+                LocalStorageHelper.removeItem(StorageKeys.PERMISSIONS);
+                this.permissionsCache = null;
+                throw err;
             }
         });
     }
@@ -216,34 +251,45 @@ export class AdminService {
         });
     }
     /**
-     *  Method to return all tenant data
-     * @example
-     * ```
-     * getTenantManagementData()
-     * ```
-     */
+   * Retrieves tenant data for the current user's organization.
+   * On failure, resets the in-flight promise so subsequent calls can retry.
+   * @returns A promise resolving to the {@link Tenant} data object.
+   * @throws `{CXoneSdkError}` when the API request fails.
+   * @example
+   * const tenant = await getTenantData();
+   */
     getTenantData() {
-        return new Promise((resolve, reject) => {
-            const tenantDataFromStorage = LocalStorageHelper.getItem(StorageKeys.TENANT_DATA, true);
-            if (!tenantDataFromStorage) {
-                const reqInit = this.utilService.initHeader(this.accessToken, 'application/json');
-                const url = this.cxOneConfig.userHubBaseUrl + AdminApis.getTenantDataUri;
-                HttpClient.get(url, reqInit).then((response) => {
-                    this.logger.info('getTenantManagementData', 'Get Tenant Management Data Success');
+        const tenantDataFromStorage = LocalStorageHelper.getItem(StorageKeys.TENANT_DATA, true);
+        if (tenantDataFromStorage) {
+            return Promise.resolve(tenantDataFromStorage);
+        }
+        if (this.tenantDataPromise) {
+            return this.tenantDataPromise;
+        }
+        this.tenantDataPromise = new Promise((resolve, reject) => {
+            const reqInit = this.utilService.initHeader(this.accessToken, 'application/json');
+            const url = this.cxOneConfig.userHubBaseUrl + AdminApis.getTenantDataUri;
+            HttpClient.get(url, reqInit).then((response) => {
+                try {
                     const data = this.apiParser.parseTenantData(response);
                     LocalStorageHelper.setItem(StorageKeys.TENANT_DATA, data);
                     resolve(data);
-                }, (error) => {
-                    var _a;
-                    this.logger.error('getTenantManagementData', 'Get Tenant Management Data failed ' + JSON.stringify(error));
-                    reject(new CXoneSdkError(CXoneSdkErrorType.CXONE_API_ERROR, (_a = error === null || error === void 0 ? void 0 : error.data) === null || _a === void 0 ? void 0 : _a.message, error === null || error === void 0 ? void 0 : error.data));
-                });
-            }
-            else {
-                this.logger.info('getTenantManagementData', 'Get tenant data from storage');
-                resolve(tenantDataFromStorage);
-            }
+                }
+                catch (error) {
+                    this.logger.error('getTenantManagementData', 'Get Tenant Management Data processing failed ' + JSON.stringify(error));
+                    reject(new CXoneSdkError(CXoneSdkErrorType.CXONE_API_ERROR, 'Failed to process tenant data response'));
+                }
+                finally {
+                    this.tenantDataPromise = null;
+                }
+            }, (error) => {
+                var _a;
+                this.logger.error('getTenantManagementData', 'Get Tenant Management Data failed ' + JSON.stringify(error));
+                this.tenantDataPromise = null;
+                reject(new CXoneSdkError(CXoneSdkErrorType.CXONE_API_ERROR, (_a = error === null || error === void 0 ? void 0 : error.data) === null || _a === void 0 ? void 0 : _a.message, error === null || error === void 0 ? void 0 : error.data));
+            });
         });
+        return this.tenantDataPromise;
     }
     /**
      * Method to return client data
@@ -546,6 +592,12 @@ export class AdminService {
                 const reqInit = this.utilService.initHeader(this.accessToken, 'application/json');
                 const url = this.cxOneConfig.apiFacadeBaseUri + ApiUriConstants.UH_GET_USERS + this.userInfo.userId;
                 HttpClient.get(url, reqInit).then((response) => {
+                    var _a;
+                    if (!((_a = response === null || response === void 0 ? void 0 : response.data) === null || _a === void 0 ? void 0 : _a.user)) {
+                        this.logger.error('getUserDetails', 'Failed - response data or user is null/undefined');
+                        reject(new CXoneSdkError(CXoneSdkErrorType.CXONE_API_ERROR, 'User data not found in response'));
+                        return;
+                    }
                     this.logger.info('getUserDetails', 'Success.');
                     const userDetails = new CXoneUserDetails();
                     userDetails.parse(response.data.user);
@@ -557,6 +609,9 @@ export class AdminService {
                     var _a;
                     this.logger.error('getUserDetails', 'Failed - ' + error.toString());
                     reject(new CXoneSdkError(CXoneSdkErrorType.CXONE_API_ERROR, (_a = error === null || error === void 0 ? void 0 : error.data) === null || _a === void 0 ? void 0 : _a.message, error === null || error === void 0 ? void 0 : error.data));
+                }).catch((error) => {
+                    this.logger.error('getUserDetails', 'Unexpected error - ' + JSON.stringify(error));
+                    reject(new CXoneSdkError(CXoneSdkErrorType.UNHANDLED_EXCEPTION, error === null || error === void 0 ? void 0 : error.message, error));
                 });
             }
         });
@@ -623,8 +678,13 @@ export class AdminService {
     getUiqHubUrl() {
         return new Promise((resolve, reject) => {
             const reqInit = this.utilService.initHeader(this.accessToken, 'application/json');
-            const url = this.cxOneConfig.uiQueueWSBaseUri;
-            HttpClient.get(url, reqInit).then((response) => {
+            // When cleanup of inactive agent sessions is enabled, add the isAutoLogout=true query parameter to the hub URL request.
+            const isAutoLogoutEnabled = FeatureToggleService.instance.getFeatureToggleSync("utility-cxa-cleanup-inactive-agent-sessions-AW-52454" /* FeatureToggles.CLEANUP_OF_INACTIVE_AGENT_SESSIONS_FEATURE_TOGGLE */);
+            const requestUrl = new URL(this.cxOneConfig.uiQueueWSBaseUri);
+            if (isAutoLogoutEnabled) {
+                requestUrl.searchParams.set('isAutoLogout', 'true');
+            }
+            HttpClient.get(requestUrl.toString(), reqInit).then((response) => {
                 this.logger.info('getUiqHubUrl', 'Get hub url Success');
                 const uiqHubUrl = new UIQHubUrl();
                 uiqHubUrl.parse(response === null || response === void 0 ? void 0 : response.data);

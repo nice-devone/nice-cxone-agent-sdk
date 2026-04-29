@@ -1,5 +1,5 @@
 import { CXoneAuth } from '@nice-devone/auth-sdk';
-import { AgentCopilotSearchRequest, CopilotMessageData, CustomCopilotFilterTags, GuidanceFeedbackData, ContactFeedbackData, CopilotProfileConfig, ContactHistoryData, IntentConfig, DecisionTreeElement, DecisionTreeData } from '@nice-devone/common-sdk';
+import { AgentCopilotSearchRequest, CopilotMessageData, CustomCopilotFilterTags, GuidanceFeedbackData, ContactFeedbackData, CopilotProfileConfig, ContactHistoryData, IntentConfig, DecisionTreeElement, DecisionTreeData, CustomAdaptiveCardElement, WorkflowSuggestionResponse, ChecklistCompletionType } from '@nice-devone/common-sdk';
 import { Logger, HttpUtilService, HttpRequestInit, ValidationUtils } from '@nice-devone/core-sdk';
 /**
  * Represents a collection of Copilot message data indexed by case ID.
@@ -20,7 +20,6 @@ export declare class CopilotService {
     private AGENT_COPILOT_SEARCH;
     private AGENT_COPILOT_FINAL_SUMMARY;
     private AGENT_COPILOT_HEALTH_CHECK;
-    private AGENT_COPILOT_ENABLEMENT_FOR_CONTACT;
     private AGENT_COPILOT_AGENT_ASSIST_HUB_CONFIG;
     private AGENT_COPILOT_GET_ADAPTIVE_CARD_SCHEMAS;
     private AGENT_COPILOT_EMAIL_APIS;
@@ -36,9 +35,11 @@ export declare class CopilotService {
     private AGENT_COPILOT_GET_TASK_ASSIST_FORM_PREFILLED_DATA;
     private TASK_ASSIST_FORM_ADAPTIVE_CARD_SCHEMAS_URL;
     private REFRESH_TOKENS;
-    private AGENT_COPILOT_DECISION_TREE_BASE_URI;
     private DECISION_TREE_BASE;
     private AGENT_COPILOT_DECISION_TREE_APIS;
+    private AGENT_COPILOT_GET_TASK_ASSIST_ACTIVE_FILL_DATA;
+    private readonly CHECKLIST_BASE;
+    private readonly AGENT_COPILOT_CHECKLIST_APIS;
     /**
      * Create instance of CXoneAuth
      * ```
@@ -374,19 +375,25 @@ export declare class CopilotService {
         accessToken: string;
     }>;
     /**
-   * Fetches the Decision Tree configuration (sections, metadata, UI schema)
-   * for a given Decision Tree element.
+   * Fetches an element configuration (Decision Tree or Custom Adaptive Card)
+   * for a given element ID.
    *
-   * @param decisionTreeId - Unique ID of the Decision Tree element.
-   * @returns Promise resolving the Decision Tree element definition.
+   * @param elementId - Unique ID of the element (Decision Tree or Custom Adaptive Card).
+   * @returns Promise resolving to either a DecisionTreeElement or CustomAdaptiveCardElement.
    *
    * @example
    * ```ts
-   * const element = await copilotService.getDecisionTreeElement("dt-001");
-   * console.log(element.config.sections);
+   * const element = await copilotService.getElement("dt-001");
+   * if (element.type === 'decisionTree') {
+   *   const sections = element.config.sections;
+   *   // Process decision tree sections
+   * } else if (element.type === 'customAdaptiveCard') {
+   *   const schema = element.config.adaptiveCardSchema;
+   *   // Render adaptive card with schema
+   * }
    * ```
    */
-    getDecisionTreeElement(decisionTreeId: string): Promise<DecisionTreeElement>;
+    getElement(elementId: string): Promise<DecisionTreeElement | CustomAdaptiveCardElement>;
     /**
    * Posts a Decision Tree section-change event to the backend.
    *
@@ -500,5 +507,122 @@ export declare class CopilotService {
      * ```
      */
     cancelDecisionTree(taskSessionUid: string, contactId: string, decisionTreeId: string): Promise<string>;
+    /**
+     * Fetches active pre-filled slot data for Task Assist based on the provided input slot.
+     *
+     * This API sends the slot name and value to the backend and retrieves
+     * the corresponding pre-filled data for the active Task Assist form.
+     *
+     * @param inputs - Key/value pair representing the slot to be resolved.
+     * Example: `{ accountNumber: "12345" }`
+     *
+     * @param contactId - Unique contact identifier associated with the active interaction.
+     *
+     * @param objectId - Task Assist session identifier (taskSessionUid).
+     *
+     * @returns Promise resolving to the pre-filled data returned by the backend.
+     *
+     * @example
+     * ```ts
+     * copilotService.getTaskAssistActiveFilledData(
+     *   { accountNumber: "12345" },
+     *   "contact-123",
+     *   "task-session-456"
+     * );
+     * ```
+     */
+    getTaskAssistActiveFilledData(inputs: Record<string, string>, contactId: string, objectId: string): Promise<string>;
+    /**
+     * Searches for workflow suggestions using semantic search.
+     * Called when no local workflow matches the agent's '/' query.
+     *
+     * @param agentQuery - The search query from agent (text after '/')
+     * @param contactId - The active contact ID
+     * @returns Promise with suggested workflows
+     * @example
+     * ```ts
+     * const suggestions = await copilotService.getWorkflowSuggestions('refund process', '12345');
+     * ```
+     */
+    getWorkflowSuggestions(agentQuery: string, contactId: string): Promise<WorkflowSuggestionResponse>;
+    /**
+     * Fetches custom adaptive card schema with caching support.
+     * Checks localStorage cache first, then fetches from Profile Hub API if needed.
+     * Automatically parses and caches the schema.
+     *
+     * @param elementUid - Unique identifier of the custom adaptive card element
+     * @returns Promise resolving to parsed schema object
+     *
+     * @example
+     * ```ts
+     * const schema = await copilotService.getCustomAdaptiveCardSchema("7065ea9f-737f-4411-a857-112fe0b62aec");
+     * ```
+     */
+    getCustomAdaptiveCardSchema(elementUid: string): Promise<object>;
+    /**
+     * Updates a checklist item's completion status.
+     *
+     * This is called when checklist item gets checked or unchecked.
+     *
+     * @param params - Object containing sessionId, contactId, checklistId, itemId, isCompleted, and completionType.
+     * @returns Promise resolving to the updated checklist data.
+     * @example
+     * ```ts
+     * await copilotService.updateChecklistItem({
+     *   sessionId: 'session-001',
+     *   contactId: '203444780887',
+     *   checklistId: 'checklist-uuid',
+     *   itemId: 'item-1',
+     *   isCompleted: true,
+     *   completionType: 'MANUAL'
+     * });
+     * ```
+     */
+    updateChecklistItem(params: {
+        sessionId: string;
+        contactId: string;
+        checklistId: string;
+        itemId: string;
+        isCompleted: boolean;
+        completionType: ChecklistCompletionType;
+    }): Promise<string>;
+    /**
+     * Completes and submits the checklist.
+     *
+     * This is called when the agent clicks the complete/submit button on the checklist.
+     *
+     * @param sessionId - Checklist session ID.
+     * @param contactId - Contact/Interaction ID.
+     * @param checklistId - Checklist definition ID.
+     * @returns Promise resolving to the completion confirmation.
+     * @example
+     * ```ts
+     * await copilotService.completeChecklist(
+     *   'session-001',
+     *   '203444780887',
+     *   'checklist-uuid'
+     * );
+     * ```
+     */
+    completeChecklist(sessionId: string, contactId: string, checklistId: string): Promise<string>;
+    /**
+     * Closes the checklist without submitting.
+     *
+     * This is called when the agent decides to close/cancel the checklist.
+     *
+     * @param sessionId - Checklist session ID.
+     * @param contactId - Contact/Interaction ID.
+     * @param checklistId - Checklist definition ID.
+     * @returns Promise resolving to the cancellation confirmation.
+     * @example
+     * ```ts
+     * await copilotService.closeChecklist(
+     *   'session-001',
+     *   '203444780887',
+     *   'checklist-uuid'
+     * );
+     * ```
+     */
+    closeChecklist(sessionId: string, contactId: string, checklistId: string): Promise<string>;
 }
 export {};

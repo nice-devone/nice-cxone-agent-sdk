@@ -15,6 +15,10 @@ export declare enum ELEMENT_ROLES {
     */
     ALERT = "alert",
     /**
+    * role link is used for elements that needs to be announced to the user using screenreader
+    */
+    LINK = "link",
+    /**
     * role button is used for elements that needs to be announced to the user using screenreader
     */
     BUTTON = "button",

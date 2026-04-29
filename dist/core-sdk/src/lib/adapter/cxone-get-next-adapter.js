@@ -1,6 +1,7 @@
 import { __awaiter } from "tslib";
 import { GetNextEventType } from '../../enum/get-next-event-type';
 import { CallContactEventYup, MuteEvent, UpdatePermissionsEvent, AgentSessionEndEvent, AgentSessionStartEvent, CXoneIndicator, AgentStateEvent, UpdateUnavailableCodeEvent, AgentLegEvent, DigitalContactEvent, CXonePageOpen, CXoneRunApp, AgentSessionStatus, MCHSetting, CXonePopUrl, AgentWorkflowResponseEvent, AgentWorkflowRequestEvent, VoiceMailContactEventYup, CXoneAgentAssist, CommitmentEvent, VoiceMailPlayBackEventYup, CommitmentStatusEvent, UpdateNetworkTimeoutEvent, WorkItemContactEventYup, CoBrowseEvent, parseBooleanString, MediaType, MediaTypeId, CXoneCustomScreenpop, } from '@nice-devone/common-sdk';
+import { ComplianceValidationEvent } from '../smart-reach-compliance/compliance-validation-event';
 import { ACDSessionManager } from '../agent/session/acd-session-manager';
 import { GetNextEventProvider, UIQueueWsProvider } from '../agent';
 import { LocalStorageHelper } from '../../util/storage-helper-local';
@@ -375,6 +376,12 @@ export class CXoneGetNextAdapter {
                     if (showContinueReskill) {
                         this.agentSession.hoursOfOperationEvent.next(event);
                     }
+                    break;
+                }
+                case GetNextEventType.SMART_REACH_VALIDATION: {
+                    const complianceValidationEvent = new ComplianceValidationEvent();
+                    complianceValidationEvent.parse(event);
+                    this.agentSession.onSmartReachValidationEvent.next(complianceValidationEvent);
                     break;
                 }
             }

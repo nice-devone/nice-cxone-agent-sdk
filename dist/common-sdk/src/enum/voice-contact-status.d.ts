@@ -9,6 +9,7 @@ export declare enum VoiceContactStatus {
     DIALING = "dialing",
     MASKING = "masking",
     INQUEUE = "Inqueue",
+    QUEUING = "Queuing",
     TRANSFER = "transfer",
     CONFERENCE = "conference",
     PREVIEW = "preview",

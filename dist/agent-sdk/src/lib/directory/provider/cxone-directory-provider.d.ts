@@ -37,7 +37,6 @@ export declare class CXoneDirectoryProvider {
     private favoriteTeamList;
     private favoriteSkillList;
     private favoriteAddressBookList;
-    private readonly isFavoritesFTEnabled;
     /**
      * Create a directory provider.
      * @example -- Const provider = new CXoneDirectoryProvider();

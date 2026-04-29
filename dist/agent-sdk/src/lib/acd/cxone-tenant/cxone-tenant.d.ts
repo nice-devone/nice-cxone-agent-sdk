@@ -79,4 +79,13 @@ export declare class CXoneTenant {
      * ```
      */
     checkDirectoryEnable(): Promise<boolean | CXoneSdkError>;
+    /**
+     * Method to return Attendant is enable or not
+     * @returns - returns the Product/licenses permissions as Boolean value
+     * ```
+     * @example
+     * checkAttendantEnable()
+     * ```
+     */
+    checkAttendantEnable(): Promise<boolean | CXoneSdkError>;
 }

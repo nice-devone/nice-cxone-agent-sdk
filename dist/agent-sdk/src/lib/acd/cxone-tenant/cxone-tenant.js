@@ -116,7 +116,23 @@ export class CXoneTenant {
             CXoneProductFeature.DIRECTORY_SYNC_LMI,
             CXoneProductFeature.DIRECTORY_SYNC_MS_TEAMS,
             CXoneProductFeature.DIRECTORY_SYNC_RC,
-            CXoneProductFeature.DIRECTORY_SYNC_ZOOM
+            CXoneProductFeature.DIRECTORY_SYNC_ZOOM,
+            CXoneProductFeature.DIRECTORY_SYNC_NEWGEN
+        ];
+        return this.checkProductEnablement(productId);
+    }
+    /**
+     * Method to return Attendant is enable or not
+     * @returns - returns the Product/licenses permissions as Boolean value
+     * ```
+     * @example
+     * checkAttendantEnable()
+     * ```
+     */
+    checkAttendantEnable() {
+        const productId = [
+            CXoneProductFeature.ATTENDANT_LITE,
+            CXoneProductFeature.ATTENDANT_PLUS
         ];
         return this.checkProductEnablement(productId);
     }

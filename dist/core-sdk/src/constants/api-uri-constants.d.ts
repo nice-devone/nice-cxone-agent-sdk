@@ -26,6 +26,7 @@ export declare class ApiUriConstants {
     static STOP_CALL_RECORDING_URI: string;
     static END_CONTACT_URI: string;
     static AGENT_STATE_URI_TS: string;
+    static AGENT_ATTENDANT_ACD_LIST_V34: string;
     static AGENT_STATE_URI: string;
     static AGENT_STATE_UNIFY_URI: string;
     static AGENT_STATE_UNIFY_URI_TS: string;
@@ -44,6 +45,7 @@ export declare class ApiUriConstants {
     static ACTIVATE_CONTACT_URI: string;
     static ADDRESS_BOOK_URI: string;
     static ADDRESS_BOOK_2_URI: string;
+    static ATTENDANT_DIRECT_VOICEMAIL_TRANSFER_URI: string;
     static STANDARD_ADDRESS_BOOK_URI: string;
     static GET_AGENT_SKILLS_URI_TS: string;
     static GET_AGENT_SKILLS_URI: string;
@@ -65,8 +67,10 @@ export declare class ApiUriConstants {
     static SKILL_CACHE_URI: string;
     static AGENT_QUEUE_URI: string;
     static AGENT_QUEUE_URI_TS: string;
+    static AGENT_QUEUE_URI_NEW: string;
     static AGENT_QUEUE_DETAIL_URI: string;
     static AGENT_QUEUE_DETAIL_URI_TS: string;
+    static AGENT_QUEUE_DETAIL_URI_NEW: string;
     static ACCEPT_CONTACT_URI: string;
     static REJECT_CONTACT_URI: string;
     static POST_CUSTOM_FORM_DATA: string;
@@ -78,12 +82,16 @@ export declare class ApiUriConstants {
     static DIRECTORY_ENTRIES: string;
     static GET_DIRECTORIES: string;
     static GET_DIRECTORY_METADATA: string;
+    static GET_NEWGEN_DIRECTORIES: string;
     static UH_GET_USERS: string;
     static SEARCH_DIRECTORIES: string;
+    static SEARCH_NEWGEN_DIRECTORIES: string;
     static PRESENCE_SYNC_WEBSOCKET: string;
+    static NEWGEN_PRESENCE_SYNC_WEBSOCKET: string;
     static GET_IEXSCHEDULE: string;
     static GET_DISPOSITION_URI: string;
     static GET_DISPOSITION_URI_TS: string;
+    static GET_DISPOSITION_WITH_CATEGORY_URI: string;
     static GET_TAGS_URI: string;
     static GET_TAGS_URI_TS: string;
     static SAVE_TAGS_URI: string;

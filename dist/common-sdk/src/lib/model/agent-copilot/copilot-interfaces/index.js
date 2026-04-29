@@ -11,4 +11,6 @@ tslib_1.__exportStar(require("./copilot-filter-details"), exports);
 tslib_1.__exportStar(require("./contact-history"), exports);
 tslib_1.__exportStar(require("./copilot-task-assist"), exports);
 tslib_1.__exportStar(require("./copilot-decision-tree-data"), exports);
+tslib_1.__exportStar(require("./copilot-custom-adaptive-card"), exports);
+tslib_1.__exportStar(require("./copilot-checklist-data"), exports);
 //# sourceMappingURL=index.js.map

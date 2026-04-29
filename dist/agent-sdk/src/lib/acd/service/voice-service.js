@@ -32,7 +32,8 @@ export class VoiceService {
         const baseUrl = this.acdSession.cxOneConfig.acdApiBaseUri;
         const authToken = this.acdSession.accessToken;
         const isTenantSegmentationEnabled = FeatureToggleService.instance.getFeatureToggleSync("release-cxa-tenant-segmentation-AW-28101" /* FeatureToggles.TENANT_SEGMENTATION */);
-        const endpointUri = isTenantSegmentationEnabled ? ApiUriConstants.DIAL_PHONE_URI_TS : ApiUriConstants.DIAL_PHONE_URI;
+        const isSmartReachVoicePmiEnabled = FeatureToggleService.instance.getFeatureToggleSync("release-acd-smartreach-voice-pmi-OB-18214" /* FeatureToggles.SMARTREACH_VOICE_PMI_FEATURE_TOGGLE */);
+        const endpointUri = isTenantSegmentationEnabled || isSmartReachVoicePmiEnabled ? ApiUriConstants.DIAL_PHONE_URI_TS : ApiUriConstants.DIAL_PHONE_URI;
         const url = baseUrl + endpointUri.replace('{sessionId}', sessionId);
         const reqInit = {
             headers: this.utilService.initHeader(authToken).headers,
@@ -162,6 +163,38 @@ export class VoiceService {
                 resolve(response);
             }, (error) => {
                 this.logger.error('dialAgent', 'dial Agent failed:-' + error.toString());
+                reject(error);
+            });
+        });
+    }
+    /**
+    * This method call to transfer voicemail to offline agent
+    * @param agentId - agent Id
+    * @param parentContactId - existing call contact id
+    * @example -
+    * ```
+    * directVoicemailTransferToOfflineAgent('23344','234234324');
+    * ```
+    */
+    directVoicemailTransferToOfflineAgent(agentId, parentContactId) {
+        const sessionId = this.acdSession.getSessionId();
+        const baseUrl = this.acdSession.cxOneConfig.acdApiBaseUri;
+        const authToken = this.acdSession.accessToken;
+        const url = baseUrl + ApiUriConstants.ATTENDANT_DIRECT_VOICEMAIL_TRANSFER_URI.replace('{sessionId}', sessionId);
+        const payloadData = {
+            targetAgentId: agentId,
+            parentContactId: parentContactId,
+        };
+        const reqInit = {
+            headers: this.utilService.initHeader(authToken).headers,
+            body: payloadData,
+        };
+        return new Promise((resolve, reject) => {
+            HttpClient.post(url, reqInit).then((response) => {
+                this.logger.info('directVoicemailTransferToOfflineAgent', 'direct Voicemail Transfer to Offline Agent success:-' + response.toString());
+                resolve(response);
+            }, (error) => {
+                this.logger.error('directVoicemailTransferToOfflineAgent', 'direct Voicemail Transfer to Offline Agent failed:-' + error.toString());
                 reject(error);
             });
         });

@@ -1,7 +1,7 @@
 import { AgentCopilotCardType } from '../../../enum/agent-copilot-card-type';
 import { AgentCopilotContentType } from '../../../enum/agent-copilot-content-type';
 import { OverallContactFeedbackData } from './copilot-feedback-data';
-import { CopilotSummary, CopilotAdaptiveCard, CopilotNextBestResponse, CopilotRequestStatus, CopilotKbAnswerCardData, CopilotFilterCardData, CopilotInformationCardData, CopilotJourneySummaryCardData, CopilotTaskAssistCardData, CopilotAutoSummaryCardData, DecisionTreeData } from './index';
+import { CopilotSummary, CopilotAdaptiveCard, CopilotNextBestResponse, CopilotRequestStatus, CopilotKbAnswerCardData, CopilotFilterCardData, CopilotInformationCardData, CopilotJourneySummaryCardData, CopilotTaskAssistCardData, CopilotAutoSummaryCardData, DecisionTreeData, CopilotCustomAdaptiveCardData, CopilotChecklistData } from './index';
 /**
  * model interface for copilot  element
  */
@@ -9,8 +9,8 @@ export interface CopilotElement {
     /**
      * content type of element
      */
-    contentType: AgentCopilotContentType.RT_SUMMARY | AgentCopilotContentType.NEXT_BEST_RESPONSE | AgentCopilotContentType.NEXT_BEST_RESPONSE_LLM | AgentCopilotContentType.NEXT_BEST_RESPONSE_EXPERT | AgentCopilotContentType.SENTIMENT | AgentCopilotContentType.FINAL_SUMMARY_NOTES | AgentCopilotContentType.COPILOT_REQUEST_STATUS | AgentCopilotContentType.KB_COMBO | AgentCopilotContentType.TRANSFER_SUMMARY | AgentCopilotContentType.EMAIL_CREATION_CARD | AgentCopilotContentType.EMAIL_RESPONSE_CARD | AgentCopilotContentType.COMPREHENSIVE_FEEDBACK | AgentCopilotContentType.COPILOT_FILTER_CARD | AgentCopilotContentType.JOURNEY_SUMMARY | AgentCopilotContentType.DISCLOSURE | AgentCopilotContentType.AUTOPILOT_TRANSFER_SUMMARY | AgentCopilotContentType.CUSTOM_CARD | AgentCopilotContentType.TASK_ASSIST | AgentCopilotContentType.DECISION_TREE;
-    content?: CopilotSummary | CopilotAdaptiveCard | CopilotNextBestResponse | CopilotRequestStatus | CopilotKbAnswerCardData | OverallContactFeedbackData | CopilotFilterCardData | CopilotInformationCardData | CopilotJourneySummaryCardData | CopilotTaskAssistCardData | CopilotAutoSummaryCardData | DecisionTreeData;
+    contentType: AgentCopilotContentType.RT_SUMMARY | AgentCopilotContentType.NEXT_BEST_RESPONSE | AgentCopilotContentType.NEXT_BEST_RESPONSE_LLM | AgentCopilotContentType.NEXT_BEST_RESPONSE_EXPERT | AgentCopilotContentType.SENTIMENT | AgentCopilotContentType.FINAL_SUMMARY_NOTES | AgentCopilotContentType.COPILOT_REQUEST_STATUS | AgentCopilotContentType.KB_COMBO | AgentCopilotContentType.KB_COMBO_INTERNAL | AgentCopilotContentType.TRANSFER_SUMMARY | AgentCopilotContentType.EMAIL_CREATION_CARD | AgentCopilotContentType.EMAIL_RESPONSE_CARD | AgentCopilotContentType.COMPREHENSIVE_FEEDBACK | AgentCopilotContentType.COPILOT_FILTER_CARD | AgentCopilotContentType.JOURNEY_SUMMARY | AgentCopilotContentType.DISCLOSURE | AgentCopilotContentType.AUTOPILOT_TRANSFER_SUMMARY | AgentCopilotContentType.CUSTOM_CARD | AgentCopilotContentType.TASK_ASSIST | AgentCopilotContentType.DECISION_TREE | AgentCopilotContentType.CUSTOM_ADAPTIVE_CARD | AgentCopilotContentType.CHECKLIST;
+    content?: CopilotSummary | CopilotAdaptiveCard | CopilotNextBestResponse | CopilotRequestStatus | CopilotKbAnswerCardData | OverallContactFeedbackData | CopilotFilterCardData | CopilotInformationCardData | CopilotJourneySummaryCardData | CopilotTaskAssistCardData | CopilotAutoSummaryCardData | DecisionTreeData | CopilotCustomAdaptiveCardData | CopilotChecklistData;
     /**
      * card type of element
      */
@@ -27,4 +27,8 @@ export interface CopilotElement {
      * Optional flag indicating errorMessage on task assist form capture functionality.
      */
     errorMessage?: string;
+    /**
+     * This is used to determine whether to show a "new" badge on the card in the toolbar.
+     */
+    viewed?: boolean;
 }

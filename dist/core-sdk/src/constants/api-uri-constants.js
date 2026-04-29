@@ -28,6 +28,7 @@ ApiUriConstants.RECORD_CALL_URI = '/InContactAPI/services/v23.0/agent-sessions/{
 ApiUriConstants.STOP_CALL_RECORDING_URI = '/inContactAPI/services/v2.0/agent-sessions/{sessionId}/interactions/{contactId}/stop-record';
 ApiUriConstants.END_CONTACT_URI = '/InContactAPI/services/v23.0/agent-sessions/{sessionId}/interactions/{contactId}/end';
 ApiUriConstants.AGENT_STATE_URI_TS = '/InContactAPI/services/v33.0/cache/agentstate';
+ApiUriConstants.AGENT_ATTENDANT_ACD_LIST_V34 = '/InContactAPI/services/v34.0/attendant-agents';
 ApiUriConstants.AGENT_STATE_URI = '/InContactAPI/services/v27.0/cache/agentstate';
 ApiUriConstants.AGENT_STATE_UNIFY_URI = '/acd-apiservices/v1/agents/states';
 ApiUriConstants.AGENT_STATE_UNIFY_URI_TS = '/acd-apiservices/v2/agents/states';
@@ -47,6 +48,7 @@ ApiUriConstants.ACTIVATE_CONTACT_URI = '/InContactAPI/services/v23.0/agent-sessi
 // Api for urls for address book
 ApiUriConstants.ADDRESS_BOOK_URI = '/incontactapi/services/v23.0/agents/{agentId}/address-books';
 ApiUriConstants.ADDRESS_BOOK_2_URI = '/sab/v1/addressbook';
+ApiUriConstants.ATTENDANT_DIRECT_VOICEMAIL_TRANSFER_URI = '/InContactAPI/services/v34.0/agent-sessions/{sessionId}/direct-voicemail-transfer';
 ApiUriConstants.STANDARD_ADDRESS_BOOK_URI = '/incontactapi//services/v23.0/address-books/{addressBookId}/entries';
 ApiUriConstants.GET_AGENT_SKILLS_URI_TS = '/InContactAPI/services/v33.0/agents/{agentId}/skills';
 ApiUriConstants.GET_AGENT_SKILLS_URI = '/InContactAPI/services/v23.0/agents/{agentId}/skills';
@@ -68,8 +70,10 @@ ApiUriConstants.SEND_DTMF = '/InContactAPI/services/v23.0/agent-sessions/{sessio
 ApiUriConstants.SKILL_CACHE_URI = '/InContactAPI/services/v23.0/cache/skills';
 ApiUriConstants.AGENT_QUEUE_URI = '/incontactapi/services/v23.0/agents/{agentId}/queues';
 ApiUriConstants.AGENT_QUEUE_URI_TS = '/incontactapi/services/v33.0/agents/{agentId}/queues';
+ApiUriConstants.AGENT_QUEUE_URI_NEW = '/acd-queues-service/v1/agents/{agentId}/queues';
 ApiUriConstants.AGENT_QUEUE_DETAIL_URI = '/incontactapi/services/v23.0/agents/{agentId}/queues-detail';
 ApiUriConstants.AGENT_QUEUE_DETAIL_URI_TS = '/incontactapi/services/v33.0/agents/{agentId}/queues-detail';
+ApiUriConstants.AGENT_QUEUE_DETAIL_URI_NEW = '/acd-queue-details-service/v1/agents/{agentId}/queues-detail';
 //Api uris to accept and reject inbound contact
 ApiUriConstants.ACCEPT_CONTACT_URI = '/InContactAPI/services/v23.0/agent-sessions/{sessionId}/interactions/{contactId}/accept';
 ApiUriConstants.REJECT_CONTACT_URI = '/InContactAPI/services/v23.0/agent-sessions/{sessionId}/interactions/{contactId}/reject';
@@ -86,11 +90,15 @@ ApiUriConstants.DIRECTORY_ENTRIES = '/rtd/v1/agents/{agentId}/directories/{direc
 //Api uris for getting all directories
 ApiUriConstants.GET_DIRECTORIES = '/rtd/v1/agents/{agentId}/directories';
 ApiUriConstants.GET_DIRECTORY_METADATA = '/rtd/v1/agents/{agentId}/directories/{directoryId}/metadata';
+ApiUriConstants.GET_NEWGEN_DIRECTORIES = '/external-directory-admin-service/v1/agent/directories';
 ApiUriConstants.UH_GET_USERS = '/user-management/v1/users/';
 //Api to search directories
 ApiUriConstants.SEARCH_DIRECTORIES = '/rtd/v2/agents/directories/entries/search';
+ApiUriConstants.SEARCH_NEWGEN_DIRECTORIES = '/external-directory-service/v1/directory/contact/search';
 // API uri for PRESENCE SYNC WebSocket
 ApiUriConstants.PRESENCE_SYNC_WEBSOCKET = '/directory/ws';
+// API uri for PRESENCE SYNC WebSocket - NewGen
+ApiUriConstants.NEWGEN_PRESENCE_SYNC_WEBSOCKET = '/nextgen-directory/ws';
 // IEX uri for fetching IEX schedules
 ApiUriConstants.GET_IEXSCHEDULE = '/incontactapi/services/v8.0/agents/{agentId}/wfm-schedule?startDate={startDate}&endDate={endDate}';
 //Disposition APIs
@@ -98,6 +106,8 @@ ApiUriConstants.GET_IEXSCHEDULE = '/incontactapi/services/v8.0/agents/{agentId}/
 // will not get stuck in ACW state
 ApiUriConstants.GET_DISPOSITION_URI = '/InContactAPI/services/v12.0/skills/{skillId}/dispositions';
 ApiUriConstants.GET_DISPOSITION_URI_TS = '/InContactAPI/services/v33.0/skills/{skillId}/dispositions';
+//Disposition API to get list of dispositions with categories for SmartReach
+ApiUriConstants.GET_DISPOSITION_WITH_CATEGORY_URI = '/InContactAPI/services/v34.0/skills/{skillId}/dispositions';
 ApiUriConstants.GET_TAGS_URI = '/InContactAPI/services/v12.0/skills/{skillId}/tags';
 ApiUriConstants.GET_TAGS_URI_TS = '/InContactAPI/services/v33.0/skills/{skillId}/tags';
 ApiUriConstants.SAVE_TAGS_URI = '/InContactAPI/services/v23.0/contacts/{contactId}/tags';

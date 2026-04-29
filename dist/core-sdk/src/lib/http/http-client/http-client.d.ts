@@ -1,7 +1,8 @@
 import { Observable } from 'rxjs';
 import { HttpRequestInit } from '../http-request/http-request';
-import { HttpResponse, RetryOptions, ApiNetworkPerformance } from '@nice-devone/common-sdk';
+import { HttpResponse, RetryOptions, ApiNetworkPerformance, RequestControlMode } from '@nice-devone/common-sdk';
 import { Logger } from '../../../logger/logger';
+import { RequestManager } from '../request-manager/request-manager';
 /** Http Interface class for making api calls to backend */
 export declare class HttpClient {
     static circuitBreaker: import("cockatiel").CircuitBreakerPolicy;
@@ -101,4 +102,29 @@ export declare class HttpClient {
      * ```
      */
     static getBlob(url: string, request: HttpRequestInit): Promise<HttpResponse>;
+    /**
+     * Executes a controlled GET request with optional abort, delay, and latency tracking.
+     * @param manager - RequestManager instance to manage the request lifecycle
+     * @param uniqueKey - Unique identifier for the request
+     * @param url - URL for the GET request
+     * @param requestInit - HTTP request initialization options
+     * @returns Promise resolving to HttpResponse
+     * @example
+     * ```
+     * const response = HttpClient.controlledGet(
+     *   requestManager,
+     *   'unique-key-123',
+     *   'https://api.example.com/data',
+     *   { headers: { 'Authorization': 'Bearer token' } },
+     * );
+     * ```
+     */
+    static controlledGet(manager: RequestManager, options: {
+        uniqueKey: string;
+        url: string;
+        requestInit: HttpRequestInit;
+        debugLabel: string;
+        requestType: RequestControlMode;
+        delayTime?: number;
+    }): Promise<HttpResponse>;
 }

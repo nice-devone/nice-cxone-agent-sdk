@@ -106,22 +106,27 @@ class ACWebRtcService {
        * ```
        */
     handleAgentLegEvent(agentLeg) {
+        this.logger.info('handleAgentLegEvent', 'CX: inside AC WebRtcService handleAgentLegEvent');
         if (this.validationUtilSvc.isNotNullOrUndefined(agentLeg) && this.validationUtilSvc.isNotNullOrUndefined(agentLeg.agentLegId)) {
             if (agentLeg.status === this.agentLegState) {
+                this.logger.info('handleAgentLegEvent', 'CX: Agent leg status is same as previous status, no action needed');
                 return;
             }
             this.agentLegState = agentLeg.status;
             switch (agentLeg.status) {
                 // for safer side we are doing cleanup during agent leg dialing as well
                 case 'Dialing':
+                    this.logger.info('handleAgentLegEvent', 'CX: Agent leg state is dialing, cleaning up previous call data if any');
                     this.audioCodeCall = null;
                     core_sdk_1.LocalStorageHelper.removeItem(core_sdk_1.StorageKeys.AGENT_LEG_CALL);
                     break;
                 // In call restore case we need to connect the Agent leg
                 case 'Active':
+                    this.logger.info('handleAgentLegEvent', 'CX: Agent leg state is active, connecting agent leg');
                     this.connectAgentLeg(agentLeg.agentLegId);
                     break;
                 case 'Disconnected':
+                    this.logger.info('handleAgentLegEvent', 'CX: Agent leg state is disconnected, disconnecting agent leg');
                     this.disconnectAgentLeg();
                     break;
             }
@@ -135,17 +140,17 @@ class ACWebRtcService {
        * ```
        */
     connectAgentLeg(agentLegId) {
-        this.logger.debug('connectAgentLeg', `agentLegId: ${agentLegId}`);
+        this.logger.info('connectAgentLeg', `CX: Inside webRTC connect agent leg - agentLegId: ${agentLegId}`);
         this.agentLegId = agentLegId;
         if (this.validationUtilSvc.isNullOrEmpty(this.agentLegId)) {
-            this.logger.error('connectAgentLeg', 'AgentLegId is empty empty');
+            this.logger.error('connectAgentLeg', 'CX: AgentLegId is empty empty');
             return;
         }
         if (this.validationUtilSvc.isNotNullOrUndefined(this.options)) {
             this.connectAudioCodeServer();
         }
         else {
-            this.logger.error('connectAgentLeg', 'init params are empty');
+            this.logger.error('connectAgentLeg', 'CX: init params are empty');
         }
     }
     /**
@@ -157,17 +162,21 @@ class ACWebRtcService {
        */
     connectAudioCodeServer() {
         if (this.audioCodeConnectRequested && !this.audioCodeIsConnected) {
-            this.logger.debug('connectAudioCodeServer', 'Audio connection already in progress');
+            this.logger.info('connectAudioCodeServer', 'CX: Audio connection already in progress');
             return;
         }
         this.audioCodeConnectRequested = true;
-        this.logger.debug('connectAudioCodeServer', `audioCodeIsConnected:${this.audioCodeIsConnected}`);
+        this.logger.info('connectAudioCodeServer', `CX: audioCodeIsConnected:${this.audioCodeIsConnected}`);
         this.isSpeakerandMicAvailable().then((isSpeakerandMicAvailable) => {
             if (isSpeakerandMicAvailable) {
+                this.logger.info('connectAudioCodeServer', 'CX: Speaker and Mic are available');
                 this.requestMediaAccess().then((isMediaAccessProvided) => {
+                    this.logger.info('connectAudioCodeServer', `CX: isMediaAccessProvided:${isMediaAccessProvided}`);
                     if (isMediaAccessProvided) {
                         if (this.audioCodeIsConnected) {
+                            this.logger.info('connectAudioCodeServer', 'CX: AudioCodes already connected');
                             // dial agentleg when the webrtc server is already loggedin
+                            this.logger.info('connectAudioCodeServer', `CX: audiocodeCall value: ${this.audioCodeCall}`);
                             if (this.validationUtilSvc.isNullOrEmpty(this.audioCodeCall) ||
                                 (this.validationUtilSvc.isValidObject(this.audioCodeCall) && !this.audioCodeCall.isEstablished())) {
                                 this.makeAgentLegCall();
@@ -199,11 +208,12 @@ class ACWebRtcService {
        * ```
        */
     isSpeakerandMicAvailable() {
-        this.logger.debug('isSpeakerandMicAvailable', 'Detecting Speaker and Mic availablility');
+        this.logger.info('isSpeakerandMicAvailable', 'CX: Checking Speaker and Mic availability...');
         let isSpeakerAvailable = false;
         let isMicAvailable = false;
         const mediaDevices = navigator.mediaDevices.enumerateDevices();
         return mediaDevices.then((devices) => {
+            this.logger.info('isSpeakerandMicAvailable', `CX: Found ${devices.length} media devices`);
             devices.forEach((device) => {
                 switch (device.kind) {
                     case 'audioinput':
@@ -214,14 +224,14 @@ class ACWebRtcService {
                         break;
                 }
             });
-            this.logger.debug('isSpeakerandMicAvailable', 'isSpeakerAvailable: ' + isSpeakerAvailable + ' isMicAvailable: ' + isMicAvailable);
+            this.logger.info('isSpeakerandMicAvailable', 'CX: isSpeakerAvailable: ' + isSpeakerAvailable + ' isMicAvailable: ' + isMicAvailable);
             if (isSpeakerAvailable && isMicAvailable) {
                 return true;
             }
-            this.logger.error('isSpeakerandMicAvailable', 'Both Speaker and Mic are Required');
+            this.logger.error('isSpeakerandMicAvailable', 'CX: Both Speaker and Mic are Required');
             return false;
         }).catch((err) => {
-            this.logger.error('isSpeakerandMicAvailable', 'Error Details: ' + err.message);
+            this.logger.error('isSpeakerandMicAvailable', 'CX: Error Details: ' + err.message);
             return false;
         });
     }
@@ -233,7 +243,7 @@ class ACWebRtcService {
        * ```
        */
     requestMediaAccess() {
-        this.logger.debug('requestMediaAccess', 'Requesting Media access...');
+        this.logger.info('requestMediaAccess', 'CX: Requesting Media access...');
         const mediaConstraint = {
             audio: true,
             video: false,
@@ -241,11 +251,11 @@ class ACWebRtcService {
         return navigator.mediaDevices.getUserMedia(mediaConstraint)
             .then((mediaStream) => {
             this.stopAudioTrack(mediaStream);
-            this.logger.debug('requestMediaAccess', 'Audio device access granted');
+            this.logger.info('requestMediaAccess', 'CX: Audio device access granted');
             return true;
         })
             .catch((err) => {
-            this.logger.error('requestMediaAccess', 'Audio device error: ' + err.message);
+            this.logger.error('requestMediaAccess', 'CX: Audio device error: ' + err.message);
             if (err.name === 'NotFoundError') {
                 this.onConnectionStatusChanged.next({
                     status: cxone_voice_connection_status_1.CXoneVoiceConnectionStatus.MEDIA_DEVICE_NOT_FOUND,
@@ -579,10 +589,11 @@ class ACWebRtcService {
        * ```
        */
     makeAgentLegCall() {
-        this.logger.debug('makeAgentLegCall', `agentLegId:${this.agentLegId}, Is call request already in progress : ${this.lastAgentLegIdCall}`);
+        this.logger.info('makeAgentLegCall', `CX: agentLegId:${this.agentLegId}, Is call request already in progress : ${this.lastAgentLegIdCall}`);
         try {
             // avoid sending multiple audio call requests for the same agentlegId
             if (this.lastAgentLegIdCall === this.agentLegId) {
+                this.logger.info('makeAgentLegCall', 'CX: Call request already in progress for the same agentLegId, ignoring duplicate request');
                 return;
             }
             this.lastAgentLegIdCall = this.agentLegId;
@@ -592,12 +603,13 @@ class ACWebRtcService {
             });
             if (!this.restoreCall() && this.validationUtilSvc.isNotNullOrEmpty(this.agentLegId)) {
                 const params = [this.AudioCodesHeader + this.agentLegId];
+                this.logger.info('makeAgentLegCall', `CX: Making new call for agentLegId: ${this.agentLegId}`);
                 this.audioCodeCall = this.audioCode.call(this.audioCode.AUDIO, this.options.webRTCDnis, params);
-                this.logger.debug('makeAgentLegCall', 'Requested');
+                this.logger.info('makeAgentLegCall', 'CX: Requested');
             }
         }
         catch (error) {
-            this.logger.error('makeAgentLegCall', `error occurred while making agentleg call, error: ${JSON.stringify(error)}  `);
+            this.logger.error('makeAgentLegCall', `CX: error occurred while making agentleg call, error: ${JSON.stringify(error)}  `);
         }
     }
     /**
@@ -606,27 +618,27 @@ class ACWebRtcService {
        * @returns boolean true if there is a active agent leg call in localstorate to restore else return false.
        */
     restoreCall() {
-        this.logger.debug('restoreCall', 'checking for call restoration.');
+        this.logger.info('restoreCall', 'CX: checking for call restoration.');
         const restoreData = core_sdk_1.LocalStorageHelper.getItem(core_sdk_1.StorageKeys.AGENT_LEG_CALL);
         try {
             if (restoreData && this.validationUtilSvc.isNotNullOrUndefined(restoreData)) {
-                this.logger.debug('restoreCall', 'audiocodes calldata: ' + restoreData);
+                this.logger.info('restoreCall', 'CX: audiocodes calldata: ' + restoreData);
                 const callData = JSON.parse(restoreData);
                 // Make sure the data we have in storage is for the current agentlegid otherwise ignore the restore process
                 if ((callData === null || callData === void 0 ? void 0 : callData.agentLegId) && this.agentLegId && callData.agentLegId !== this.agentLegId) {
-                    this.logger.debug('restoreCall', 'skipped restoring call as agentLegId does not match with the stored data.');
+                    this.logger.info('restoreCall', 'CX: skipped restoring call as agentLegId does not match with the stored data.');
                     core_sdk_1.LocalStorageHelper.removeItem(core_sdk_1.StorageKeys.AGENT_LEG_CALL);
                     this.removeConnectedSBC();
                     return false;
                 }
                 const params = [this.AudioCodesHeader + callData.agentLegId, this.AudioCodesHeaderReplace + callData.replaces];
                 this.audioCodeCall = this.audioCode.call(this.audioCode.AUDIO, callData.callTo, params);
-                this.logger.debug('restoreCall', 'requested');
+                this.logger.info('restoreCall', 'CX: requested');
                 return true;
             }
         }
         catch (error) {
-            this.logger.error('restoreCall', `error occurred  while restoring call  error: ${JSON.stringify(error)}`);
+            this.logger.error('restoreCall', `CX: error occurred  while restoring call  error: ${JSON.stringify(error)}`);
         }
         return false;
     }
@@ -677,13 +689,13 @@ class ACWebRtcService {
        */
     disconnectAgentLeg() {
         try {
-            this.logger.trace('disconnectAgentLeg', `agentLegId:${this.agentLegId}`);
+            this.logger.trace('disconnectAgentLeg', `CX: agentLegId:${this.agentLegId}`);
             if (this.validationUtilSvc.isValidObject(this.audioCodeCall)) {
                 this.audioCodeCall.terminate();
             }
         }
         catch (error) {
-            this.logger.error('disconnectAgentLeg', `error occurred while terminating audiocode call, error: ${JSON.stringify(error)}  `);
+            this.logger.error('disconnectAgentLeg', `CX: error occurred while terminating audiocode call, error: ${JSON.stringify(error)}  `);
         }
         this.agentLegId = '';
         this.audioCodeCall = null;
@@ -704,7 +716,7 @@ class ACWebRtcService {
     removeConnectedSBC() {
         this.connectedSBC = '';
         core_sdk_1.LocalStorageHelper.removeItem(core_sdk_1.StorageKeys.CONNECTED_AC_SERVER);
-        this.logger.debug('removeConnectedSBC', 'removed ConnectedAudioCodeServer value from localstorage');
+        this.logger.debug('removeConnectedSBC', 'CX: removed ConnectedAudioCodeServer value from localstorage');
     }
 }
 exports.ACWebRtcService = ACWebRtcService;

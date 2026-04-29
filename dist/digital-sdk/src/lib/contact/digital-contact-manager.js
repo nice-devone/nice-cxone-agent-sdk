@@ -1,5 +1,5 @@
 import { __awaiter } from "tslib";
-import { AdminService, ACDSessionManager, LocalStorageHelper, StorageKeys, WebsocketStatusCode, } from '@nice-devone/core-sdk';
+import { AdminService, ACDSessionManager, LocalStorageHelper, StorageKeys, WebsocketStatusCode, RequestManager, } from '@nice-devone/core-sdk';
 import { Subject } from 'rxjs';
 import { CXoneSdkError, CXoneSdkErrorType, CXoneDigitalEventType, DigitalContactStatus, NetWorkConnectionStatus, MediaType, UserSlotsSchema, CXoneLeaderElector, } from '@nice-devone/common-sdk';
 import { CXoneUser } from '@nice-devone/auth-sdk';
@@ -13,6 +13,7 @@ import { CXoneUserSlotProvider } from '../digital/provider/cxone-user-slot-provi
 import { DigitalContactService } from '../digital/service/digital-contact-service';
 import { CXoneDigitalUtil } from '../digital/util/cxone-digital-util';
 import { DigitalEventSyncService } from '../digital/service/digital-event-sync-service';
+import { DigitalEventFactory } from '../digital';
 /**
  * Class to handle the contacts
  */
@@ -61,12 +62,18 @@ export class DigitalContactManager {
         // Dictionary for synchronizing digital events. [eventName -> (contactId -> traceId)]
         this.digitalEventSyncDictionary = new Map();
         this.isWSAPIIntegrationRevampToggleEnabled = FeatureToggleService.instance.getFeatureToggleSync("release-cx-agent-API-websocket-integration-revamp-AW-42181" /* FeatureToggles.REVAMPED_WEBSOCKET_INTEGRATION_PATTERN */) || false;
+        this.isDigitalEventDeltaPublishingEnabled = FeatureToggleService.instance.getFeatureToggleSync("release-cx-agent-digital-event-delta-publishing-AW-48512" /* FeatureToggles.DIGITAL_EVENT_DELTA_PUBLISHING */) || false;
+        this.requestManager = RequestManager.getInstance();
         // Event types that require dictionary sync updates
         this.SYNC_ENABLED_EVENTS = new Set([
             CXoneDigitalEventType.CASE_INBOX_ASSIGNEE_CHANGED,
             CXoneDigitalEventType.MESSAGE_UPDATED,
-            CXoneDigitalEventType.MESSAGE_ADDED_INTO_CASE
+            CXoneDigitalEventType.MESSAGE_ADDED_INTO_CASE,
+            CXoneDigitalEventType.CASE_STATUS_CHANGED
         ]);
+        this.deltaEvents = [CXoneDigitalEventType.CASE_STATUS_CHANGED, CXoneDigitalEventType.MESSAGE_ADDED_INTO_CASE];
+        // Checks if delta event publishing is enabled and the event type is a delta event
+        this.isDeltaEventApplicable = (eventType) => this.isDigitalEventDeltaPublishingEnabled && this.deltaEvents.includes(eventType);
         /**
          * Method to handle digital sync events from the DigitalEventSyncService
          * @example handleDigitalSyncEvent(event);
@@ -82,6 +89,40 @@ export class DigitalContactManager {
             catch (error) {
                 this.logger.error('handleDigitalSyncEvent', 'Error in handling digital sync event: ' + JSON.stringify(error));
                 return Promise.resolve(false);
+            }
+        });
+        /**
+         * Post-parse callback for delta events: hydrates the delta content with full message body
+         * if additional content is flagged, publishes the arrival to public channel subscribers,
+         * and triggers agent assist unsubscribe when applicable.
+         * in Traditional flow we parsing YUP validated response as per CXoneDigitalContact object,there we calling services to get the additional message content if hasAdditionalMessageContent flag is true.same action we doing here in this delta flow as well in this callback after validating the delta event & before sending delta object to middleware.
+         * @param data - The parsed delta content
+         * @example
+         * ```
+         * DigitalEventFactory.instance.parseAndPublishDeltaEvent(eventData, this.hydrateAndPublishAdditionalData);
+         * ```
+         */
+        this.hydrateAndPublishAdditionalData = (data) => __awaiter(this, void 0, void 0, function* () {
+            var _a, _b, _c, _d, _e;
+            const message = (_a = data === null || data === void 0 ? void 0 : data.delta) === null || _a === void 0 ? void 0 : _a.message;
+            if (message === null || message === void 0 ? void 0 : message.hasAdditionalMessageContent) {
+                try {
+                    const response = yield this.digitalContactService.getMessageById(message.id);
+                    message.messageContent.text = (_c = (_b = response.data) === null || _b === void 0 ? void 0 : _b.messageContent) === null || _c === void 0 ? void 0 : _c.text;
+                }
+                catch (error) {
+                    throw new Error(`Failed to fetch additional message content for message ID: ${message.id}, ${JSON.stringify(error)}`);
+                }
+            }
+            const currentContact = this.digitalContactMap.get(data === null || data === void 0 ? void 0 : data.caseId);
+            if (currentContact) {
+                if (!((_d = currentContact === null || currentContact === void 0 ? void 0 : currentContact.channel) === null || _d === void 0 ? void 0 : _d.isPrivate) && (data === null || data === void 0 ? void 0 : data.interactionId) && message) {
+                    this.logger.debug('hydrateAndPublishAdditionalData', `Publishing new message for public channel: caseId=${data === null || data === void 0 ? void 0 : data.caseId}, interactionId=${data.interactionId}`);
+                    this.publishNewMessageForContact(data === null || data === void 0 ? void 0 : data.caseId, message, data.interactionId);
+                }
+                const status = (_e = currentContact === null || currentContact === void 0 ? void 0 : currentContact.case) === null || _e === void 0 ? void 0 : _e.status;
+                const contactIdToUnsubscribe = data === null || data === void 0 ? void 0 : data.caseId;
+                CXoneDigitalUtil.instance.handleAgentAssistUnsubscribe(contactIdToUnsubscribe, data.eventType, status);
             }
         });
         /**
@@ -228,6 +269,9 @@ export class DigitalContactManager {
                     else if (eventName === CXoneDigitalEventType.MESSAGE_UPDATED) {
                         yield this.handleMessageUpdatedEvent(contactId, traceId, eventData);
                     }
+                    else if (eventName === CXoneDigitalEventType.CASE_STATUS_CHANGED) {
+                        yield this.handleCaseStatusChangedEvent(contactId, traceId, eventData);
+                    }
                     return Promise.resolve(false);
                 }
                 this.logger.trace('addTraceIdInEventSyncDictionary', `Success: eventName=${eventName}, contactId=${contactId}, traceId=${traceId}`);
@@ -305,7 +349,7 @@ export class DigitalContactManager {
      * @example handleMessageAddedIntoCaseEvent(contactId, traceId);
      */
     handleMessageAddedIntoCaseEvent(contactId, traceId, messageAddedEventData) {
-        var _a, _b, _c, _d, _e, _f;
+        var _a, _b, _c, _d, _e, _f, _g, _h;
         return __awaiter(this, void 0, void 0, function* () {
             try {
                 if (contactId && this.digitalContactMap.has(contactId)) {
@@ -317,8 +361,20 @@ export class DigitalContactManager {
                         const apiResponseToPublish = { 'case': currentCase, 'channel': currentChannels, 'message': message };
                         const eventDetailsToPublish = { eventId: CXoneDigitalEventType.MESSAGE_ADDED_INTO_CASE, eventObject: 'case', eventType: CXoneDigitalEventType.MESSAGE_ADDED_INTO_CASE, traceId: traceId };
                         const eventDataToPublish = Object.assign(Object.assign(Object.assign({}, messageAddedEventData), eventDetailsToPublish), { data: apiResponseToPublish });
+                        try {
+                            if (this.isDeltaEventApplicable(eventDetailsToPublish.eventType)) {
+                                yield DigitalEventFactory.instance.parseAndPublishDeltaEvent(eventDataToPublish, this.hydrateAndPublishAdditionalData);
+                                if (((_f = (_e = eventDataToPublish === null || eventDataToPublish === void 0 ? void 0 : eventDataToPublish.data) === null || _e === void 0 ? void 0 : _e.case) === null || _f === void 0 ? void 0 : _f.id) && eventDataToPublish.traceId && this.isSyncDictionaryUpdateRequired(CXoneDigitalEventType.MESSAGE_ADDED_INTO_CASE, eventDataToPublish.traceId)) {
+                                    this.updateDESyncDictionary(eventDataToPublish.data.case.id, CXoneDigitalEventType.MESSAGE_ADDED_INTO_CASE, eventDataToPublish.traceId);
+                                }
+                                return;
+                            }
+                        }
+                        catch (error) {
+                            this.logger.error('handleMessageAddedIntoCaseEvent', `Failed to handle message added into case event for Delta flow contactId=${contactId}, traceId=${traceId}: ` + JSON.stringify(error));
+                        }
                         const schemaValidatedMessage = this.cxoneDigitalContactHelper.validateResponseSchema(eventDataToPublish);
-                        const contact = this.digitalContactMap.get((_f = (_e = schemaValidatedMessage === null || schemaValidatedMessage === void 0 ? void 0 : schemaValidatedMessage.data) === null || _e === void 0 ? void 0 : _e.case) === null || _f === void 0 ? void 0 : _f.id);
+                        const contact = this.digitalContactMap.get((_h = (_g = schemaValidatedMessage === null || schemaValidatedMessage === void 0 ? void 0 : schemaValidatedMessage.data) === null || _g === void 0 ? void 0 : _g.case) === null || _h === void 0 ? void 0 : _h.id);
                         if (contact) {
                             const currentContact = contact;
                             schemaValidatedMessage.data.channel = currentContact.channel;
@@ -334,6 +390,58 @@ export class DigitalContactManager {
         });
     }
     /**
+     * Handle Case Status changed API response in case of case status changed
+     * @param contactId - contact id
+     * @param traceId - Unique id for tracking the events and avoiding duplication
+     * @param status - Updated status of the case.
+     * @example handleCaseStatusChangedEvent(contactId, traceId, status);
+     */
+    handleCaseStatusChangedEvent(contactId, traceId, status) {
+        var _a, _b, _c, _d, _e, _f;
+        return __awaiter(this, void 0, void 0, function* () {
+            try {
+                if (contactId && this.digitalContactMap.has(contactId)) {
+                    this.logger.debug('handleCaseStatusChangedEvent', 'Status changed for contact ' + contactId + ' ' + traceId + ' status ' + status);
+                    let isPublishDeltaEventFailed = false;
+                    const currentCase = (_b = (_a = this.digitalContactMap) === null || _a === void 0 ? void 0 : _a.get(contactId)) === null || _b === void 0 ? void 0 : _b.case;
+                    const currentChannels = (_d = (_c = this.digitalContactMap) === null || _c === void 0 ? void 0 : _c.get(contactId)) === null || _d === void 0 ? void 0 : _d.channel;
+                    const updatedStatusDetails = Object.assign(Object.assign({}, currentCase), { status: status });
+                    const apiResponseToPublish = { 'case': updatedStatusDetails, 'channel': currentChannels };
+                    const eventDetailsToPublish = { eventId: CXoneDigitalEventType.CASE_STATUS_CHANGED, eventObject: 'case', eventType: CXoneDigitalEventType.CASE_STATUS_CHANGED, traceId: traceId };
+                    const eventDataToPublish = Object.assign(Object.assign({}, eventDetailsToPublish), { data: apiResponseToPublish });
+                    //if delta event publishing is enabled then pushing delta update instead of full contact update to optimise performance and update DES dictionary conditionally.
+                    if (this.isDigitalEventDeltaPublishingEnabled) {
+                        try {
+                            this.logger.debug('handleCaseStatusChangedEvent', 'Publishing delta event for case status changed for contact ' + contactId + ' ' + traceId + ' status ' + status);
+                            yield DigitalEventFactory.instance.parseAndPublishDeltaEvent(eventDataToPublish);
+                            if ((currentCase === null || currentCase === void 0 ? void 0 : currentCase.id) && (eventDetailsToPublish === null || eventDetailsToPublish === void 0 ? void 0 : eventDetailsToPublish.traceId) && this.isSyncDictionaryUpdateRequired(eventDetailsToPublish.eventType, eventDetailsToPublish.traceId)) {
+                                this.updateDESyncDictionary(currentCase.id, eventDetailsToPublish.eventType, eventDetailsToPublish.traceId);
+                            }
+                        }
+                        catch (error) {
+                            isPublishDeltaEventFailed = true;
+                            this.logger.error('handleCaseStatusChangedEvent', `Failed to publish case status changed delta event for contactId=${contactId}, traceId=${traceId}: ` + JSON.stringify(error));
+                        }
+                    }
+                    // if delta event publishing is not enabled or deltaPublishing fails then publish the full contact update for case status changed event.
+                    if (!this.isDigitalEventDeltaPublishingEnabled || isPublishDeltaEventFailed) {
+                        const schemaValidatedMessage = this.cxoneDigitalContactHelper.validateResponseSchema(eventDataToPublish);
+                        const contact = this.digitalContactMap.get((_f = (_e = schemaValidatedMessage === null || schemaValidatedMessage === void 0 ? void 0 : schemaValidatedMessage.data) === null || _e === void 0 ? void 0 : _e.case) === null || _f === void 0 ? void 0 : _f.id);
+                        if (contact) {
+                            const currentContact = contact;
+                            schemaValidatedMessage.data.channel = currentContact.channel;
+                            currentContact.parse(schemaValidatedMessage);
+                            this.updatePublishDigitalContactMap(currentContact);
+                        }
+                    }
+                }
+            }
+            catch (error) {
+                this.logger.error('handleCaseStatusChangedEvent', `Failed to handle case status changed event for contactId=${contactId}, traceId=${traceId}: ` + JSON.stringify(error));
+            }
+        });
+    }
+    /**
      * Handle Assignee Changed API response in case of case assignment to agent inbox from
      * @param contactId - contact id
      * @param traceId - Unique id for tracking the events and avoiding duplication
@@ -341,8 +449,9 @@ export class DigitalContactManager {
      */
     handleAssigneeChangedEvent(contactId, traceId) {
         return __awaiter(this, void 0, void 0, function* () {
-            if (contactId && !this.digitalContactMap.has(contactId)) {
+            if (contactId) {
                 this.logger.info('handleAssigneeChangedEvent', 'Inbox assigned contact to be published to map' + contactId);
+                this.requestManager.hardAbort(contactId);
                 const eventDetailsToPublish = { eventId: '', eventObject: 'Case', eventType: CXoneDigitalEventType.CASE_INBOX_ASSIGNED, traceId: traceId };
                 yield this.getDigitalContactDetails(contactId, eventDetailsToPublish);
             }
@@ -414,7 +523,7 @@ export class DigitalContactManager {
         this.currentUserId = (_a = CXoneUser.instance.getUserInfo()) === null || _a === void 0 ? void 0 : _a.userId;
         const isConversationsFTEnabled = FeatureToggleService.instance.getFeatureToggleSync("release-agent-chat-AW-30672" /* FeatureToggles.AGENT_CHAT_FEATURE_TOGGLE */);
         (_b = this.digitalWebsocket.onMessageReceived) === null || _b === void 0 ? void 0 : _b.subscribe((eventData) => __awaiter(this, void 0, void 0, function* () {
-            var _c, _d, _e, _f, _g, _h, _j, _k, _l, _m, _o, _p, _q, _r, _s, _t, _u, _v, _w, _x, _y, _z, _0, _1, _2, _3, _4, _5, _6, _7, _8, _9, _10, _11;
+            var _c, _d, _e, _f, _g, _h, _j, _k, _l, _m, _o, _p, _q, _r, _s, _t, _u, _v;
             let eventTypeToPublish;
             if ((eventData === null || eventData === void 0 ? void 0 : eventData.eventType) === CXoneDigitalEventType.CASE_INBOX_ASSIGNEE_CHANGED) {
                 if (((_d = (_c = eventData === null || eventData === void 0 ? void 0 : eventData.data) === null || _c === void 0 ? void 0 : _c.inboxAssignee) === null || _d === void 0 ? void 0 : _d.incontactId) !== this.currentUserId ||
@@ -455,55 +564,89 @@ export class DigitalContactManager {
             else if (isConversationsFTEnabled && eventDetailsToPublish.eventType === CXoneDigitalEventType.MESSAGE_CREATED && ((_q = (_p = eventData === null || eventData === void 0 ? void 0 : eventData.data) === null || _p === void 0 ? void 0 : _p.channel) === null || _q === void 0 ? void 0 : _q.hasAgentsAsRecipients)) {
                 this.onAgentHiveEvent.next({ eventType: eventDetailsToPublish.eventType, message: (_r = eventData === null || eventData === void 0 ? void 0 : eventData.data) === null || _r === void 0 ? void 0 : _r.message });
             }
-            else {
-                // validate raw event data against predefined schema
-                const eventDetailsToValidate = Object.assign(Object.assign({}, eventData), eventDetailsToPublish);
-                const schemaValidatedResponse = this.cxoneDigitalContactHelper.validateResponseSchema(eventDetailsToValidate);
-                // Condition to handle Events like SenderTypingStarted and SenderTypingEnded
-                if (eventDetailsToPublish.eventType === CXoneDigitalEventType.SENDER_TYPING_START ||
-                    eventDetailsToPublish.eventType === CXoneDigitalEventType.SENDER_TYPING_END || eventDetailsToPublish.eventType === CXoneDigitalEventType.MESSAGE_PREVIEW) {
-                    // subscribe to onDigitalContactUserTypingPreviewEvent Only if threadId found
-                    if (((_t = (_s = eventData.data) === null || _s === void 0 ? void 0 : _s.thread) === null || _t === void 0 ? void 0 : _t.id) && schemaValidatedResponse) {
-                        this.onDigitalContactUserTypingPreviewEvent.next({
-                            eventType: schemaValidatedResponse.eventType,
-                            threadId: (_v = (_u = schemaValidatedResponse.data) === null || _u === void 0 ? void 0 : _u.thread) === null || _v === void 0 ? void 0 : _v.id,
-                            message: (_w = schemaValidatedResponse.data) === null || _w === void 0 ? void 0 : _w.messagePreview,
-                        });
-                    }
-                }
-                if (schemaValidatedResponse) {
-                    const contactInMap = this.digitalContactMap.get((_y = (_x = schemaValidatedResponse === null || schemaValidatedResponse === void 0 ? void 0 : schemaValidatedResponse.data) === null || _x === void 0 ? void 0 : _x.case) === null || _y === void 0 ? void 0 : _y.id);
-                    if (contactInMap) {
-                        currentContact = contactInMap;
-                        // Dev Note: Change added for visual indicators
-                        //adding trace id from event to identify message form digital contact map
-                        schemaValidatedResponse['traceId'] = eventData.traceId;
-                        // parse the validated response as per CXoneDigitalContact object
-                        yield currentContact.parse(schemaValidatedResponse);
-                        // set or delete the contact from map based on inboxAssigneeUser change
-                        // publish individual received message for public channel
-                        if (!((_0 = (_z = schemaValidatedResponse === null || schemaValidatedResponse === void 0 ? void 0 : schemaValidatedResponse.data) === null || _z === void 0 ? void 0 : _z.channel) === null || _0 === void 0 ? void 0 : _0.isPrivate) &&
-                            ((_1 = schemaValidatedResponse === null || schemaValidatedResponse === void 0 ? void 0 : schemaValidatedResponse.data) === null || _1 === void 0 ? void 0 : _1.message))
-                            this.publishNewMessageForContact((_3 = (_2 = schemaValidatedResponse === null || schemaValidatedResponse === void 0 ? void 0 : schemaValidatedResponse.data) === null || _2 === void 0 ? void 0 : _2.case) === null || _3 === void 0 ? void 0 : _3.id, (_4 = schemaValidatedResponse === null || schemaValidatedResponse === void 0 ? void 0 : schemaValidatedResponse.data) === null || _4 === void 0 ? void 0 : _4.message, (_6 = (_5 = schemaValidatedResponse === null || schemaValidatedResponse === void 0 ? void 0 : schemaValidatedResponse.data) === null || _5 === void 0 ? void 0 : _5.case) === null || _6 === void 0 ? void 0 : _6.interactionId);
-                        this.updatePublishDigitalContactMap(currentContact);
-                    }
-                }
-                if (schemaValidatedResponse) {
-                    const status = (_8 = (_7 = schemaValidatedResponse === null || schemaValidatedResponse === void 0 ? void 0 : schemaValidatedResponse.data) === null || _7 === void 0 ? void 0 : _7.case) === null || _8 === void 0 ? void 0 : _8.status;
-                    const contactIdToUnsubscribe = (_11 = (_10 = (_9 = schemaValidatedResponse === null || schemaValidatedResponse === void 0 ? void 0 : schemaValidatedResponse.data) === null || _9 === void 0 ? void 0 : _9.case) === null || _10 === void 0 ? void 0 : _10.id) === null || _11 === void 0 ? void 0 : _11.toString();
-                    // unsubscribing from web socket even on UnAssign and Dismiss as we get get-next on every Assign to Me
-                    if (contactIdToUnsubscribe) {
-                        if ((eventDetailsToPublish.eventType === CXoneDigitalEventType.CASE_STATUS_CHANGED && status === DigitalContactStatus.CLOSED) ||
-                            (eventDetailsToPublish.eventType === CXoneDigitalEventType.CASE_INBOX_UNASSIGNED && status !== DigitalContactStatus.CLOSED)) {
-                            this.acdSession.agentAssistWebSocketUnsubsribeSubject.next(contactIdToUnsubscribe);
+            else if (this.isDeltaEventApplicable(eventDetailsToPublish.eventType)) {
+                //This condition handles all delta events when the delta event publishing FT is enabled. In this case, the traditional flow will not be executed, since execution is terminated at this else if block.
+                try {
+                    if (this.isWSAPIIntegrationRevampToggleEnabled) {
+                        if (this.getTraceIdFromEventSyncDictionary(eventDetailsToPublish.eventType, (_t = (_s = eventData.data) === null || _s === void 0 ? void 0 : _s.case) === null || _t === void 0 ? void 0 : _t.id) !== eventDetailsToPublish.traceId) {
+                            yield DigitalEventFactory.instance.parseAndPublishDeltaEvent(eventData, this.hydrateAndPublishAdditionalData);
+                            if (eventDetailsToPublish.traceId && this.isSyncDictionaryUpdateRequired(eventDetailsToPublish.eventType, eventDetailsToPublish.traceId)) {
+                                this.updateDESyncDictionary((_v = (_u = eventData.data) === null || _u === void 0 ? void 0 : _u.case) === null || _v === void 0 ? void 0 : _v.id, eventDetailsToPublish.eventType, eventDetailsToPublish.traceId);
+                            }
                         }
                     }
+                    else {
+                        yield DigitalEventFactory.instance.parseAndPublishDeltaEvent(eventData, this.hydrateAndPublishAdditionalData);
+                    }
                 }
+                catch (error) {
+                    yield this.handleTraditionalDigitalEvent(eventData, eventDetailsToPublish);
+                    this.logger.error('digitalWebsocketMessageHandler', 'Handling parseAndPublishDeltaEvent: ' + JSON.stringify(error));
+                }
+            }
+            else {
+                yield this.handleTraditionalDigitalEvent(eventData, eventDetailsToPublish);
             }
             if (isConversationsFTEnabled && eventDetailsToPublish.eventType === CXoneDigitalEventType.CONVERSATIONS_AVAILABILITY) {
                 this.checkSchemaAndPublishAvailability(eventData);
             }
         }));
+    }
+    /**
+     * Handles WebSocket events that do not follow the delta publishing path.
+     * Validates the raw event data, updates the matching contact in the map,
+     * publishes new messages, and unsubscribes agent assist when required.
+     * @param eventData - Raw event data from the WebSocket
+     * @param eventDetailsToPublish - Derived event details including resolved eventType and traceId
+     * @example
+     * ```
+     * await this.handleTraditionalDigitalEvent(eventData, eventDetailsToPublish);
+     * ```
+     */
+    handleTraditionalDigitalEvent(eventData, eventDetailsToPublish) {
+        var _a, _b, _c, _d, _e, _f, _g, _h, _j, _k, _l, _m, _o, _p, _q, _r, _s, _t, _u, _v;
+        return __awaiter(this, void 0, void 0, function* () {
+            // validate raw event data against predefined schema
+            const eventDetailsToValidate = Object.assign(Object.assign({}, eventData), eventDetailsToPublish);
+            const schemaValidatedResponse = this.cxoneDigitalContactHelper.validateResponseSchema(eventDetailsToValidate);
+            // Condition to handle Events like SenderTypingStarted and SenderTypingEnded
+            if (eventDetailsToPublish.eventType === CXoneDigitalEventType.SENDER_TYPING_START ||
+                eventDetailsToPublish.eventType === CXoneDigitalEventType.SENDER_TYPING_END ||
+                eventDetailsToPublish.eventType === CXoneDigitalEventType.MESSAGE_PREVIEW) {
+                // subscribe to onDigitalContactUserTypingPreviewEvent only if threadId is found
+                if (((_b = (_a = eventData.data) === null || _a === void 0 ? void 0 : _a.thread) === null || _b === void 0 ? void 0 : _b.id) && schemaValidatedResponse) {
+                    this.onDigitalContactUserTypingPreviewEvent.next({
+                        eventType: schemaValidatedResponse.eventType,
+                        threadId: (_d = (_c = schemaValidatedResponse.data) === null || _c === void 0 ? void 0 : _c.thread) === null || _d === void 0 ? void 0 : _d.id,
+                        message: (_e = schemaValidatedResponse.data) === null || _e === void 0 ? void 0 : _e.messagePreview,
+                    });
+                }
+            }
+            if (schemaValidatedResponse) {
+                const currentContact = this.digitalContactMap.get((_g = (_f = schemaValidatedResponse === null || schemaValidatedResponse === void 0 ? void 0 : schemaValidatedResponse.data) === null || _f === void 0 ? void 0 : _f.case) === null || _g === void 0 ? void 0 : _g.id);
+                if (currentContact) {
+                    // Dev Note: Change added for visual indicators
+                    // adding trace id from event to identify message from digital contact map
+                    schemaValidatedResponse['traceId'] = eventData.traceId;
+                    // parse the validated response as per CXoneDigitalContact object
+                    yield currentContact.parse(schemaValidatedResponse);
+                    // publish individual received message for public channel
+                    if (!((_j = (_h = schemaValidatedResponse === null || schemaValidatedResponse === void 0 ? void 0 : schemaValidatedResponse.data) === null || _h === void 0 ? void 0 : _h.channel) === null || _j === void 0 ? void 0 : _j.isPrivate) &&
+                        ((_k = schemaValidatedResponse === null || schemaValidatedResponse === void 0 ? void 0 : schemaValidatedResponse.data) === null || _k === void 0 ? void 0 : _k.message)) {
+                        this.publishNewMessageForContact((_m = (_l = schemaValidatedResponse === null || schemaValidatedResponse === void 0 ? void 0 : schemaValidatedResponse.data) === null || _l === void 0 ? void 0 : _l.case) === null || _m === void 0 ? void 0 : _m.id, (_o = schemaValidatedResponse === null || schemaValidatedResponse === void 0 ? void 0 : schemaValidatedResponse.data) === null || _o === void 0 ? void 0 : _o.message, (_q = (_p = schemaValidatedResponse === null || schemaValidatedResponse === void 0 ? void 0 : schemaValidatedResponse.data) === null || _p === void 0 ? void 0 : _p.case) === null || _q === void 0 ? void 0 : _q.interactionId);
+                    }
+                    this.updatePublishDigitalContactMap(currentContact);
+                }
+            }
+            if (schemaValidatedResponse) {
+                const status = (_s = (_r = schemaValidatedResponse === null || schemaValidatedResponse === void 0 ? void 0 : schemaValidatedResponse.data) === null || _r === void 0 ? void 0 : _r.case) === null || _s === void 0 ? void 0 : _s.status;
+                const contactIdToUnsubscribe = (_v = (_u = (_t = schemaValidatedResponse === null || schemaValidatedResponse === void 0 ? void 0 : schemaValidatedResponse.data) === null || _t === void 0 ? void 0 : _t.case) === null || _u === void 0 ? void 0 : _u.id) === null || _v === void 0 ? void 0 : _v.toString();
+                // unsubscribing from web socket even on UnAssign and Dismiss as we get get-next on every Assign to Me
+                if (contactIdToUnsubscribe) {
+                    CXoneDigitalUtil.instance.handleAgentAssistUnsubscribe(contactIdToUnsubscribe, eventDetailsToPublish.eventType, status);
+                }
+            }
+        });
     }
     /**
      * Used to remove the preview case from the preview array and digital contact map
@@ -775,7 +918,7 @@ export class DigitalContactManager {
                 const contactDetails = { data: resp === null || resp === void 0 ? void 0 : resp.data };
                 const skillId = (_g = (_f = (_e = contactDetails === null || contactDetails === void 0 ? void 0 : contactDetails.data) === null || _e === void 0 ? void 0 : _e.routingQueue) === null || _f === void 0 ? void 0 : _f.skillId) === null || _g === void 0 ? void 0 : _g.toString();
                 //This method used to get skill and customer/agent Response Timer details (ART)/(CRT) from the indexedDB
-                const skillDetails = skillId && (yield this.skillService.getSkillById(skillId, true));
+                const skillDetails = skillId && (yield this.skillService.getSkillById(skillId, true, contactId));
                 contactDetails.data.routingQueue = skillDetails ? Object.assign(Object.assign({}, contactDetails.data.routingQueue), { agentResponseEnabled: skillDetails.agentResponseEnabled, agentFirstResponseTime: skillDetails.agentFirstResponseTime, agentFollowOnResponseTime: skillDetails.agentFollowOnResponseTime, customerResponseEnabled: skillDetails.customerResponseEnabled, customerIdleTime: skillDetails.customerIdleTime, timeExtensionEnabled: skillDetails.timeExtensionEnabled }) : contactDetails.data.routingQueue;
                 contactDetails.data.isAssignedToAgentInbox = isAssignedToAgentInbox;
                 const isViewOnlyCase = this.viewOnlyCases.includes(contactId);
@@ -793,7 +936,7 @@ export class DigitalContactManager {
                 yield cxoneDigitalContact.parse(schemaValidatedResponse);
                 if (skillId) {
                     //Get the disposition details for skill attached to digital contact
-                    const skillResponse = yield this.skillService.getSkillById(skillId);
+                    const skillResponse = yield this.skillService.getSkillById(skillId, false, contactId);
                     // If acwType is disposition then only will publish disposition details.
                     if ((skillResponse === null || skillResponse === void 0 ? void 0 : skillResponse.acwTypeId) === AcwType.DISPOSITION) {
                         cxoneDigitalContact.requireDisposition = skillResponse === null || skillResponse === void 0 ? void 0 : skillResponse.requireDisposition;
@@ -939,6 +1082,22 @@ export class DigitalContactManager {
     terminateUserSlotPolling() {
         this.userSlotProvider.terminateUserSlotPolling();
         this.userSlotPollingStarted = false;
+    }
+    /**
+     * Aborts all active requests associated with the given contact.
+     *
+     * This is typically used when switching contacts to prevent
+     * stale API responses from updating state.
+     *
+     * @param contactId - Identifier of the contact whose pending requests should be cancelled
+     *
+     * @example
+     * // When user switches from contact 123 to 456
+     * abortRequestWithoutKey('123');
+     */
+    abortRequestWithoutKey(contactId) {
+        /* CANCELLATION LOGIC */
+        this.requestManager.abortNonActiveRequest(contactId);
     }
 }
 //# sourceMappingURL=digital-contact-manager.js.map

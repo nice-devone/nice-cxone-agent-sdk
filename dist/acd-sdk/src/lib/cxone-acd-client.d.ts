@@ -5,6 +5,7 @@ import { CXoneIndicatorManager } from './acd/contact/cxone-indicator-manager';
 import { CXoneScreenPop } from './acd/contact/cxone-screen-pop';
 import { ContactManager } from './acd/contact/contact-manager';
 import { AgentDetailService } from './agent-detials/service/agent-details-service';
+import { AttendantAgentListService } from './agent-detials/service/attendant-agent-list-service';
 /** This is the base class for ACD */
 export declare class CXoneAcdClient {
     private logger;
@@ -18,6 +19,7 @@ export declare class CXoneAcdClient {
     indicator: CXoneIndicatorManager;
     screenPop: CXoneScreenPop;
     agentDetailService: AgentDetailService;
+    agentListService: AttendantAgentListService;
     /**
      * get instance for agent auth and session
      *

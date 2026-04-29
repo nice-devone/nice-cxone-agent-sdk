@@ -66,6 +66,19 @@ export declare class CustomerCardService {
      * contact history for particular days span.
      */
     getAgentVoiceContactHistory(contactHistoryRequest: CXoneAgentVoiceContactHistoryRequest): Promise<Array<agentCompletedContactsResponse>>;
+    /**
+     * Normalizes ACD voice contact history records so both V23 and V33 payload keys are supported.
+     *
+     * @param completedContacts - Raw completed contacts collection from API response.
+     * @param isTenantSegmentationEnabled - True when V33 endpoint is enabled.
+     * @returns Normalized contacts with legacy-compatible keys.
+     *
+     * @example
+     * ```
+     * this.normalizeVoiceContactHistoryResponse(response?.data?.completedContacts, true)
+     * ```
+     */
+    private normalizeVoiceContactHistoryResponse;
     private generatePayloadForExecuteWorkFlow;
     /**
      * Method to get in CRM workflow response

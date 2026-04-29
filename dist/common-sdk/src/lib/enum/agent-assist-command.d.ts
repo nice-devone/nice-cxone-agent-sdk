@@ -2,6 +2,7 @@ export declare enum AgentAssistCommand {
     connect = "CONNECT",
     connected = "CONNECTED",
     heartbeat = "HEARTBEAT",
+    heartbeatAck = "HEARTBEAT_ACK",
     subscribe = "SUBSCRIBE",
     subscribed = "SUBSCRIBED",
     unsubscribe = "UNSUBSCRIBE",
