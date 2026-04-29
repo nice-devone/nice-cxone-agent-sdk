@@ -2,7 +2,7 @@
    * @example styles for toast component
    */
 const CcfAppToastMessageStyles = (theme) => {
-    var _a, _b;
+    var _a, _b, _c, _d, _e, _f;
     const styles = {
         toastMessage: {
             '.text,.titleText,.subMessageText': {
@@ -51,6 +51,16 @@ const CcfAppToastMessageStyles = (theme) => {
             '.primaryBtn, .primaryBtn:hover': {
                 backgroundColor: (_b = (_a = theme === null || theme === void 0 ? void 0 : theme.palette) === null || _a === void 0 ? void 0 : _a.digitalStatus) === null || _b === void 0 ? void 0 : _b.alertBackground,
                 boxShadow: '0px 2px 0px 0px',
+            },
+        },
+        buttonStyles: {
+            '&:focus': {
+                border: `0.0625rem solid ${(_d = (_c = theme === null || theme === void 0 ? void 0 : theme.palette) === null || _c === void 0 ? void 0 : _c.border) === null || _d === void 0 ? void 0 : _d.menuItemHighlight}`,
+                borderRadius: '0.25rem',
+            },
+            '&:hover': {
+                border: `0.0625rem solid ${(_f = (_e = theme === null || theme === void 0 ? void 0 : theme.palette) === null || _e === void 0 ? void 0 : _e.border) === null || _f === void 0 ? void 0 : _f.menuItemHighlight}`,
+                borderRadius: '0.25rem',
             },
         },
     };

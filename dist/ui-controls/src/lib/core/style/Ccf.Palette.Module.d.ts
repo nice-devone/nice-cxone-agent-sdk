@@ -29,6 +29,9 @@ declare module '@mui/material/styles/createPalette' {
         menuItemHighlight?: string;
         emailFooter?: string;
         tabBorder?: string;
+        toggleThumb?: string;
+        inputError?: string;
+        borderColor?: string;
     }
     interface SimplePaletteColorOptions {
         secondary?: string;
@@ -134,6 +137,12 @@ declare module '@mui/material/styles/createPalette' {
         editorBoxShadow: string;
         editorChipShadow: string;
         editorChipDeleteIcon: string;
+        toggleHover: string;
+        toggleChecked: string;
+        primaryButtonHover: string;
+        primaryButtonPressed: string;
+        inputHoverBackground: string;
+        chipFocusBackground: string;
     }
     interface DispositionColor {
         required: string;

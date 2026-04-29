@@ -20,6 +20,8 @@ export interface CcfHeaderProps {
     sx?: SxProps<Theme>;
     isappspace?: boolean;
     ariaLive?: 'off' | 'assertive' | 'polite' | undefined;
+    /**this variant will be used to display markdown, expected values h1 to h6 */
+    headerVariantMapping?: string;
 }
 /**
  *
@@ -30,7 +32,7 @@ export interface CcfHeaderProps {
  * @example <CCfHeader />
  * @returns CcfHeader Component
  */
-export declare function CcfHeader({ children, headerText, HeaderWithTab, HeaderWithBookmark, tabList, LeftIcon, showDragIcon, RightIcon, PopoverContent, PopoverContentProps, headerTextClassess, direction, sx, isappspace, ...rest }: CcfHeaderProps): JSX.Element;
+export declare function CcfHeader({ children, headerText, HeaderWithTab, HeaderWithBookmark, tabList, LeftIcon, showDragIcon, RightIcon, PopoverContent, PopoverContentProps, headerTextClassess, direction, headerVariantMapping, sx, isappspace, ...rest }: CcfHeaderProps): JSX.Element;
 export declare namespace CcfHeader {
     var defaultProps: {
         headerTextClassess: string;

@@ -111,6 +111,8 @@ export const CXoneBreezeThemeOptions = {
             editorBoxShadow: '#B1B1AD',
             editorChipShadow: '#D9D9D9',
             editorChipDeleteIcon: '#506A7C',
+            toggleHover: '#afc1ce',
+            toggleChecked: '#008940',
         },
         disposition: {
             required: purple[600],
@@ -133,6 +135,7 @@ export const CXoneBreezeThemeOptions = {
             light: '#DAE1E7',
             yellow: '#FBC231',
             input: '#C4C4C4',
+            toggleThumb: '#909597',
         },
         divider: '#e3e9ee',
         endCall: '#E4263C',

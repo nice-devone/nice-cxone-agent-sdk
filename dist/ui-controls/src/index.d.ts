@@ -4,6 +4,7 @@ export * from './lib/ccf-action-editor-content-title/ccf-action-editor-content-t
 export * from './lib/core/ccf-grid/ccf-grid';
 export * from './lib/icons/ccf-cxone-logo-icon/ccf-cxone-logo-icon';
 export * from './lib/core/ccf-loader/ccf-loader';
+export * from './lib/core/ccf-loader/ccf-loader.styles';
 export * from './lib/icons/ccf-skill-icon/ccf-skill-icon';
 export * from './lib/icons/ccf-team-icon/ccf-team-icon';
 export * from './lib/icons/ccf-agent-icon/ccf-agent-icon';
@@ -114,6 +115,7 @@ export * from './lib/icons/ccf-work-history-icon/ccf-work-history-icon';
 export * from './lib/icons/ccf-settings-icon/ccf-settings-icon';
 export * from './lib/icons/ccf-queue-icon/ccf-queue-icon';
 export * from './lib/icons/ccf-directory-icon/ccf-directory-icon';
+export * from './lib/icons/ccf-external-directory-icon/ccf-external-directory-icon';
 export * from './lib/icons/ccf-calendar-icon/ccf-calendar-icon';
 export * from './lib/icons/ccf-assignement-box-icon/ccf-assignement-box-icon';
 export * from './lib/icons/ccf-app-health-icon/ccf-app-health-icon';
@@ -399,3 +401,8 @@ export * from './lib/icons/ccf-copilot-customer-satisfaction-icon/ccf-copilot-cu
 export * from './lib/icons/ccf-copilot-clueless-icon/ccf-copilot-clueless-icon';
 export * from './lib/icons/ccf-copilot-error-round-icon/ccf-copilot-error-round-icon';
 export * from './lib/icons/ccf-copilot-checklist-note-icon/ccf-copilot-checklist-note-icon';
+export * from './lib/icons/ccf-copilot-checklist-card-icon/ccf-copilot-checklist-card-icon';
+export * from './lib/icons/ccf-copilot-date-time-icon/ccf-copilot-date-time-icon';
+export * from './lib/icons/ccf-copilot-toolbar-collapse-icon/ccf-copilot-toolbar-collapse-icon';
+export * from './lib/icons/ccf-copilot-toolbar-expand-icon/ccf-copilot-toolbar-expand-icon';
+export * from './lib/icons/ccf-copilot-checklist-tick-icon/ccf-copilot-checklist-tick-icon';

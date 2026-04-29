@@ -1,6 +1,6 @@
 export interface CcfActionEditorContentTitleProps {
     title: string;
-    step: number;
+    step?: number;
 }
 /**
  * Component for the Action Editor content title

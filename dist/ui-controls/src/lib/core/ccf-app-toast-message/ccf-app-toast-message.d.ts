@@ -23,6 +23,7 @@ export interface CcfAppToastMessageProps {
     isLoading?: boolean;
     isIndeterminate?: boolean;
     loadingValue?: number;
+    blockTransferWhenClosed?: boolean;
 }
 /***
  * @example Use three type of containers to load this component

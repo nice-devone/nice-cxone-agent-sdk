@@ -70,3 +70,20 @@ declare const ccfLoaderStyles: (theme: Theme, options: CcfLoaderStylesOptions) =
     };
 };
 export default ccfLoaderStyles;
+/**
+ * Shared styles for compliance validation overlay used across components
+ * that display a loading overlay while compliance validation is pending.
+ * @example
+ * ```
+ * import { complianceValidationOverlayStyles } from '@nice-devone/ui-controls';
+ * ```
+ */
+export declare const complianceValidationOverlayStyles: {
+    position: "absolute";
+    inset: number;
+    zIndex: number;
+    display: string;
+    alignItems: string;
+    justifyContent: string;
+    backgroundColor: string;
+};

@@ -5,11 +5,19 @@ All notable changes to the @nice-devone/ui-components package will be documented
 ## 26.1.1 - 2026-03-03 ##
 
 ### Added
+
 - Initial public release exposing 4 components:
   - Voice Preference Component (ccf-acd-session)
   - Contact History Component (ccf-agent-contact-history)
   - Outbound Options Component (ccf-outbound-options)
   - Voice Transcription Component (ccf-voice-transcription)
+
+## 26.2.0 - 2026-04-29 ##
+
+### Added
+
+  - System information Component
+   (ccf-system-information.tsx)
 
 ### Notes
 - Components extracted from CMA application for public use

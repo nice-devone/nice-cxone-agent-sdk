@@ -12,7 +12,6 @@ import CheckBoxIcon from '@mui/icons-material/CheckBox';
 import { CcfAutoComplete } from '../ccf-autocomplete/ccf-autocomplete';
 import CcfDeboucedInput from '../ccf-debouced-input/ccf-debouced-input';
 import { useTranslator } from '../../ccf-translator/ccf-translator';
-import { getStatusIcon, getUnifiedStatusIcon, isFeatureEnabled } from '../ccf-directory-utils';
 import { parseBooleanString } from '@nice-devone/common-sdk';
 import CcfFilterIcon from '../../icons/ccf-filter-icon/ccf-filter-icon';
 import CcfIconButton from '../ccf-icon-button/ccf-icon-button';
@@ -124,7 +123,7 @@ export const CustomListboxComponent = React.forwardRef(function ListboxComponent
  * <CcfDropdownOptions/>
  * ```
  */
-export const CcfDropdownOptions = ({ dropdownItems, menuItemStyles, dropdownTextStyles, placeholder, buttons, listSubheaderStyles, listSubheaderTitle, datePicker, showOnlyDropDownBox, onCloseIconClick, MultiSelectPaginationDropdown, open, handleOpen, copilotFilter, extraInitialParams, }) => {
+export const CcfDropdownOptions = ({ dropdownItems, menuItemStyles, dropdownTextStyles, placeholder, buttons, listSubheaderStyles, listSubheaderTitle, datePicker, showOnlyDropDownBox, onCloseIconClick, MultiSelectPaginationDropdown, open, handleOpen, copilotFilter, renderAgentStatusIcon, extraInitialParams, }) => {
     const theme = useTheme();
     const [translate] = useTranslator();
     const styles = ccfDropdownOptionsStyles(theme);
@@ -134,7 +133,6 @@ export const CcfDropdownOptions = ({ dropdownItems, menuItemStyles, dropdownText
     const [loadMoreFlagValues, setLoadMoreFlagValues] = useState(Object.assign(Object.assign({}, initialLoadMoreFlagValues), extraInitialParams === null || extraInitialParams === void 0 ? void 0 : extraInitialParams.loadMoreFlagValues));
     const listRef = useRef(null);
     const [scrollPosition, setScrollPosition] = useState(0);
-    const isDigitalWorkingStateFeatureToggleEnabled = isFeatureEnabled("release-cx-directory-agent-state-working-digital-AW-28472" /* FeatureToggles.DIRECTORY_AGENT_STATE_WORKING_DIGITAL_FEATURE_TOGGLE */);
     useEffect(() => {
         Object.keys(initialDropdownOptions).forEach((filterOptions) => {
             var _a, _b;
@@ -385,10 +383,7 @@ export const CcfDropdownOptions = ({ dropdownItems, menuItemStyles, dropdownText
                     else {
                         item.onMenuItemClick(value, item.fieldName);
                     }
-                }, renderOption: (props, option) => (_jsxs(Box, Object.assign({ component: "li", sx: menuItemStyles }, props, { children: [option.agentStatus &&
-                            (isDigitalWorkingStateFeatureToggleEnabled
-                                ? getUnifiedStatusIcon(option.agentStatus, styles.icon)
-                                : getStatusIcon(option.agentStatus, styles.icon)), _jsx(Box, Object.assign({ sx: { padding: '0 0.5rem' } }, { children: option.name }))] }), props.id)), filterOptions: (_options, _state) => displayedDropdownOptions[item.fieldName], filterSelectedOptions: true, onClose: (_event, reason) => {
+                }, renderOption: (props, option) => (_jsxs(Box, Object.assign({ component: "li", sx: menuItemStyles }, props, { children: [option.agentStatus && (renderAgentStatusIcon === null || renderAgentStatusIcon === void 0 ? void 0 : renderAgentStatusIcon(option.agentStatus, styles.icon)), _jsx(Box, Object.assign({ sx: { padding: '0 0.5rem' } }, { children: option.name }))] }), props.id)), filterOptions: (_options, _state) => displayedDropdownOptions[item.fieldName], filterSelectedOptions: true, onClose: (_event, reason) => {
                     // close dropdown when close icon is clicked 
                     if (reason === DropdownOptionSelectionReason.TOGGLE_INPUT) {
                         handleOpen && handleOpen(false);

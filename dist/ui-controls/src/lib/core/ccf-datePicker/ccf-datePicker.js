@@ -47,6 +47,11 @@ export function CcfDatePicker(props) {
     const [showErrorText, setErrorText] = useState(null);
     const currentLocale = locale ? locale : 'en'; // If local is not provided the default used 'en'
     const today = new Date(new Date().getFullYear(), new Date().getMonth(), new Date().getDate(), 0, 0, 0);
+    const formattedSelectedDate = dateTime ? dayjs(dateTime).format('MMM D, YYYY') : '';
+    const ariaAction = translate('choose');
+    const selectedDateText = formattedSelectedDate
+        ? translate('selectedDateIs').replace('{x}', formattedSelectedDate)
+        : '';
     useEffect(() => {
         if (fieldName === 'endDate' && !disableDownArrow) {
             const differenceFromMaxDate = Math.floor(dayjs(dateTime).diff(maxDate, 'day', true));
@@ -135,7 +140,9 @@ export function CcfDatePicker(props) {
                                 changeDate,
                                 placeholder: placeholder && placeholder !== '' ? placeholder : 'MM/DD/YYYY',
                                 endAdornment: (_jsx(InputAdornment, Object.assign({ position: 'end' }, { children: _jsx(CcfCalendarIcon, { className: 'mobileCalendarIcon' }) }))),
-                                'aria-label': `${translate('select')} ${label}`,
+                                'aria-label': label
+                                    ? `${ariaAction} ${translate(label)}${selectedDateText ? `, ${selectedDateText}` : ''}`
+                                    : `${ariaAction}`,
                                 'aria-describedby': 'date-picker-error',
                             },
                         },
@@ -144,7 +151,9 @@ export function CcfDatePicker(props) {
                             role: 'dialog',
                         },
                         openPickerButton: {
-                            'aria-label': `${translate('select')} ${label ? translate(label) : ''}`,
+                            'aria-label': label
+                                ? `${ariaAction} ${translate(label)}${selectedDateText ? `, ${selectedDateText}` : ''}`
+                                : `${ariaAction}`,
                         },
                         day: {
                             disableRipple: applyStylesToDate,
