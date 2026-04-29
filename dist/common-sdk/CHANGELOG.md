@@ -26,7 +26,7 @@
 - `[Updated]`: Modified schema to include new Message related events on DESS
 - `[Added]`: Added a new schema CXoneDigitalSkill for digital data retrieved from agent skills
 
-## 26.2 - 2026-04-29 ##
+## 26.2.0 - 2026-04-29 ##
 
 - `[Updated]`: Modified schemas to support SmartReach Integration - Voice - Preview Dialing
 - `[Updated]`: Updated models to termination codes (dispositions) for SmartReach (ACD voice call only)
