@@ -12,7 +12,7 @@ All notable changes to the @nice-devone/ui-components package will be documented
   - Outbound Options Component (ccf-outbound-options)
   - Voice Transcription Component (ccf-voice-transcription)
 
-## 26.2 - 2026-04-29 ##
+## 26.2.0 - 2026-04-29 ##
 
 ### Added
 
