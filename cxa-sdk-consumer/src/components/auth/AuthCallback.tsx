@@ -135,7 +135,7 @@ import {
                   variant="outlined"
                   InputLabelProps={{ shrink: true }}
                   inputRef={hostName}
-                  defaultValue={"https://cxone.niceincontact.com"}
+                  defaultValue={"https://cxone.test.niceincontact.com"}
                   required
                 />
                 <TextField
@@ -144,7 +144,7 @@ import {
                   variant="outlined"
                   InputLabelProps={{ shrink: true }}
                   inputRef={clientId}
-                  defaultValue=""
+                  defaultValue="Salesforce Agent Console@inContact Inc."
                   required
                 />
                 <TextField
@@ -153,7 +153,7 @@ import {
                   variant="outlined"
                   InputLabelProps={{ shrink: true }}
                   inputRef={redirectUri}
-                  defaultValue="http://localhost:3000/"
+                  defaultValue="http://localhost:3000/auth-callback"
                   required
                 />
                 <FormControl

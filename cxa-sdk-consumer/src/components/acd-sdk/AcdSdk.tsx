@@ -28,15 +28,12 @@ import {
   Button,
   Card,
   CardContent,
-  CardHeader,
-  TextField,
-  useTheme,
+  Chip,
+  Divider,
+  Stack,
+  Typography,
 } from "@mui/material";
 import React, { useEffect, useState } from "react";
-import {
-  ccfAccessTokenFlowStyles,
-  ccfGaAccessTokenFlowStyles,
-} from "../side-navbar/NavBar";
 import { CXoneAcdClient, CXoneVoiceContact } from "@nice-devone/acd-sdk";
 import { AgentSessionStatus, EndSessionRequest } from "@nice-devone/common-sdk";
 import { CXoneVoiceClient } from "@nice-devone/voice-sdk";
@@ -49,11 +46,13 @@ import { UserInfo } from "@nice-devone/common-sdk";
 import { useLocation } from "react-router-dom";
 import { tryCatchWrapper } from "../../utils/tryCatchWrapper";
 import { CcfMessageType } from '@nice-devone/shared-apps-lib';
+import PlayArrowIcon from "@mui/icons-material/PlayArrow";
+import StopIcon from "@mui/icons-material/Stop";
+import HeadsetMicIcon from "@mui/icons-material/HeadsetMic";
+import CircleIcon from "@mui/icons-material/Circle";
 
 
 const AcdSdk = () => {
-  const theme = useTheme();
-
   const [agentStatus, setAgentStatus] = useState({} as any);
   const [startSessionButton, setStartSessionButton] = useState(
      false
@@ -62,8 +61,6 @@ const AcdSdk = () => {
   const [agentLegButton, setAgentLegButton] = useState(true);
   const [voiceContact, setVoiceContact] = useState({} as CXoneVoiceContact);
   const [initEngagement, setInitEngagement] = useState(false);  
-  const gaAccessTokenFlowStyles = ccfGaAccessTokenFlowStyles(theme);
-  const accessTokenFlowStyles = ccfAccessTokenFlowStyles(theme);
   const location = useLocation();
 
   const endSessionRequest: EndSessionRequest = {
@@ -321,88 +318,115 @@ const AcdSdk = () => {
   };
 
   return (
-    <Box>
-      <Card sx={{ display: "flex", justifyContent: "end" }}>
-        <CardContent>
-          <form className="root">
-            <Box sx={accessTokenFlowStyles.inputs_alignment}>
+    <Box sx={{ maxWidth: 900, mx: "auto", py: 2 }}>
+      <Typography variant="h5" sx={{ mb: 3, fontWeight: 700, color: "primary.dark" }}>
+        ACD SDK
+      </Typography>
+
+      {/* Session Controls */}
+      <Card sx={{ mb: 3 }}>
+        <CardContent sx={{ p: 3 }}>
+          <Stack direction="row" alignItems="center" justifyContent="space-between">
+            <Typography variant="h6" sx={{ fontSize: "1.1rem" }}>
+              Session Controls
+            </Typography>
+            <Stack direction="row" spacing={1.5}>
               <Button
                 onClick={() => manualStartSession()}
-                color="primary"
                 variant="contained"
-                size="large"
-                sx={accessTokenFlowStyles.margin}
+                color="success"
+                startIcon={<PlayArrowIcon />}
                 disabled={startSessionButton}
               >
                 Start Session
               </Button>
               <Button
                 onClick={() => endSessionButtonClick()}
-                color="primary"
                 variant="contained"
-                size="large"
-                sx={accessTokenFlowStyles.margin}
+                color="error"
+                startIcon={<StopIcon />}
                 disabled={endSessionButton}
               >
                 End Session
               </Button>
               <Button
                 onClick={() => onAgentLegClick()}
-                color="primary"
-                variant="contained"
-                size="large"
-                sx={accessTokenFlowStyles.margin}
+                variant="outlined"
+                startIcon={<HeadsetMicIcon />}
                 disabled={agentLegButton}
               >
                 Agent Leg
               </Button>
-            </Box>
-          </form>
+            </Stack>
+          </Stack>
         </CardContent>
       </Card>
+
+      {/* Agent State & Dial */}
       <Card>
-        <CardHeader title={`ACD sdk`} />
+        <CardContent sx={{ p: 3 }}>
+          <Stack direction="row" alignItems="center" spacing={1.5} sx={{ mb: 2 }}>
+            <Typography variant="h6" sx={{ fontSize: "1.1rem" }}>
+              Agent State & Dial
+            </Typography>
+          </Stack>
+          <Divider sx={{ mb: 2.5 }} />
 
-        <CardContent>
-          <form className="root">
-            <Box sx={accessTokenFlowStyles.inputs_alignment}>
-              <Card
-                sx={[
-                  gaAccessTokenFlowStyles.msg_box,
-                  gaAccessTokenFlowStyles.text_center,
-                ]}
-              >
-                <CardContent sx={gaAccessTokenFlowStyles.font_size}>
-                  AgentState : {agentStatus && agentStatus?.currentState?.state}
-                </CardContent>
-                <CardContent sx={gaAccessTokenFlowStyles.font_size}>
-                  {agentStatus?.currentState?.state === "available"
-                    ? ""
-                    : "Reason :"}{" "}
-                  {agentStatus && agentStatus?.currentState?.reason}
-                  {console.log(
-                    "get-Next-Event",
-                    agentStatus?.currentState?.cxoneState
-                  )}
-                </CardContent>
-
-                <CardHeader title="Dial Phone"></CardHeader>
-                <CardContent>
-                  <form className="root">
-                   {initEngagement && <Outbound />}
-                    {(agentStatus?.currentState?.cxoneState ==
-                      "OutboundContact" ||
-                      agentStatus?.currentState?.cxoneState ==
-                        "InboundContact") &&
-                      voiceContact &&
-                      Object.keys(voiceContact).length > 0 && (
-                        <VoiceControls voiceContact={voiceContact} />
-                      )}
-                  </form>
-                </CardContent>
-              </Card>
+          <Stack direction="row" spacing={3} sx={{ mb: 3 }}>
+            <Box>
+              <Typography variant="caption" color="text.secondary">Current State</Typography>
+              <Stack direction="row" alignItems="center" spacing={1} sx={{ mt: 0.5 }}>
+                <CircleIcon
+                  sx={{
+                    fontSize: 12,
+                    color: agentStatus?.currentState?.state === "available" ? "success.main" : "warning.main",
+                  }}
+                />
+                <Typography variant="body1" sx={{ fontWeight: 600, textTransform: "capitalize" }}>
+                  {agentStatus?.currentState?.state || "Unknown"}
+                </Typography>
+              </Stack>
             </Box>
-          </form>
+            {agentStatus?.currentState?.state !== "available" && agentStatus?.currentState?.reason && (
+              <Box>
+                <Typography variant="caption" color="text.secondary">Reason</Typography>
+                <Typography variant="body1" sx={{ mt: 0.5 }}>
+                  {agentStatus?.currentState?.reason}
+                </Typography>
+              </Box>
+            )}
+            {agentStatus?.currentState?.cxoneState && (
+              <Box>
+                <Typography variant="caption" color="text.secondary">CXone State</Typography>
+                <Chip
+                  label={agentStatus?.currentState?.cxoneState}
+                  size="small"
+                  color="primary"
+                  variant="outlined"
+                  sx={{ mt: 0.5 }}
+                />
+              </Box>
+            )}
+          </Stack>
+
+          <Divider sx={{ mb: 2.5 }} />
+          <Typography variant="subtitle2" sx={{ mb: 1.5, color: "text.secondary" }}>
+            Outbound Dial
+          </Typography>
+          {initEngagement && <Outbound />}
+
+          {(agentStatus?.currentState?.cxoneState === "OutboundContact" ||
+            agentStatus?.currentState?.cxoneState === "InboundContact") &&
+            voiceContact &&
+            Object.keys(voiceContact).length > 0 && (
+              <Box sx={{ mt: 2 }}>
+                <Divider sx={{ mb: 2 }} />
+                <Typography variant="subtitle2" sx={{ mb: 1.5, color: "text.secondary" }}>
+                  Voice Controls
+                </Typography>
+                <VoiceControls voiceContact={voiceContact} />
+              </Box>
+            )}
         </CardContent>
       </Card>
     </Box>

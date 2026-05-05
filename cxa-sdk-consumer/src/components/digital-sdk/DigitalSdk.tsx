@@ -18,13 +18,15 @@
 import React, { useEffect, useState } from "react";
 import {
   Box,
-  Button,
   Card,
   CardContent,
-  CardHeader,
-  InputLabel,
+  Divider,
+  IconButton,
+  InputAdornment,
+  Paper,
+  Stack,
   TextField,
-  useTheme,
+  Typography,
 } from "@mui/material";
 
 import {
@@ -32,20 +34,16 @@ import {
   CXoneDigitalContact,
 } from "@nice-devone/digital-sdk";
 import { CXoneDigitalReplyRequest } from "@nice-devone/common-sdk";
-import {
-  ccfAccessTokenFlowStyles,
-  ccfGaAccessTokenFlowStyles,
-} from "../side-navbar/NavBar";
+
 import { uuid } from "uuidv4";
 import HorizontalCards from "./horizontal-cards-caseIds/HorizontalCards";
 import { tryCatchWrapper } from "../../utils/tryCatchWrapper";
+import SendIcon from "@mui/icons-material/Send";
+import InboxIcon from "@mui/icons-material/Inbox";
 
 
 
 const DigitalSdk = () => {
-  const theme = useTheme();
-  const gaAccessTokenFlowStyles = ccfGaAccessTokenFlowStyles(theme);
-  const accessTokenFlowStyles = ccfAccessTokenFlowStyles(theme);
   const [inputValue, setInputValue] = useState("");
     const [initEngagement, setInitEngagement] = useState(false);  
   let digitalContactInstance: CXoneDigitalContact;
@@ -162,99 +160,131 @@ const DigitalSdk = () => {
         };
 
   return (
-    <Card>
-      <CardHeader title={`Digital sdk`} />
-      <CardContent>
-        <form className="root">
-          <Box
-          
-            sx={[
-              accessTokenFlowStyles.inputs_alignment,
-              accessTokenFlowStyles.flex_column,
-            ]}
-          >
-            {digitalContacts.length === 0 && (
-              <Box>
-                <p>There is no digital card assigned to you.</p>
-              </Box>
-            )}
-            <Box
-              sx={{
-                display: 'flex',
-                flexWrap: 'wrap',
-                flexDirection: 'row',
-                alignItems: 'flex-start',
-                height: '20%',
-                
-              }}
-            >
-              {digitalContacts.map((contact: any, index: any) => {
-                const isSelected = selectedDigitalContact.caseId === contact.caseId;
-                return (
-                  <Box
-                    sx={{
-                      cursor: 'pointer',
-                      padding: '10px',
-                    }}
-                    onClick={() => onClickCaseId(contact)}
-                    key={index}
-                  >
-                    <HorizontalCards selected={isSelected} contact={contact} />
-                  </Box>
-                );
-              })}
-            </Box>
-            {messages.length > 0 && (
-              <>
-              <CardContent sx={accessTokenFlowStyles.case_alignment}>
-              <InputLabel>caseId:</InputLabel> {selectedDigitalContact?.caseId}
-              </CardContent>
-              <CardContent sx={gaAccessTokenFlowStyles.msg_box}>
-                Messages :
-                <div style={{ display: "flex", flexDirection: "column" }}>
-                  {(messages||[]).map((item: any,index:any) => {
-                    if (item?.direction == "inbound") {
-                      return <div  key={index}>{item.text}</div>;
-                    } else {
-                      return (
-                        <div  key={index} style={{ alignSelf: "end" }}>
-                          {item.text}
-                        </div>
-                      );
-                    } 
+    <Box sx={{ maxWidth: 900, mx: "auto", py: 2 }}>
+      <Typography variant="h5" sx={{ mb: 3, fontWeight: 700, color: "primary.dark" }}>
+        Digital SDK
+      </Typography>
+
+      <Card>
+        <CardContent sx={{ p: 3 }}>
+          {digitalContacts.length === 0 ? (
+            <Stack alignItems="center" spacing={2} sx={{ py: 4 }}>
+              <InboxIcon sx={{ fontSize: 48, color: "text.disabled" }} />
+              <Typography color="text.secondary">
+                No digital contacts assigned to you yet.
+              </Typography>
+            </Stack>
+          ) : (
+            <>
+              {/* Contact Cards */}
+              <Typography variant="subtitle2" color="text.secondary" sx={{ mb: 1.5 }}>
+                Active Contacts ({digitalContacts.length})
+              </Typography>
+              <Stack direction="row" spacing={1.5} flexWrap="wrap" useFlexGap sx={{ mb: 3 }}>
+                {digitalContacts.map((contact: any, index: any) => {
+                  const isSelected = selectedDigitalContact.caseId === contact.caseId;
+                  return (
+                    <Box
+                      sx={{ cursor: 'pointer' }}
+                      onClick={() => onClickCaseId(contact)}
+                      key={index}
+                    >
+                      <HorizontalCards selected={isSelected} contact={contact} />
+                    </Box>
+                  );
+                })}
+              </Stack>
+            </>
+          )}
+
+          {messages.length > 0 && (
+            <>
+              <Divider sx={{ mb: 2 }} />
+              <Stack direction="row" alignItems="center" spacing={1} sx={{ mb: 2 }}>
+                <Typography variant="subtitle2" color="text.secondary">
+                  Case ID:
+                </Typography>
+                <Typography variant="body2" sx={{ fontWeight: 600, fontFamily: "monospace" }}>
+                  {selectedDigitalContact?.caseId}
+                </Typography>
+              </Stack>
+
+              {/* Messages Area */}
+              <Paper
+                variant="outlined"
+                sx={{
+                  p: 2,
+                  mb: 2,
+                  maxHeight: 350,
+                  overflow: "auto",
+                  backgroundColor: "#fafafa",
+                  borderRadius: 2,
+                }}
+              >
+                <Stack spacing={1}>
+                  {(messages || []).map((item: any, index: any) => {
+                    const isInbound = item?.direction === "inbound";
+                    return (
+                      <Box
+                        key={index}
+                        sx={{
+                          display: "flex",
+                          justifyContent: isInbound ? "flex-start" : "flex-end",
+                        }}
+                      >
+                        <Paper
+                          elevation={0}
+                          sx={{
+                            px: 2,
+                            py: 1,
+                            maxWidth: "70%",
+                            borderRadius: 2,
+                            backgroundColor: isInbound ? "#e3f2fd" : "#1a237e",
+                            color: isInbound ? "text.primary" : "#fff",
+                          }}
+                        >
+                          <Typography variant="body2">{item.text}</Typography>
+                        </Paper>
+                      </Box>
+                    );
                   })}
-                </div> 
-                <CardContent
-                  sx={[
-                    gaAccessTokenFlowStyles.card_content,
-                    gaAccessTokenFlowStyles.reply_textbox,
-                  ]}
-                >
-                  <TextField
-                    sx={accessTokenFlowStyles.reply_width}
-                    id="outlined-basic"
-                    value={inputValue}
-                    onChange={(e) => handleChange(e)}
-                    inputProps={{ shrink: true }}
-                  />
-                  <Button
-                    onClick={sendReply}
-                    color="primary"
-                    variant="contained"
-                    size="large"
-                    disabled={!inputValue}
-                    sx={accessTokenFlowStyles.reply_btn}
-                  >
-                    Reply
-                  </Button>
-                </CardContent>
-              </CardContent> 
-              </>
-            )}
-          </Box>
-        </form>
-      </CardContent>
-    </Card>
+                </Stack>
+              </Paper>
+
+              {/* Reply Input */}
+              <Stack direction="row" spacing={1} alignItems="center">
+                <TextField
+                  fullWidth
+                  size="small"
+                  placeholder="Type a reply..."
+                  value={inputValue}
+                  onChange={(e) => handleChange(e)}
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter" && inputValue) {
+                      sendReply(e);
+                    }
+                  }}
+                  InputProps={{
+                    endAdornment: (
+                      <InputAdornment position="end">
+                        <IconButton
+                          onClick={sendReply}
+                          color="primary"
+                          disabled={!inputValue}
+                          size="small"
+                        >
+                          <SendIcon />
+                        </IconButton>
+                      </InputAdornment>
+                    ),
+                  }}
+                />
+              </Stack>
+            </>
+          )}
+        </CardContent>
+      </Card>
+    </Box>
   );
 };
 export default DigitalSdk;

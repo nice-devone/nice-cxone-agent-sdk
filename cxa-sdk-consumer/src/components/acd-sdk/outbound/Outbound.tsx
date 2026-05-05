@@ -1,15 +1,12 @@
 import React, { useEffect, useState } from "react";
-import { ccfAccessTokenFlowStyles } from "../../side-navbar/NavBar";
-import { Box, Button, TextField, useTheme } from "@mui/material";
+import { Button, Stack, TextField } from "@mui/material";
 import { CXoneAcdClient } from "@nice-devone/acd-sdk";
 import { StorageKeys } from "@nice-devone/core-sdk";
 import { tryCatchWrapper } from "../../../utils/tryCatchWrapper";
+import PhoneIcon from "@mui/icons-material/Phone";
 
 
 const Outbound = () => {
-  const theme = useTheme();
-
-  const accessTokenFlowStyles = ccfAccessTokenFlowStyles(theme);
   const [dialNumber, setDialNumber] = useState("");
   const [skillDetails, setSkillDetails] = useState({} as any);
 
@@ -92,26 +89,26 @@ const Outbound = () => {
   };
 
   return (
-    <Box sx={accessTokenFlowStyles.inputs_alignment}>
+    <Stack direction="row" spacing={2} alignItems="center">
       <TextField
-        id="outlined-basic"
-        label="callAgent"
+        label="Phone Number"
         value={dialNumber}
         onChange={(e: any) => setDialNumber(e.target.value)}
         InputLabelProps={{ shrink: true }}
+        size="small"
+        sx={{ minWidth: 220 }}
       />
       <Button
         onClick={() => {
           dialCallButtonClick();
         }}
-        color="primary"
         variant="contained"
-        size="large"
-        sx={accessTokenFlowStyles.margin}
+        startIcon={<PhoneIcon />}
+        disabled={!dialNumber}
       >
         Dial Number
       </Button>
-    </Box>
+    </Stack>
   );
 };
 
