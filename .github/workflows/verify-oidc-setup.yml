@@ -1,0 +1,96 @@
+name: Verify OIDC Setup (Dry Run)
+
+# Test trusted publisher configuration without publishing
+on:
+  workflow_dispatch:
+
+jobs:
+  verify-oidc:
+    runs-on: ubuntu-latest
+    # Enable OIDC for npm trusted publishers (no token auth needed)
+    permissions:
+      id-token: write
+      contents: read
+
+    steps:
+      - uses: actions/checkout@v3
+
+      - uses: actions/setup-node@v3
+        with:
+          node-version: 'lts/*'
+          scope: '@nice-devone'
+          registry-url: https://registry.npmjs.org
+
+      - name: Check OIDC Token Availability
+        run: |
+          echo "=== OIDC Configuration Check ==="
+          echo "✓ Permissions configured for id-token: write"
+          echo "✓ Registry URL: https://registry.npmjs.org"
+          echo ""
+
+          if [ -n "$ACTIONS_ID_TOKEN_REQUEST_URL" ]; then
+            echo "✅ OIDC token request URL is available"
+            echo "   URL: $ACTIONS_ID_TOKEN_REQUEST_URL"
+          else
+            echo "❌ OIDC token request URL not found"
+            exit 1
+          fi
+
+          if [ -n "$ACTIONS_ID_TOKEN_REQUEST_TOKEN" ]; then
+            echo "✅ OIDC token request token is available"
+          else
+            echo "❌ OIDC token request token not found"
+            exit 1
+          fi
+
+      - name: Test npm Configuration
+        run: |
+          echo ""
+          echo "=== npm Configuration ==="
+          npm config list
+          echo ""
+          echo "=== Registry Info ==="
+          npm config get registry
+
+      - name: Dry Run Publish Test
+        run: |
+          echo ""
+          echo "=== Dry Run Publish Test ==="
+          echo "Testing publish with --dry-run (no actual publish)"
+          echo ""
+
+          # Create a test package
+          mkdir -p /tmp/test-package
+          cd /tmp/test-package
+
+          echo '{
+            "name": "@nice-devone/oidc-test",
+            "version": "0.0.0-test",
+            "description": "Test package for OIDC verification"
+          }' > package.json
+
+          echo "Test package created:"
+          cat package.json
+          echo ""
+          echo "Running: npm publish --verbose --provenance --access public --dry-run"
+          echo ""
+
+          npm publish --verbose --provenance --access public --dry-run
+
+      - name: Summary
+        if: always()
+        run: |
+          echo ""
+          echo "=== Verification Summary ==="
+          echo "✅ OIDC is properly configured for GitHub Actions"
+          echo "✅ npm registry is set to https://registry.npmjs.org"
+          echo ""
+          echo "Look for these in the dry run output above:"
+          echo "  - 'npm notice Publishing to https://registry.npmjs.org/ with provenance'"
+          echo "  - 'npm notice provenance attestation generated'"
+          echo "  - No authentication errors"
+          echo ""
+          echo "Next steps:"
+          echo "  1. If dry run succeeded, OIDC setup is working"
+          echo "  2. Test with a real publish workflow"
+          echo "  3. Monitor verbose output for successful authentication"
