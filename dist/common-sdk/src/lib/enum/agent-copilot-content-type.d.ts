@@ -35,6 +35,10 @@ export declare enum AgentCopilotContentType {
      */
     KB_COMBO = "kbCombo",
     /**
+     * Represents the knowledge base internal combo card content type.
+     */
+    KB_COMBO_INTERNAL = "kbComboInternal",
+    /**
      * Represents the Transfer Summary contenttype.
      */
     TRANSFER_SUMMARY = "transferSummary",
@@ -77,5 +81,13 @@ export declare enum AgentCopilotContentType {
     /**
      * Represents the copilot decision tree content type.
      */
-    DECISION_TREE = "decisionTree"
+    DECISION_TREE = "decisionTree",
+    /**
+     * Represents the copilot custom adaptive card content type.
+     */
+    CUSTOM_ADAPTIVE_CARD = "customAdaptiveCard",
+    /**
+     * Represents the copilot checklist content type.
+     */
+    CHECKLIST = "checklist"
 }

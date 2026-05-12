@@ -5,5 +5,6 @@ export declare enum UIQEventType {
     HEARTBEAT_FROM_AGENT = "HeartbeatMessageFromAgent",
     SNAPSHOT_REQUEST = "SnapshotRequest",
     RECEIVE_TOKEN_BEFORE_EXPIRY = "ReceiveTokenBeforeExpiry",
-    NETWORK_OFFLINE_EVENT = "NetworkOfflineEvent"
+    NETWORK_OFFLINE_EVENT = "NetworkOfflineEvent",
+    PONG = "Pong"
 }

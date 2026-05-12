@@ -1,6 +1,7 @@
 import { DigitalFileAttachment } from './digital-file-attachment';
 import { ExternalPlatformTemplateMessageContent } from './external-platform-templates';
 import { CXoneMessageContent } from './cxone-digital-quick-response';
+import { CXoneCustomFieldDetails } from '../customer-card/custom-fields/cxone-custom-fields-request';
 /**
    * interface used for parsing reply request
    * @returns - reply request property types
@@ -95,6 +96,7 @@ export interface EndUserRecipients {
  */
 export interface ContactPayload {
     elevation?: ElevationPayload;
+    customFields?: CXoneCustomFieldDetails[];
     /**
      * @remarks - Skill ID to which the contact is being initiated
      */

@@ -1,6 +1,6 @@
 import { __awaiter, __rest } from "tslib";
 import { CXoneAuth, CXoneUser } from '@nice-devone/auth-sdk';
-import { CXoneSdkError, CXoneSdkErrorType } from '@nice-devone/common-sdk';
+import { CXoneSdkError, CXoneSdkErrorType, customAdaptiveCardSchemaKey } from '@nice-devone/common-sdk';
 import { Logger, HttpUtilService, StorageKeys, HttpClient, LocalStorageHelper, dbInstance, IndexDBStoreNames, IndexDBKeyNames, clearIndexDbKey, ValidationUtils } from '@nice-devone/core-sdk';
 import { Feedback } from '../../enum/feedback';
 /**
@@ -18,12 +18,11 @@ export class CopilotService {
         this.logger = new Logger('agent-sdk', 'CopilotService');
         this.utilService = new HttpUtilService();
         this.validationUtilService = new ValidationUtils();
-        this.AGENT_COPILOT_BASE_URI = '/agentcopilotapi/v1/';
-        this.AGENT_COPILOT_BASE_URI_V2 = '/agentcopilotapi/v2/';
+        this.AGENT_COPILOT_BASE_URI = '/agent-copilot/v1/';
+        this.AGENT_COPILOT_BASE_URI_V2 = '/agent-copilot/v2/';
         this.AGENT_COPILOT_SEARCH = this.AGENT_COPILOT_BASE_URI + 'agent-search';
         this.AGENT_COPILOT_FINAL_SUMMARY = this.AGENT_COPILOT_BASE_URI + 'final-summary';
         this.AGENT_COPILOT_HEALTH_CHECK = this.AGENT_COPILOT_BASE_URI + 'copilot-health';
-        this.AGENT_COPILOT_ENABLEMENT_FOR_CONTACT = this.AGENT_COPILOT_BASE_URI + 'license/copilot-enabled';
         this.AGENT_COPILOT_AGENT_ASSIST_HUB_CONFIG = this.AGENT_COPILOT_BASE_URI_V2 + 'license/retrieve-aah-config';
         this.AGENT_COPILOT_GET_ADAPTIVE_CARD_SCHEMAS = '/agent-copilot/v2/adaptive-cards?cardType={cardType}&cxaClientVersion={cxaClientVersion}';
         this.AGENT_COPILOT_EMAIL_APIS = {
@@ -32,8 +31,8 @@ export class CopilotService {
             GENERATE_EMAIL: this.AGENT_COPILOT_BASE_URI + 'email/draft',
             EMAIL_ACTION: this.AGENT_COPILOT_BASE_URI + 'email/action',
         };
-        this.PATH_GUIDANCE_FEEDBACK = '/agentcopilotapi/v1/interaction-feedback/kbAnswers';
-        this.PATH_CONTACT_FEEDBACK = '/agentcopilotapi/v1/interaction-feedback/interaction';
+        this.PATH_GUIDANCE_FEEDBACK = '/agent-copilot/v1/interaction-feedback/kbAnswers';
+        this.PATH_CONTACT_FEEDBACK = '/agent-copilot/v1/interaction-feedback/interaction';
         this.PATH_KB_FILTER_UPDATE = '/agent-copilot/v1/kb-filter/update';
         this.JOURNEY_SUMMARY = '/agent-copilot/v1/journey-summary';
         this.FINAL_SUMMARY = '/agent-copilot/v1/final-summary?contactId={contactId}';
@@ -44,14 +43,20 @@ export class CopilotService {
         this.AGENT_COPILOT_GET_TASK_ASSIST_FORM_PREFILLED_DATA = '/agent-copilot/v1/contacts/{contactId}/taskassist/form-data';
         this.TASK_ASSIST_FORM_ADAPTIVE_CARD_SCHEMAS_URL = '/agent-copilot/v2/adaptive-cards/taskassist/profiles/{agentAssistId}/bots/{botName}/intents/{intentName}/cards';
         this.REFRESH_TOKENS = '/agent-copilot/v1/agent-idtoken';
-        this.AGENT_COPILOT_DECISION_TREE_BASE_URI = '/agent-copilot/v1/';
-        this.DECISION_TREE_BASE = `${this.AGENT_COPILOT_DECISION_TREE_BASE_URI}contacts/{contactId}/decision-tree`;
+        this.DECISION_TREE_BASE = `${this.AGENT_COPILOT_BASE_URI}contacts/{contactId}/decision-tree`;
         this.AGENT_COPILOT_DECISION_TREE_APIS = {
             SKIP: `${this.DECISION_TREE_BASE}/skip-question`,
             CANCEL: `${this.DECISION_TREE_BASE}/cancel`,
             SUBMIT: `${this.DECISION_TREE_BASE}/submit`,
             UPDATE: `${this.DECISION_TREE_BASE}/update-response`,
             LOAD: `${this.DECISION_TREE_BASE}/load-section`,
+        };
+        this.AGENT_COPILOT_GET_TASK_ASSIST_ACTIVE_FILL_DATA = '/agent-copilot/v1/contacts/{contactId}/taskassist/update-slots';
+        this.CHECKLIST_BASE = `${this.AGENT_COPILOT_BASE_URI}contacts/{contactId}/checklist`;
+        this.AGENT_COPILOT_CHECKLIST_APIS = {
+            UPDATE: `${this.CHECKLIST_BASE}/items/update`,
+            SUBMIT: `${this.CHECKLIST_BASE}/submit`,
+            CANCEL: `${this.CHECKLIST_BASE}/cancel`,
         };
         /**
          * @returns base url for ACP backend
@@ -863,29 +868,35 @@ export class CopilotService {
         });
     }
     /**
-   * Fetches the Decision Tree configuration (sections, metadata, UI schema)
-   * for a given Decision Tree element.
+   * Fetches an element configuration (Decision Tree or Custom Adaptive Card)
+   * for a given element ID.
    *
-   * @param decisionTreeId - Unique ID of the Decision Tree element.
-   * @returns Promise resolving the Decision Tree element definition.
+   * @param elementId - Unique ID of the element (Decision Tree or Custom Adaptive Card).
+   * @returns Promise resolving to either a DecisionTreeElement or CustomAdaptiveCardElement.
    *
    * @example
    * ```ts
-   * const element = await copilotService.getDecisionTreeElement("dt-001");
-   * console.log(element.config.sections);
+   * const element = await copilotService.getElement("dt-001");
+   * if (element.type === 'decisionTree') {
+   *   const sections = element.config.sections;
+   *   // Process decision tree sections
+   * } else if (element.type === 'customAdaptiveCard') {
+   *   const schema = element.config.adaptiveCardSchema;
+   *   // Render adaptive card with schema
+   * }
    * ```
    */
-    getDecisionTreeElement(decisionTreeId) {
+    getElement(elementId) {
         return new Promise((resolve, reject) => {
             const baseUrl = this.getBaseUrlForAcp();
-            const elementUrl = `${baseUrl}/profile-hub/v1/elements/${decisionTreeId}`;
+            const elementUrl = `${baseUrl}/profile-hub/v1/elements/${elementId}`;
             const reqInit = this.getBaseHttpRequest({}); // include default headers, auth, etc.
             HttpClient === null || HttpClient === void 0 ? void 0 : HttpClient.get(elementUrl, reqInit).then((response) => {
-                const decisionTreeElement = response.data;
-                resolve(decisionTreeElement);
+                const element = response.data;
+                resolve(element);
             }, (error) => {
-                const errorResponse = new CXoneSdkError(CXoneSdkErrorType.CXONE_API_ERROR, 'Failed to fetch Decision Tree Element', error);
-                this.logger.error('getDecisionTreeElement', errorResponse.toString());
+                const errorResponse = new CXoneSdkError(CXoneSdkErrorType.CXONE_API_ERROR, 'Failed to fetch Element', error);
+                this.logger.error('getElement', errorResponse.toString());
                 reject(errorResponse);
             });
         });
@@ -1093,6 +1104,226 @@ export class CopilotService {
             }, (error) => {
                 const errorResponse = new CXoneSdkError(CXoneSdkErrorType.CXONE_API_ERROR, 'Failed to cancel Decision Tree', error);
                 this.logger.error('cancelDecisionTree', errorResponse.toString());
+                reject(errorResponse);
+            });
+        });
+    }
+    /**
+     * Fetches active pre-filled slot data for Task Assist based on the provided input slot.
+     *
+     * This API sends the slot name and value to the backend and retrieves
+     * the corresponding pre-filled data for the active Task Assist form.
+     *
+     * @param inputs - Key/value pair representing the slot to be resolved.
+     * Example: `{ accountNumber: "12345" }`
+     *
+     * @param contactId - Unique contact identifier associated with the active interaction.
+     *
+     * @param objectId - Task Assist session identifier (taskSessionUid).
+     *
+     * @returns Promise resolving to the pre-filled data returned by the backend.
+     *
+     * @example
+     * ```ts
+     * copilotService.getTaskAssistActiveFilledData(
+     *   { accountNumber: "12345" },
+     *   "contact-123",
+     *   "task-session-456"
+     * );
+     * ```
+     */
+    getTaskAssistActiveFilledData(inputs, contactId, objectId) {
+        return new Promise((resolve, reject) => {
+            const reqInit = this.getBaseHttpRequest({
+                contactId,
+                taskSessionUid: objectId,
+                slotName: Object.keys(inputs)[0],
+                slotValue: Object.values(inputs)[0],
+            });
+            const baseUrl = this.getBaseUrlForAcp();
+            const schemaUrl = baseUrl + this.AGENT_COPILOT_GET_TASK_ASSIST_ACTIVE_FILL_DATA.replace('{contactId}', contactId);
+            HttpClient === null || HttpClient === void 0 ? void 0 : HttpClient.post(schemaUrl, reqInit).then((response) => {
+                resolve(response.data);
+            }, (error) => {
+                const errorResponse = new CXoneSdkError(CXoneSdkErrorType.CXONE_API_ERROR, 'Failed to get task assist pre-filled data', error);
+                this.logger.error('getTaskAssistFormPreFilledData', errorResponse.toString());
+                reject(errorResponse);
+            });
+        });
+    }
+    /**
+     * Searches for workflow suggestions using semantic search.
+     * Called when no local workflow matches the agent's '/' query.
+     *
+     * @param agentQuery - The search query from agent (text after '/')
+     * @param contactId - The active contact ID
+     * @returns Promise with suggested workflows
+     * @example
+     * ```ts
+     * const suggestions = await copilotService.getWorkflowSuggestions('refund process', '12345');
+     * ```
+     */
+    getWorkflowSuggestions(agentQuery, contactId) {
+        return new Promise((resolve, reject) => {
+            const baseUrl = this.getBaseUrlForAcp();
+            const endpoint = `${baseUrl}${this.AGENT_COPILOT_BASE_URI}contacts/${contactId}/workflow-suggestion`;
+            const reqInit = this.getBaseHttpRequest({
+                agentQuery,
+            });
+            HttpClient === null || HttpClient === void 0 ? void 0 : HttpClient.post(endpoint, reqInit).then((response) => {
+                resolve(response.data);
+            }, (error) => {
+                const errorResponse = new CXoneSdkError(CXoneSdkErrorType.CXONE_API_ERROR, 'Failed to get workflow suggestions', error);
+                this.logger.error('getWorkflowSuggestions', errorResponse.toString());
+                reject(errorResponse);
+            });
+        });
+    }
+    /**
+     * Fetches custom adaptive card schema with caching support.
+     * Checks localStorage cache first, then fetches from Profile Hub API if needed.
+     * Automatically parses and caches the schema.
+     *
+     * @param elementUid - Unique identifier of the custom adaptive card element
+     * @returns Promise resolving to parsed schema object
+     *
+     * @example
+     * ```ts
+     * const schema = await copilotService.getCustomAdaptiveCardSchema("7065ea9f-737f-4411-a857-112fe0b62aec");
+     * ```
+     */
+    getCustomAdaptiveCardSchema(elementUid) {
+        return new Promise((resolve, reject) => {
+            const cacheKey = `${customAdaptiveCardSchemaKey.CUSTOM_ADAPTIVE_CARD}${elementUid}`;
+            const cachedSchemas = LocalStorageHelper.getItem(StorageKeys.AGENT_COPILOT_ADAPTIVE_CARD_SCHEMAS, true) || {};
+            if (cachedSchemas[cacheKey]) {
+                resolve(cachedSchemas[cacheKey]);
+                return;
+            }
+            this.getElement(elementUid).then((element) => {
+                var _a;
+                const elementConfig = element;
+                const adaptiveCardSchema = (_a = elementConfig === null || elementConfig === void 0 ? void 0 : elementConfig.config) === null || _a === void 0 ? void 0 : _a.adaptiveCardSchema;
+                const schema = typeof adaptiveCardSchema === 'string' ? JSON.parse(adaptiveCardSchema) : adaptiveCardSchema;
+                const updatedSchemas = Object.assign(Object.assign({}, cachedSchemas), { [cacheKey]: schema });
+                LocalStorageHelper.setItem(StorageKeys.AGENT_COPILOT_ADAPTIVE_CARD_SCHEMAS, updatedSchemas);
+                resolve(schema);
+            }, (error) => {
+                const errorResponse = new CXoneSdkError(CXoneSdkErrorType.CXONE_API_ERROR, 'Failed to fetch custom adaptive card schema', error);
+                this.logger.error('getCustomAdaptiveCardSchema', errorResponse.toString());
+                reject(errorResponse);
+            });
+        });
+    }
+    /**
+     * Updates a checklist item's completion status.
+     *
+     * This is called when checklist item gets checked or unchecked.
+     *
+     * @param params - Object containing sessionId, contactId, checklistId, itemId, isCompleted, and completionType.
+     * @returns Promise resolving to the updated checklist data.
+     * @example
+     * ```ts
+     * await copilotService.updateChecklistItem({
+     *   sessionId: 'session-001',
+     *   contactId: '203444780887',
+     *   checklistId: 'checklist-uuid',
+     *   itemId: 'item-1',
+     *   isCompleted: true,
+     *   completionType: 'MANUAL'
+     * });
+     * ```
+     */
+    updateChecklistItem(params) {
+        return new Promise((resolve, reject) => {
+            const { sessionId, contactId, checklistId, itemId, isCompleted, completionType } = params;
+            const baseUrl = this.getBaseUrlForAcp();
+            const updateUrl = baseUrl + this.AGENT_COPILOT_CHECKLIST_APIS.UPDATE.replace('{contactId}', contactId);
+            const reqInit = this.getBaseHttpRequest({
+                sessionId,
+                checklistId,
+                itemId,
+                isCompleted,
+                completionType,
+                agentUUID: CXoneUser.instance.getUserInfo().userId,
+            });
+            HttpClient === null || HttpClient === void 0 ? void 0 : HttpClient.post(updateUrl, reqInit).then((response) => {
+                resolve(response.data);
+            }, (error) => {
+                const errorResponse = new CXoneSdkError(CXoneSdkErrorType.CXONE_API_ERROR, 'Failed to update checklist item', error);
+                this.logger.error('updateChecklistItem', errorResponse.toString());
+                reject(errorResponse);
+            });
+        });
+    }
+    /**
+     * Completes and submits the checklist.
+     *
+     * This is called when the agent clicks the complete/submit button on the checklist.
+     *
+     * @param sessionId - Checklist session ID.
+     * @param contactId - Contact/Interaction ID.
+     * @param checklistId - Checklist definition ID.
+     * @returns Promise resolving to the completion confirmation.
+     * @example
+     * ```ts
+     * await copilotService.completeChecklist(
+     *   'session-001',
+     *   '203444780887',
+     *   'checklist-uuid'
+     * );
+     * ```
+     */
+    completeChecklist(sessionId, contactId, checklistId) {
+        return new Promise((resolve, reject) => {
+            const baseUrl = this.getBaseUrlForAcp();
+            const submitUrl = baseUrl + this.AGENT_COPILOT_CHECKLIST_APIS.SUBMIT.replace('{contactId}', contactId);
+            const reqInit = this.getBaseHttpRequest({
+                sessionId,
+                checklistId,
+                agentUUID: CXoneUser.instance.getUserInfo().userId,
+            });
+            HttpClient === null || HttpClient === void 0 ? void 0 : HttpClient.post(submitUrl, reqInit).then((response) => {
+                resolve(response.data);
+            }, (error) => {
+                const errorResponse = new CXoneSdkError(CXoneSdkErrorType.CXONE_API_ERROR, 'Failed to complete checklist', error);
+                this.logger.error('completeChecklist', errorResponse.toString());
+                reject(errorResponse);
+            });
+        });
+    }
+    /**
+     * Closes the checklist without submitting.
+     *
+     * This is called when the agent decides to close/cancel the checklist.
+     *
+     * @param sessionId - Checklist session ID.
+     * @param contactId - Contact/Interaction ID.
+     * @param checklistId - Checklist definition ID.
+     * @returns Promise resolving to the cancellation confirmation.
+     * @example
+     * ```ts
+     * await copilotService.closeChecklist(
+     *   'session-001',
+     *   '203444780887',
+     *   'checklist-uuid'
+     * );
+     * ```
+     */
+    closeChecklist(sessionId, contactId, checklistId) {
+        return new Promise((resolve, reject) => {
+            const baseUrl = this.getBaseUrlForAcp();
+            const cancelUrl = baseUrl + this.AGENT_COPILOT_CHECKLIST_APIS.CANCEL.replace('{contactId}', contactId);
+            const reqInit = this.getBaseHttpRequest({
+                sessionId,
+                checklistId,
+                agentUUID: CXoneUser.instance.getUserInfo().userId,
+            });
+            HttpClient === null || HttpClient === void 0 ? void 0 : HttpClient.post(cancelUrl, reqInit).then((response) => {
+                resolve(response.data);
+            }, (error) => {
+                const errorResponse = new CXoneSdkError(CXoneSdkErrorType.CXONE_API_ERROR, 'Failed to close checklist', error);
+                this.logger.error('closeChecklist', errorResponse.toString());
                 reject(errorResponse);
             });
         });

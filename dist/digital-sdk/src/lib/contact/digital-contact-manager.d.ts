@@ -49,7 +49,11 @@ export declare class DigitalContactManager {
     private digitalEventSyncService;
     private digitalEventSyncDictionary;
     private isWSAPIIntegrationRevampToggleEnabled;
+    private isDigitalEventDeltaPublishingEnabled;
+    private readonly requestManager;
     private readonly SYNC_ENABLED_EVENTS;
+    private readonly deltaEvents;
+    private readonly isDeltaEventApplicable;
     /**
      * @example
      * ```
@@ -127,6 +131,14 @@ export declare class DigitalContactManager {
      */
     handleMessageAddedIntoCaseEvent(contactId: string, traceId: string, messageAddedEventData?: CXoneMessage): Promise<void>;
     /**
+     * Handle Case Status changed API response in case of case status changed
+     * @param contactId - contact id
+     * @param traceId - Unique id for tracking the events and avoiding duplication
+     * @param status - Updated status of the case.
+     * @example handleCaseStatusChangedEvent(contactId, traceId, status);
+     */
+    handleCaseStatusChangedEvent(contactId: string, traceId: string, status: string): Promise<void>;
+    /**
      * Handle Assignee Changed API response in case of case assignment to agent inbox from
      * @param contactId - contact id
      * @param traceId - Unique id for tracking the events and avoiding duplication
@@ -156,6 +168,18 @@ export declare class DigitalContactManager {
      */
     terminateDigitalWorkers(): void;
     /**
+     * Post-parse callback for delta events: hydrates the delta content with full message body
+     * if additional content is flagged, publishes the arrival to public channel subscribers,
+     * and triggers agent assist unsubscribe when applicable.
+     * in Traditional flow we parsing YUP validated response as per CXoneDigitalContact object,there we calling services to get the additional message content if hasAdditionalMessageContent flag is true.same action we doing here in this delta flow as well in this callback after validating the delta event & before sending delta object to middleware.
+     * @param data - The parsed delta content
+     * @example
+     * ```
+     * DigitalEventFactory.instance.parseAndPublishDeltaEvent(eventData, this.hydrateAndPublishAdditionalData);
+     * ```
+     */
+    private hydrateAndPublishAdditionalData;
+    /**
      * handles web socket message events
      * @example
      * ```
@@ -163,6 +187,18 @@ export declare class DigitalContactManager {
      * ```
      */
     private digitalWebsocketMessageHandler;
+    /**
+     * Handles WebSocket events that do not follow the delta publishing path.
+     * Validates the raw event data, updates the matching contact in the map,
+     * publishes new messages, and unsubscribes agent assist when required.
+     * @param eventData - Raw event data from the WebSocket
+     * @param eventDetailsToPublish - Derived event details including resolved eventType and traceId
+     * @example
+     * ```
+     * await this.handleTraditionalDigitalEvent(eventData, eventDetailsToPublish);
+     * ```
+     */
+    private handleTraditionalDigitalEvent;
     /**
      * Used to remove the preview case from the preview array and digital contact map
      * @param contactId - contact id string
@@ -312,4 +348,17 @@ export declare class DigitalContactManager {
      * Terminate the user slot polling.
      */
     private terminateUserSlotPolling;
+    /**
+     * Aborts all active requests associated with the given contact.
+     *
+     * This is typically used when switching contacts to prevent
+     * stale API responses from updating state.
+     *
+     * @param contactId - Identifier of the contact whose pending requests should be cancelled
+     *
+     * @example
+     * // When user switches from contact 123 to 456
+     * abortRequestWithoutKey('123');
+     */
+    abortRequestWithoutKey(contactId: string): void;
 }

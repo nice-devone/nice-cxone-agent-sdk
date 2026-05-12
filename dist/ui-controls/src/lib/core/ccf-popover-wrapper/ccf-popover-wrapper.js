@@ -10,7 +10,7 @@ export function CcfPopOverWrapper(_a) {
     var _b, _c, _d, _e;
     var { id, anchorReference, anchorPosition, anchorOrigin, transformOrigin, open, anchorEl, handleClose, children } = _a, rest = __rest(_a, ["id", "anchorReference", "anchorPosition", "anchorOrigin", "transformOrigin", "open", "anchorEl", "handleClose", "children"]);
     const theme = useTheme();
-    return (_jsx(Popover, Object.assign({ id: id, anchorReference: anchorReference || 'anchorEl', anchorPosition: anchorReference === 'anchorPosition' && anchorPosition ? anchorPosition : undefined, anchorOrigin: anchorOrigin, transformOrigin: transformOrigin, anchorEl: anchorEl, open: open, onClose: handleClose, sx: Object.assign(Object.assign({}, rest.style), { '*::-webkit-scrollbar': {
+    return (_jsx(Popover, Object.assign({ id: id, anchorReference: anchorReference || 'anchorEl', anchorPosition: anchorReference === 'anchorPosition' && anchorPosition ? anchorPosition : undefined, anchorOrigin: anchorOrigin, transformOrigin: transformOrigin, anchorEl: anchorEl, open: open, onClose: handleClose, sx: Object.assign(Object.assign({ display: 'flex', flexDirection: 'column', maxHeight: '80vh' }, rest.style), { '*::-webkit-scrollbar': {
                 width: '0.3rem',
             }, '*::-webkit-scrollbar-thumb': {
                 backgroundColor: (_c = (_b = theme === null || theme === void 0 ? void 0 : theme.palette) === null || _b === void 0 ? void 0 : _b.background) === null || _c === void 0 ? void 0 : _c.scrollThumb,

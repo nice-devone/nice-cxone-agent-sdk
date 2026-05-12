@@ -14,6 +14,8 @@ export declare class SkillService {
     private GET_SKILLS_URI;
     private GET_SKILLS_URI_TS;
     private static cachedAgentSkills;
+    private readonly requestManager;
+    private isAbortDelayDigitialApiEnabled;
     /**
        * Create instance of CXoneAuth
        * ```
@@ -46,12 +48,13 @@ export declare class SkillService {
        * Used to get the skill details based on the skill id
        * @param skillId - skill id to fetch the skill details
        * @param fetchFromIndexedDB - fetch data from IndexedDB or not
+       * @param contactId - contact id to be used to pass it to controlled get method
        * @example -
        * ```
        * this.skillService.getSkillById("123456", false);
        * ```
        */
-    getSkillById(skillId: string, fetchFromIndexedDB?: boolean): Promise<Skills>;
+    getSkillById(skillId: string, fetchFromIndexedDB?: boolean, contactId?: string): Promise<Skills>;
     /**
        * Method to return agent skills
        * @param mediaTypeId - Pass the media type Id

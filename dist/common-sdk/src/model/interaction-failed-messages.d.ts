@@ -1,5 +1,6 @@
 import { CXoneDigitalCreateDraftRequest } from '../lib/model/digital/cxone-digital-approval-flow-request';
 import { CXoneDigitalReplyRequest } from '../lib/model/digital/cxone-digital-reply-request';
+import { CXoneReplyToMessages } from '../lib/model/digital/schema/events/cxone-reply-message';
 /**
  * Interaction failed Message object list
  */
@@ -41,4 +42,12 @@ export interface FailedMessageDetails {
     *channelName in the from field of the failed message
     */
     fromAddress?: string;
+    /**
+    *selectedMessageReplyData in case of reply message failure we need to retain the reply data
+    */
+    selectedMessageReplyData?: CXoneReplyToMessages;
+    /**
+    *isEmailForward indicates whether the failed message is an email forward action
+    */
+    isEmailForward?: boolean;
 }

@@ -48,6 +48,7 @@ export class GetNextEventProvider {
                 if ((response === null || response === void 0 ? void 0 : response.data.status) === 409) {
                     const endSessionEvent = [{
                             type: GetNextEventType.AGENT_SESSION_END_EVENT,
+                            success: 'false',
                         }];
                     this.getNextEventAdapter.handleGetNextResponse(endSessionEvent);
                     return;
@@ -96,6 +97,7 @@ export class GetNextEventProvider {
                     this.logger.info('onPollingRetrySuccess', 'End session triggered');
                     const endSessionEvent = [{
                             type: GetNextEventType.AGENT_SESSION_END_EVENT,
+                            success: 'false',
                         }];
                     this.getNextEventAdapter.handleGetNextResponse(endSessionEvent);
                     return;

@@ -61,6 +61,7 @@ export class ACDSessionManager {
         this._onUpdateCommitments = new Subject();
         this._onCommitmentEvent = new Subject();
         this._onCommitmentStatusEvent = new Subject();
+        this._onSmartReachValidationEvent = new Subject();
         this._agentAssistSummarySubject = new Subject;
         this._agentAssistWSSubject = new ReplaySubject(1);
         this._agentAssistOmiliaGetNextSubject = new Subject();
@@ -78,6 +79,14 @@ export class ACDSessionManager {
         this._rejectEvent = new Subject();
         this._callControlEvent = new Subject();
         this.isEventQueueResized = false;
+        /**
+         * Tracks whether a joinSession HTTP call is currently in flight.
+         *
+         * This flag prevents race conditions when leader election occurs during an
+         * active joinSession HTTP call, ensuring toggleACDEventEmitter is not
+         * called twice.
+         */
+        this.isJoinSessionInProgress = false;
         this._onAgentCustomEvent = new Subject();
         this._aaVoiceTranscriptEventSubject = new ReplaySubject(1);
         /**
@@ -112,6 +121,20 @@ export class ACDSessionManager {
             });
         };
         this.adminService = AdminService.instance;
+    }
+    /**
+     * Returns true when a joinSession HTTP call is currently in progress.
+     *
+     * This exposes the internal join-session state as read-only to external
+     * consumers and reflects whether the race-condition guard described above
+     * is currently active.
+     * @example
+     * ```
+     * const isJoinSessionInProgress = this.joinSessionInProgress;
+     * ```
+     */
+    get joinSessionInProgress() {
+        return this.isJoinSessionInProgress;
     }
     /**
      * @example -
@@ -464,11 +487,13 @@ export class ACDSessionManager {
      */
     toggleACDEventEmitter({ invokeSnapshot = false, sessionId = '', isUIQueueEnabled: isUIQueueTMToggleEnabled = false }) {
         const originatingServiceIdentifier = (HttpUtilService === null || HttpUtilService === void 0 ? void 0 : HttpUtilService.originatingServiceIdentifier) || LocalStorageHelper.getItem(StorageKeys.ORIGINATING_SERVICE_IDENTIFIER);
+        const isAutoLogoutEnabled = FeatureToggleService.instance.getFeatureToggleSync("utility-cxa-cleanup-inactive-agent-sessions-AW-52454" /* FeatureToggles.CLEANUP_OF_INACTIVE_AGENT_SESSIONS_FEATURE_TOGGLE */);
         this.adminService.getAgentSettings().then((agentSetting) => {
-            if ((originatingServiceIdentifier === OriginatingServiceIdentifier.CXONE_AGENT) && agentSetting.enableUIQueue && isUIQueueTMToggleEnabled) {
+            const isUIQEnabled = (originatingServiceIdentifier === OriginatingServiceIdentifier.CXONE_AGENT) && agentSetting.enableUIQueue && isUIQueueTMToggleEnabled;
+            if ((isUIQEnabled || isAutoLogoutEnabled) && !this.isJoinSessionInProgress) {
                 this.establishUIQSocketConnection(invokeSnapshot, sessionId);
             }
-            else {
+            if (!isUIQEnabled || isAutoLogoutEnabled) {
                 this.startGetNextEvents(sessionId);
             }
         }).catch(error => {
@@ -535,6 +560,7 @@ export class ACDSessionManager {
         const baseUri = this.cxOneConfig.acdApiBaseUri;
         const isTenantSegmentationEnabled = FeatureToggleService.instance.getFeatureToggleSync("release-cxa-tenant-segmentation-AW-28101" /* FeatureToggles.TENANT_SEGMENTATION */);
         const endpoint = baseUri + (isTenantSegmentationEnabled ? ApiUriConstants.JOIN_AGENT_SESSION_URI_TS : ApiUriConstants.JOIN_AGENT_SESSION_URI);
+        this.isJoinSessionInProgress = true;
         return new Promise((resolve, reject) => {
             const reqInit = {
                 headers: this.utilService.initHeader(this.accessToken, '').headers,
@@ -548,6 +574,7 @@ export class ACDSessionManager {
                 if (resp.data.sessionId) {
                     localStorage.setItem(StorageKeys.ACD_SESSION_ID, resp.data.sessionId);
                     this.sessionId = resp.data.sessionId;
+                    this.isJoinSessionInProgress = false;
                     resolve(resp);
                     this.onAgentSessionChange.next({
                         status: AgentSessionStatus.JOIN_SESSION_SUCCESS,
@@ -567,6 +594,7 @@ export class ACDSessionManager {
                 }
                 else {
                     const error = new CXoneSdkError(CXoneSdkErrorType.INVALID_METHOD_INVOCATION, 'missing session id');
+                    this.isJoinSessionInProgress = false;
                     this.onAgentSessionChange.next({
                         status: AgentSessionStatus.JOIN_SESSION_FAILURE,
                         data: error,
@@ -576,6 +604,7 @@ export class ACDSessionManager {
             })
                 .catch((err) => {
                 this.logger.error('joinSession', 'Error while joining session' + err.toString());
+                this.isJoinSessionInProgress = false;
                 this.onAgentSessionChange.next({
                     status: AgentSessionStatus.JOIN_SESSION_FAILURE,
                     data: err,
@@ -703,10 +732,15 @@ export class ACDSessionManager {
      * ```
      */
     establishUIQSocketConnection(invokeSnapshot, sessionId) {
-        this.terminateGetNextPolling();
         if (!sessionId) {
             sessionId = this.getSessionId();
         }
+        const isAutoLogoutEnabled = FeatureToggleService.instance.getFeatureToggleSync("utility-cxa-cleanup-inactive-agent-sessions-AW-52454" /* FeatureToggles.CLEANUP_OF_INACTIVE_AGENT_SESSIONS_FEATURE_TOGGLE */);
+        if (isAutoLogoutEnabled) {
+            UIQueueWsProvider.instance.connectAgent(this.userInfo, invokeSnapshot, sessionId);
+            return;
+        }
+        this.terminateGetNextPolling();
         this.adminService.resizeEventQueue(sessionId, true)
             .then(() => {
             this.isEventQueueResized = true;
@@ -852,6 +886,15 @@ export class ACDSessionManager {
      */
     get onCommitmentStatusEvent() {
         return this._onCommitmentStatusEvent;
+    }
+    /**
+     * @example -
+     * ```
+     * const onSmartReachValidationEvent  = agentSession.onSmartReachValidationEvent
+     * ```
+     */
+    get onSmartReachValidationEvent() {
+        return this._onSmartReachValidationEvent;
     }
     /**
     * @example -const agentAssistWebSocketUnsubscribeSubject  = acdSession.agentAssistWebSocketUnsubsribeSubject

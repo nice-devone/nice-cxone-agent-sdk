@@ -204,6 +204,17 @@ export declare class ContactManager {
     */
     private getDispositionsOnContactEvent;
     /**
+    * Method to get Smartreach dispositions for CallContactEvents
+    * @param skillId - skill id to fetch the skill dispositions
+    * @param contactId - used to fetch disposition
+    * @param mediaType - media type to fetch the dispositions
+    * @example -
+    * ```
+    *getSmartReachDispositionsOnContactEvent(1234, 4321, MediaType.VOICE)
+    * ```
+    */
+    private getSmartReachDispositionsOnContactEvent;
+    /**
     * Method to get tags for CallContactEvents and VoiceMailContactEvents
     * @param skillId - skill id to fetch the skill tags
     * @param contactId - contactId to be set on tags
@@ -231,6 +242,16 @@ export declare class ContactManager {
      * ```
      */
     getDispositions(skillId: string, mediaType: MediaType): Promise<CXoneDisposition[] | CXoneSdkError>;
+    /**
+     * Used to get the disposition based on the skill id provided
+     * @param skillId - skill id to fetch the skill details
+     * @param mediaType - media type
+     * @example -
+     * ```
+     * cxoneClient.contactManager.getDispositionsWithCategories("123456");
+     * ```
+     */
+    getDispositionsWithCategories(skillId: string, mediaType: MediaType): Promise<CXoneDisposition[] | CXoneSdkError>;
     /**
      * Used to save the disposition data provided
      * @param contactId - contact id for disposition

@@ -22,7 +22,7 @@ const MAX_ITEMS = 4.5;
     />
  * ```
  */
-export const CcfMenu = ({ options, handleMenuSelection, menuItemStyles, menuTextStyles, moreIconStyles, menuStyles, }) => {
+export const CcfMenu = ({ options, handleMenuSelection, menuItemStyles, menuTextStyles, moreIconStyles, menuStyles, moreButtonAriaLabel = 'more', }) => {
     const [anchorEl, setAnchorEl] = React.useState(null);
     const open = Boolean(anchorEl);
     const longButtonRef = useRef(null);
@@ -47,7 +47,7 @@ export const CcfMenu = ({ options, handleMenuSelection, menuItemStyles, menuText
         setAnchorEl(null);
         handleMenuSelection(menuItemName, longButtonRef);
     };
-    return (_jsxs("div", Object.assign({ style: menuStyles !== null && menuStyles !== void 0 ? menuStyles : {} }, { children: [_jsx(IconButton, Object.assign({ "aria-label": "more", id: "long-button", "aria-controls": open ? 'long-menu' : undefined, "aria-expanded": open ? 'true' : undefined, "aria-haspopup": "true", onClick: handleClick, sx: { padding: 0 }, ref: longButtonRef }, { children: _jsx(MoreVertIcon, { sx: moreIconStyles !== null && moreIconStyles !== void 0 ? moreIconStyles : null }) })), _jsx(Menu, Object.assign({ id: "long-menu", MenuListProps: {
+    return (_jsxs("div", Object.assign({ style: menuStyles !== null && menuStyles !== void 0 ? menuStyles : {} }, { children: [_jsx(IconButton, Object.assign({ "aria-label": moreButtonAriaLabel, id: "long-button", "aria-controls": open ? 'long-menu' : undefined, "aria-expanded": open ? 'true' : undefined, "aria-haspopup": "true", onClick: handleClick, sx: { padding: 0 }, ref: longButtonRef }, { children: _jsx(MoreVertIcon, { sx: moreIconStyles !== null && moreIconStyles !== void 0 ? moreIconStyles : null }) })), _jsx(Menu, Object.assign({ id: "long-menu", MenuListProps: {
                     'aria-labelledby': 'long-button',
                 }, anchorEl: anchorEl, open: open, onClose: handleMenuItemClick, PaperProps: {
                     style: {

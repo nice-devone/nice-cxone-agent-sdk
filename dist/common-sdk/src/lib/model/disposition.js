@@ -28,6 +28,7 @@ class CXoneDisposition {
         this.agentSpecific = (0, utility_1.parseBooleanString)(data === null || data === void 0 ? void 0 : data.agentSpecific);
         this.isPreviewDisposition = (0, utility_1.parseBooleanString)(data === null || data === void 0 ? void 0 : data.isPreviewDisposition);
         this.priority = (0, utility_1.parseInteger)(data === null || data === void 0 ? void 0 : data.priority);
+        this.dispositionCategoryName = data === null || data === void 0 ? void 0 : data.dispositionCategoryName;
     }
 }
 exports.CXoneDisposition = CXoneDisposition;

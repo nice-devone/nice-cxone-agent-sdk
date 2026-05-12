@@ -11,6 +11,8 @@ export declare class DispositionService {
     protected logger: CcfLogger;
     private GET_SAVED_DISPOSITION;
     private SAVE_DISPOSITION_URI;
+    private readonly requestManager;
+    private isAbortDelayDigitialApiEnabled;
     /**
      * Create instance of CXoneAuth and ACDSessionManager
      * ```
@@ -30,6 +32,17 @@ export declare class DispositionService {
      * ```
      */
     getDispositions(skillId: string, mediaType: MediaType, contactId?: string): Promise<CXoneDisposition[]>;
+    /**
+     * Used to get the disposition based on the skill id provided
+     * @param skillId - skill id to fetch the skill details
+     * @param contactId - its optional we will need when we want to add contact ID to the dispositions passed
+     * @param mediaType - not required but good to set.  This will prevent a race condition on contacts
+     * @example -
+     * ```
+     * this.dispositionService.getDispositionsWithCategories("123456");
+     * ```
+     */
+    getDispositionsWithCategories(skillId: string, mediaType: MediaType, contactId?: string): Promise<CXoneDisposition[]>;
     /**
      * Used to get the Tags based on the skill id provided
      * @param skillId - skill id to fetch the skill details

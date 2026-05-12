@@ -22,7 +22,7 @@ import MenuIcon from '@mui/icons-material/Menu';
  */
 export function CcfHeader(_a) {
     var _b;
-    var { children, headerText, HeaderWithTab, HeaderWithBookmark, tabList, LeftIcon, showDragIcon, RightIcon, PopoverContent, PopoverContentProps, headerTextClassess, direction, sx, isappspace } = _a, rest = __rest(_a, ["children", "headerText", "HeaderWithTab", "HeaderWithBookmark", "tabList", "LeftIcon", "showDragIcon", "RightIcon", "PopoverContent", "PopoverContentProps", "headerTextClassess", "direction", "sx", "isappspace"]);
+    var { children, headerText, HeaderWithTab, HeaderWithBookmark, tabList, LeftIcon, showDragIcon, RightIcon, PopoverContent, PopoverContentProps, headerTextClassess, direction, headerVariantMapping = 'h4', sx, isappspace } = _a, rest = __rest(_a, ["children", "headerText", "HeaderWithTab", "HeaderWithBookmark", "tabList", "LeftIcon", "showDragIcon", "RightIcon", "PopoverContent", "PopoverContentProps", "headerTextClassess", "direction", "headerVariantMapping", "sx", "isappspace"]);
     const [anchorEl, setAnchorEl] = React.useState(null);
     const theme = useTheme();
     const headerStyle = ccfHeaderStyle(theme, direction, LeftIcon);
@@ -44,13 +44,10 @@ export function CcfHeader(_a) {
     const open = Boolean(anchorEl);
     const id = open ? 'simple-popover' : undefined;
     const [translate] = useTranslator();
-    return _jsxs(_Fragment, { children: [_jsxs(Box, Object.assign({ sx: [headerStyle.container, HeaderWithTab ? headerStyle.headerTabBackground : {}] }, { children: [_jsxs("div", { children: [_jsx(Box, { sx: { padding: '0.188rem' } }), LeftIcon !== undefined ? LeftIcon : null, HeaderWithTab ? (HeaderWithTab) : (_jsx(Typography, Object.assign({ variant: "h4", "aria-label": headerText === null || headerText === void 0 ? void 0 : headerText.toString(), sx: [
-                                    headerStyle.headerTitle,
-                                    ...(Array.isArray(headerStyle.contentWrap)
-                                        ? headerStyle.contentWrap
-                                        : [headerStyle.contentWrap]),
-                                    ...(sx ? [sx] : [])
-                                ], "aria-live": (_b = rest.ariaLive) !== null && _b !== void 0 ? _b : 'off' }, { children: headerText })))] }), RightIcon ? (_jsx("div", { children: _jsxs(Box, Object.assign({ component: 'div', sx: headerStyle.popOver }, { children: [_jsx(CcfTooltip, Object.assign({ title: translate('more'), arrow: true }, { children: _jsx("div", Object.assign({ role: "presentation", onClick: rest.handleRightIconClick, id: rest.id }, { children: _jsx(IconButton, Object.assign({ "aria-label": translate('moreOptionInAppspace'), "aria-haspopup": "true", sx: Object.assign(Object.assign({}, headerStyle.popOverOverflow), { '& svg': { color: theme => { var _a, _b; return (_b = (_a = theme === null || theme === void 0 ? void 0 : theme.palette) === null || _a === void 0 ? void 0 : _a.text) === null || _b === void 0 ? void 0 : _b.filter; } } }), size: "large" }, { children: isappspace ? _jsx(MenuIcon, {}) : _jsx(CcfOverflowIcon, {}) })) })) })), PopoverContent !== undefined ? (_jsxs(Popover, Object.assign({ id: id, open: open, keepMounted: true, anchorEl: anchorEl, onClose: handleClose, anchorOrigin: {
+    return _jsxs(_Fragment, { children: [_jsxs(Box, Object.assign({ sx: [headerStyle.container, HeaderWithTab ? headerStyle.headerTabBackground : {}] }, { children: [_jsxs("div", { children: [_jsx(Box, { sx: { padding: '0.188rem' } }), LeftIcon !== undefined ? LeftIcon : null, HeaderWithTab ? (HeaderWithTab) : (_jsx(Typography, Object.assign({ variant: "h4", variantMapping: { h4: headerVariantMapping }, "aria-label": headerText === null || headerText === void 0 ? void 0 : headerText.toString(), sx: Object.assign(Object.assign({}, headerStyle.headerTitle), sx), "aria-live": (_b = rest.ariaLive) !== null && _b !== void 0 ? _b : 'off' }, { children: headerText })))] }), RightIcon ? (_jsx("div", { children: _jsxs(Box, Object.assign({ component: 'div', sx: headerStyle.popOver }, { children: [_jsx(CcfTooltip, Object.assign({ title: translate('more'), arrow: true, PopperProps: {
+                                        disablePortal: true,
+                                        keepMounted: true,
+                                    } }, { children: _jsx("div", Object.assign({ role: "presentation", onClick: rest.handleRightIconClick, id: rest.id }, { children: _jsx(IconButton, Object.assign({ "aria-label": translate('moreOptionInAppspace'), "aria-haspopup": "true", sx: Object.assign(Object.assign({}, headerStyle.popOverOverflow), { '& svg': { color: theme => { var _a, _b; return (_b = (_a = theme === null || theme === void 0 ? void 0 : theme.palette) === null || _a === void 0 ? void 0 : _a.text) === null || _b === void 0 ? void 0 : _b.filter; } } }), size: "large" }, { children: isappspace ? _jsx(MenuIcon, {}) : _jsx(CcfOverflowIcon, {}) })) })) })), PopoverContent !== undefined ? (_jsxs(Popover, Object.assign({ id: id, open: open, keepMounted: true, anchorEl: anchorEl, onClose: handleClose, anchorOrigin: {
                                         vertical: 'bottom',
                                         horizontal: 'right',
                                     }, transformOrigin: {

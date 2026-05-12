@@ -1,6 +1,6 @@
 import { CXoneAuth } from '@nice-devone/auth-sdk';
-import { CXoneSdkError, CXoneSdkErrorType, CXoneDisposition, CXoneTagYup, CXoneSavedDispositionResponse, } from '@nice-devone/common-sdk';
-import { ACDSessionManager, ApiUriConstants, HttpClient, HttpUtilService, } from '@nice-devone/core-sdk';
+import { CXoneSdkError, CXoneSdkErrorType, CXoneDisposition, CXoneTagYup, CXoneSavedDispositionResponse, RequestControlMode, } from '@nice-devone/common-sdk';
+import { ACDSessionManager, ApiUriConstants, HttpClient, HttpUtilService, RequestManager, } from '@nice-devone/core-sdk';
 import { CcfLogger } from '../logger/ccf-logger';
 import { FeatureToggleService } from '../feature-toggle';
 /**
@@ -20,6 +20,8 @@ export class DispositionService {
         this.logger = new CcfLogger('SDK', 'DispositionService');
         this.GET_SAVED_DISPOSITION = '/InContactAPI/services/V27.0/contacts/{contactId}/disposition';
         this.SAVE_DISPOSITION_URI = '/InContactAPI/services/v27.0/agent-sessions/{sessionId}/interactions/{contactId}/disposition';
+        this.requestManager = RequestManager.getInstance();
+        this.isAbortDelayDigitialApiEnabled = FeatureToggleService.instance.getFeatureToggleSync("release-cx-agent-abort-delay-API-on-contact-switch-AW-48514" /* FeatureToggles.ABORT_DELAY_DIGITAL_API_TOGGLE */) || false;
         /**
            * To save tags
            * @param contactId - contact Id
@@ -123,9 +125,89 @@ export class DispositionService {
             const endpointUri = isTenantSegmentationEnabled ? ApiUriConstants.GET_DISPOSITION_URI_TS : ApiUriConstants.GET_DISPOSITION_URI;
             const url = cxOneConfig.acdApiBaseUri +
                 endpointUri.replace('{skillId}', skillId);
+            if (this.isAbortDelayDigitialApiEnabled && contactId) {
+                /* CONTROLLED GET LOGIC */
+                const uniqueKey = contactId;
+                const debugLabel = 'DigitalContactDisposition API';
+                HttpClient.controlledGet(this.requestManager, {
+                    uniqueKey,
+                    url,
+                    requestInit: reqInit,
+                    debugLabel,
+                    requestType: RequestControlMode.DELAY_AND_ABORT,
+                }).then((response) => {
+                    var _a, _b;
+                    this.logger.debug('getDispositions', 'dispositions using skill id' + response.toString());
+                    let dispositions = [];
+                    if (response.status !== 204 /* HttpStatusCode.NO_CONTENT */) {
+                        dispositions =
+                            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                            (_b = (_a = response === null || response === void 0 ? void 0 : response.data) === null || _a === void 0 ? void 0 : _a.dispositions) === null || _b === void 0 ? void 0 : _b.map((data) => {
+                                const disposition = new CXoneDisposition();
+                                disposition.parse(data);
+                                if (contactId)
+                                    disposition.contactId = contactId;
+                                disposition.mediaType = mediaType;
+                                return disposition;
+                            });
+                    }
+                    resolve(dispositions);
+                }, (error) => {
+                    this.logger.error('getDispositions', 'Error while getting dispositions' + error.toString());
+                    reject(error);
+                });
+            }
+            else {
+                HttpClient.get(url, reqInit).then((response) => {
+                    var _a, _b;
+                    this.logger.debug('getDispositions', 'dispositions using skill id' + response.toString());
+                    let dispositions = [];
+                    if (response.status !== 204 /* HttpStatusCode.NO_CONTENT */) {
+                        // if we get dispositions then only we will parse not in case of 204-no content
+                        dispositions =
+                            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                            (_b = (_a = response === null || response === void 0 ? void 0 : response.data) === null || _a === void 0 ? void 0 : _a.dispositions) === null || _b === void 0 ? void 0 : _b.map((data) => {
+                                const disposition = new CXoneDisposition();
+                                disposition.parse(data);
+                                if (contactId)
+                                    disposition.contactId = contactId;
+                                disposition.mediaType = mediaType;
+                                return disposition;
+                            });
+                    }
+                    resolve(dispositions);
+                }, (error) => {
+                    this.logger.error('getDispositions', 'Error while getting dispositions' +
+                        error.toString());
+                    reject(error);
+                });
+            }
+        });
+    }
+    /**
+     * Used to get the disposition based on the skill id provided
+     * @param skillId - skill id to fetch the skill details
+     * @param contactId - its optional we will need when we want to add contact ID to the dispositions passed
+     * @param mediaType - not required but good to set.  This will prevent a race condition on contacts
+     * @example -
+     * ```
+     * this.dispositionService.getDispositionsWithCategories("123456");
+     * ```
+     */
+    getDispositionsWithCategories(skillId, mediaType, contactId) {
+        return new Promise((resolve, reject) => {
+            if (!skillId || skillId === '0') {
+                reject(new CXoneSdkError(CXoneSdkErrorType.INVALID_METHOD_PARMS, 'skillId is empty'));
+                return;
+            }
+            const token = this.auth.getAuthToken();
+            const reqInit = this.utilService.initHeader(token.accessToken, 'application/json');
+            const cxOneConfig = this.auth.getCXoneConfig();
+            const url = cxOneConfig.acdApiBaseUri +
+                ApiUriConstants.GET_DISPOSITION_WITH_CATEGORY_URI.replace('{skillId}', skillId);
             HttpClient.get(url, reqInit).then((response) => {
                 var _a, _b;
-                this.logger.info('getDispositions', 'dispositions using skill id' + response.toString());
+                this.logger.info('getDispositionsWithCategories', 'dispositions using skill id' + response.toString());
                 let dispositions = [];
                 if (response.status !== 204 /* HttpStatusCode.NO_CONTENT */) {
                     // if we get dispositions then only we will parse not in case of 204-no content
@@ -141,7 +223,7 @@ export class DispositionService {
                 }
                 resolve(dispositions);
             }, (error) => {
-                this.logger.error('getDispositions', 'Error while getting dispositions' +
+                this.logger.error('getDispositionsWithCategories', 'Error while getting dispositions for smartreach ' +
                     error.toString());
                 reject(error);
             });

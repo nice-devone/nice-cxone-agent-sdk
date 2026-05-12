@@ -10,5 +10,6 @@ export declare const enum EmbeddedFeatureToggles {
     DISPLAY_AGENT_STATE_IN_CMA_SF_UTILITYBAR = "release-cxa-sf-display-agent-state-in-utilitybar-CRM-17859",
     RELEASE_CXA_SF_PASS_CRM_USERID_DATAMEMORIALIZATION_CRM_16933 = "release-cxa-sf-pass-crm-userid-datamemorialization-CRM-16933",
     RELEASE_CXA_VERSIONING_FOR_TPI_APPS_CRM_18330 = "release-cxa-versioning-for-tpi-apps-CRM-18330",
-    MSD_ONLY_IB_INTERACTION_SESSION_CREATION_FEATURE_TOGGLE = "release-session-template-trigger-ACD-digital-outbound-MSD-CRM-14530"
+    MSD_ONLY_IB_INTERACTION_SESSION_CREATION_FEATURE_TOGGLE = "release-session-template-trigger-ACD-digital-outbound-MSD-CRM-14530",
+    MSD_SUPPORT_DYNAMIC_CUSTOM_PARAMETERS_SESSION_CREATION_FEATURE_TOGGLE = "release-support-dynamic-custom-parameters-MSD-session-creation-CRM-22685"
 }

@@ -48,4 +48,6 @@ export * from './lib/admin/model/agent-profile-settings';
 export * from './enum/agent-profile-configurations';
 export * from './enum/get-next-event-sub-category';
 export * from './lib/grafana/grafana';
+export * from './lib/smart-reach-compliance/compliance-validation-failure-code';
+export * from './lib/smart-reach-compliance/compliance-validation-event';
 //# sourceMappingURL=index.js.map

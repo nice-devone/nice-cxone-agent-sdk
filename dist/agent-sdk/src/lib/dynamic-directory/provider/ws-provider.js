@@ -20,6 +20,7 @@ export class WSProvider extends WebsocketClient {
         this.wsService = new WSService();
         this.connected = false;
         this.subscribed = false;
+        this.isNewGen = false;
         this.dynamicDirectory = directory;
         this.auth = CXoneAuth.instance;
     }
@@ -40,6 +41,24 @@ export class WSProvider extends WebsocketClient {
         return this.wsWorker;
     }
     /**
+     * Use to initializing the web socket worker for newgen and will return the method inside the worker
+     * @example
+     * ```
+     * this.initNewGenAgentStateSocketWorker();
+     * ```
+     */
+    initNewGenAgentStateSocketWorker() {
+        const loader = new LoadWorker();
+        if (!this.wsWorkerNewGen)
+            this.wsWorkerNewGen = loader.getWorker('ws-worker', 'ccf-agent-newgen-directory-ws-worker');
+        if (this.wsWorkerNewGen) {
+            this.wsWorkerNewGen.onmessage = (response) => {
+                this.checkWSEvent(response.data);
+            };
+        }
+        return this.wsWorkerNewGen;
+    }
+    /**
      * Use to close the web socket worker
      * @example
      * ```
@@ -47,7 +66,12 @@ export class WSProvider extends WebsocketClient {
      * ```
      */
     close() {
-        super.close(this.initAgentStateSocketWorker());
+        if (this.wsWorker) {
+            super.close(this.wsWorker);
+        }
+        if (this.wsWorkerNewGen) {
+            super.close(this.wsWorkerNewGen);
+        }
         this.connected = false;
     }
     /**
@@ -61,7 +85,14 @@ export class WSProvider extends WebsocketClient {
         if (this.connected === true) {
             clearTimeout(this.heartbeatTimer);
             const heartbeat = this.wsService.getConnectionMessage('heartbeat');
-            super.sendMessage(heartbeat, this.initAgentStateSocketWorker());
+            const worker = this.isNewGen
+                ? this.wsWorkerNewGen
+                : this.wsWorker;
+            if (!worker) {
+                this.logger.error('cxone-dynamic-directory', `Worker not initialized for ${this.isNewGen ? 'newgen' : 'legacy'} heartbeat`);
+                return;
+            }
+            super.sendMessage(heartbeat, worker);
             this.heartbeatTimer = setTimeout(this.runHeartbeat.bind(this), 10000);
         }
     }
@@ -84,7 +115,9 @@ export class WSProvider extends WebsocketClient {
         if (msg.command === WSCommand.CONNECTED) {
             this.connected = true;
             this.runHeartbeat();
-            this.dynamicDirectory.onMessageReceived.next(msg);
+        }
+        if (this.isNewGen) {
+            this.dynamicDirectory.onNewGenMessageReceived.next(msg);
         }
         else {
             this.dynamicDirectory.onMessageReceived.next(msg);
@@ -102,7 +135,12 @@ export class WSProvider extends WebsocketClient {
         this.logger.debug('onError ', '[WSProvider] Try to reconnect WS');
         this.connected = false;
         const errorReconnectingMessage = this.wsService.getErrorMessage('DynamicDirectory - Error on WS Connection. Trying to Reconnect');
-        this.dynamicDirectory.onMessageReceived.next(errorReconnectingMessage);
+        if (this.isNewGen) {
+            this.dynamicDirectory.onNewGenMessageReceived.next(errorReconnectingMessage);
+        }
+        else {
+            this.dynamicDirectory.onMessageReceived.next(errorReconnectingMessage);
+        }
     }
     /**
      * Used to receive WebSocket connection closed
@@ -115,7 +153,12 @@ export class WSProvider extends WebsocketClient {
         this.logger.debug('onClosed ', '[WSProvider] WS closed');
         this.connected = false;
         const connectionClosed = this.wsService.getErrorMessage('DynamicDirectory - Closed WS Connection');
-        this.dynamicDirectory.onMessageReceived.next(connectionClosed);
+        if (this.isNewGen) {
+            this.dynamicDirectory.onNewGenMessageReceived.next(connectionClosed);
+        }
+        else {
+            this.dynamicDirectory.onMessageReceived.next(connectionClosed);
+        }
     }
     /**
      * Method used to send message websocket worker
@@ -126,7 +169,14 @@ export class WSProvider extends WebsocketClient {
      */
     onOpen() {
         const connectMsg = this.wsService.getConnectionMessage('connect');
-        super.sendMessage(connectMsg, this.initAgentStateSocketWorker());
+        const worker = this.isNewGen
+            ? this.wsWorkerNewGen
+            : this.wsWorker;
+        if (!worker) {
+            this.logger.error('cxone-dynamic-directory', `Worker not initialized for ${this.isNewGen ? 'newgen' : 'legacy'} connection`);
+            return;
+        }
+        super.sendMessage(connectMsg, worker);
     }
     /**
      * Method used to reconnect the WebSocket
@@ -141,15 +191,26 @@ export class WSProvider extends WebsocketClient {
         this.connected = false;
         const cxOneConfig = this.auth.getCXoneConfig();
         if (cxOneConfig.presenceSyncWebSocketUrl) {
+            const url = this.isNewGen
+                ? cxOneConfig.presenceSyncWebSocketUrl +
+                    ApiUriConstants.NEWGEN_PRESENCE_SYNC_WEBSOCKET
+                : cxOneConfig.presenceSyncWebSocketUrl +
+                    ApiUriConstants.PRESENCE_SYNC_WEBSOCKET;
             const reConnect = {
                 retryOptions: {
                     maxRetryAttempts: 3,
                     retryInterval: 3000,
                 },
-                url: cxOneConfig.presenceSyncWebSocketUrl +
-                    ApiUriConstants.PRESENCE_SYNC_WEBSOCKET,
+                url,
             };
-            super.attemptReconnect(reConnect, this.initAgentStateSocketWorker());
+            const worker = this.isNewGen
+                ? this.wsWorkerNewGen
+                : this.wsWorker;
+            if (!worker) {
+                this.logger.error('cxone-dynamic-directory', `Worker not initialized for ${this.isNewGen ? 'newgen' : 'legacy'} reconnect`);
+                return;
+            }
+            super.attemptReconnect(reConnect, worker);
         }
     }
     /**
@@ -171,11 +232,36 @@ export class WSProvider extends WebsocketClient {
      * ```
      */
     connectSocket() {
+        this.isNewGen = false;
         const cxOneConfig = this.auth.getCXoneConfig();
         if (cxOneConfig === null || cxOneConfig === void 0 ? void 0 : cxOneConfig.presenceSyncWebSocketUrl) {
             if (!this.connected) {
                 const agentStateSocketWorker = this.initAgentStateSocketWorker();
                 this.connect(cxOneConfig.presenceSyncWebSocketUrl + ApiUriConstants.PRESENCE_SYNC_WEBSOCKET, agentStateSocketWorker);
+            }
+            else {
+                const connectedMessage = this.wsService.getConnectedMessage();
+                this.onMessage(connectedMessage);
+            }
+        }
+        else {
+            this.logger.error('cxone-dynamic-directory', 'websocket url not available');
+        }
+    }
+    /**
+     * Method used to connect the WebSocket - NewGen
+     * @example
+     * ```
+     * this.connectNewGenSocket();
+     * ```
+     */
+    connectNewGenSocket() {
+        this.isNewGen = true;
+        const cxOneConfig = this.auth.getCXoneConfig();
+        if (cxOneConfig === null || cxOneConfig === void 0 ? void 0 : cxOneConfig.presenceSyncWebSocketUrl) {
+            if (!this.connected) {
+                const worker = this.initNewGenAgentStateSocketWorker();
+                this.connect(cxOneConfig.presenceSyncWebSocketUrl + ApiUriConstants.NEWGEN_PRESENCE_SYNC_WEBSOCKET, worker);
             }
             else {
                 const connectedMessage = this.wsService.getConnectedMessage();
@@ -197,7 +283,14 @@ export class WSProvider extends WebsocketClient {
         if (this.subscribed)
             return;
         const subscribe = this.wsService.getSubscriptionMessage(subscriptionId);
-        super.sendMessage(subscribe, this.initAgentStateSocketWorker());
+        const worker = this.isNewGen
+            ? this.wsWorkerNewGen
+            : this.wsWorker;
+        if (!worker) {
+            this.logger.error('cxone-dynamic-directory', `Worker not initialized for ${this.isNewGen ? 'newgen' : 'legacy'} subscribe`);
+            return;
+        }
+        super.sendMessage(subscribe, worker);
     }
     /**
      * Use to unsubscribe from websocket
@@ -209,7 +302,14 @@ export class WSProvider extends WebsocketClient {
     unsubscribeSearch(subscriptionId) {
         if (this.connected) {
             const unsubscribe = this.wsService.getUnsubscribeMessage(subscriptionId);
-            super.sendMessage(unsubscribe, this.initAgentStateSocketWorker());
+            const worker = this.isNewGen
+                ? this.wsWorkerNewGen
+                : this.wsWorker;
+            if (!worker) {
+                this.logger.error('cxone-dynamic-directory', `Worker not initialized for ${this.isNewGen ? 'newgen' : 'legacy'} unsubscribe`);
+                return;
+            }
+            super.sendMessage(unsubscribe, worker);
         }
     }
 }

@@ -16,6 +16,7 @@ export class HttpRequest {
         this.method = method;
         this.body = reqInit.body;
         this.headers = reqInit.headers;
+        this.signal = reqInit.signal;
     }
     /**
      *
@@ -31,6 +32,7 @@ export class HttpRequest {
             method: this.method,
             mode: 'cors',
             cache: 'no-cache',
+            signal: this.signal,
         };
         reqInit.headers = this.getHeaderInit();
         if (this.hasBody()) {

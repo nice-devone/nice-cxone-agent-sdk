@@ -49,7 +49,6 @@ export declare enum AgentAssistConfigACPParamsKeys {
     PRIVATE_FEEDBACK = "privateFeedback",
     EMAIL_CHANNEL = "emailChannel",
     EMAIL_CHANNEL_SIMPLIFY = "emailChannelSimplify",
-    EMAIL_CHANNEL_EXPAND = "emailChannelExpand",
     EMAIL_CHANNEL_REPHRASE = "emailChannelRephrase",
     OVERALL_SUBCARD = "overallSubcard",
     PER_SUGGESTION_SUBCARDS = "perSuggestionSubcards",

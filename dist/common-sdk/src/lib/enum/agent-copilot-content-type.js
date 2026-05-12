@@ -39,6 +39,10 @@ var AgentCopilotContentType;
      */
     AgentCopilotContentType["KB_COMBO"] = "kbCombo";
     /**
+     * Represents the knowledge base internal combo card content type.
+     */
+    AgentCopilotContentType["KB_COMBO_INTERNAL"] = "kbComboInternal";
+    /**
      * Represents the Transfer Summary contenttype.
      */
     AgentCopilotContentType["TRANSFER_SUMMARY"] = "transferSummary";
@@ -82,5 +86,13 @@ var AgentCopilotContentType;
      * Represents the copilot decision tree content type.
      */
     AgentCopilotContentType["DECISION_TREE"] = "decisionTree";
+    /**
+     * Represents the copilot custom adaptive card content type.
+     */
+    AgentCopilotContentType["CUSTOM_ADAPTIVE_CARD"] = "customAdaptiveCard";
+    /**
+     * Represents the copilot checklist content type.
+     */
+    AgentCopilotContentType["CHECKLIST"] = "checklist";
 })(AgentCopilotContentType = exports.AgentCopilotContentType || (exports.AgentCopilotContentType = {}));
 //# sourceMappingURL=agent-copilot-content-type.js.map

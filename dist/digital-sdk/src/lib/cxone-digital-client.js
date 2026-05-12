@@ -8,6 +8,7 @@ import { DigitalService } from './digital/service/digital-service';
 import { DigitalContactManager } from './contact/digital-contact-manager';
 import { DigitalMessageNoteService } from './digital/service/digital-message-note-service';
 import { CXoneDigitalUtil } from './digital/util/cxone-digital-util';
+import { DigitalEventFactory } from './digital/digital-event-factory';
 /** This is the base class for Digital */
 export class CXoneDigitalClient {
     /**
@@ -28,6 +29,7 @@ export class CXoneDigitalClient {
         this.digitalContactManager = {};
         this.auth = {};
         this.digitalMessageNoteService = {};
+        this.digitalEventFactory = {};
         /**
          * Method to subscribe message bus polling response message
          * @example
@@ -83,6 +85,7 @@ export class CXoneDigitalClient {
         this.auth = CXoneAuth.instance;
         this.skillService = new SkillService();
         this.cxoneUser = CXoneUser.instance;
+        this.digitalEventFactory = DigitalEventFactory.instance;
     }
     /**
      * Method to create singleton object of the class

@@ -12,6 +12,9 @@ export class CXoneUserDetails {
      * ```
      */
     parse(data) {
+        if (!data) {
+            return;
+        }
         this.billable = parseBooleanString(data === null || data === void 0 ? void 0 : data.billable);
         this.displayName = data.displayName;
         this.emailAddress = data.emailAddress;
@@ -30,13 +33,15 @@ export class CXoneUserDetails {
         this.userName = data.userName;
         const customAttrib = data.customAttributes;
         this.customAttributes = {};
-        Object.keys(customAttrib).forEach(attribute => {
-            var _a;
-            const attribObj = customAttrib[attribute];
-            if (attribObj && attribObj.id) {
-                this.customAttributes[attribObj.id] = (((_a = attribObj.values) === null || _a === void 0 ? void 0 : _a.length) > 0) ? attribObj.values[0].value : '';
-            }
-        });
+        if (customAttrib) {
+            Object.keys(customAttrib).forEach(attribute => {
+                var _a;
+                const attribObj = customAttrib[attribute];
+                if (attribObj && attribObj.id) {
+                    this.customAttributes[attribObj.id] = (((_a = attribObj.values) === null || _a === void 0 ? void 0 : _a.length) > 0) ? attribObj.values[0].value : '';
+                }
+            });
+        }
     }
 }
 //# sourceMappingURL=cxone-user-details.js.map

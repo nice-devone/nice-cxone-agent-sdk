@@ -29,11 +29,12 @@ export var Color;
  * @returns CcfTabs Component
  */
 export function CcfTabs(_a) {
-    var { children, currentTab, setCurrentTab, textColor, indicatorColor, variant, tabClassname, classes, bottomBorder, focusFirstTab = true } = _a, rest = __rest(_a, ["children", "currentTab", "setCurrentTab", "textColor", "indicatorColor", "variant", "tabClassname", "classes", "bottomBorder", "focusFirstTab"]);
+    var { children, currentTab, setCurrentTab, textColor, indicatorColor, variant, tabClassname, classes, bottomBorder, focusFirstTab = true, ariaLabel = 'tabs' } = _a, rest = __rest(_a, ["children", "currentTab", "setCurrentTab", "textColor", "indicatorColor", "variant", "tabClassname", "classes", "bottomBorder", "focusFirstTab", "ariaLabel"]);
     const [activeTabIndex, setActiveTabIndex] = useState(0);
     const theme = useTheme();
     const ccfTabsStyles = CcfTabsStyle(theme);
-    const firstTabRef = React.useRef(null);
+    const focusedTabRef = React.useRef(null);
+    const childrenArray = React.Children.toArray(children);
     /**
      *
      * @param event - any
@@ -44,11 +45,11 @@ export function CcfTabs(_a) {
         setCurrentTab(newValue);
     };
     const handleKeyPress = useCallback((event) => {
-        if (event.ctrlKey && event.altKey && children) {
+        if (event.altKey && childrenArray.length > 0) {
             switch (event.code) {
                 case 'ArrowRight':
                     event.preventDefault();
-                    if (activeTabIndex === ((children === null || children === void 0 ? void 0 : children.length) - 1)) {
+                    if (activeTabIndex === (childrenArray.length - 1)) {
                         setActiveTabIndex(0);
                         setCurrentTab(0);
                     }
@@ -60,8 +61,8 @@ export function CcfTabs(_a) {
                 case 'ArrowLeft':
                     event.preventDefault();
                     if (activeTabIndex === 0) {
-                        setActiveTabIndex(children.length - 1);
-                        setCurrentTab(children.length - 1);
+                        setActiveTabIndex(childrenArray.length - 1);
+                        setCurrentTab(childrenArray.length - 1);
                     }
                     else {
                         setActiveTabIndex(activeTabIndex - 1);
@@ -70,24 +71,24 @@ export function CcfTabs(_a) {
                     break;
             }
         }
-    }, [activeTabIndex]);
+    }, [activeTabIndex, childrenArray]);
     useEffect(() => {
         var _a;
-        focusFirstTab && ((_a = firstTabRef === null || firstTabRef === void 0 ? void 0 : firstTabRef.current) === null || _a === void 0 ? void 0 : _a.focus());
-    }, []);
+        focusFirstTab && ((_a = focusedTabRef === null || focusedTabRef === void 0 ? void 0 : focusedTabRef.current) === null || _a === void 0 ? void 0 : _a.focus());
+    }, [activeTabIndex]);
     useEffect(() => {
         document.addEventListener('keydown', handleKeyPress);
         return () => {
             document.removeEventListener('keydown', handleKeyPress);
         };
     }, [handleKeyPress]);
-    return (_jsxs(_Fragment, { children: [_jsxs("section", { children: [_jsx(Tabs, Object.assign({ value: currentTab, onChange: handleChange, variant: variant, scrollButtons: variant === Variant.SCROLLABLE ? true : false, indicatorColor: indicatorColor, textColor: textColor, "aria-label": "icon tabs example", classes: Object.assign({}, classes) }, rest, { children: React.Children.map(children, (child, idx) => {
+    return (_jsxs(_Fragment, { children: [_jsxs("section", { children: [_jsx(Tabs, Object.assign({ value: currentTab, onChange: handleChange, variant: variant, scrollButtons: variant === Variant.SCROLLABLE ? true : false, indicatorColor: indicatorColor, textColor: textColor, "aria-label": ariaLabel, classes: Object.assign({}, classes) }, rest, { children: React.Children.map(children, (child, idx) => {
                             var _a, _b;
                             const label = child === null || child === void 0 ? void 0 : child.props.label;
                             const icon = child === null || child === void 0 ? void 0 : child.props.icon;
                             const disabled = child === null || child === void 0 ? void 0 : child.props.disabled;
                             const tabTooltip = (child === null || child === void 0 ? void 0 : child.props.tooltip) || ((_a = child === null || child === void 0 ? void 0 : child.props) === null || _a === void 0 ? void 0 : _a.label);
-                            return child ? _jsx(CcfTooltip, Object.assign({ "aria-label": tabTooltip, title: tabTooltip, arrow: true, disableInteractive: true }, { children: _jsx(Tab, { disabled: disabled, classes: Object.assign({}, (_b = child === null || child === void 0 ? void 0 : child.props) === null || _b === void 0 ? void 0 : _b.classes), className: tabClassname, icon: icon, label: label, "aria-label": label, disableRipple: true, sx: Object.assign(Object.assign({}, ccfTabsStyles === null || ccfTabsStyles === void 0 ? void 0 : ccfTabsStyles.tab), ccfTabsStyles === null || ccfTabsStyles === void 0 ? void 0 : ccfTabsStyles.focussedElement), ref: (idx === 0) ? firstTabRef : undefined }, `${label}_${idx}`) })) : null;
+                            return child ? _jsx(CcfTooltip, Object.assign({ "aria-label": tabTooltip, title: tabTooltip, arrow: true, disableInteractive: true }, { children: _jsx(Tab, { disabled: disabled, classes: Object.assign({}, (_b = child === null || child === void 0 ? void 0 : child.props) === null || _b === void 0 ? void 0 : _b.classes), className: tabClassname, icon: icon, label: label, "aria-label": label, disableRipple: true, sx: Object.assign(Object.assign({}, ccfTabsStyles === null || ccfTabsStyles === void 0 ? void 0 : ccfTabsStyles.tab), ccfTabsStyles === null || ccfTabsStyles === void 0 ? void 0 : ccfTabsStyles.focussedElement), ref: (idx === activeTabIndex) ? focusedTabRef : undefined }, `${label}_${idx}`) })) : null;
                         }) })), bottomBorder && _jsx(CcfDivider, { orientation: DividerOrientation.HORIZONTAL, variant: DividerVariant.FULLWIDTH })] }), React.Children.map(children, (child, idx) => {
                 return idx === currentTab ? child : null;
             })] }));

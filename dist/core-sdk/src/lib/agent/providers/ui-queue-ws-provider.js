@@ -27,7 +27,7 @@ class CustomHttpClient extends DefaultHttpClient {
     }
     /**
      * Method to override send method of DefaultHttpClient
-     * @param request - http requet object
+     * @param request - http request object
      * @example
      * ```
      * send(request)
@@ -54,6 +54,8 @@ export class UIQueueWsProvider {
         this.hubUrl = '';
         this.receivedEvents = [];
         this.getNextEventAdapter = new CXoneGetNextAdapter();
+        this.missedPongCount = 0;
+        this.MAX_MISSED_PONGS = 3;
         this.logger = new Logger('uiQueueWsProvider', 'UIQueueWsProvider');
         this.getkeepAlivePollingisActive = false;
         this.utilService = new HttpUtilService();
@@ -62,8 +64,12 @@ export class UIQueueWsProvider {
         this.isUIQDegraded = false;
         this.internetCheckTimer = undefined; // to store the internet check timer
         this.isCustomKeepAlivePollingTimeoutEnabled = FeatureToggleService.instance.getFeatureToggleSync("release-cxa-get-next-events-timeout-update-AW-45121" /* FeatureToggles.GET_NEXT_EVENT_POLLING_TIMEOUT_FEATURE_TOGGLE */);
+        this.isAutoLogoutEnabled = FeatureToggleService.instance.getFeatureToggleSync("utility-cxa-cleanup-inactive-agent-sessions-AW-52454" /* FeatureToggles.CLEANUP_OF_INACTIVE_AGENT_SESSIONS_FEATURE_TOGGLE */);
         this.keepAliveTimeout = this.isCustomKeepAlivePollingTimeoutEnabled ? 15000 : 120000;
         this.isConnectionInProgress = false; // Flag to track connection attempt in progress
+        this.listenersAttached = false; // Flag to prevent duplicate onreconnected/onclose registrations
+        this.agentId = '';
+        this.tenantId = '';
         this.agentSession = ACDSessionManager.instance;
         this.adminService = AdminService.instance;
         window.addEventListener('RefreshTokenSuccess', () => {
@@ -80,7 +86,7 @@ export class UIQueueWsProvider {
      * ```
      */
     startKeepAlivePolling(sessionId) {
-        this.logger.info('startKeepAlivePolling', 'startKeepAlivePolling in UIQueueWsProvider');
+        this.logger.debug('startKeepAlivePolling', `startKeepAlivePolling in UIQueueWsProvider ${this.agentContext}`);
         this.baseUri = this.agentSession.cxOneConfig.apiFacadeBaseUri;
         if (sessionId) {
             if (this.keepAlivePollingWorker)
@@ -99,7 +105,7 @@ export class UIQueueWsProvider {
      * ```
      */
     keepAlivePolling(sessionId) {
-        var _a;
+        var _a, _b;
         if (!sessionId) {
             sessionId = this.agentSession.getSessionId();
         }
@@ -118,17 +124,18 @@ export class UIQueueWsProvider {
             this.keepAlivePollingWorker.onmessage = (response) => {
                 var _a, _b;
                 if (((_a = response === null || response === void 0 ? void 0 : response.data) === null || _a === void 0 ? void 0 : _a.type) === 'retry') {
-                    this.logger.info('getNextEvents', 'Polling called successfully');
+                    this.logger.debug('keepAlivePolling', `Polling called successfully ${this.agentContext}`);
                 }
                 if (((_b = response === null || response === void 0 ? void 0 : response.data) === null || _b === void 0 ? void 0 : _b.status) === 302) {
                     this.isUIQDegraded = true;
                     this.disconnectConsumerAgent();
                     this.failoverToGetNext(new CXoneSdkError(CXoneSdkErrorType.CXONE_API_ERROR, 'Keep alive API failed with 302 status'));
-                    this.logger.error('keepAlivePolling', 'Switching to get-next polling as keep alive API returned 302 status');
+                    this.logger.error('keepAlivePolling', `Switching to get-next polling as keep alive API returned 302 status ${this.agentContext}`);
+                    this.logger.debug('keepAlivePolling', `Switching to get-next polling as keep alive API returned 302 status ${this.agentContext}`);
                 }
             };
         }
-        this.keepAlivePollingWorker.postMessage({ type: 'startAgentKeepAlivePolling', requestParams: { url: endpoint, request: reqInit, method: 'POST' }, pollingOptions, isLeader: (_a = CXoneLeaderElector.instance) === null || _a === void 0 ? void 0 : _a.isLeader });
+        (_a = this.keepAlivePollingWorker) === null || _a === void 0 ? void 0 : _a.postMessage({ type: 'startAgentKeepAlivePolling', requestParams: { url: endpoint, request: reqInit, method: 'POST' }, pollingOptions, isLeader: (_b = CXoneLeaderElector.instance) === null || _b === void 0 ? void 0 : _b.isLeader });
         this.getkeepAlivePollingisActive = true;
     }
     /**
@@ -174,11 +181,12 @@ export class UIQueueWsProvider {
                         data: (_d = response === null || response === void 0 ? void 0 : response.data) === null || _d === void 0 ? void 0 : _d.events,
                     };
                     MessageBus.instance.postResponse(msg);
-                    this.logger.info('getInitialGetNextEvent', 'Get next event called successfully');
+                    this.logger.debug('getInitialGetNextEvent', `Get next event called successfully ${this.agentContext}`);
                 }
                 resolve();
             }, (error) => {
-                this.logger.error('getInitialGetNextEvent', 'Failed to call get next events: ' + error.toString());
+                this.logger.error('getInitialGetNextEvent', `Failed to call get next events: ${error.toString()} ${this.agentContext}`);
+                this.logger.debug('getInitialGetNextEvent', `Failed to call get next events: ${error.toString()} ${this.agentContext}`);
                 reject(new CXoneSdkError(CXoneSdkErrorType.CXONE_API_ERROR, error === null || error === void 0 ? void 0 : error.message, error === null || error === void 0 ? void 0 : error.data));
             });
         });
@@ -197,6 +205,12 @@ export class UIQueueWsProvider {
         return UIQueueWsProvider.singleton;
     }
     /**
+     * Returns a consistent debug context tag with agentId and tenantId for log messages.
+     */
+    get agentContext() {
+        return `[${this.tenantId}:${this.agentId}]`;
+    }
+    /**
      * Method to get hub url
      * @returns hub url
      * @example
@@ -212,7 +226,8 @@ export class UIQueueWsProvider {
                 }
                 resolve(this.hubUrl);
             }, (err) => {
-                this.logger.error('getHubUrl', 'Failed to get hub url: ' + err.toString());
+                this.logger.error('getHubUrl', `Failed to get hub url: ${err.toString()} ${this.agentContext}`);
+                this.logger.debug('getHubUrl', `Failed to get hub url: ${err.toString()} ${this.agentContext}`);
                 reject(this.hubUrl);
             });
         });
@@ -242,9 +257,11 @@ export class UIQueueWsProvider {
      * ```
      */
     connectAgent(userInfo, invokeSnapshot, sessionId) {
+        this.agentId = userInfo.icAgentId;
+        this.tenantId = userInfo.tenantId;
         // Check if connection is already established, in progress, or being attempted
         if (this.isConnectionInProgress) {
-            this.logger.info('connectAgent', 'UIQ Connection already established or in progress. Skipping connection attempt.');
+            this.logger.debug('connectAgent', `UIQ Connection already established or in progress. Skipping connection attempt. ${this.agentContext}`);
             return;
         }
         this.isConnectionInProgress = true;
@@ -258,14 +275,16 @@ export class UIQueueWsProvider {
     }
     /**
      * Method to get new hub connection
-     * @param retryOptions  - retry options
-     * @returns   hub connection
+     * @param userInfo - user info object used to establish the connection
+     * @param retryOptions - retry options for establishing the connection
+     * @param sessionId - optional session identifier for the hub connection
+     * @returns hub connection
      * @example
      * ```
-     * getNewHubConnection(retryOptions)
+     * getNewHubConnection(userInfo, retryOptions, sessionId)
      * ```
      */
-    getNewHubConnection(userInfo, retryOptions) {
+    getNewHubConnection(userInfo, retryOptions, sessionId) {
         return __awaiter(this, void 0, void 0, function* () {
             const accessToken = this.getValidAccessToken();
             let attempt = 0;
@@ -283,17 +302,23 @@ export class UIQueueWsProvider {
                     return;
                 try {
                     yield this.getHubUrl();
+                    const hubUrlObject = new URL(this.hubUrl);
+                    hubUrlObject.searchParams.set('sessionId', sessionId || this.agentSession.getSessionId());
+                    hubUrlObject.searchParams.set('isAutoLogout', this.isAutoLogoutEnabled ? 'true' : 'false');
+                    const hubUrlWithParams = hubUrlObject.toString();
                     this.hubConnection = new HubConnectionBuilder()
-                        .withUrl(this.hubUrl, { httpClient: new CustomHttpClient(accessToken), accessTokenFactory: () => `Bearer ${accessToken}` })
+                        .withUrl(hubUrlWithParams, { httpClient: new CustomHttpClient(accessToken), accessTokenFactory: () => `Bearer ${accessToken}` })
                         .withAutomaticReconnect([0])
                         .build();
                     this.hubConnection.serverTimeoutInMilliseconds = 30000;
+                    this.listenersAttached = false;
                     yield this.startConnection(userInfo);
                 }
                 catch (error) {
                     if (++attempt <= retryOptions.maxRetryAttempts) {
-                        this.logger.error('getNewHubConnection', `Attempt ${attempt} failed: ${error}`);
-                        this.logger.info('getNewHubConnection', `Retrying... Attempts left: ${retryOptions.maxRetryAttempts - attempt}`);
+                        this.logger.error('getNewHubConnection', `Attempt ${attempt} failed: ${error} ${this.agentContext}`);
+                        this.logger.debug('getNewHubConnection', `Attempt ${attempt} failed: ${error} ${this.agentContext}`);
+                        this.logger.debug('getNewHubConnection', `Retrying... Attempts left: ${retryOptions.maxRetryAttempts - attempt} ${this.agentContext}`);
                         yield new Promise(resolve => setTimeout(resolve, retryOptions.retryInterval));
                         yield establishHubConnectionWithRetry();
                     }
@@ -318,14 +343,17 @@ export class UIQueueWsProvider {
         return __awaiter(this, void 0, void 0, function* () {
             try {
                 const retryOptions = RetryOptions.default();
-                yield this.getNewHubConnection(userInfo, retryOptions);
-                this.logger.info('establishSocketConnection', 'UIQ Connection established');
-                yield this.getInitialGetNextEvent(sessionId);
+                yield this.getNewHubConnection(userInfo, retryOptions, sessionId);
+                this.logger.debug('establishSocketConnection', `UIQ Connection established ${this.agentContext}`);
+                if (!this.isAutoLogoutEnabled) {
+                    yield this.getInitialGetNextEvent(sessionId);
+                    this.startKeepAlivePolling();
+                }
                 this.addEventListeners(userInfo);
-                this.startKeepAlivePolling();
             }
             catch (error) {
-                this.logger.error('establishSocketConnection', `Failed to establish connection: ${error}`);
+                this.logger.error('establishSocketConnection', `Failed to establish connection: ${error} ${this.agentContext}`);
+                this.logger.debug('establishSocketConnection', `Failed to establish connection: ${error} ${this.agentContext}`);
                 throw new CXoneSdkError(CXoneSdkErrorType.WEBSOCKET_ERROR, 'Failed to establish socket connection.');
             }
             ;
@@ -363,37 +391,72 @@ export class UIQueueWsProvider {
        * ```
        */
     addEventListeners(userInfo) {
-        this.hubConnection.on(UIQEventType.RECEIVE_EVENTS, (receivedData) => {
-            this.receivedEvents = JSON.parse(receivedData);
-            this.handleReceivedEvents(this.receivedEvents);
+        // Remove existing listeners before re-registering to prevent duplicate handlers
+        this.hubConnection.off(UIQEventType.RECEIVE_EVENTS);
+        this.hubConnection.off(UIQEventType.PONG);
+        this.hubConnection.off(UIQEventType.RECONNECT_WHEN_POSSIBLE);
+        this.hubConnection.off(UIQEventType.CUSTOM_DEGRADATION);
+        if (!this.isAutoLogoutEnabled) {
+            this.hubConnection.on(UIQEventType.RECEIVE_EVENTS, (receivedData) => {
+                if (!receivedData) {
+                    this.logger.error('addEventListeners', `Received empty or undefined data from UIQ event. ${this.agentContext}`);
+                    this.logger.debug('addEventListeners', `Received empty or undefined data from UIQ event. ${this.agentContext}`);
+                    return;
+                }
+                try {
+                    this.receivedEvents = JSON.parse(receivedData);
+                    this.handleReceivedEvents(this.receivedEvents);
+                }
+                catch (err) {
+                    this.logger.error('addEventListeners', `Failed to parse received UIQ event data: ${String(err)} ${this.agentContext}`);
+                    this.logger.debug('addEventListeners', `Failed to parse received UIQ event data: ${String(err)} ${this.agentContext}`);
+                }
+            });
+        }
+        this.hubConnection.on(UIQEventType.PONG, () => {
+            if (this.missedPongCount > 0) {
+                this.logger.debug('Pong', `Pong received from server. Resetting missed pong counter. ${this.agentContext}`);
+            }
+            this.missedPongCount = 0;
         });
         this.hubConnection.on(UIQEventType.RECONNECT_WHEN_POSSIBLE, (shouldReconnect, _agentId, expiryTimeoutToEpoch) => {
-            this.logger.info('ReconnectWhenPossible', `UIQ Received ReconnectWhenPossible notification for agent Id: ${_agentId}`);
+            this.logger.debug('ReconnectWhenPossible', `UIQ Received ReconnectWhenPossible notification for agent Id: ${_agentId} ${this.agentContext}`);
             if (shouldReconnect && expiryTimeoutToEpoch > Math.floor(Date.now() / 1000)) {
-                this.hubConnection.stop();
-                setTimeout(() => { this.logger.info('On ReconnectWhenPossible', 'Waiting for connection to stop.'); }, 5000);
-                this.establishSocketConnection(userInfo, true).catch((error) => {
-                    this.failoverToGetNext(error);
+                this.hubConnection.stop()
+                    .then(() => {
+                    this.logger.debug('On ReconnectWhenPossible', `Connection stopped. Waiting for onclose to reconnect. ${this.agentContext}`);
+                })
+                    .catch((err) => {
+                    this.logger.error('On ReconnectWhenPossible', `Error while stopping connection before reconnect: ${String(err)} ${this.agentContext}`);
+                    this.logger.debug('On ReconnectWhenPossible', `Error while stopping connection before reconnect: ${String(err)} ${this.agentContext}`);
                 });
             }
         });
         this.hubConnection.on(UIQEventType.CUSTOM_DEGRADATION, () => {
-            this.logger.info('CustomDegradation', 'Received Custom Degradation event');
+            this.logger.debug('CustomDegradation', `Received Custom Degradation event ${this.agentContext}`);
             this.isUIQDegraded = true;
-            this.disconnectConsumerAgent();
-            this.failoverToGetNext(new CXoneSdkError(CXoneSdkErrorType.CXONE_API_ERROR, 'UIQ is degraded'));
-            this.logger.error('CustomDegradation', 'Switching to get-next polling as UIQ is degraded');
-        });
-        this.hubConnection.onreconnected((connectionId) => {
-            this.logger.info('onreconnected', `UIQ Connection reestablished. Connected with connectionId ${connectionId}.`);
-            if (this.hubConnection.state === HubConnectionState.Connected) {
-                // TODO: Removing temporarily as it is not required for now, will enable it in next release when UIQ is ready
-                // this.invokeUIQEventSnapshotRequest();
-                // Adding get-next call to flush the initial renew-state event from the agent state
-                this.getInitialGetNextEvent();
+            // Keeping connection alive so that the agent does not get logged out
+            if (!this.isAutoLogoutEnabled) {
+                this.disconnectConsumerAgent();
+                this.logger.error('CustomDegradation', `Switching to get-next polling as UIQ is degraded ${this.agentContext}`);
+                this.logger.debug('CustomDegradation', `Switching to get-next polling as UIQ is degraded ${this.agentContext}`);
             }
+            this.failoverToGetNext(new CXoneSdkError(CXoneSdkErrorType.CXONE_API_ERROR, 'UIQ is degraded'));
         });
-        this.hubConnection.onclose(() => this.closeHandler(userInfo));
+        if (!this.listenersAttached) {
+            this.hubConnection.onreconnected((connectionId) => {
+                this.logger.debug('onreconnected', `UIQ Connection reestablished. Connected with connectionId ${connectionId}. ${this.agentContext}`);
+                this.missedPongCount = 0;
+                if (this.hubConnection.state === HubConnectionState.Connected && !this.isAutoLogoutEnabled) {
+                    // TODO: Removing temporarily as it is not required for now, will enable it in next release when UIQ is ready
+                    // this.invokeUIQEventSnapshotRequest();
+                    // Adding get-next call to flush the initial renew-state event from the agent state
+                    this.getInitialGetNextEvent();
+                }
+            });
+            this.hubConnection.onclose(() => this.closeHandler(userInfo));
+            this.listenersAttached = true;
+        }
     }
     /**
          * Method to handle close event
@@ -404,7 +467,7 @@ export class UIQueueWsProvider {
          * ```
          */
     closeHandler(userInfo) {
-        this.logger.info('onclose', 'UIQ Connection state closed event triggered.');
+        this.logger.debug('onclose', `UIQ Connection state closed event triggered. ${this.agentContext}`);
         if (!(navigator === null || navigator === void 0 ? void 0 : navigator.onLine)) {
             this.handleInternetDisruption();
             // send custom event to show network error message
@@ -416,9 +479,10 @@ export class UIQueueWsProvider {
             this.handleReceivedEvents(networkErrorEvent);
         }
         else if (this.agentSession.getSessionId() && !this.isUIQDegraded) {
-            this.establishSocketConnection(userInfo, true).catch((error) => {
-                this.failoverToGetNext(error);
-            });
+            this.connectAgent(userInfo);
+        }
+        else {
+            this.stopHeartbeatWorker();
         }
     }
     /**
@@ -432,13 +496,20 @@ export class UIQueueWsProvider {
         */
     startSocketHeartBeat(agentId, tenantId) {
         if (this.hubConnection.state === HubConnectionState.Connected) {
-            this.hubConnection.invoke(UIQEventType.HEARTBEAT_FROM_AGENT, agentId, tenantId, 'Alive')
+            this.missedPongCount++;
+            if (this.missedPongCount > this.MAX_MISSED_PONGS) {
+                this.logger.error('startSocketHeartBeat', `${this.missedPongCount} consecutive Pong responses missed. Stopping connection to trigger reconnect. ${this.agentContext}`);
+                this.logger.debug('startSocketHeartBeat', `${this.missedPongCount} consecutive Pong responses missed. Stopping connection to trigger reconnect. ${this.agentContext}`);
+                this.disconnectConsumerAgent();
+                return;
+            }
+            this.hubConnection.invoke(UIQEventType.HEARTBEAT_FROM_AGENT, agentId, tenantId, 'Ping')
                 .then(() => {
-                this.logger.info('startSocketHeartBeat', 'UIQ Heartbeat successful');
+                this.logger.debug('startSocketHeartBeat', `UIQ Heartbeat successful ${this.agentContext}`);
             }).catch((err) => {
                 if (err instanceof Error) {
-                    this.disconnectConsumerAgent();
-                    this.logger.error('startSocketHeartBeat', 'Error while sending heartbeat' + new CXoneSdkError(CXoneSdkErrorType.WEBSOCKET_ERROR, err.message));
+                    this.logger.error('startSocketHeartBeat', `Error while sending heartbeat: ${new CXoneSdkError(CXoneSdkErrorType.WEBSOCKET_ERROR, err.message)} ${this.agentContext}`);
+                    this.logger.debug('startSocketHeartBeat', `Error while sending heartbeat: ${new CXoneSdkError(CXoneSdkErrorType.WEBSOCKET_ERROR, err.message)} ${this.agentContext}`);
                 }
             });
         }
@@ -453,15 +524,15 @@ export class UIQueueWsProvider {
      * ```
      */
     handleInternetDisruption() {
-        if (this.hearbeatPoller)
-            clearInterval(this.hearbeatPoller);
+        this.stopHeartbeatWorker();
         if (this.internetCheckTimer)
             clearInterval(this.internetCheckTimer);
         // will start the internet connection check 
         const startTime = Date.now();
         this.internetCheckTimer = setInterval(() => {
             if (Date.now() - startTime > 10 * 60 * 1000) { // 10 minutes in milliseconds
-                this.logger.error('handleInternetDisruption', 'Internet check exceeded 10 minutes. Stopping the timer.');
+                this.logger.error('handleInternetDisruption', `Internet check exceeded 10 minutes. Stopping the timer. ${this.agentContext}`);
+                this.logger.debug('handleInternetDisruption', `Internet check exceeded 10 minutes. Stopping the timer. ${this.agentContext}`);
                 const networkErrorEvent = {
                     Type: UIQEventType.NETWORK_OFFLINE_EVENT,
                     totalNetworkRequestExecuted: String(0),
@@ -472,7 +543,7 @@ export class UIQueueWsProvider {
                 return;
             }
             if (navigator === null || navigator === void 0 ? void 0 : navigator.onLine) {
-                this.logger.info('handleInternetDisruption', 'Internet connection is back online.');
+                this.logger.debug('handleInternetDisruption', `Internet connection is back online. ${this.agentContext}`);
                 const networkEvent = {
                     Type: UIQEventType.NETWORK_OFFLINE_EVENT,
                     retryStatus: '',
@@ -494,8 +565,36 @@ export class UIQueueWsProvider {
     startConnection(userInfo) {
         return __awaiter(this, void 0, void 0, function* () {
             yield this.hubConnection.start();
-            this.hearbeatPoller = setInterval(this.startSocketHeartBeat.bind(this), 5000, userInfo.icAgentId, userInfo.tenantId);
+            this.initHeartbeatWorker(userInfo);
         });
+    }
+    /**
+     * Use to initialize the heartbeat worker and start heartbeat tick polling on a worker thread
+     * @param userInfo - user info object containing agentId and tenantId
+     * @example
+     * ```
+     * this.initHeartbeatWorker(userInfo);
+     * ```
+     */
+    initHeartbeatWorker(userInfo) {
+        if (this.heartbeatWorker) {
+            this.heartbeatWorker.terminate();
+        }
+        this.missedPongCount = 0;
+        const heartbeatWorker = this.loader.getWorker('uiq-worker', 'ccf-agent-uiq-ws-heartbeat-worker');
+        if (!heartbeatWorker) {
+            this.logger.error('initHeartbeatWorker', `Failed to initialize heartbeat worker. getWorker returned undefined for uiq-worker/ccf-agent-uiq-ws-heartbeat-worker. ${this.agentContext}`);
+            this.logger.debug('initHeartbeatWorker', `Failed to initialize heartbeat worker. getWorker returned undefined for uiq-worker/ccf-agent-uiq-ws-heartbeat-worker. ${this.agentContext}`);
+            return;
+        }
+        heartbeatWorker.onmessage = (response) => {
+            var _a;
+            if (((_a = response === null || response === void 0 ? void 0 : response.data) === null || _a === void 0 ? void 0 : _a.type) === 'heartbeatTick') {
+                this.startSocketHeartBeat(userInfo.icAgentId, userInfo.tenantId);
+            }
+        };
+        heartbeatWorker.postMessage({ type: 'startHeartbeatPolling', pollingInterval: 10000 });
+        this.heartbeatWorker = heartbeatWorker;
     }
     /**
          * Method to send refresh token
@@ -509,9 +608,10 @@ export class UIQueueWsProvider {
             const accessToken = this.getValidAccessToken();
             this.hubConnection.invoke(UIQEventType.RECEIVE_TOKEN_BEFORE_EXPIRY, accessToken)
                 .then(() => {
-                this.logger.info('sendRefreshToken', 'Token Refresh successful');
+                this.logger.debug('sendRefreshToken', `Token Refresh successful ${this.agentContext}`);
             }).catch((err) => {
-                this.logger.error('sendRefreshToken', 'Error while refreshing the token' + new CXoneSdkError(CXoneSdkErrorType.WEBSOCKET_ERROR, err.message));
+                this.logger.error('sendRefreshToken', `Error while refreshing the token: ${new CXoneSdkError(CXoneSdkErrorType.WEBSOCKET_ERROR, err instanceof Error ? err.message : String(err))} ${this.agentContext}`);
+                this.logger.debug('sendRefreshToken', `Error while refreshing the token: ${new CXoneSdkError(CXoneSdkErrorType.WEBSOCKET_ERROR, err instanceof Error ? err.message : String(err))} ${this.agentContext}`);
             });
         }
     }
@@ -524,12 +624,13 @@ export class UIQueueWsProvider {
          * ```
          */
     invokeUIQEventSnapshotRequest() {
-        if (this.hubConnection && this.hubConnection.state == HubConnectionState.Connected) {
+        if (this.hubConnection && this.hubConnection.state === HubConnectionState.Connected) {
             this.hubConnection.invoke(UIQEventType.SNAPSHOT_REQUEST)
                 .then(() => {
-                this.logger.info('invokeSnapshot', 'Snapshot Request successful');
+                this.logger.debug('invokeSnapshot', `Snapshot Request successful ${this.agentContext}`);
             }).catch((err) => {
-                this.logger.error('invokeSnapshot', 'Error while invoking snapshot request' + new CXoneSdkError(CXoneSdkErrorType.WEBSOCKET_ERROR, err.message));
+                this.logger.error('invokeSnapshot', `Error while invoking snapshot request: ${new CXoneSdkError(CXoneSdkErrorType.WEBSOCKET_ERROR, err instanceof Error ? err.message : String(err))} ${this.agentContext}`);
+                this.logger.debug('invokeSnapshot', `Error while invoking snapshot request: ${new CXoneSdkError(CXoneSdkErrorType.WEBSOCKET_ERROR, err instanceof Error ? err.message : String(err))} ${this.agentContext}`);
             });
         }
     }
@@ -542,10 +643,16 @@ export class UIQueueWsProvider {
          */
     disconnectConsumerAgent() {
         if (this.hubConnection) {
-            clearInterval(this.hearbeatPoller);
-            this.hubConnection.stop();
+            this.stopHeartbeatWorker();
+            this.hubConnection.stop()
+                .then(() => {
+                this.logger.debug('disconnectConsumerAgent', `UIQ Disconnected ${this.agentContext}`);
+            })
+                .catch((err) => {
+                this.logger.error('disconnectConsumerAgent', `Error while stopping connection: ${String(err)} ${this.agentContext}`);
+                this.logger.debug('disconnectConsumerAgent', `Error while stopping connection: ${String(err)} ${this.agentContext}`);
+            });
             this.terminatePolling();
-            this.logger.info('disconnectConsumerAgent', 'UIQ Disconnected');
         }
     }
     /**
@@ -577,6 +684,20 @@ export class UIQueueWsProvider {
         }
     }
     /**
+     * Stops the heartbeat worker, sends a stop message, and clears the reference.
+     * @example
+     * ```
+     * this.stopHeartbeatWorker();
+     * ```
+     */
+    stopHeartbeatWorker() {
+        if (this.heartbeatWorker) {
+            this.heartbeatWorker.postMessage({ type: 'stopHeartbeatPolling' });
+            this.heartbeatWorker.terminate();
+            this.heartbeatWorker = undefined;
+        }
+    }
+    /**
      * Method to failover to get-next polling
      * @param error - error object
      * @example
@@ -585,12 +706,20 @@ export class UIQueueWsProvider {
      * ```
      */
     failoverToGetNext(error) {
-        const randomDelay = Math.floor(Math.random() * 2000);
-        setTimeout(() => {
-            this.terminatePolling();
-            this.agentSession.startGetNextEvents();
-            this.logger.error('failoverToGetNext', 'Switching to get-next polling as websocket connection failed' + error.toString());
-        }, randomDelay);
+        // Skipping failover to get-next polling if auto-logout is enabled as agent is already on get-next polling in that case, so no need to make additional API calls.
+        if (!this.isAutoLogoutEnabled) {
+            const randomDelay = Math.floor(Math.random() * 2000);
+            setTimeout(() => {
+                this.terminatePolling();
+                this.agentSession.startGetNextEvents();
+                this.logger.error('failoverToGetNext', `Switching to get-next polling as websocket connection failed: ${error.toString()} ${this.agentContext}`);
+                this.logger.debug('failoverToGetNext', `Switching to get-next polling as websocket connection failed: ${error.toString()} ${this.agentContext}`);
+            }, randomDelay);
+        }
+        else {
+            this.logger.error('failoverToGetNext', `UIQ Websocket connection failed and auto-logout is enabled, skipping failover to get-next polling: ${error.toString()} ${this.agentContext}`);
+            this.logger.debug('failoverToGetNext', `UIQ Websocket connection failed and auto-logout is enabled, skipping failover to get-next polling: ${error.toString()} ${this.agentContext}`);
+        }
     }
 }
 //# sourceMappingURL=ui-queue-ws-provider.js.map

@@ -8,3 +8,7 @@
 
 - `[Added]`: Added method to set custom agent url for click to dial extension.
 - `[Added]`: Updated call controls to enable stop recording button based on FF4j feature toggle and stop recording permission.
+
+## 26.2.0 - 2026-04-29 ##
+
+- `[Updated]`: Updated contact manager to support termination codes (dispositions) for SmartReach (ACD voice call only)

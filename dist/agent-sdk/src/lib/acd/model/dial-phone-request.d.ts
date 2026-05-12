@@ -4,4 +4,6 @@ export interface DialPhoneRequest {
     parentContactId?: string;
     callerId?: number;
     interactionId?: string;
+    customerId?: string;
+    zipCode?: string;
 }

@@ -180,5 +180,51 @@ export declare const TASK_ASSIST_STATUS: {
     IN_PROGRESS: string;
     LOADING: string;
     SUCCESS: string;
+    ACTIVE_FILL: string;
 };
+/**
+ * Individual workflow suggestion from semantic search API.
+ * @example
+ * ```ts
+ * const suggestion: WorkflowSuggestion = {
+ *   workflowName: 'Customer verification',
+ *   description: 'Verify customer identity',
+ *   priority: 1
+ * };
+ * ```
+ */
+export interface WorkflowSuggestion {
+    /**
+     * Name of the suggested workflow.
+     */
+    workflowName: string;
+    /**
+     * Description of what the workflow does.
+     */
+    description: string;
+    /**
+     * Priority ranking of the suggestion (lower is higher priority).
+     */
+    priority: number;
+}
+/**
+ * Response type for workflow suggestion API.
+ * @example
+ * ```ts
+ * const response: WorkflowSuggestionResponse = {
+ *   timestamp: '2026-03-11T17:57:16.238805Z',
+ *   suggestsWorkflow: [{ workflowName: 'Verify', description: 'Verify customer', priority: 1 }]
+ * };
+ * ```
+ */
+export interface WorkflowSuggestionResponse {
+    /**
+     * Timestamp of the API response.
+     */
+    timestamp: string;
+    /**
+     * Array of workflow suggestions from semantic search.
+     */
+    suggestsWorkflow: WorkflowSuggestion[];
+}
 export {};

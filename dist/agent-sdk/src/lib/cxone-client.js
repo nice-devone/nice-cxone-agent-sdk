@@ -365,11 +365,9 @@ export class CXoneClient {
         const keysToPersist = Object.values(NotificationSettings).concat([
             StorageKeys.CXONE_NAVIGATION_ITEMS,
             StorageKeys.EXTERNAL_PRODUCT_URLS,
-            StorageKeys.ACTIVE_CUSTOMWORKSPACE,
             StorageKeys.SORT_CRITERIA_DIGITAL,
             StorageKeys.SORT_ORDER_DIGITAL,
             StorageKeys.VOICE_PREFERENCE,
-            StorageKeys.FAVORITE_AGENT_STATES,
             StorageKeys.AGENT_SCREEN_SIZE,
             StorageKeys.CXA_FAV_AGENT_STATES
         ]);

@@ -9,5 +9,6 @@ exports.TASK_ASSIST_STATUS = {
     IN_PROGRESS: 'inProgress',
     LOADING: 'loading',
     SUCCESS: 'success',
+    ACTIVE_FILL: 'activeFill',
 };
 //# sourceMappingURL=copilot-task-assist.js.map

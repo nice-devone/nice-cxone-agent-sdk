@@ -197,5 +197,16 @@ exports.CallContactEventYup = (0, yup_1.object)({
      * @remarks - If Require Manual Agent Accept setting is enabled, value will be set to true
      */
     isRequireManualAccept: (0, yup_1.boolean)().transform((value) => (value === '' ? undefined : value)).default(false),
+    /**
+     * @remarks - The unique ID for the contact in the external system, if it exists.
+     * Available for contacts that are created through an integration with SmartReach
+     *  This value is optional and may not be present on all contacts.
+     */
+    externalCustomerId: (0, yup_1.string)().optional(),
+    /**
+     * @remarks - The unique transaction ID for SmartReach,
+     * This value is optional and may not be present on all contacts.
+     */
+    smartReachTransactionId: (0, yup_1.string)().optional(),
 }).camelCase();
 //# sourceMappingURL=call-contact-event.js.map

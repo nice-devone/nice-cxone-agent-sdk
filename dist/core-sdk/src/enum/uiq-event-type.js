@@ -7,5 +7,6 @@ export var UIQEventType;
     UIQEventType["SNAPSHOT_REQUEST"] = "SnapshotRequest";
     UIQEventType["RECEIVE_TOKEN_BEFORE_EXPIRY"] = "ReceiveTokenBeforeExpiry";
     UIQEventType["NETWORK_OFFLINE_EVENT"] = "NetworkOfflineEvent";
+    UIQEventType["PONG"] = "Pong";
 })(UIQEventType || (UIQEventType = {}));
 //# sourceMappingURL=uiq-event-type.js.map

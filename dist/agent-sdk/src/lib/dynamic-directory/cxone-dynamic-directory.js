@@ -4,7 +4,6 @@ import { CXoneSdkError, CXoneSdkErrorType, DirectoryEntries, Directories, Search
 import { ApiUriConstants, dbInstance, HttpClient, HttpUtilService, IndexDBKeyNames, IndexDBStoreNames, LocalStorageHelper, Logger, StorageKeys, UrlUtilsService, ValidationUtils, } from '@nice-devone/core-sdk';
 import { Subject } from 'rxjs';
 import { WSProvider } from './provider/ws-provider';
-import { FeatureToggleService } from '../feature-toggle';
 /** This is the base class for Dynamic Directory*/
 export class CXoneDynamicDirectory {
     /**
@@ -20,10 +19,14 @@ export class CXoneDynamicDirectory {
         this.utilService = new HttpUtilService();
         this.urlUtilsService = new UrlUtilsService();
         this.wsProvider = new WSProvider(this);
+        this.newGenWsProvider = new WSProvider(this);
         this.currentSearchDirectoriesRequest = {};
         this.searchDirectoriesResponse = new SearchDirectoriesResponse();
+        this.searchNewGenDirectoriesResponse = new SearchDirectoriesResponse();
         this.onMessageReceived = new Subject();
+        this.onNewGenMessageReceived = new Subject();
         this.searchDirectoryResult = new Subject();
+        this.searchNewGenDirectoryResult = new Subject();
         this.directory = 'Directory';
         /** Method used to update favorite directory entries from client data
          * @example -
@@ -39,6 +42,25 @@ export class CXoneDynamicDirectory {
             const directoryEntries = ((_a = this.searchDirectoriesResponse) === null || _a === void 0 ? void 0 : _a.directoryEntries) || [];
             directoryEntries === null || directoryEntries === void 0 ? void 0 : directoryEntries.forEach((entry) => {
                 entry.isFavorite = favExtDirectorySet.has(entry === null || entry === void 0 ? void 0 : entry.userMappingId);
+            });
+        });
+        /** Method used to update favorite directory entries from client data
+         * @example -
+         * ```
+         * updateFavNewGenDirEntriesFromClientData();
+         * ```
+      */
+        this.updateFavNewGenDirEntriesFromClientData = () => __awaiter(this, void 0, void 0, function* () {
+            var _b;
+            const clientData = LocalStorageHelper.getItem(StorageKeys.CLIENT_DATA, true) || {};
+            const favNewGenDirectoryEntries = (clientData === null || clientData === void 0 ? void 0 : clientData.CXAFavNewGenDirectory) || [];
+            const favNewGenDirectorySet = new Set(favNewGenDirectoryEntries);
+            const directoryEntries = ((_b = this.searchNewGenDirectoriesResponse) === null || _b === void 0 ? void 0 : _b.directoryEntries) || [];
+            directoryEntries === null || directoryEntries === void 0 ? void 0 : directoryEntries.forEach((entry) => {
+                var _a, _b;
+                const userId = (_b = (_a = entry === null || entry === void 0 ? void 0 : entry.attributes) === null || _a === void 0 ? void 0 : _a.find((attr) => attr.profileType === 'UserId')) === null || _b === void 0 ? void 0 : _b.value;
+                entry.isFavorite =
+                    typeof userId === 'string' && favNewGenDirectorySet.has(userId);
             });
         });
         this.auth = CXoneAuth.instance;
@@ -126,6 +148,45 @@ export class CXoneDynamicDirectory {
             }
         });
     }
+    /**
+     * Method used to get new gen directories
+     * @param agentId - Agent id for which directories are fetched
+     * @param startIndex - start index for pagination
+     * @param totalRecords - total records to be fetched
+     * @returns - return the list of new gen directories
+     * ```
+     * @example
+     * getNewGenDirectories(1234,0,25)
+     * This will get new gen directories from 0 to 25 for agent id 1234
+     * ```
+     */
+    getNewGenDirectories(agentId, startIndex = 0, totalRecords = 25) {
+        return new Promise((resolve, reject) => {
+            const cxOneConfig = this.auth.getCXoneConfig();
+            const authToken = this.auth.getAuthToken();
+            const getNewGenDirectoriesUri = ApiUriConstants.GET_NEWGEN_DIRECTORIES;
+            const queryParams = { skip: startIndex, top: totalRecords };
+            let getNewGenDirectoriesUrl = cxOneConfig.apiFacadeBaseUri + getNewGenDirectoriesUri;
+            const reqInit = this.utilService.initHeader(authToken.accessToken, 'application/json');
+            getNewGenDirectoriesUrl = this.urlUtilsService.appendQueryString(getNewGenDirectoriesUrl, queryParams);
+            if (this.validationUtils.isNotNullOrEmpty(agentId)) {
+                HttpClient.get(getNewGenDirectoriesUrl, reqInit).then((response) => {
+                    this.logger.info('getNewGenDirectories', 'getNewGenDirectories success:-' + response.toString());
+                    response.data.startIndex = startIndex;
+                    response.data.totalRecords = totalRecords;
+                    resolve(response.data);
+                }, (error) => {
+                    var _a;
+                    this.logger.error('getNewGenDirectories', 'getNewGenDirectories failed:-' + error.toString());
+                    reject(new CXoneSdkError(CXoneSdkErrorType.CXONE_API_ERROR, (_a = error === null || error === void 0 ? void 0 : error.data) === null || _a === void 0 ? void 0 : _a.message, error === null || error === void 0 ? void 0 : error.data));
+                });
+            }
+            else {
+                this.logger.error('getNewGenDirectories', 'agentId is empty');
+                reject(new CXoneSdkError(CXoneSdkErrorType.INVALID_METHOD_INVOCATION, 'agentId is empty'));
+            }
+        });
+    }
     /** Method used to get Directory metadata
      * @param directoryId - Directory id for which we need to get metadata
      * @param agentId - Agent id for which directories are fetched
@@ -188,6 +249,31 @@ export class CXoneDynamicDirectory {
     }
     ;
     /**
+     * Used to toggle the favorite marker for newgen directory and store it in Index DB
+     * @param newGenDirectoryEntries - Information of the newgen directory of whom favorite field needs to be toggled
+     * @example -
+     * ```
+     * directoryProvider.toggleFavoriteForNewGenDirectory(newGenDirectoryEntries);
+     * ```
+     */
+    toggleFavoriteForNewGenDirectory(newGenDirectoryEntries) {
+        return __awaiter(this, void 0, void 0, function* () {
+            const db = yield dbInstance();
+            const favNewGenDirectoryEntriesInDB = (yield (db === null || db === void 0 ? void 0 : db.get(IndexDBStoreNames.DIRECTORY, IndexDBKeyNames.FAVORITE_NEWGEN_DIR_ENTRIES))) || [];
+            const toggledNewGenDirEntryIds = newGenDirectoryEntries === null || newGenDirectoryEntries === void 0 ? void 0 : newGenDirectoryEntries.map(entry => entry === null || entry === void 0 ? void 0 : entry.userMappingId);
+            const existingNewGenDirEntryIds = favNewGenDirectoryEntriesInDB === null || favNewGenDirectoryEntriesInDB === void 0 ? void 0 : favNewGenDirectoryEntriesInDB.map(entry => entry === null || entry === void 0 ? void 0 : entry.userMappingId);
+            // Remove toggled entries from favorites
+            const entriesToKeep = favNewGenDirectoryEntriesInDB.filter(entry => !toggledNewGenDirEntryIds.includes(entry === null || entry === void 0 ? void 0 : entry.userMappingId));
+            // Add new toggled entries not already in favorites
+            const entriesToAdd = newGenDirectoryEntries
+                .filter(entry => !existingNewGenDirEntryIds.includes(entry === null || entry === void 0 ? void 0 : entry.userMappingId))
+                .map(entry => (Object.assign(Object.assign({}, entry), { isFavorite: true })));
+            const updatedNewGenDirEntries = [...entriesToKeep, ...entriesToAdd];
+            yield (db === null || db === void 0 ? void 0 : db.put(IndexDBStoreNames.DIRECTORY, updatedNewGenDirEntries, IndexDBKeyNames.FAVORITE_NEWGEN_DIR_ENTRIES));
+        });
+    }
+    ;
+    /**
    * Used to sort external directory entries based on first name and last name
    *  @param externalDirectoryEntries - array of external directory entries
    * @example -
@@ -200,6 +286,36 @@ export class CXoneDynamicDirectory {
             var _a, _b, _c;
             return (_b = (_a = ((directoryEntryA === null || directoryEntryA === void 0 ? void 0 : directoryEntryA.firstname) + ' ' + (directoryEntryA === null || directoryEntryA === void 0 ? void 0 : directoryEntryA.lastname))) === null || _a === void 0 ? void 0 : _a.toUpperCase()) === null || _b === void 0 ? void 0 : _b.localeCompare((_c = ((directoryEntryB === null || directoryEntryB === void 0 ? void 0 : directoryEntryB.firstname) + ' ' + (directoryEntryB === null || directoryEntryB === void 0 ? void 0 : directoryEntryB.lastname))) === null || _c === void 0 ? void 0 : _c.toUpperCase());
         });
+    }
+    /**
+   * Used to sort new gen directory entries based on first name and last name
+   *  @param newGenDirectoryEntries - array of new gen directory entries
+   * @example -
+   * ```
+   * sortNewGenDirectory(newGenDirectoryEntries)
+   * ```
+   */
+    sortNewGenDirectory(newGenDirectoryEntries) {
+        /**
+         * Returns the attribute value for the given field from NewGen directory attributes
+         *
+         * @param entry - Directory entry
+         * @param field - Attribute field type
+         * @returns Attribute value or empty string
+        * @example -
+        * ```
+        * getAttr(entry, 'firstName')
+        * ```
+        */
+        const getAttr = (entry, field) => {
+            var _a;
+            return Array.isArray(entry === null || entry === void 0 ? void 0 : entry.attributes)
+                ? ((_a = entry.attributes.find(attr => attr.fieldType === field)) === null || _a === void 0 ? void 0 : _a.value) || ''
+                : '';
+        };
+        return newGenDirectoryEntries.sort((a, b) => `${getAttr(a, 'firstName')} ${getAttr(a, 'lastName')}`
+            .toUpperCase()
+            .localeCompare(`${getAttr(b, 'firstName')} ${getAttr(b, 'lastName')}`.toUpperCase()));
     }
     /**
    * get filtered External Directory List based on search text
@@ -218,6 +334,35 @@ export class CXoneDynamicDirectory {
             return ((_a = firstAndLast === null || firstAndLast === void 0 ? void 0 : firstAndLast.toUpperCase()) === null || _a === void 0 ? void 0 : _a.includes(searchText)) || ((_b = lastAndFirst === null || lastAndFirst === void 0 ? void 0 : lastAndFirst.toUpperCase()) === null || _b === void 0 ? void 0 : _b.includes(searchText));
         });
         return extDirResultState;
+    }
+    /**
+   * get filtered New Gen Directory List based on search text
+   * @param newGenDirectories - array of new gen directory entries
+   * @param searchText - search string
+   * @example -
+   * ```
+   * getFilteredNewGenDirList(searchText, newGenDirectories)
+   * ```
+   */
+    getFilteredNewGenDirList(searchText, newGenDirectories) {
+        const search = searchText === null || searchText === void 0 ? void 0 : searchText.toUpperCase();
+        const newGenDirResultState = newGenDirectories.filter((entry) => {
+            var _a, _b;
+            const attributes = (entry === null || entry === void 0 ? void 0 : entry.attributes) || [];
+            let firstName = '';
+            let lastName = '';
+            if (Array.isArray(attributes)) {
+                firstName =
+                    ((_a = attributes.find((attr) => attr.fieldType === 'firstName')) === null || _a === void 0 ? void 0 : _a.value) || '';
+                lastName =
+                    ((_b = attributes.find((attr) => attr.fieldType === 'lastName')) === null || _b === void 0 ? void 0 : _b.value) || '';
+            }
+            const firstAndLast = `${firstName} ${lastName}`.toUpperCase();
+            const lastAndFirst = `${lastName} ${firstName}`.toUpperCase();
+            return (firstAndLast.includes(search) ||
+                lastAndFirst.includes(search));
+        });
+        return newGenDirResultState;
     }
     /**
     * Function to add external directory entries favorite in Index DB from store
@@ -243,6 +388,29 @@ export class CXoneDynamicDirectory {
         });
     }
     /**
+    * Function to add newgen directory entries favorite in Index DB from store
+    * @param directoryEntries - Array of newgen directory entries to update favorites.
+    * @example -
+    * ```
+    * updateNewGenDirectoryEntriesFavListInDB(newGenDirectoryEntries)
+    * ```
+    */
+    updateNewGenDirectoryEntriesFavListInDB(newGenDirectoryEntries) {
+        return __awaiter(this, void 0, void 0, function* () {
+            const db = yield dbInstance();
+            const favNewGenDirectoryEntriesDB = (yield (db === null || db === void 0 ? void 0 : db.get(IndexDBStoreNames.DIRECTORY, IndexDBKeyNames.FAVORITE_NEWGEN_DIR_ENTRIES))) || [];
+            const favNewGenDirEntryIdsInDB = (favNewGenDirectoryEntriesDB === null || favNewGenDirectoryEntriesDB === void 0 ? void 0 : favNewGenDirectoryEntriesDB.map(newGenDirectoryEntry => newGenDirectoryEntry === null || newGenDirectoryEntry === void 0 ? void 0 : newGenDirectoryEntry.userMappingId)) || [];
+            const updatedFavNewGenDirectoryEntries = [];
+            newGenDirectoryEntries === null || newGenDirectoryEntries === void 0 ? void 0 : newGenDirectoryEntries.forEach((newGenDirectoryEntry) => {
+                if ((newGenDirectoryEntry === null || newGenDirectoryEntry === void 0 ? void 0 : newGenDirectoryEntry.isFavorite) && !(favNewGenDirEntryIdsInDB.includes(newGenDirectoryEntry === null || newGenDirectoryEntry === void 0 ? void 0 : newGenDirectoryEntry.userMappingId))) {
+                    updatedFavNewGenDirectoryEntries.push(newGenDirectoryEntry);
+                }
+            });
+            // maintain existing favorites, add newly added favorites from store
+            yield (db === null || db === void 0 ? void 0 : db.put(IndexDBStoreNames.DIRECTORY, [...favNewGenDirectoryEntriesDB, ...updatedFavNewGenDirectoryEntries], IndexDBKeyNames.FAVORITE_NEWGEN_DIR_ENTRIES));
+        });
+    }
+    /**
    * Used to retrieve external directory entries and filter out favorites
    * @param directoryEntries - array of directory entries to filter
    * @param extDirectoryName - external directory name to filter
@@ -265,6 +433,31 @@ export class CXoneDynamicDirectory {
                 favExtDirectoryList = (_a = this.sortExternalDirectory(filteredExtDirSearchList)) === null || _a === void 0 ? void 0 : _a.filter((entry) => entry === null || entry === void 0 ? void 0 : entry.isFavorite);
             }
             return favExtDirectoryList;
+        });
+    }
+    /**
+   * Used to retrieve external directory entries and filter out favorites
+   * @param directoryEntries - array of directory entries to filter
+   * @param extDirectoryName - external directory name to filter
+   * @returns - returns the filtered favorite external directory entries
+   * @example -
+   * ```
+   * directoryProvider.getFavoritesByNewGenDirectory(directoryEntries, newGenDirectoryName);
+   * ```
+   */
+    getFavoritesByNewGenDirectory(newGenDirectoryEntries, newGenDirectoryName) {
+        var _a;
+        return __awaiter(this, void 0, void 0, function* () {
+            this.updateNewGenDirectoryEntriesFavListInDB(newGenDirectoryEntries);
+            let favNewGenDirectoryList = [];
+            const filteredFav = (newGenDirectoryEntries === null || newGenDirectoryEntries === void 0 ? void 0 : newGenDirectoryEntries.filter((entry) => entry === null || entry === void 0 ? void 0 : entry.isFavorite)) || [];
+            favNewGenDirectoryList = filteredFav;
+            if ((newGenDirectoryName === null || newGenDirectoryName === void 0 ? void 0 : newGenDirectoryName.length) > 0) {
+                favNewGenDirectoryList = [];
+                const filteredNewGenDirSearchList = this.getFilteredNewGenDirList(newGenDirectoryName.toUpperCase(), newGenDirectoryEntries);
+                favNewGenDirectoryList = (_a = this.sortNewGenDirectory(filteredNewGenDirSearchList)) === null || _a === void 0 ? void 0 : _a.filter((entry) => entry === null || entry === void 0 ? void 0 : entry.isFavorite);
+            }
+            return favNewGenDirectoryList;
         });
     }
     /**
@@ -316,19 +509,16 @@ export class CXoneDynamicDirectory {
                     this.currentSearchDirectoriesRequest.subscriptionId =
                         this.searchDirectoriesResponse.subscriptionId;
                     this.wsProvider.connectSocket();
-                    this.socketMessageHandler();
+                    this.socketMessageHandler(this.wsProvider, false);
                 }
-                const isFavoritesFTEnabled = FeatureToggleService.instance.getFeatureToggleSync("release-cxa-favorites-AW-40314" /* FeatureToggles.CXA_FAVORITES_FEATURE_TOGGLE */);
-                if (isFavoritesFTEnabled) {
-                    this.updateFavExtDirEntriesFromClientData();
-                }
-                this.publishFinalDynamicDirectoryResponse(this.searchDirectoriesResponse);
+                this.updateFavExtDirEntriesFromClientData();
+                this.publishFinalDynamicDirectoryResponse(this.searchDirectoriesResponse, false);
                 return;
             }, (error) => {
                 this.logger.error('searchDirectories', 'searchDirectories failed:-' + error.toString());
                 const errorSearchResult = new SearchDirectoriesResponse();
                 errorSearchResult.error = error;
-                this.publishFinalDynamicDirectoryResponse(errorSearchResult);
+                this.publishFinalDynamicDirectoryResponse(errorSearchResult, false);
                 return;
             });
         }
@@ -336,7 +526,79 @@ export class CXoneDynamicDirectory {
             this.logger.error('searchDirectories', 'All mendatory inputs are not provided');
             const errorSearchResult = new SearchDirectoriesResponse();
             errorSearchResult.error = new CXoneSdkError(CXoneSdkErrorType.INVALID_METHOD_PARMS, 'All mendatory inputs are not provided');
-            this.publishFinalDynamicDirectoryResponse(errorSearchResult);
+            this.publishFinalDynamicDirectoryResponse(errorSearchResult, false);
+            return;
+        }
+    }
+    /**
+     * Method is used to search newgen directories
+     * @param searchNewGenDirectoriesRequest -- pass the searchNewGenDirectoriesRequest type object
+     * @returns - return object of type SearchNewGenDirectoriesResponse. Containing filtered newgen directories based on search parameter
+     * @example -
+     * ```
+     * searchNewGenDirectories(searchDirectoriesRequest)
+     * ```
+     */
+    searchNewGenDirectories(searchNewGenDirectoriesRequest) {
+        this.currentNewGenSearchDirectoriesRequest = searchNewGenDirectoriesRequest;
+        const cxOneConfig = this.auth.getCXoneConfig();
+        const authToken = this.auth.getAuthToken();
+        const searchNewGenDirectoriesUri = ApiUriConstants.SEARCH_NEWGEN_DIRECTORIES;
+        const searchNewGenDirectoriesUrl = cxOneConfig.apiFacadeBaseUri + searchNewGenDirectoriesUri;
+        const requestBody = {
+            subscriptionId: this.validationUtils.isNotNullOrEmpty(searchNewGenDirectoriesRequest === null || searchNewGenDirectoriesRequest === void 0 ? void 0 : searchNewGenDirectoriesRequest.subscriptionId)
+                ? searchNewGenDirectoriesRequest === null || searchNewGenDirectoriesRequest === void 0 ? void 0 : searchNewGenDirectoriesRequest.subscriptionId
+                : null,
+            searchString: searchNewGenDirectoriesRequest === null || searchNewGenDirectoriesRequest === void 0 ? void 0 : searchNewGenDirectoriesRequest.searchString,
+            realTimeUpdates: searchNewGenDirectoriesRequest === null || searchNewGenDirectoriesRequest === void 0 ? void 0 : searchNewGenDirectoriesRequest.realTimeUpdates,
+            skip: searchNewGenDirectoriesRequest === null || searchNewGenDirectoriesRequest === void 0 ? void 0 : searchNewGenDirectoriesRequest.skip,
+            top: searchNewGenDirectoriesRequest === null || searchNewGenDirectoriesRequest === void 0 ? void 0 : searchNewGenDirectoriesRequest.top,
+            directoryUUID: this.validationUtils.isNotNullOrEmpty(searchNewGenDirectoriesRequest === null || searchNewGenDirectoriesRequest === void 0 ? void 0 : searchNewGenDirectoriesRequest.directoryUUID)
+                ? searchNewGenDirectoriesRequest === null || searchNewGenDirectoriesRequest === void 0 ? void 0 : searchNewGenDirectoriesRequest.directoryUUID
+                : null,
+            filter: {
+                partnerType: this.validationUtils.isNotNullOrEmptyArray(searchNewGenDirectoriesRequest === null || searchNewGenDirectoriesRequest === void 0 ? void 0 : searchNewGenDirectoriesRequest.partnerType)
+                    ? searchNewGenDirectoriesRequest === null || searchNewGenDirectoriesRequest === void 0 ? void 0 : searchNewGenDirectoriesRequest.partnerType
+                    : null,
+                fieldType: this.validationUtils.isNotNullOrEmptyArray(searchNewGenDirectoriesRequest === null || searchNewGenDirectoriesRequest === void 0 ? void 0 : searchNewGenDirectoriesRequest.fieldType)
+                    ? searchNewGenDirectoriesRequest === null || searchNewGenDirectoriesRequest === void 0 ? void 0 : searchNewGenDirectoriesRequest.fieldType
+                    : null,
+            },
+        };
+        const reqInit = {
+            headers: this.utilService.initHeader(authToken.accessToken, 'application/json').headers,
+            body: requestBody,
+        };
+        if (this.validationUtils.isNotNullOrEmpty(searchNewGenDirectoriesRequest === null || searchNewGenDirectoriesRequest === void 0 ? void 0 : searchNewGenDirectoriesRequest.realTimeUpdates) &&
+            this.validationUtils.isNotNullOrEmpty(searchNewGenDirectoriesRequest === null || searchNewGenDirectoriesRequest === void 0 ? void 0 : searchNewGenDirectoriesRequest.skip) &&
+            this.validationUtils.isNotNullOrEmpty(searchNewGenDirectoriesRequest === null || searchNewGenDirectoriesRequest === void 0 ? void 0 : searchNewGenDirectoriesRequest.top)) {
+            HttpClient.post(searchNewGenDirectoriesUrl, reqInit).then((response) => {
+                this.logger.info('searchNewGenDirectories', 'searchNewGenDirectories success:-' + response.toString());
+                this.searchNewGenDirectoriesResponse.parse(response.data);
+                if (searchNewGenDirectoriesRequest === null || searchNewGenDirectoriesRequest === void 0 ? void 0 : searchNewGenDirectoriesRequest.realTimeUpdates) {
+                    if (this.currentNewGenSearchDirectoriesRequest) {
+                        this.currentNewGenSearchDirectoriesRequest.subscriptionId =
+                            this.searchNewGenDirectoriesResponse.subscriptionId;
+                    }
+                    this.newGenWsProvider.connectNewGenSocket();
+                    this.socketMessageHandler(this.newGenWsProvider, true);
+                }
+                this.updateFavNewGenDirEntriesFromClientData();
+                this.publishFinalDynamicDirectoryResponse(this.searchNewGenDirectoriesResponse, true);
+                return;
+            }, (error) => {
+                this.logger.error('searchNewGenDirectories', 'searchNewGenDirectories failed:-' + error.toString());
+                const errorSearchResult = new SearchDirectoriesResponse();
+                errorSearchResult.error = error;
+                this.publishFinalDynamicDirectoryResponse(errorSearchResult, true);
+                return;
+            });
+        }
+        else {
+            this.logger.error('searchNewGenDirectories', 'All mendatory inputs are not provided');
+            const errorSearchResult = new SearchDirectoriesResponse();
+            errorSearchResult.error = new CXoneSdkError(CXoneSdkErrorType.INVALID_METHOD_PARMS, 'All mendatory inputs are not provided');
+            this.publishFinalDynamicDirectoryResponse(errorSearchResult, true);
             return;
         }
     }
@@ -349,7 +611,14 @@ export class CXoneDynamicDirectory {
      */
     setSelectedTabs(appSpaceSelectedTab, globalSelectedTab) {
         if (appSpaceSelectedTab !== this.directory && globalSelectedTab !== this.directory) {
-            this.wsProvider.unsubscribeSearch(this.searchDirectoriesResponse.subscriptionId);
+            // Unsubscribe from legacy provider if it has a subscription
+            if (this.searchDirectoriesResponse.subscriptionId) {
+                this.wsProvider.unsubscribeSearch(this.searchDirectoriesResponse.subscriptionId);
+            }
+            // Unsubscribe from newgen provider if it has a subscription
+            if (this.searchNewGenDirectoriesResponse.subscriptionId) {
+                this.newGenWsProvider.unsubscribeSearch(this.searchNewGenDirectoriesResponse.subscriptionId);
+            }
         }
     }
     /**
@@ -361,7 +630,14 @@ export class CXoneDynamicDirectory {
      */
     setDomVisibility(domVisibility) {
         if (!domVisibility) {
-            this.wsProvider.unsubscribeSearch(this.searchDirectoriesResponse.subscriptionId);
+            // Unsubscribe from legacy provider if it has a subscription
+            if (this.searchDirectoriesResponse.subscriptionId) {
+                this.wsProvider.unsubscribeSearch(this.searchDirectoriesResponse.subscriptionId);
+            }
+            // Unsubscribe from newgen provider if it has a subscription
+            if (this.searchNewGenDirectoriesResponse.subscriptionId) {
+                this.newGenWsProvider.unsubscribeSearch(this.searchNewGenDirectoriesResponse.subscriptionId);
+            }
         }
     }
     /**
@@ -372,7 +648,21 @@ export class CXoneDynamicDirectory {
      * ```
      */
     endDirectoriesSearch(subscriptionId) {
-        this.wsProvider.unsubscribeSearch(subscriptionId);
+        // Check if this is a NewGen subscription ID
+        if (this.searchNewGenDirectoriesResponse.subscriptionId === subscriptionId) {
+            this.newGenWsProvider.unsubscribeSearch(subscriptionId);
+        }
+        // Check if this is a legacy subscription ID
+        else if (this.searchDirectoriesResponse.subscriptionId === subscriptionId) {
+            this.wsProvider.unsubscribeSearch(subscriptionId);
+        }
+        // If subscriptionId doesn't match either, try to unsubscribe from both
+        else {
+            this.logger.warn('endDirectoriesSearch', `SubscriptionId ${subscriptionId} does not match any known subscriptions`);
+            // Attempt unsubscribe from both providers as fallback
+            this.wsProvider.unsubscribeSearch(subscriptionId);
+            this.newGenWsProvider.unsubscribeSearch(subscriptionId);
+        }
     }
     /**
      * Method used to connect the WebSocket
@@ -381,39 +671,81 @@ export class CXoneDynamicDirectory {
      * this.connectSocket();
      * ```
      */
-    socketMessageHandler() {
-        this.messageReceivedSubscription = this.onMessageReceived.subscribe((message) => {
-            var _a, _b;
+    socketMessageHandler(provider, isNewGen) {
+        const stream = isNewGen
+            ? this.onNewGenMessageReceived
+            : this.onMessageReceived;
+        const subscription = stream.subscribe((message) => {
+            var _a, _b, _c, _d;
             switch (message.command) {
                 case WSCommand.CONNECTED: {
-                    this.wsProvider.subscribeSearch(((_a = this.currentSearchDirectoriesRequest) === null || _a === void 0 ? void 0 : _a.subscriptionId)
-                        ? (_b = this.currentSearchDirectoriesRequest) === null || _b === void 0 ? void 0 : _b.subscriptionId
-                        : '');
+                    if ((isNewGen && provider !== this.newGenWsProvider) ||
+                        (!isNewGen && provider !== this.wsProvider))
+                        return;
+                    const subscriptionId = isNewGen
+                        ? (_b = (_a = this.currentNewGenSearchDirectoriesRequest) === null || _a === void 0 ? void 0 : _a.subscriptionId) !== null && _b !== void 0 ? _b : ''
+                        : (_d = (_c = this.currentSearchDirectoriesRequest) === null || _c === void 0 ? void 0 : _c.subscriptionId) !== null && _d !== void 0 ? _d : '';
+                    if (subscriptionId) {
+                        provider.subscribeSearch(subscriptionId);
+                    }
                     break;
                 }
                 case WSCommand.RECONNECTED: {
-                    this.searchDirectories(this.currentSearchDirectoriesRequest);
+                    if (this.currentNewGenSearchDirectoriesRequest) {
+                        this.searchNewGenDirectories(this.currentNewGenSearchDirectoriesRequest);
+                    }
+                    else if (this.currentSearchDirectoriesRequest) {
+                        this.searchDirectories(this.currentSearchDirectoriesRequest);
+                    }
                     break;
                 }
                 case WSCommand.UNSUBSCRIBED: {
-                    this.wsProvider.close();
-                    this.messageReceivedSubscription.unsubscribe();
+                    provider.close();
+                    if (isNewGen) {
+                        if (this.newGenMessageReceivedSubscription) {
+                            this.newGenMessageReceivedSubscription.unsubscribe();
+                        }
+                    }
+                    else {
+                        if (this.messageReceivedSubscription) {
+                            this.messageReceivedSubscription.unsubscribe();
+                        }
+                    }
                     break;
                 }
                 case WSCommand.MESSAGE: {
                     const mergedResult = this.mergeSearchResults(message);
-                    this.searchDirectoriesResponse.error = null;
-                    this.publishFinalDynamicDirectoryResponse(mergedResult);
+                    if (isNewGen) {
+                        this.searchNewGenDirectoriesResponse.error = null;
+                        this.publishFinalDynamicDirectoryResponse(mergedResult, true);
+                    }
+                    else {
+                        this.searchDirectoriesResponse.error = null;
+                        this.publishFinalDynamicDirectoryResponse(mergedResult, false);
+                    }
                     break;
                 }
                 case WSCommand.ERROR: {
                     this.logger.error('cxone-dynamic-directory', message.body.error);
-                    this.searchDirectoriesResponse.error = message.body.error;
-                    this.publishFinalDynamicDirectoryResponse(this.searchDirectoriesResponse);
+                    if (this.currentNewGenSearchDirectoriesRequest) {
+                        this.searchNewGenDirectoriesResponse.error = message.body.error;
+                        this.publishFinalDynamicDirectoryResponse(this.searchNewGenDirectoriesResponse, true);
+                    }
+                    else {
+                        this.searchDirectoriesResponse.error = message.body.error;
+                        this.publishFinalDynamicDirectoryResponse(this.searchDirectoriesResponse, false);
+                    }
                     break;
                 }
             }
         });
+        // Store the subscription for cleanup
+        if (isNewGen) {
+            this.newGenMessageReceivedSubscription = subscription;
+        }
+        else {
+            this.messageReceivedSubscription = subscription;
+        }
     }
     /**
      * Method used to connect the WebSocket
@@ -423,20 +755,30 @@ export class CXoneDynamicDirectory {
      * ```
      */
     mergeSearchResults(message) {
+        var _a, _b;
         const presenceOrder = {
             Green: 3,
             Red: 4,
             Yellow: 2,
             Grey: 1,
         };
-        let currentStatus = 0;
-        this.searchDirectoriesResponse.directoryEntries.forEach((data) => {
-            if (data.userMappingId === message.body.dynamicUserMappingId) {
-                data.unifiedSocketStatus = message.body.unifiedStatus;
-                data.attributes = data.attributes.map((entities) => {
+        const activeResponse = this.currentNewGenSearchDirectoriesRequest
+            ? this.searchNewGenDirectoriesResponse
+            : this.searchDirectoriesResponse;
+        if (!(activeResponse === null || activeResponse === void 0 ? void 0 : activeResponse.directoryEntries))
+            return activeResponse;
+        const payload = (_b = (_a = message === null || message === void 0 ? void 0 : message.body) === null || _a === void 0 ? void 0 : _a.payload) !== null && _b !== void 0 ? _b : message === null || message === void 0 ? void 0 : message.body;
+        activeResponse === null || activeResponse === void 0 ? void 0 : activeResponse.directoryEntries.forEach((data) => {
+            var _a, _b;
+            const isMatchingUser = (_a = data.attributes) === null || _a === void 0 ? void 0 : _a.some((attr) => attr.profileType === 'UserId' &&
+                attr.value === payload.partnerPlatformUserId);
+            if (isMatchingUser) {
+                let currentStatus = 0;
+                data.unifiedSocketStatus = payload.unifiedStatus;
+                data.attributes = (_b = data.attributes) === null || _b === void 0 ? void 0 : _b.map((entities) => {
                     if (entities.fieldType === 'presence') {
-                        if (entities.partnerType === message.body.partnerPlatform) {
-                            entities = Object.assign(Object.assign({}, entities), { value: message.body.dirSyncPresenceStatusColor });
+                        if (entities.partnerType === payload.partnerPlatform) {
+                            entities = Object.assign(Object.assign({}, entities), { value: payload.dirSyncPresenceStatusColor });
                         }
                         const state = entities.value;
                         if (currentStatus < presenceOrder[state]) {
@@ -448,7 +790,7 @@ export class CXoneDynamicDirectory {
                 });
             }
         });
-        return this.searchDirectoriesResponse;
+        return activeResponse;
     }
     /**
      * Method used to update subject with directory search response
@@ -457,8 +799,13 @@ export class CXoneDynamicDirectory {
      * this.publishFinalDynamicDirectoryResponse();
      * ```
      */
-    publishFinalDynamicDirectoryResponse(data) {
-        this.searchDirectoryResult.next(data);
+    publishFinalDynamicDirectoryResponse(data, isNewGen) {
+        if (isNewGen) {
+            this.searchNewGenDirectoryResult.next(data);
+        }
+        else {
+            this.searchDirectoryResult.next(data);
+        }
     }
 }
 //# sourceMappingURL=cxone-dynamic-directory.js.map

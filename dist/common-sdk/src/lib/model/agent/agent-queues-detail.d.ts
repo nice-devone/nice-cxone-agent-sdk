@@ -31,7 +31,7 @@ export declare class AgentQueuesDetail extends CXoneEvent {
     /**
      * @remarks -
      */
-    currentContactState: string;
+    currentContactState?: string;
     /**
      * @remarks - first name of contact
      */
@@ -51,15 +51,27 @@ export declare class AgentQueuesDetail extends CXoneEvent {
     /**
      * @remarks - Unique identifier for master contact
      */
-    masterContactId: number;
+    masterContactId?: number;
+    /**
+     * @remarks - Unique identifier for interaction
+     */
+    interactionId?: number;
     /**
      * @remarks - Name of media
      */
-    mediaName: string;
+    mediaName?: string;
     /**
      * @remarks - Type of media
      */
-    mediaType: number;
+    mediaType?: number;
+    /**
+     * @remarks - Channel number
+     */
+    channelNo?: number;
+    /**
+     * @remarks - Channel Name
+     */
+    channelName?: string;
     /**
      * @remarks - Name of Skill
      */

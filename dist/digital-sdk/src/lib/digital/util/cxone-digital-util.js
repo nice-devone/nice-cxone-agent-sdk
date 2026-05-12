@@ -1,5 +1,7 @@
 import { __awaiter } from "tslib";
 import { CcfLogger, FeatureToggleService } from '@nice-devone/agent-sdk';
+import { CXoneDigitalEventType, DigitalContactStatus } from '@nice-devone/common-sdk';
+import { ACDSessionManager } from '@nice-devone/core-sdk';
 import { DigitalContactService } from '../service/digital-contact-service';
 import { DigitalEventSyncService } from '../service/digital-event-sync-service';
 /**
@@ -17,6 +19,7 @@ export class CXoneDigitalUtil {
         this.logger = new CcfLogger('DigitalSDK', 'CXoneDigitalUtil');
         this.digitalContactService = new DigitalContactService();
         this.digitalEventSyncService = new DigitalEventSyncService();
+        this.acdSession = ACDSessionManager.instance;
         this.isWSAPIIntegrationRevampToggleEnabled = FeatureToggleService.instance.getFeatureToggleSync("release-cx-agent-API-websocket-integration-revamp-AW-42181" /* FeatureToggles.REVAMPED_WEBSOCKET_INTEGRATION_PATTERN */) || false;
         this.logger.info('CXoneDigitalUtil constructor', 'constructor invoked to initialize instance');
     }
@@ -70,7 +73,7 @@ export class CXoneDigitalUtil {
        * @param response - Http response from API
        * @param contactId - Contact Id of the digital contact
        * @param eventName - Event name to check
-       * @param eventData - Event data to be passed for syncEventResponse
+       * @param eventData - Event data to be passed for syncEventResponse (or) status will be passed in case of casestatus changed event
        * @param traceXId - traceXId from the response header
        * @returns - isEventConsumed
        * @example -
@@ -86,6 +89,24 @@ export class CXoneDigitalUtil {
             isEventConsumed = yield this.digitalEventSyncService.handleDigitalEventSync({ contactId: contactId, eventName: eventName, traceId: traceId, syncEventResponse: eventData });
             return isEventConsumed;
         });
+    }
+    /**
+     * Method to handle WebSocket unsubscribe for agent assist
+     * @param contactId - Contact Id to unsubscribe from
+     * @param eventType - Type of digital event
+     * @param status - Current contact status
+     * @example
+     * ```
+     * handleAgentAssistUnsubscribe('123456', CXoneDigitalEventType.CASE_STATUS_CHANGED, DigitalContactStatus.CLOSED)
+     * ```
+     */
+    handleAgentAssistUnsubscribe(contactId, eventType, status) {
+        if (contactId) {
+            if ((eventType === CXoneDigitalEventType.CASE_STATUS_CHANGED && status === DigitalContactStatus.CLOSED) ||
+                (eventType === CXoneDigitalEventType.CASE_INBOX_UNASSIGNED && status !== DigitalContactStatus.CLOSED)) {
+                this.acdSession.agentAssistWebSocketUnsubsribeSubject.next(contactId);
+            }
+        }
     }
 }
 //# sourceMappingURL=cxone-digital-util.js.map

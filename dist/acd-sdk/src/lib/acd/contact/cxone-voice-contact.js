@@ -415,6 +415,8 @@ export class CXoneVoiceContact extends CXoneContact {
         this.interactionId = callInfo.interactionId;
         this.isRequireManualAccept = callInfo.isRequireManualAccept;
         this.customerCardUrl = callInfo.customerCardUrl || '';
+        this.externalCustomerId = callInfo.externalCustomerId || '';
+        this.smartReachTransactionId = callInfo.smartReachTransactionId || '';
     }
     /**
      * Method to validate the contact has hold button then invoke the holdContact method

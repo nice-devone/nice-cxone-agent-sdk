@@ -1,6 +1,7 @@
 import { HttpUtilService } from '../../http/index';
 import { Logger } from '../../../logger/logger';
 import { CXoneIndicator, CustomFormData, StartSessionRequest, CXonePageOpen, CXoneRunApp, CXoneSdkError, HttpResponse, EndSessionRequest, AgentSessionResponse, MCHSetting, CXonePopUrl, CXoneContactScreenpop, AgentWorkflowResponseEvent, AgentWorkflowRequestEvent, UserInfo, CXoneAgentAssist, CommitmentEvent, CommitmentStatusEvent, CoBrowseEvent, LocalPostEvent, AgentAssistWSRequest, CallContactEvent, MuteEvent, UpdatePermissionsEvent, AgentStateEvent, UpdateUnavailableCodeEvent, AgentLegEvent, DigitalContactEvent, CXoneConfiguration, UpdateNetworkTimeoutEvent, CXoneCustomScreenpop, GetNextAgentAssistEvent } from '@nice-devone/common-sdk';
+import { ComplianceValidationEvent } from '../../smart-reach-compliance/compliance-validation-event';
 import { Subject, ReplaySubject } from 'rxjs';
 import { CXoneGetNextAdapter } from '../../adapter/cxone-get-next-adapter';
 /**
@@ -44,6 +45,7 @@ export declare class ACDSessionManager {
     private _onUpdateCommitments;
     private _onCommitmentEvent;
     private _onCommitmentStatusEvent;
+    private _onSmartReachValidationEvent;
     private _agentAssistSummarySubject;
     private _agentAssistWSSubject;
     private _agentAssistOmiliaGetNextSubject;
@@ -61,6 +63,26 @@ export declare class ACDSessionManager {
     private _rejectEvent;
     private _callControlEvent;
     private isEventQueueResized;
+    /**
+     * Tracks whether a joinSession HTTP call is currently in flight.
+     *
+     * This flag prevents race conditions when leader election occurs during an
+     * active joinSession HTTP call, ensuring toggleACDEventEmitter is not
+     * called twice.
+     */
+    private isJoinSessionInProgress;
+    /**
+     * Returns true when a joinSession HTTP call is currently in progress.
+     *
+     * This exposes the internal join-session state as read-only to external
+     * consumers and reflects whether the race-condition guard described above
+     * is currently active.
+     * @example
+     * ```
+     * const isJoinSessionInProgress = this.joinSessionInProgress;
+     * ```
+     */
+    get joinSessionInProgress(): boolean;
     private _onAgentCustomEvent;
     private _aaVoiceTranscriptEventSubject;
     /**
@@ -137,12 +159,7 @@ export declare class ACDSessionManager {
         allowDispositions: import("yup/lib/boolean").RequiredBooleanSchema<boolean, import("yup/lib/types").AnyObject>;
         label: import("yup/lib/string").RequiredStringSchema<string, import("yup/lib/types").AnyObject>;
         isLinked: import("yup/lib/boolean").RequiredBooleanSchema<boolean, import("yup/lib/types").AnyObject>;
-        timeZones: import("yup/lib/string").RequiredStringSchema<string, import("yup/lib/types").AnyObject>; /**
-         * @example -
-         * ```
-         * const callContactEventSubject  = acdSession.callContactEventSubject
-         * ```
-         */
+        timeZones: import("yup/lib/string").RequiredStringSchema<string, import("yup/lib/types").AnyObject>;
         finalState: import("yup/lib/boolean").RequiredBooleanSchema<boolean, import("yup/lib/types").AnyObject>;
         otherInformation: import("yup/lib/string").RequiredStringSchema<string, import("yup/lib/types").AnyObject>;
         otherInformationNewFormat: import("yup/lib/string").RequiredStringSchema<string, import("yup/lib/types").AnyObject>;
@@ -159,6 +176,8 @@ export declare class ACDSessionManager {
         interactionId: import("yup/lib/string").RequiredStringSchema<string, import("yup/lib/types").AnyObject>;
         customerCardUrl: import("yup").StringSchema<string, import("yup/lib/types").AnyObject, string>;
         isRequireManualAccept: import("yup").BooleanSchema<boolean, import("yup/lib/types").AnyObject, boolean>;
+        externalCustomerId: import("yup").StringSchema<string, import("yup/lib/types").AnyObject, string>;
+        smartReachTransactionId: import("yup").StringSchema<string, import("yup/lib/types").AnyObject, string>;
     }>>;
     /**
      * @example -
@@ -184,6 +203,9 @@ export declare class ACDSessionManager {
         screenPopUrl: import("yup/lib/string").RequiredStringSchema<string, import("yup/lib/types").AnyObject>;
         skill: import("yup").StringSchema<string, import("yup/lib/types").AnyObject, string>;
         skillName: import("yup").StringSchema<string, import("yup/lib/types").AnyObject, string>;
+        /**
+         * Utility for agent session management
+         */
         startTime: import("yup/lib/date").RequiredDateSchema<Date, import("yup/lib/types").AnyObject>;
         status: import("yup/lib/string").RequiredStringSchema<string, import("yup/lib/types").AnyObject>;
         to: import("yup").StringSchema<string, import("yup/lib/types").AnyObject, string>;
@@ -615,12 +637,7 @@ export declare class ACDSessionManager {
         allowDispositions: import("yup/lib/boolean").RequiredBooleanSchema<boolean, import("yup/lib/types").AnyObject>;
         label: import("yup/lib/string").RequiredStringSchema<string, import("yup/lib/types").AnyObject>;
         isLinked: import("yup/lib/boolean").RequiredBooleanSchema<boolean, import("yup/lib/types").AnyObject>;
-        timeZones: import("yup/lib/string").RequiredStringSchema<string, import("yup/lib/types").AnyObject>; /**
-         * @example -
-         * ```
-         * const callContactEventSubject  = acdSession.callContactEventSubject
-         * ```
-         */
+        timeZones: import("yup/lib/string").RequiredStringSchema<string, import("yup/lib/types").AnyObject>;
         finalState: import("yup/lib/boolean").RequiredBooleanSchema<boolean, import("yup/lib/types").AnyObject>;
         otherInformation: import("yup/lib/string").RequiredStringSchema<string, import("yup/lib/types").AnyObject>;
         otherInformationNewFormat: import("yup/lib/string").RequiredStringSchema<string, import("yup/lib/types").AnyObject>;
@@ -637,6 +654,8 @@ export declare class ACDSessionManager {
         interactionId: import("yup/lib/string").RequiredStringSchema<string, import("yup/lib/types").AnyObject>;
         customerCardUrl: import("yup").StringSchema<string, import("yup/lib/types").AnyObject, string>;
         isRequireManualAccept: import("yup").BooleanSchema<boolean, import("yup/lib/types").AnyObject, boolean>;
+        externalCustomerId: import("yup").StringSchema<string, import("yup/lib/types").AnyObject, string>;
+        smartReachTransactionId: import("yup").StringSchema<string, import("yup/lib/types").AnyObject, string>;
     }>>;
     /**
      * @example -
@@ -689,6 +708,13 @@ export declare class ACDSessionManager {
      * ```
      */
     get onCommitmentStatusEvent(): Subject<CommitmentStatusEvent>;
+    /**
+     * @example -
+     * ```
+     * const onSmartReachValidationEvent  = agentSession.onSmartReachValidationEvent
+     * ```
+     */
+    get onSmartReachValidationEvent(): Subject<ComplianceValidationEvent>;
     /**
     * @example -const agentAssistWebSocketUnsubscribeSubject  = acdSession.agentAssistWebSocketUnsubsribeSubject
     */

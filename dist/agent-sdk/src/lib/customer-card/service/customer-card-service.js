@@ -50,6 +50,7 @@ export class CustomerCardService {
                 case workflowActions.TIMELINE: {
                     return {
                         action: request === null || request === void 0 ? void 0 : request.action,
+                        contactID: request === null || request === void 0 ? void 0 : request.contactID,
                         cxoneContact: request === null || request === void 0 ? void 0 : request.cxoneContact,
                         integration: request === null || request === void 0 ? void 0 : request.integration,
                     };
@@ -68,6 +69,7 @@ export class CustomerCardService {
                 case workflowActions.RELATESTO:
                     return {
                         action: request === null || request === void 0 ? void 0 : request.action,
+                        contactID: request === null || request === void 0 ? void 0 : request.contactID,
                         entity: request === null || request === void 0 ? void 0 : request.entity,
                         entityId: request === null || request === void 0 ? void 0 : request.entityId,
                         relatedObject: request === null || request === void 0 ? void 0 : request.relatedObject,
@@ -75,6 +77,7 @@ export class CustomerCardService {
                 case workflowActions.TRIGGER:
                     return {
                         action: request === null || request === void 0 ? void 0 : request.action,
+                        contactID: request === null || request === void 0 ? void 0 : request.contactID,
                         workflowInput: request === null || request === void 0 ? void 0 : request.workflowInput,
                     };
                 default: {
@@ -296,8 +299,10 @@ export class CustomerCardService {
         };
         return new Promise((resolve, reject) => {
             HttpClient.get(url, reqInit).then((response) => {
+                var _a;
                 this.logger.info('getAgentVoiceContactHistory', 'ACD contact history details fetch success');
-                const validatedResponse = completedContactsArrayReponse.validateSync(response.data.completedContacts, {
+                const normalizedCompletedContacts = this.normalizeVoiceContactHistoryResponse((_a = response === null || response === void 0 ? void 0 : response.data) === null || _a === void 0 ? void 0 : _a.completedContacts, isTenantSegmentationEnabled);
+                const validatedResponse = completedContactsArrayReponse.validateSync(normalizedCompletedContacts, {
                     stripUnknown: true,
                 });
                 if (validatedResponse) {
@@ -317,6 +322,33 @@ export class CustomerCardService {
                 this.logger.error('getAgentVoiceContactHistory', errorResponse.toString());
                 reject(errorResponse);
             });
+        });
+    }
+    /**
+     * Normalizes ACD voice contact history records so both V23 and V33 payload keys are supported.
+     *
+     * @param completedContacts - Raw completed contacts collection from API response.
+     * @param isTenantSegmentationEnabled - True when V33 endpoint is enabled.
+     * @returns Normalized contacts with legacy-compatible keys.
+     *
+     * @example
+     * ```
+     * this.normalizeVoiceContactHistoryResponse(response?.data?.completedContacts, true)
+     * ```
+     */
+    normalizeVoiceContactHistoryResponse(completedContacts, isTenantSegmentationEnabled) {
+        if (!Array.isArray(completedContacts)) {
+            return [];
+        }
+        if (!isTenantSegmentationEnabled) {
+            return completedContacts;
+        }
+        return completedContacts.map((contact) => {
+            const contactData = (contact !== null && contact !== void 0 ? contact : {});
+            const normalizedTags = Array.isArray(contactData.tags)
+                ? contactData.tags.map((tag) => (Object.assign(Object.assign({}, tag), { Contact_Id: tag.contactId, TagId: tag.tagId, TagName: tag.tagName })))
+                : contactData.tags;
+            return Object.assign(Object.assign({}, contactData), { confSeconds: contactData.conferenceSeconds, contactStart: contactData.contactStartDate, fromAddr: contactData.fromAddress, mediaType: contactData.mediaTypeId, tags: normalizedTags, toAddr: contactData.toAddress });
         });
     }
     /**

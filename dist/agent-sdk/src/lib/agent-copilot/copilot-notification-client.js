@@ -1,7 +1,10 @@
 import { CXoneAuth } from '@nice-devone/auth-sdk';
 import { Subject } from 'rxjs';
 import { AgentAssistSubscribe, AgentAssistCommand, AgentAssistConnectedResponse, AgentAssistSubscribedResponse, AgentAssistErrorResponse, CopilotMessageResponse, CXoneLeaderElector, MessageBus, MessageType, AgentAssistConnect, AgentAssistUnsubscribe, VoiceTranscriptionResponse, } from '@nice-devone/common-sdk';
+import { FeatureToggleService } from '../feature-toggle';
 import { AgentAssistNotificationService } from '../agent-assist/agent-assist-notification-service';
+const HEARTBEAT_INTERVAL = 20000;
+const HEARTBEAT_MISS_THRESHOLD = 3;
 /**
  *  web socket class for agent copilot
  */
@@ -10,7 +13,10 @@ export class CopilotNotificationClient extends AgentAssistNotificationService {
         super(...arguments);
         this.agentId = '';
         this.webSocketUri = '';
-        this.subscriptionTopics = [];
+        this.subscriptionTopics = new Set();
+        this.heartbeatAckReceived = true;
+        this.heartbeatMissCount = 0;
+        this.lastHeartbeatReceivedAt = 0;
         this.onMessageNotification = new Subject();
         this.onVoiceTranscriptionMessage = new Subject();
         this.onVoiceTranscriptionError = new Subject();
@@ -44,18 +50,13 @@ export class CopilotNotificationClient extends AgentAssistNotificationService {
      * @example -  addSubscriptionTopics();
      */
     addSubscriptionTopics(subscriptions) {
-        // Use a Set for efficient duplicate prevention
-        const currentTopics = new Set(this.subscriptionTopics);
         // Always include these default topics
         const defaultTopics = [
             `${this.agentId}_agentcopilot`,
             `${this.agentId}_agentcopilot_health`
         ];
-        // Merge defaults and additional subscriptions
-        [...defaultTopics, ...subscriptions].forEach(topic => currentTopics.add(topic));
-        // Update the original array (maintain reference)
-        this.subscriptionTopics.length = 0;
-        this.subscriptionTopics.push(...currentTopics);
+        // Merge defaults and additional subscriptions into Set
+        [...defaultTopics, ...subscriptions].forEach(topic => this.subscriptionTopics.add(topic));
     }
     /**
      * Subscribe to events.
@@ -67,8 +68,8 @@ export class CopilotNotificationClient extends AgentAssistNotificationService {
         const subscriptions = agentCopilotInput.subscriptions;
         if (subscriptions) {
             subscriptions.forEach((subscription) => {
-                if (!this.subscriptionTopics.includes(subscription)) {
-                    this.subscriptionTopics.push(subscription);
+                if (!this.subscriptionTopics.has(subscription)) {
+                    this.subscriptionTopics.add(subscription);
                 }
                 const accessToken = CXoneAuth.instance.getAuthToken().accessToken;
                 const req = new AgentAssistSubscribe(accessToken, subscription);
@@ -83,7 +84,7 @@ export class CopilotNotificationClient extends AgentAssistNotificationService {
      * @param subscriptionTopics - subscriptionTopics to unsubscribe
      */
     unsubscribe(topic) {
-        if (this.subscriptionTopics.includes(topic)) {
+        if (this.subscriptionTopics.has(topic)) {
             const accessToken = CXoneAuth.instance.getAuthToken().accessToken;
             const req = new AgentAssistUnsubscribe(accessToken, topic);
             this.sendMessage(req, this.wssWorker);
@@ -96,6 +97,8 @@ export class CopilotNotificationClient extends AgentAssistNotificationService {
      * @example -  onClosed();
      */
     onClosed() {
+        if (this.isHeartbeatMonitorEnabled())
+            this.stopHeartbeatMonitor();
         const postResponseMessage = {
             command: AgentAssistCommand.closed,
             headers: {
@@ -121,17 +124,25 @@ export class CopilotNotificationClient extends AgentAssistNotificationService {
                     webSocketUri: this.webSocketUri,
                     contactId: `${this.agentId}_agentcopilot`,
                     providerId: 'agentCopilot',
-                    subscriptions: this.subscriptionTopics,
+                    subscriptions: Array.from(this.subscriptionTopics),
                 };
                 this.subscribe(agentCopilotInput);
                 break;
             }
+            case AgentAssistCommand.heartbeatAck:
+                if (this.isHeartbeatMonitorEnabled()) {
+                    this.handleHeartbeatAck();
+                }
+                break;
             case AgentAssistCommand.message:
             case AgentAssistCommand.subscribed:
                 {
                     const isTranscriptMessageType = ((_a = msgResponse.body) === null || _a === void 0 ? void 0 : _a.messageType) === MessageType.VOICE_TRANSCRIPT;
                     if (msgResponse.command === AgentAssistCommand.subscribed) {
                         this.connectionId = msgResponse.headers.connectionId;
+                        if (this.isHeartbeatMonitorEnabled()) {
+                            this.startHeartbeatMonitor();
+                        }
                     }
                     const postResponseMessage = {
                         type: isTranscriptMessageType ? MessageType.VOICE_TRANSCRIPT : MessageType.AGENT_COPILOT_RESPONSE,
@@ -149,8 +160,8 @@ export class CopilotNotificationClient extends AgentAssistNotificationService {
                 }
                 break;
             case AgentAssistCommand.unsubscribed:
-                if (this.subscriptionTopics.includes(msgResponse.body.topic)) {
-                    this.subscriptionTopics.splice(this.subscriptionTopics.indexOf(msgResponse.body.topic), 1);
+                if (this.subscriptionTopics.has(msgResponse.body.topic)) {
+                    this.subscriptionTopics.delete(msgResponse.body.topic);
                 }
                 break;
             case AgentAssistCommand.error:
@@ -194,6 +205,59 @@ export class CopilotNotificationClient extends AgentAssistNotificationService {
         this.onMessageNotification.next(msgResponse);
     }
     /**
+     * Starts monitoring heartbeat acknowledgments for the active connection.
+     * If three consecutive acknowledgment windows are missed, the connection is closed and reconnected.
+     * @example - startHeartbeatMonitor()
+     */
+    startHeartbeatMonitor() {
+        this.stopHeartbeatMonitor();
+        this.lastHeartbeatReceivedAt = Date.now();
+        this.heartbeatAckReceived = false;
+        this.heartbeatMonitorTimer = setInterval(() => {
+            if (this.heartbeatAckReceived) {
+                this.heartbeatMissCount = 0;
+            }
+            else {
+                this.heartbeatMissCount += 1;
+            }
+            this.heartbeatAckReceived = false;
+            if (this.heartbeatMissCount >= HEARTBEAT_MISS_THRESHOLD) {
+                this.logger.warn('Heartbeat', `Missed ${this.heartbeatMissCount} consecutive HEARTBEAT_ACK messages. Triggering reconnect.`);
+                this.onClosed();
+            }
+        }, HEARTBEAT_INTERVAL);
+    }
+    /**
+     * Stops the heartbeat monitor timer and resets its state.
+     * @example - stopHeartbeatMonitor()
+     */
+    stopHeartbeatMonitor() {
+        if (this.heartbeatMonitorTimer) {
+            clearInterval(this.heartbeatMonitorTimer);
+            this.heartbeatMonitorTimer = undefined;
+        }
+        this.heartbeatAckReceived = false;
+        this.heartbeatMissCount = 0;
+    }
+    /**
+     * Handles a HEARTBEAT_ACK message received from the server.
+     * Resets the missed heartbeat count for the active connection.
+     * @example - handleHeartbeatAck()
+     */
+    handleHeartbeatAck() {
+        this.lastHeartbeatReceivedAt = Date.now();
+        this.heartbeatAckReceived = true;
+        this.heartbeatMissCount = 0;
+        this.logger.info('Heartbeat', 'Received HEARTBEAT_ACK from server.');
+    }
+    /**
+     * Returns whether the heartbeat monitor logic is enabled for agent copilot websocket reconnects.
+     * @example - isHeartbeatMonitorEnabled()
+     */
+    isHeartbeatMonitorEnabled() {
+        return FeatureToggleService.instance.getFeatureToggleSync("release-agentcopilot-ws-CSA-61650" /* FeatureToggles.AGENT_COPILOT_WEBSOCKET_HEARTBEAT_MONITOR */) || false;
+    }
+    /**
      * Callback method when a connection is open and ready to send and receive data
      * @example - onOpen()
      */
@@ -210,6 +274,8 @@ export class CopilotNotificationClient extends AgentAssistNotificationService {
      * @example - onReconnect()
      */
     onReconnect() {
+        if (this.isHeartbeatMonitorEnabled())
+            this.stopHeartbeatMonitor();
         this.connectionId = '';
         this.connect(this.webSocketUri, this.agentId);
     }

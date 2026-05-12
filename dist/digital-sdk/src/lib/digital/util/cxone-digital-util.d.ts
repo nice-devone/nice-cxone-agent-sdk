@@ -10,6 +10,7 @@ export declare class CXoneDigitalUtil {
     private static singleton;
     digitalContactService: DigitalContactService;
     digitalEventSyncService: DigitalEventSyncService;
+    private acdSession;
     private isWSAPIIntegrationRevampToggleEnabled;
     /**
       * constructor to initialize various required instances for the class
@@ -54,11 +55,22 @@ export declare class CXoneDigitalUtil {
        * @param response - Http response from API
        * @param contactId - Contact Id of the digital contact
        * @param eventName - Event name to check
-       * @param eventData - Event data to be passed for syncEventResponse
+       * @param eventData - Event data to be passed for syncEventResponse (or) status will be passed in case of casestatus changed event
        * @param traceXId - traceXId from the response header
        * @returns - isEventConsumed
        * @example -
        * checkIfEventConsumed(response, '645337', 'CASE_INBOX_ASSIGNED',eventData,traceXid);
       */
-    checkIfEventConsumed(response: HttpResponse, contactId: string, eventName: CXoneDigitalEventType, eventData?: CXoneMessage, traceXId?: string): Promise<boolean>;
+    checkIfEventConsumed(response: HttpResponse, contactId: string, eventName: CXoneDigitalEventType, eventData?: CXoneMessage | string, traceXId?: string): Promise<boolean>;
+    /**
+     * Method to handle WebSocket unsubscribe for agent assist
+     * @param contactId - Contact Id to unsubscribe from
+     * @param eventType - Type of digital event
+     * @param status - Current contact status
+     * @example
+     * ```
+     * handleAgentAssistUnsubscribe('123456', CXoneDigitalEventType.CASE_STATUS_CHANGED, DigitalContactStatus.CLOSED)
+     * ```
+     */
+    handleAgentAssistUnsubscribe(contactId: string, eventType: CXoneDigitalEventType, status: string): void;
 }

@@ -13,6 +13,7 @@ export var AgentProfileConfigurationSettings;
     AgentProfileConfigurationSettings["REPORTING"] = "Reporting";
     AgentProfileConfigurationSettings["CONVERSATIONS"] = "Conversations";
     AgentProfileConfigurationSettings["DEFAULT_SCREEN_SIZE"] = "Default screen size";
+    AgentProfileConfigurationSettings["UNASSIGN_DISMISS"] = "Unassign & Dismiss Assignments";
 })(AgentProfileConfigurationSettings || (AgentProfileConfigurationSettings = {}));
 /**
  * Enum for Desktop Profile API Response (ElementID)
@@ -44,5 +45,6 @@ export var DesktopProfileConfigurationSettings;
     DesktopProfileConfigurationSettings["DIRECTORY_TEAMS"] = "Directory_Teams";
     DesktopProfileConfigurationSettings["DIRECTORY_SKILLS"] = "Directory_Skills";
     DesktopProfileConfigurationSettings["DIRECTORY_STANDARD_ADDRESS_BOOK"] = "Directory_SAB";
+    DesktopProfileConfigurationSettings["UNASSIGN_DISMISS"] = "unassign&Dismiss_DigitalAssignments";
 })(DesktopProfileConfigurationSettings || (DesktopProfileConfigurationSettings = {}));
 //# sourceMappingURL=agent-profile-configurations.js.map

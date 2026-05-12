@@ -4,6 +4,7 @@ import { CXoneDigitalWebsocket } from './digital/ws/cxone-digital-websocket';
 import { DigitalService } from './digital/service/digital-service';
 import { DigitalContactManager } from './contact/digital-contact-manager';
 import { DigitalMessageNoteService } from './digital/service/digital-message-note-service';
+import { DigitalEventFactory } from './digital/digital-event-factory';
 /** This is the base class for Digital */
 export declare class CXoneDigitalClient {
     private logger;
@@ -17,6 +18,7 @@ export declare class CXoneDigitalClient {
     private static singleton;
     auth: CXoneAuth;
     digitalMessageNoteService: DigitalMessageNoteService;
+    digitalEventFactory: DigitalEventFactory;
     /**
      * get instance for agent auth and session
      * @example

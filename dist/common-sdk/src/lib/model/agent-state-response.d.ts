@@ -92,6 +92,14 @@ export declare class AgentStateResponse extends CXoneEvent {
          */
     canDialAgent: boolean;
     /**
+         * @remarks  Represents whether agent can be direct transfered a voicemail or not
+         */
+    canDirectTransferVoicemail: boolean;
+    /**
+         * @remarks  Represents whether agent is Attendant user or not
+         */
+    isAttendantUser: boolean;
+    /**
        * This method to parse agent state response
        * @param data - agent state object
        * @example -

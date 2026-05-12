@@ -5,4 +5,5 @@ export * from './lib/digital/service/digital-service';
 export * from './lib/digital/provider/cxone-user-slot-provider';
 export * from './lib/contact/digital-contact-manager';
 export * from './lib/digital/util/coBrowse-util';
+export * from './lib/digital/digital-event-factory';
 //# sourceMappingURL=index.js.map

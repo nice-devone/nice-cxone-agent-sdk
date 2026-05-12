@@ -8,6 +8,7 @@ import { CXoneIndicatorManager } from './acd/contact/cxone-indicator-manager';
 import { CXoneScreenPop } from './acd/contact/cxone-screen-pop';
 import { ContactManager } from './acd/contact/contact-manager';
 import { AgentDetailService } from './agent-detials/service/agent-details-service';
+import { AttendantAgentListService } from './agent-detials/service/attendant-agent-list-service';
 import { CcfMessageType, CxaExtensionAdapter } from '@nice-devone/shared-apps-lib';
 import { CXoneAuth } from '@nice-devone/auth-sdk';
 /** This is the base class for ACD */
@@ -31,6 +32,7 @@ export class CXoneAcdClient {
         this.indicator = {};
         this.screenPop = {};
         this.agentDetailService = {};
+        this.agentListService = {};
         /**
          * Subscription for request message over broadcast channel
          */
@@ -141,6 +143,7 @@ export class CXoneAcdClient {
             this.contactManager = new ContactManager();
             this.notification = new CXoneNotificationManager(CXoneClient.instance.cxoneTenant);
             this.agentDetailService = new AgentDetailService();
+            this.agentListService = new AttendantAgentListService();
             this.updateUIQInstanceManagerURL();
         });
     }

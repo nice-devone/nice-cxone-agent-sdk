@@ -78,6 +78,10 @@ export declare class CXoneClientData {
      */
     cxaFavExtDirectory?: string[];
     /**
+     * @remarks - Favorite newgen directory entries
+     */
+    cxaFavNewGenDirectory?: string[];
+    /**
      * @remarks - Email message sort order
      */
     emailMessageSortOrder?: string;
@@ -147,6 +151,7 @@ export declare class CXoneClientData {
         CXAFavTeams: any;
         CXAFavStandAddBook: any;
         CXAFavExtDirectory: any;
+        CXAFavNewGenDirectory: any;
         CXAFavSkills: any;
         CXAFavDigitalSkills: any;
     };
@@ -194,6 +199,7 @@ export declare class CXoneClientData {
         CXAFavTeams: any;
         CXAFavStandAddBook: any;
         CXAFavExtDirectory: any;
+        CXAFavNewGenDirectory: any;
         CXAFavSkills: any;
         CXAFavDigitalSkills: any;
     };

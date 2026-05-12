@@ -57,6 +57,10 @@ export declare class CXoneDisposition {
      */
     mediaType?: MediaType;
     /**
+     * @remarks dispositionCategoryName added to hold the category name of the disposition
+     */
+    dispositionCategoryName?: string;
+    /**
      * Used to parse the disposition data
      * @param data - data to be parsed
      * @example -

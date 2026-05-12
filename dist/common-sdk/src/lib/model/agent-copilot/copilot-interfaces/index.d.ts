@@ -8,3 +8,5 @@ export * from './copilot-filter-details';
 export * from './contact-history';
 export * from './copilot-task-assist';
 export * from './copilot-decision-tree-data';
+export * from './copilot-custom-adaptive-card';
+export * from './copilot-checklist-data';

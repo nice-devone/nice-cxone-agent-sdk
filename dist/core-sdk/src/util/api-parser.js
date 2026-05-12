@@ -141,6 +141,7 @@ export class ApiParser {
             hideCustomWorkspace: true,
             hideReporting: true,
             hideConversations: true,
+            hideUnassignDismiss: true,
         };
         const mapping = {
             [AgentProfileConfigurationSettings.CONTACT_HISTORY]: (value) => (configuration.hideContactHistory = !JSON.parse(value)),
@@ -153,6 +154,7 @@ export class ApiParser {
             [AgentProfileConfigurationSettings.REPORTING]: (value) => (configuration.hideReporting = !JSON.parse(value)),
             [AgentProfileConfigurationSettings.CONVERSATIONS]: (value) => (configuration.hideConversations = !JSON.parse(value)),
             [AgentProfileConfigurationSettings.DEFAULT_SCREEN_SIZE]: (value) => (configuration.agentScreenSize = value),
+            [AgentProfileConfigurationSettings.UNASSIGN_DISMISS]: (value) => (configuration.hideUnassignDismiss = !JSON.parse(value)),
         };
         (_a = agentProfileResponse === null || agentProfileResponse === void 0 ? void 0 : agentProfileResponse.agentProfileConfigurations) === null || _a === void 0 ? void 0 : _a.forEach((config) => {
             const updateConfig = mapping[config.subCategoryName];
@@ -205,6 +207,7 @@ export class ApiParser {
             hideDirectoryTeams: true,
             hideDirectorySkills: true,
             hideDirectoryStandardAddressBook: true,
+            hideUnassignDismiss: true,
         };
         const mapping = {
             [DesktopProfileConfigurationSettings.CONTACT_HISTORY]: (value) => (configuration.hideContactHistory = !JSON.parse(value)),
@@ -232,6 +235,7 @@ export class ApiParser {
             [DesktopProfileConfigurationSettings.DIRECTORY_TEAMS]: (value) => (configuration.hideDirectoryTeams = !JSON.parse(value)),
             [DesktopProfileConfigurationSettings.DIRECTORY_SKILLS]: (value) => (configuration.hideDirectorySkills = !JSON.parse(value)),
             [DesktopProfileConfigurationSettings.DIRECTORY_STANDARD_ADDRESS_BOOK]: (value) => (configuration.hideDirectoryStandardAddressBook = !JSON.parse(value)),
+            [DesktopProfileConfigurationSettings.UNASSIGN_DISMISS]: (value) => (configuration.hideUnassignDismiss = !JSON.parse(value)),
         };
         (_a = desktopProfileAPIResponse === null || desktopProfileAPIResponse === void 0 ? void 0 : desktopProfileAPIResponse.agentProfileConfigurations) === null || _a === void 0 ? void 0 : _a.forEach((config) => {
             const updateConfig = mapping[config.elementId];

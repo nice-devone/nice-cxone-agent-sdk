@@ -37,6 +37,8 @@ class AgentStateResponse extends cxone_event_1.CXoneEvent {
         this.teamName = data.teamName;
         this.userName = data.userName;
         this.isFavorite = false;
+        this.canDirectTransferVoicemail = false;
+        this.isAttendantUser = false;
     }
     /**
       * This method to parse agent state response from the new API with updated agent state
@@ -69,6 +71,8 @@ class AgentStateResponse extends cxone_event_1.CXoneEvent {
         this.userName = data.userName;
         this.isFavorite = false;
         this.canDialAgent = (0, utility_1.parseBooleanString)(data.canDialAgent);
+        this.canDirectTransferVoicemail = false;
+        this.isAttendantUser = false;
     }
 }
 exports.AgentStateResponse = AgentStateResponse;

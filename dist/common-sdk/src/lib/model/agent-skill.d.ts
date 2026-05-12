@@ -42,4 +42,8 @@ export interface AgentSkill {
      * @remarks - Digital POC channel name
      */
     digitalPOCName?: string;
+    /**
+     * @remarks - Flag indicating whether customer ID is required for this skill
+     */
+    requireCustomerId?: boolean;
 }

@@ -39,6 +39,26 @@ declare const CcfAcdSessionStyles: (theme: Theme) => {
         width: string;
         marginTop: string;
         padding: string;
+        '& .MuiButton-root': {
+            boxShadow: string;
+            '&:hover': {
+                backgroundColor: string;
+                boxShadow: string;
+            };
+            '&:active': {
+                backgroundColor: string;
+                outline: string;
+                outlineColor: string | undefined;
+                outlineOffset: string;
+                borderRadius: string;
+            };
+            '&.Mui-focusVisible, &:focus-visible': {
+                outline: string;
+                outlineColor: string | undefined;
+                outlineOffset: string;
+                borderRadius: string;
+            };
+        };
     };
     preferenceSelectorContainer: {
         '& .MuiFormControl-root, .MuiFormControl-root .MuiFormGroup-root': {
@@ -109,6 +129,26 @@ declare const CcfAcdSessionStyles: (theme: Theme) => {
         };
         '& .MuiCheckbox-root': {
             padding: string;
+            '&.Mui-focusVisible, &:focus-visible': {
+                border: string;
+                borderRadius: string;
+                outline: string;
+            };
+            '&:active': {
+                backgroundColor: string;
+                border: string;
+                borderRadius: string;
+            };
+            '&.Mui-checked': {
+                backgroundColor: string;
+                border: string;
+                borderRadius: string;
+            };
+            '&.Mui-focusVisible.Mui-checked, &:focus-visible.Mui-checked': {
+                backgroundColor: string;
+                border: string;
+                borderRadius: string;
+            };
         };
     };
     locationHeader: {
@@ -127,6 +167,7 @@ declare const CcfAcdSessionStyles: (theme: Theme) => {
         height: string;
     };
     voicePreferenceInputField: {
+        border: string;
         padding: string;
         '& .MuiInputBase-input': {
             fontSize: string;
@@ -134,6 +175,32 @@ declare const CcfAcdSessionStyles: (theme: Theme) => {
             '&::placeholder': {
                 opacity: number;
             };
+        };
+        '&& .MuiOutlinedInput-root': {
+            '&.Mui-error': {
+                color: string;
+            };
+            '& .MuiOutlinedInput-notchedOutline': {
+                border: string;
+            };
+            '&.Mui-focused': {
+                outline: string;
+                outlineColor: string | undefined;
+                outlineOffset: string;
+                borderRadius: string;
+            };
+            '&:active .MuiOutlinedInput-notchedOutline, &.Mui-active .MuiOutlinedInput-notchedOutline': {
+                borderColor: string;
+            };
+        };
+        '& .MuiOutlinedInput-root.Mui-error .MuiOutlinedInput-notchedOutline': {
+            borderColor: string | undefined;
+        };
+        '& .MuiOutlinedInput-root.Mui-error .MuiInputBase-input': {
+            color: string | undefined;
+        };
+        '& .MuiOutlinedInput-root:hover': {
+            backgroundColor: string;
         };
     };
     voicePreferenceRadioHighlight: {

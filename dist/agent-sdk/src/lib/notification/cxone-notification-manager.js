@@ -61,7 +61,9 @@ export class CXoneNotificationManager {
                 }
                 else {
                     Promise.allSettled([this.tenant.checkProductEnablement([CXoneProductFeature.WFM]),
-                        this.tenant.checkProductEnablement([CXoneProductFeature.QM])]).then((result) => {
+                        this.tenant.checkProductEnablement([CXoneProductFeature.QM]),
+                        this.tenant.checkProductEnablementFromTenantData([CXoneProductFeature.INTERACTION_HUB_DATA_POLICIES, CXoneProductFeature.REAL_TIME_RECORDING_STATUS_UPDATE])
+                    ]).then((result) => {
                         if (result.find(data => data.status === 'fulfilled' && data.value === true)) {
                             this.wemNotificationProvider.startWemWebSocket(requestData);
                             resolve(true);

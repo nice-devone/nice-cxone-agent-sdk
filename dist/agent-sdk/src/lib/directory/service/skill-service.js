@@ -1,7 +1,7 @@
 import { __awaiter } from "tslib";
 import { CXoneAuth, CXoneUser } from '@nice-devone/auth-sdk';
-import { CXoneSdkError, CXoneSdkErrorType, CXoneRoutingQueueArray, SkillDeliveryParametersYupSchema, SkillDeliveryCPAManagementYupSchema as SkillCPAManagementYupSchema } from '@nice-devone/common-sdk';
-import { Logger, HttpUtilService, HttpClient, UrlUtilsService, ApiUriConstants, ValidationUtils, dbInstance, IndexDBKeyNames, IndexDBStoreNames } from '@nice-devone/core-sdk';
+import { CXoneSdkError, CXoneSdkErrorType, CXoneRoutingQueueArray, SkillDeliveryParametersYupSchema, SkillDeliveryCPAManagementYupSchema as SkillCPAManagementYupSchema, RequestControlMode } from '@nice-devone/common-sdk';
+import { Logger, HttpUtilService, HttpClient, UrlUtilsService, ApiUriConstants, ValidationUtils, dbInstance, IndexDBKeyNames, IndexDBStoreNames, RequestManager } from '@nice-devone/core-sdk';
 import { SkillApiParser } from '../util/skill-api-parser';
 import { CXoneProductFeature } from '../../acd/enum/cxone-product-feature';
 import { CXoneClient } from '../../cxone-client';
@@ -26,6 +26,8 @@ export class SkillService {
         this.GET_SKILL_NAME_BY_ROUTING_ID = '/dfo/3.0/routing-queues?size=500';
         this.GET_SKILLS_URI = '/InContactAPI/services/v27.0/skills';
         this.GET_SKILLS_URI_TS = '/acd-skills/v1/skills';
+        this.requestManager = RequestManager.getInstance();
+        this.isAbortDelayDigitialApiEnabled = FeatureToggleService.instance.getFeatureToggleSync("release-cx-agent-abort-delay-API-on-contact-switch-AW-48514" /* FeatureToggles.ABORT_DELAY_DIGITAL_API_TOGGLE */) || false;
         this.auth = CXoneAuth.instance;
         SkillService.cachedAgentSkills = [];
     }
@@ -48,6 +50,10 @@ export class SkillService {
             ];
             const isTSEnabled = yield CXoneClient.instance.cxoneTenant.checkProductEnablementFromTenantData([CXoneProductFeature.DIVISIONS]).catch(() => false);
             const isTSObContactsFTEnabled = FeatureToggleService.instance.getFeatureToggleSync("release-cx-ts-digital-outbound-contacts-AW-36771" /* FeatureToggles.TS_DIGITAL_OB_CONTACTS_TOGGLE */);
+            const isSmartReachVoiceEnabled = FeatureToggleService.instance.getFeatureToggleSync("release-acd-smartreach-voice-pmi-OB-18214" /* FeatureToggles.SMARTREACH_VOICE_PMI_FEATURE_TOGGLE */);
+            if (isSmartReachVoiceEnabled) {
+                requiredAttributes.push('requireCustomerId');
+            }
             if (isTSEnabled && isTSObContactsFTEnabled) {
                 requiredAttributes.push('digitalPOC', 'digitalPOCName');
             }
@@ -101,12 +107,13 @@ export class SkillService {
        * Used to get the skill details based on the skill id
        * @param skillId - skill id to fetch the skill details
        * @param fetchFromIndexedDB - fetch data from IndexedDB or not
+       * @param contactId - contact id to be used to pass it to controlled get method
        * @example -
        * ```
        * this.skillService.getSkillById("123456", false);
        * ```
        */
-    getSkillById(skillId, fetchFromIndexedDB) {
+    getSkillById(skillId, fetchFromIndexedDB, contactId) {
         return __awaiter(this, void 0, void 0, function* () {
             if (fetchFromIndexedDB) {
                 const skillList = yield this.getAllSkillsList();
@@ -126,14 +133,35 @@ export class SkillService {
                         const baseUri = isTenantSegmentationEnabled ? cxOneConfig.apiFacadeBaseUri : cxOneConfig.acdApiBaseUri;
                         const apiUri = isTenantSegmentationEnabled ? ApiUriConstants.GET_SKILL_WITH_ID_URI_TS : ApiUriConstants.GET_SKILL_WITH_ID_URI;
                         const url = baseUri + apiUri.replace('{skillId}', skillId);
-                        HttpClient.get(url, reqInit).then((response) => {
-                            const skillDetail = this.apiParser.parseSkillDetails(response);
-                            this.logger.info('getSkillById', 'skill details using skill id' + skillDetail);
-                            resolve(skillDetail);
-                        }, (error) => {
-                            this.logger.error('getSkillById', 'Error while getting skill details using skill ID' + error.toString());
-                            reject(error);
-                        });
+                        if (this.isAbortDelayDigitialApiEnabled && contactId) {
+                            /* CONTROLLED GET LOGIC */
+                            const uniqueKey = contactId;
+                            const debugLabel = 'DigitalContactSkillDetails API';
+                            HttpClient.controlledGet(this.requestManager, {
+                                uniqueKey,
+                                url,
+                                requestInit: reqInit,
+                                debugLabel,
+                                requestType: RequestControlMode.DELAY_AND_ABORT,
+                            }).then((response) => {
+                                const skillDetail = this.apiParser.parseSkillDetails(response);
+                                this.logger.debug('getSkillById', 'skill details using skill id' + skillDetail);
+                                resolve(skillDetail);
+                            }, (error) => {
+                                this.logger.error('getSkillById', 'Error while getting skill details using skill ID' + error.toString());
+                                reject(error);
+                            });
+                        }
+                        else {
+                            HttpClient.get(url, reqInit).then((response) => {
+                                const skillDetail = this.apiParser.parseSkillDetails(response);
+                                this.logger.debug('getSkillById', 'skill details using skill id' + skillDetail);
+                                resolve(skillDetail);
+                            }, (error) => {
+                                this.logger.error('getSkillById', 'Error while getting skill details using skill ID' + error.toString());
+                                reject(error);
+                            });
+                        }
                     }
                 });
             }

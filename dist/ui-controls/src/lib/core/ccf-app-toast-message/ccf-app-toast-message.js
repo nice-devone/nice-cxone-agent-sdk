@@ -12,7 +12,7 @@ import { useTranslator } from '../../../../../ui-controls/src/index';
  *     ToolTipToastContainer - container to show toast message as tooltip
  */
 export function CcfAppToastMessage(props) {
-    const { titleKey, type, messageKey, descriptionKey, descriptionMessage, primaryBtnText, secondaryBtnText, extraArgs, children, naturalCallingSkillListParams, isLoading, isIndeterminate, loadingValue } = props;
+    const { titleKey, type, messageKey, descriptionKey, descriptionMessage, primaryBtnText, secondaryBtnText, extraArgs, children, naturalCallingSkillListParams, isLoading, isIndeterminate, loadingValue, blockTransferWhenClosed } = props;
     let titleMessage = props.titleMessage;
     const theme = useTheme();
     const classes = CcfAppToastMessageStyles(theme);
@@ -45,11 +45,11 @@ export function CcfAppToastMessage(props) {
                     ? classes.alignButtonsRight
                     : {})), (type.indexOf('primaryButtonAlertBackground', 0) > 0
                     ? classes.primaryButtonAlertBackground
-                    : {})) }, { children: [primaryBtnText && _jsx(CcfButton, Object.assign({ className: 'primaryBtn', sx: [
+                    : {})) }, { children: [primaryBtnText && !blockTransferWhenClosed && _jsx(CcfButton, Object.assign({ className: 'primaryBtn', sx: [
                             type.indexOf('centerButton', 0) > 0
                                 ? classes.primaryBtn
                                 : {}
-                        ], onClick: () => primaryBtnClickHandler(), variant: "contained", size: "small", primary: true, autoFocus: true, "data-testid": 'primary-button-click' }, { children: _jsx(CcfTypography, { variant: 'h5', translationKey: primaryBtnText }) })), secondaryBtnText && _jsx(CcfButton, Object.assign({ sx: type === 'agentMessage' ? classes.secondaryButton : {}, onClick: () => secondaryBtnClickHandler(), variant: "contained", size: "small", "data-testid": 'secondary-button-click' }, { children: _jsx(CcfTypography, { variant: 'h5', translationKey: secondaryBtnText }) }))] }))] })));
+                        ], onClick: () => primaryBtnClickHandler(), variant: "contained", size: "small", primary: true, autoFocus: true, "data-testid": 'primary-button-click' }, { children: _jsx(CcfTypography, { variant: 'h5', translationKey: primaryBtnText }) })), primaryBtnText && blockTransferWhenClosed && _jsx(CcfButton, Object.assign({ className: 'primaryBtn', sx: classes.buttonStyles, onClick: () => primaryBtnClickHandler(), variant: "contained", size: "small", primary: true, disableRipple: true, "data-testid": 'primary-button-click', "aria-label": primaryBtnText }, { children: _jsx(CcfTypography, { variant: 'h5', translationKey: primaryBtnText }) })), secondaryBtnText && _jsx(CcfButton, Object.assign({ sx: type === 'agentMessage' ? classes.secondaryButton : {}, onClick: () => secondaryBtnClickHandler(), variant: "contained", size: "small", "data-testid": 'secondary-button-click' }, { children: _jsx(CcfTypography, { variant: 'h5', translationKey: secondaryBtnText }) }))] }))] })));
 }
 export default CcfAppToastMessage;
 //# sourceMappingURL=ccf-app-toast-message.js.map

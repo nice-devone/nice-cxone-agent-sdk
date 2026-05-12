@@ -64,6 +64,16 @@ export declare class VoiceService {
     */
     dialAgent(agentId: string, parentContactId: string): Promise<HttpResponse>;
     /**
+    * This method call to transfer voicemail to offline agent
+    * @param agentId - agent Id
+    * @param parentContactId - existing call contact id
+    * @example -
+    * ```
+    * directVoicemailTransferToOfflineAgent('23344','234234324');
+    * ```
+    */
+    directVoicemailTransferToOfflineAgent(agentId: string, parentContactId: string): Promise<HttpResponse>;
+    /**
      * This method to make a call with another skill
      * @param skillId - skill Id
      * @example -

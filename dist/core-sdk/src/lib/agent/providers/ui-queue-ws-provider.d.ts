@@ -13,7 +13,9 @@ export declare class UIQueueWsProvider {
     private adminService;
     private receivedEvents;
     private getNextEventAdapter;
-    private hearbeatPoller;
+    private heartbeatWorker;
+    private missedPongCount;
+    private readonly MAX_MISSED_PONGS;
     private logger;
     private getkeepAlivePollingisActive;
     protected utilService: HttpUtilService;
@@ -22,8 +24,12 @@ export declare class UIQueueWsProvider {
     private isUIQDegraded;
     private internetCheckTimer;
     private isCustomKeepAlivePollingTimeoutEnabled;
+    private isAutoLogoutEnabled;
     private keepAliveTimeout;
     private isConnectionInProgress;
+    private listenersAttached;
+    private agentId;
+    private tenantId;
     /**
    * constructor which sets agent session instance
    * @example
@@ -77,6 +83,10 @@ export declare class UIQueueWsProvider {
      */
     static get instance(): UIQueueWsProvider;
     /**
+     * Returns a consistent debug context tag with agentId and tenantId for log messages.
+     */
+    private get agentContext();
+    /**
      * Method to get hub url
      * @returns hub url
      * @example
@@ -106,14 +116,16 @@ export declare class UIQueueWsProvider {
     connectAgent(userInfo: UserInfo, invokeSnapshot?: boolean, sessionId?: string): void;
     /**
      * Method to get new hub connection
-     * @param retryOptions  - retry options
-     * @returns   hub connection
+     * @param userInfo - user info object used to establish the connection
+     * @param retryOptions - retry options for establishing the connection
+     * @param sessionId - optional session identifier for the hub connection
+     * @returns hub connection
      * @example
      * ```
-     * getNewHubConnection(retryOptions)
+     * getNewHubConnection(userInfo, retryOptions, sessionId)
      * ```
      */
-    getNewHubConnection(userInfo: UserInfo, retryOptions: RetryOptions): Promise<void>;
+    getNewHubConnection(userInfo: UserInfo, retryOptions: RetryOptions, sessionId?: string): Promise<void>;
     /**
      * Method to establish connection
      * @param userInfo - user info object
@@ -181,6 +193,15 @@ export declare class UIQueueWsProvider {
          */
     startConnection(userInfo: UserInfo): Promise<void>;
     /**
+     * Use to initialize the heartbeat worker and start heartbeat tick polling on a worker thread
+     * @param userInfo - user info object containing agentId and tenantId
+     * @example
+     * ```
+     * this.initHeartbeatWorker(userInfo);
+     * ```
+     */
+    initHeartbeatWorker(userInfo: UserInfo): void;
+    /**
          * Method to send refresh token
          * @example
          * ```
@@ -220,6 +241,14 @@ export declare class UIQueueWsProvider {
      * ```
      */
     terminatePolling(ifRestart?: boolean): void;
+    /**
+     * Stops the heartbeat worker, sends a stop message, and clears the reference.
+     * @example
+     * ```
+     * this.stopHeartbeatWorker();
+     * ```
+     */
+    private stopHeartbeatWorker;
     /**
      * Method to failover to get-next polling
      * @param error - error object

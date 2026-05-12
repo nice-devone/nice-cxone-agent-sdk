@@ -22,5 +22,6 @@ export var IndexDBKeyNames;
     IndexDBKeyNames["CONVERSATIONS_GROUPS"] = "conversationsGroups";
     IndexDBKeyNames["VOICE_TRANSCRIPTION"] = "voiceTranscription";
     IndexDBKeyNames["OMILIA_GET_NEXT"] = "omiliaGetNext";
+    IndexDBKeyNames["FAVORITE_NEWGEN_DIR_ENTRIES"] = "favoriteNewGenDirectoryEntries";
 })(IndexDBKeyNames || (IndexDBKeyNames = {}));
 //# sourceMappingURL=indexDB-key-names.js.map

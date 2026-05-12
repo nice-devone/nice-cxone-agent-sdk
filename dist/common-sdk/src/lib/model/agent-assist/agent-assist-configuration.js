@@ -53,7 +53,6 @@ var AgentAssistConfigACPParamsKeys;
     AgentAssistConfigACPParamsKeys["PRIVATE_FEEDBACK"] = "privateFeedback";
     AgentAssistConfigACPParamsKeys["EMAIL_CHANNEL"] = "emailChannel";
     AgentAssistConfigACPParamsKeys["EMAIL_CHANNEL_SIMPLIFY"] = "emailChannelSimplify";
-    AgentAssistConfigACPParamsKeys["EMAIL_CHANNEL_EXPAND"] = "emailChannelExpand";
     AgentAssistConfigACPParamsKeys["EMAIL_CHANNEL_REPHRASE"] = "emailChannelRephrase";
     AgentAssistConfigACPParamsKeys["OVERALL_SUBCARD"] = "overallSubcard";
     AgentAssistConfigACPParamsKeys["PER_SUGGESTION_SUBCARDS"] = "perSuggestionSubcards";

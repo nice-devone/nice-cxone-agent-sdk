@@ -27,4 +27,5 @@ export interface AgentProfileSettings {
     hideDirectoryTeams?: boolean;
     hideDirectorySkills?: boolean;
     hideDirectoryStandardAddressBook?: boolean;
+    hideUnassignDismiss?: boolean;
 }

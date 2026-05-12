@@ -6,7 +6,7 @@ import { CXoneSdkError, CXoneSdkErrorType, WorkItemContactStatus, DirectoryEntit
 import { CXoneVoiceMailContact } from './cxone-voicemail-contact';
 import { CXoneWorkItemContact } from './cxone-workitem-contact';
 import { CXoneAcdClient } from '../../cxone-acd-client';
-import { DispositionService, SkillService, CXoneClient, PersonalConnectionService, ContactService, VoiceService, CallType, ContactType, FeatureToggleService, isVoiceTranscriptEnabledAndToggledOn } from '@nice-devone/agent-sdk';
+import { DispositionService, SkillService, CXoneClient, PersonalConnectionService, ContactService, VoiceService, CallType, ContactType, FeatureToggleService, isVoiceTranscriptEnabledAndToggledOn, OutboundStrategy } from '@nice-devone/agent-sdk';
 /**
  * Class to handle the contacts
  */
@@ -218,6 +218,8 @@ export class ContactManager {
             lastStateChangeTimeUtc: contact.lastStateChangeTime,
             startTimeUtc: contact.startTime,
             screenPopUrlVariables: contact.screenPopUrlVariables,
+            externalCustomerId: contact.externalCustomerId,
+            smartReachTransactionId: contact.smartReachTransactionId,
         });
     }
     /**
@@ -485,7 +487,8 @@ export class ContactManager {
      * Method to subscribe the call contact event from the agentSession.
      */
     callContactEventHandler() {
-        this.acdSession.callContactEventSubject.subscribe((callContactEvent) => {
+        this.acdSession.callContactEventSubject.subscribe((callContactEvent) => __awaiter(this, void 0, void 0, function* () {
+            var _a;
             const existContact = this.voiceContactMap.get(callContactEvent.contactId);
             let voiceContact;
             // // Create an instance for new contact else get the instance from the Map, if the contact already exist.
@@ -523,7 +526,20 @@ export class ContactManager {
                     voiceContact.updateControlsOnConsultCallStarted();
                 }
                 // we need to fetch dispositions unconditionally. If call is ended and user refreshes, we still need the disposotion list
-                this.getDispositionsOnContactEvent(callContactEvent.skill, callContactEvent.contactId, MediaType.VOICE);
+                const isSmartReachFTEnabled = (_a = FeatureToggleService.instance.getFeatureToggleSync("release-acd-smartreach-voice-pmi-OB-18214" /* FeatureToggles.SMARTREACH_VOICE_PMI_FEATURE_TOGGLE */)) !== null && _a !== void 0 ? _a : false;
+                // If smart reach feature toggle is enabled and the outbound strategy is smart reach then we need to fetch dispositions from smart reach otherwise we can fetch from regular disposition api
+                try {
+                    const skillResponse = isSmartReachFTEnabled ? yield this.skillService.getSkillById(callContactEvent.skill) : null;
+                    if ((skillResponse === null || skillResponse === void 0 ? void 0 : skillResponse.outboundStrategy) === OutboundStrategy.SMART_REACH_DIALING) {
+                        this.getSmartReachDispositionsOnContactEvent(callContactEvent.skill, callContactEvent.contactId, MediaType.VOICE);
+                    }
+                    else {
+                        this.getDispositionsOnContactEvent(callContactEvent.skill, callContactEvent.contactId, MediaType.VOICE);
+                    }
+                }
+                catch (error) {
+                    this.logger.error('callContactEventHandler', `Error fetching skill details for skillId: ${callContactEvent.skill}, error: ${error}`);
+                }
                 this.getTagsOnContactEvent(callContactEvent.skill, callContactEvent.contactId);
             }
             else {
@@ -540,7 +556,7 @@ export class ContactManager {
                 this.removeVoiceTranscriptionFromIndexedDB(callContactEvent.contactId);
                 (contactKeys.length === 1) && this.voiceCallRecordServicePollingEvent.next(false);
             }
-        });
+        }));
     }
     ;
     /**
@@ -642,6 +658,34 @@ export class ContactManager {
         }
     }
     /**
+    * Method to get Smartreach dispositions for CallContactEvents
+    * @param skillId - skill id to fetch the skill dispositions
+    * @param contactId - used to fetch disposition
+    * @param mediaType - media type to fetch the dispositions
+    * @example -
+    * ```
+    *getSmartReachDispositionsOnContactEvent(1234, 4321, MediaType.VOICE)
+    * ```
+    */
+    getSmartReachDispositionsOnContactEvent(skillId, contactId, mediaType) {
+        if (this.dispositionsData[contactId] && this.dispositionsData[contactId].length > 0) {
+            this.onDispositionEvent.next(this.dispositionsData[contactId]);
+        }
+        else {
+            this.dispositionsData[contactId] = [];
+            this.dispositionService
+                .getDispositionsWithCategories(skillId, mediaType, contactId)
+                .then((data) => {
+                this.dispositionsData[contactId] = data;
+                this.onDispositionEvent.next(data);
+            })
+                .catch((error) => {
+                delete this.dispositionsData[contactId];
+                this.onDispositionEvent.next(error);
+            });
+        }
+    }
+    /**
     * Method to get tags for CallContactEvents and VoiceMailContactEvents
     * @param skillId - skill id to fetch the skill tags
     * @param contactId - contactId to be set on tags
@@ -698,6 +742,18 @@ export class ContactManager {
      */
     getDispositions(skillId, mediaType) {
         return this.dispositionService.getDispositions(skillId, mediaType);
+    }
+    /**
+     * Used to get the disposition based on the skill id provided
+     * @param skillId - skill id to fetch the skill details
+     * @param mediaType - media type
+     * @example -
+     * ```
+     * cxoneClient.contactManager.getDispositionsWithCategories("123456");
+     * ```
+     */
+    getDispositionsWithCategories(skillId, mediaType) {
+        return this.dispositionService.getDispositionsWithCategories(skillId, mediaType);
     }
     /**
      * Used to save the disposition data provided
@@ -887,16 +943,21 @@ export class ContactManager {
                 contact.acwTypeId = skillDetails.acwTypeId;
                 contact.requireDisposition = skillDetails.requireDisposition || false;
                 contact.maxSecondsACW = skillDetails.maxSecondsACW || 0;
+                contact.outboundStrategy = skillDetails.outboundStrategy || '';
             }
         })
             .catch((error) => {
             this.logger.error('getSkillById', 'Get Skill Name by Skill Id Failed ' + JSON.stringify(error));
         })
             .finally(() => {
-            if (contact.type === ContactType.WORKITEM_CONTACT) {
+            const isWorkItemDisconnectedFinal = contact.status === WorkItemContactStatus.DISCONNECTED &&
+                contact.finalState === true;
+            const isVoiceDisconnectedFinal = contact.status === CallContactEventStatus.DISCONNECTED &&
+                contact.finalState === true;
+            if (contact.type === ContactType.WORKITEM_CONTACT && !isWorkItemDisconnectedFinal) {
                 this.workItemContactUpdateEvent.next(contact);
             }
-            else if (contact.status !== 'Disconnected') {
+            else if (contact.type === ContactType.VOICE_CONTACT && !isVoiceDisconnectedFinal) {
                 this.voiceContactUpdateEvent.next(contact);
             }
         });

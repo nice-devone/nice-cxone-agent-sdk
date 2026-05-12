@@ -77,6 +77,10 @@ export var CXoneProductFeature;
      */
     CXoneProductFeature[CXoneProductFeature["DESKTOP_PROFILES"] = 162] = "DESKTOP_PROFILES";
     /**
+     * @remarks - Product feature Id for MPower SNOW Agent
+     */
+    CXoneProductFeature[CXoneProductFeature["MPOWER_SNOW_AGENT"] = 220] = "MPOWER_SNOW_AGENT";
+    /**
      * @remarks - Product feature Id for Conversations
      */
     CXoneProductFeature[CXoneProductFeature["CONVERSATIONS"] = 707101] = "CONVERSATIONS";
@@ -84,5 +88,25 @@ export var CXoneProductFeature;
      * @remarks - Product feature Id for Divisions Tenant Segmentation
      */
     CXoneProductFeature[CXoneProductFeature["DIVISIONS"] = 200] = "DIVISIONS";
+    /**
+     * @remarks - Product feature Id for Unified Agent State Management
+     */
+    CXoneProductFeature[CXoneProductFeature["UNIFIED_AGENT_STATE"] = 708012] = "UNIFIED_AGENT_STATE";
+    /**
+     * @remarks - Product feature Id for Enlighten Agent Copilot
+     */
+    CXoneProductFeature[CXoneProductFeature["ENLIGHTEN_AGENT_COPILOT"] = 351] = "ENLIGHTEN_AGENT_COPILOT";
+    /**
+     * @remarks - Product feature Id for Attendant Plus
+     */
+    CXoneProductFeature[CXoneProductFeature["ATTENDANT_PLUS"] = 129] = "ATTENDANT_PLUS";
+    /**
+     * @remarks - Product feature Id for Attendant Lite
+     */
+    CXoneProductFeature[CXoneProductFeature["ATTENDANT_LITE"] = 290] = "ATTENDANT_LITE";
+    /**
+     * @remarks - Product feature Id for NewGen Directories
+     */
+    CXoneProductFeature[CXoneProductFeature["DIRECTORY_SYNC_NEWGEN"] = 708009] = "DIRECTORY_SYNC_NEWGEN";
 })(CXoneProductFeature || (CXoneProductFeature = {}));
 //# sourceMappingURL=cxone-product-feature.js.map

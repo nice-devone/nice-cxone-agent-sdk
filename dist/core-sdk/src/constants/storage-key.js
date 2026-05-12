@@ -74,6 +74,7 @@ export const StorageKeys = {
     VOICE_PREFERENCE: 'voice_preference',
     SHOW_VOICE_TRANSCRIPT: 'showVoiceTranscript',
     TENANT_DATA: 'tenant_data',
+    AUTH_CONSUMER: 'auth_consumer',
     /**
      * This key is used to store the ACS email id used during session initiation
      */
@@ -89,7 +90,6 @@ export const StorageKeys = {
     ENCRYPTED_KEY: 'cxagent.sk',
     ENCRYPTION_IV: 'cxagent.userInfo',
     ORIGINATING_SERVICE_IDENTIFIER: 'originating_service_identifier',
-    FAVORITE_AGENT_STATES: 'favoriteAgentStates',
     CXA_FAV_AGENT_STATES: 'cxaFavStates',
     AGENT_PROFILE_CONFIGURATION: 'agent_profile_configuration',
     // This key is used to store the agent's current Screen Size, only if Agent Profile Configuration has Default Screen Size as Defined by Agent
@@ -101,10 +101,24 @@ export const StorageKeys = {
     SKILL_POLLING_UPDATED_SINCE: 'skillUpdatedSince',
     FAVORITE_IDS_TOGGLED: 'favIdsToggled',
     WEM_WS_CONNECTION_STATUS: 'wemWsConnectionStatus',
+    ACTIVE_CALL_CONTEXT: 'activeCallContext',
+    ACTIVE_CALL_CONTACT_ID: 'activeCallContactId',
+    AGENT_CURRENT_STATE: 'agentCurrentState',
+    INCOMING_CALL_CONTACT_ID: 'incomingCallContactId',
+    AGENT_LEG_STATUS: 'agentLegStatus',
+    AGENT_LEG_ID: 'agentLegId',
+    ACTIVE_CALL_SYS_ID: 'activeCallSysId',
+    ACTIVE_CALL_CONTACT_DETAILS: 'activeCallContactDetails',
+    AGENT_SYS_ID: 'agentSysId',
+    AGENT_OB_SKILL: 'agentObSkill',
+    RECORDING_NOTIFICATION: 'recordingNotification',
     //Conversation related keys
     AGENT_HIVE_CHANNEL_INFO: 'agentHiveChannelInfo',
     IS_CONVERSATIONS_STANDALONE: 'isConversationsStandAlone',
     IS_CONVERSATIONS_STANDALONE_FIRST_LAUNCH: 'isConversationsStandAloneFirstLaunch',
+    CXONE_VOICE_CONTACT: 'cxoneVoiceContact',
+    IS_VOICE_TRANSCRIPT_ENABLED: 'isVoiceTranscriptEnabled',
+    IS_AGENT_COPILOT_ENABLED: 'isAgentCopilotEnabled',
     SHOULD_GRAFANA_FARO_LOGS_BE_COLLECTED: 'shouldGrafanaFaroLogsBeCollected',
 };
 export const NotificationSettings = {

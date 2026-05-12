@@ -8,6 +8,7 @@ import { CircuitBreaker } from '../../circuit-breaker/circuit-breaker';
 import { BrokenCircuitError } from 'cockatiel';
 import { Logger } from '../../../logger/logger';
 import { OK_UNTIL } from '../../../constants/http-status-code';
+import { ControlledHttpRequest } from '../request-control/controlled-http-request';
 /** Http Interface class for making api calls to backend */
 export class HttpClient {
     /**
@@ -237,6 +238,32 @@ export class HttpClient {
                 reject(err);
             });
         });
+    }
+    /**
+     * Executes a controlled GET request with optional abort, delay, and latency tracking.
+     * @param manager - RequestManager instance to manage the request lifecycle
+     * @param uniqueKey - Unique identifier for the request
+     * @param url - URL for the GET request
+     * @param requestInit - HTTP request initialization options
+     * @returns Promise resolving to HttpResponse
+     * @example
+     * ```
+     * const response = HttpClient.controlledGet(
+     *   requestManager,
+     *   'unique-key-123',
+     *   'https://api.example.com/data',
+     *   { headers: { 'Authorization': 'Bearer token' } },
+     * );
+     * ```
+     */
+    static controlledGet(manager, options) {
+        const { uniqueKey, url, requestInit, debugLabel, requestType, delayTime } = options;
+        const request = new ControlledHttpRequest(requestType);
+        return manager.execute(uniqueKey, request, (managedRequest) => __awaiter(this, void 0, void 0, function* () {
+            /** Injecting signal here and not in core method */
+            const httpRequest = new HttpRequest('GET', Object.assign(Object.assign({}, requestInit), { signal: managedRequest.signal }));
+            return yield this.handleRequestWithCircuitBreaker(url, httpRequest);
+        }), debugLabel, delayTime);
     }
 }
 HttpClient.circuitBreaker = new CircuitBreaker().breaker;

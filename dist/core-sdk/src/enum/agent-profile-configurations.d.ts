@@ -11,7 +11,8 @@ export declare enum AgentProfileConfigurationSettings {
     CUSTOM_WORKSPACE = "Custom Workspace",
     REPORTING = "Reporting",
     CONVERSATIONS = "Conversations",
-    DEFAULT_SCREEN_SIZE = "Default screen size"
+    DEFAULT_SCREEN_SIZE = "Default screen size",
+    UNASSIGN_DISMISS = "Unassign & Dismiss Assignments"
 }
 /**
  * Enum for Desktop Profile API Response (ElementID)
@@ -41,5 +42,6 @@ export declare enum DesktopProfileConfigurationSettings {
     DIRECTORY_AGENTS = "Directory_Agents",
     DIRECTORY_TEAMS = "Directory_Teams",
     DIRECTORY_SKILLS = "Directory_Skills",
-    DIRECTORY_STANDARD_ADDRESS_BOOK = "Directory_SAB"
+    DIRECTORY_STANDARD_ADDRESS_BOOK = "Directory_SAB",
+    UNASSIGN_DISMISS = "unassign&Dismiss_DigitalAssignments"
 }

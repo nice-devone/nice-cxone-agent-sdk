@@ -19,6 +19,10 @@ var ELEMENT_ROLES;
     */
     ELEMENT_ROLES["ALERT"] = "alert";
     /**
+    * role link is used for elements that needs to be announced to the user using screenreader
+    */
+    ELEMENT_ROLES["LINK"] = "link";
+    /**
     * role button is used for elements that needs to be announced to the user using screenreader
     */
     ELEMENT_ROLES["BUTTON"] = "button";

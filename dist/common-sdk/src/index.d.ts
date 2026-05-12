@@ -289,3 +289,7 @@ export * from './lib/enum/allowed-response-headers';
 export * from './lib/enum/icon-variant';
 export * from './lib/model/digital/cxone-digital-skill';
 export * from './enum/agent-assist';
+export * from './lib/model/digital/schema/events/cxone-base-delta-event';
+export * from './lib/model/digital/schema/events/cxone-case-status-delta-events';
+export * from './lib/model/digital/schema/events/cxone-message-added-delta-events';
+export * from './lib/enum/request-control-mode';

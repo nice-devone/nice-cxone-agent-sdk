@@ -2,6 +2,7 @@ import { HttpHeader } from '@nice-devone/common-sdk';
 export interface HttpRequestInit {
     headers?: HttpHeader[];
     body?: any;
+    signal?: AbortSignal;
 }
 /**
  * Class for Request format
@@ -10,6 +11,7 @@ export declare class HttpRequest {
     readonly method: string;
     body?: any;
     headers?: HttpHeader[];
+    signal?: AbortSignal;
     /**
      *
      * @param method - type of http method

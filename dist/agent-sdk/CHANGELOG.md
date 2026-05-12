@@ -28,3 +28,11 @@
 - `[Added]`: Added /stopRecord API integration.
 - `[Updated]`: Added change for honoring recording notification permission to show recording notifications.
 - `[Added]`: Added function to handle contact switch in custom agent built using CMA SDK when CRM session is switched.
+
+## 26.2.0 - 2026-04-29 ##
+
+- `[Updated]`: New microservice for Queue and Queue Details has been implemented based on the feature toggle
+- `[Updated]`: Abort API invocation updated for Digital contact switch dependent APIs
+- `[Added]`: Revamped WebSocket Event Delta Consumer methods for Digital Contacts
+
+- `[Updated]`: Updated Copilot base API routes from `/agentcopilotapi` to `/agent-copilot`

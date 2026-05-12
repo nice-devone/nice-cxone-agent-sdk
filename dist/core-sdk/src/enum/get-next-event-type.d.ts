@@ -31,5 +31,6 @@ export declare enum GetNextEventType {
     NATURAL_CALLING_SKILL_LIST = "NaturalCallingSkillList",
     CONFERENCE = "Conference",
     HOURS_OF_OPERATION = "HoursOfOperation",
-    AGENT_WORKFLOW_CREATE_PAYLOAD = "AgentWorkflowCreatePayload"
+    AGENT_WORKFLOW_CREATE_PAYLOAD = "AgentWorkflowCreatePayload",
+    SMART_REACH_VALIDATION = "SmartReachValidation"
 }

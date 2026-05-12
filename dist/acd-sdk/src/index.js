@@ -5,6 +5,7 @@ export * from './lib/acd/contact/cxone-voicemail-contact';
 export * from './lib/acd/contact/cxone-workitem-contact';
 export * from './lib/acd/contact/cxone-workitem-contact';
 export * from './lib/agent-detials/service/agent-details-service';
+export * from './lib/agent-detials/service/attendant-agent-list-service';
 export * from './lib/agent-state/service/agent-state-service';
 export * from './lib/cxone-acd-client';
 export * from './lib/event-messenger/enum/post-message-event-type';

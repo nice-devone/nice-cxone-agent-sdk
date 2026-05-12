@@ -4592,6 +4592,12 @@ class StudioForDesktop {
         data = JSON.parse(data);
       } catch (error) {
         console.error(error);
+        // Set parsing error flag so initialize thunk can detect and handle it
+        dispatch(setData({
+          __parsingError: true
+        }));
+        dispatch(initialize());
+        return -1;
       }
       const {
         Meta = {},
