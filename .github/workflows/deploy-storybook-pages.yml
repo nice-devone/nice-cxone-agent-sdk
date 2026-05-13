@@ -5,7 +5,7 @@ on:
     branches:
       - main
     paths:
-      - 'storybooks/**'
+      - 'Storybooks/**'
   workflow_dispatch:
 
 permissions:
@@ -30,7 +30,7 @@ jobs:
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v3
         with:
-          path: storybooks
+          path: Storybooks
 
       - name: Deploy to GitHub Pages
         id: deployment
