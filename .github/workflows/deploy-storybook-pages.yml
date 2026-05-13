@@ -5,7 +5,7 @@ on:
     branches:
       - main
     paths:
-      - 'ui-componets-doc/**'
+      - 'docs/**'
   workflow_dispatch:
 
 permissions:
