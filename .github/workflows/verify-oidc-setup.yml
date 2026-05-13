@@ -65,7 +65,7 @@ jobs:
 
           echo '{
             "name": "@nice-devone/oidc-test",
-            "version": "0.0.0-test",
+            "version": "0.0.1",
             "description": "Test package for OIDC verification"
           }' > package.json
 
