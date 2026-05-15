@@ -38,40 +38,11 @@ export interface CapturedQuestion extends DecisionTreeQuestion {
         title: string;
         value: string;
     }>;
-}
-/**
- * model interface for Suggested Questions Section
- */
-export interface SuggestedQuestionSection {
     /**
-     * The unique identifier for the section.
+     * Optional placeholder text shown inside the input when empty.
+     * Enriched at render time from the element's field config.
      */
-    sectionId: string;
-    /**
-     * The name of the section.
-     */
-    sectionName: string;
-    /**
-     * The list of questions in the section.
-     */
-    questions: DecisionTreeQuestion[];
-}
-/**
- * model interface for Captured Responses Section
- */
-export interface CapturedSection {
-    /**
-     * The unique identifier for the section.
-     */
-    sectionId: string;
-    /**
-     * The name of the section.
-     */
-    sectionName: string;
-    /**
-     * The list of questions responded to in the section.
-     */
-    questionsResponded: CapturedQuestion[];
+    placeholderText?: string;
 }
 export interface BaseSection {
     /**
@@ -157,11 +128,13 @@ export interface DecisionTreeData {
     visitedSections: BaseSection[];
     error: string | null;
     completeBtnTitle: string;
+    mode?: string;
+    interviewTreeNavigationStrategy?: string;
 }
 /**
  * Enumeration of supported decision tree question primitive types.
  */
-export declare type QuestionType = 'Date' | 'String' | 'Number' | 'Boolean' | 'Text' | 'Toggle' | 'Time' | 'ChoiceSet' | 'MultiChoiceSet';
+export declare type QuestionType = 'Date' | 'String' | 'Number' | 'Boolean' | 'Text' | 'Toggle' | 'Time' | 'ChoiceSet' | 'MultiChoiceSet' | 'singleSelect' | 'multiSelect';
 /**
  * Props for Decision Tree Capture Details component
  */
@@ -193,8 +166,14 @@ export interface DecisionTreeElement {
 export interface DecisionTreeConfig {
     title: string;
     icon: string;
+    /**
+     * Rendering mode of the decision tree — e.g. `'formMode'` or `'interviewMode'`.
+     */
     mode: string;
     shouldAutoFill: boolean;
+    /**
+     * Navigation strategy for interview mode — e.g. `'Conversation-Driven'` for responsive sequencing.
+     */
     interviewTreeNavigationStrategy: string;
     selectedBot: Record<string, string>;
     selectedIntent: Record<string, string>;
@@ -225,71 +204,47 @@ export interface DecisionTreeField {
     /**
      * Unique identifier for the field within the decision tree.
      */
-    fieldId: string;
+    fieldId?: string;
     /**
      * Runtime identifier used by the API.
      * Typically matches `CapturedQuestion.questionId` from backend responses.
      */
     questionId?: string;
     /**
-     * Display label shown to the user for this field.
+     * Short display name for the field as configured in the admin UI (real API key: 'name').
      */
-    label: string;
+    name?: string;
     /**
-     * Defines the type of input expected for this field.
-     *
-     * Known supported types:
-     * - String / Text → free text input
-     * - Number → numeric input
-     * - Boolean / Toggle → true/false switch
-     * - Date → date picker
-     * - Time → time picker
-     * - SingleChoice → single select option
-     * - MultipleChoice → multiple select options
-     * - ChoiceSet → structured single select (title/value pairs)
-     * - MultiChoiceSet → structured multi select (title/value pairs)
-     *
-     * Can also accept custom string types for extensibility.
+     * Full question text for this field (real API key: 'questionText').
+     * Matches the WS capturedResponses.questionText used in Interview Mode.
+     * Preferred label source; falls back to name, then label.
      */
-    dataType: 'String' | 'Number' | 'Boolean' | 'Date' | 'Text' | 'Toggle' | 'Time' | 'MultipleChoice' | 'SingleChoice' | 'ChoiceSet' | 'MultiChoiceSet' | string;
+    questionText?: string;
     /**
-     * Indicates whether this field is required.
-     * If true, validation should ensure a value is provided before submission.
+     * Legacy label field retained for backward compatibility with mock configs.
      */
-    mandatory: boolean;
-    /**
-     * Current value of the field.
-     * The type depends on the `dataType`.
-     *
-     * Example:
-     * - String/Text → string
-     * - Number → number
-     * - Boolean/Toggle → boolean
-     * - Choice → string or string[]
-     */
-    value: DecisionTreeInputValue;
-    /**
-     * List of options for simple choice-based fields.
-     * Primarily used for `MultipleChoice` and `SingleChoice`.
-     *
-     * Example: ["Yes", "No"]
-     */
+    label?: string;
+    dataType: 'String' | 'Number' | 'Boolean' | 'Date' | 'Text' | 'Toggle' | 'Time' | 'MultipleChoice' | 'SingleChoice' | 'ChoiceSet' | 'MultiChoiceSet' | 'singleSelect' | 'multiSelect' | string;
+    /** Whether the field is required (real API key: 'isRequired'). */
+    isRequired?: boolean;
+    /** Legacy mandatory field retained for backward compatibility with mock configs. */
+    mandatory?: boolean;
+    value?: DecisionTreeInputValue;
     options?: string[];
-    /**
-     * Structured choices for advanced selection fields.
-     * Used in `ChoiceSet` and `MultiChoiceSet`.
-     *
-     * Each choice contains:
-     * - `title`: Display label shown to the user
-     * - `value`: Actual value sent to backend
-     *
-     * Example:
-     * `[{ title: "High", value: "H" }, { title: "Low", value: "L" }]`
-     */
     choices?: Array<{
         title: string;
         value: string;
     }>;
+    choiceSetOptions?: Array<{
+        title: string;
+        value: string;
+    }>;
+    multiChoiceSetOptions?: Array<{
+        title: string;
+        value: string;
+    }>;
+    /** Optional placeholder text shown inside the input when empty. */
+    placeholderText?: string;
 }
 /**
  * Supported comparison operators.

@@ -63,6 +63,7 @@ export class DigitalContactManager {
         this.digitalEventSyncDictionary = new Map();
         this.isWSAPIIntegrationRevampToggleEnabled = FeatureToggleService.instance.getFeatureToggleSync("release-cx-agent-API-websocket-integration-revamp-AW-42181" /* FeatureToggles.REVAMPED_WEBSOCKET_INTEGRATION_PATTERN */) || false;
         this.isDigitalEventDeltaPublishingEnabled = FeatureToggleService.instance.getFeatureToggleSync("release-cx-agent-digital-event-delta-publishing-AW-48512" /* FeatureToggles.DIGITAL_EVENT_DELTA_PUBLISHING */) || false;
+        this.isOldUserSlotFlowEnabled = FeatureToggleService.instance.getFeatureToggleSync("release-cx-agent-userslot-no-restriction-AW-55667" /* FeatureToggles.ENABLE_OLD_USER_SLOT_FLOW */) || false;
         this.requestManager = RequestManager.getInstance();
         // Event types that require dictionary sync updates
         this.SYNC_ENABLED_EVENTS = new Set([
@@ -204,7 +205,12 @@ export class DigitalContactManager {
         return __awaiter(this, void 0, void 0, function* () {
             try {
                 this.digitalWebsocket.startWebSocket();
-                yield this.manageUserSlotDetails();
+                if (this.isOldUserSlotFlowEnabled) {
+                    this.handleDigitalUserSlot();
+                }
+                else {
+                    yield this.manageUserSlotDetails();
+                }
                 this.digitalWebsocketMessageHandler();
                 this.digitalWebsocketConnectionStateHandler();
                 // If ws revamp FT is on, initialize digital event sync service
@@ -681,12 +687,12 @@ export class DigitalContactManager {
             if ([WebsocketStatusCode.RECONNECT_UNSUCCESSFUL, WebsocketStatusCode.RECONNECT, WebsocketStatusCode.ERROR]
                 .includes(response)) {
                 this.isWebSocketFailure = true;
-                if ((_a = CXoneLeaderElector === null || CXoneLeaderElector === void 0 ? void 0 : CXoneLeaderElector.instance) === null || _a === void 0 ? void 0 : _a.isLeader) {
+                if (!this.isOldUserSlotFlowEnabled && ((_a = CXoneLeaderElector === null || CXoneLeaderElector === void 0 ? void 0 : CXoneLeaderElector.instance) === null || _a === void 0 ? void 0 : _a.isLeader)) {
                     this.pollUserSlots(true);
                 }
             }
             else if (response === WebsocketStatusCode.OK) {
-                if ((_b = CXoneLeaderElector === null || CXoneLeaderElector === void 0 ? void 0 : CXoneLeaderElector.instance) === null || _b === void 0 ? void 0 : _b.isLeader) {
+                if (!this.isOldUserSlotFlowEnabled && ((_b = CXoneLeaderElector === null || CXoneLeaderElector === void 0 ? void 0 : CXoneLeaderElector.instance) === null || _b === void 0 ? void 0 : _b.isLeader)) {
                     this.terminateUserSlotPolling();
                 }
                 this.isWebSocketFailure = false;
@@ -779,6 +785,51 @@ export class DigitalContactManager {
         });
     }
     /**
+     * Method to handle digital user slot polling under the new simplified flow.
+     * Starts user slot polling directly without any feature toggle or leader election dependency.
+     * @example
+     * ```
+     *  handleDigitalUserSlot()
+     * ```
+     */
+    handleDigitalUserSlot() {
+        this.userSlotProvider.getUserSlots();
+        this.onUserSlotEvent.subscribe((userSlotResponse) => {
+            this.logger.info('handleDigitalUserSlot', 'User slot API response received');
+            this.handleUserSlotPollResponse(userSlotResponse);
+        });
+    }
+    /**
+     * Parses the user slot poll response and updates the digital contact map accordingly (AW-55667).
+     * Adds newly assigned contacts and removes unassigned ones on every poll cycle.
+     * @param userSlotResponse - The response containing user slots information.
+     * @example handleUserSlotPollResponse(userSlotResponse)
+     */
+    handleUserSlotPollResponse(userSlotResponse) {
+        const assignedEventDetails = { eventId: '', eventObject: 'Case', eventType: CXoneDigitalEventType.CASE_INBOX_ASSIGNED, traceId: '' };
+        const unassignedEventDetails = { eventId: '', eventObject: 'Case', eventType: CXoneDigitalEventType.CASE_INBOX_UNASSIGNED, traceId: '' };
+        const responseContactIds = new Set(userSlotResponse === null || userSlotResponse === void 0 ? void 0 : userSlotResponse.map(contact => contact.caseId));
+        // Add contacts from API response that are not yet in the map (assigned contacts only).
+        // Also handles preview/view-only contacts that have been assigned by a supervisor —
+        // these are already in the map but must transition from preview to assigned state.
+        userSlotResponse === null || userSlotResponse === void 0 ? void 0 : userSlotResponse.forEach((contact) => {
+            const wasViewOnlyCase = !!contact.caseId && this.viewOnlyCases.includes(contact.caseId);
+            if (contact.caseId && (!this.digitalContactMap.has(contact.caseId) || wasViewOnlyCase)) {
+                this.logger.info('handleUserSlotPollResponse', 'Inbox assigned contact to be published to map ' + contact.caseId);
+                this.getDigitalContactDetails(contact.caseId, assignedEventDetails);
+            }
+        });
+        // Remove assigned contacts no longer present in API response — preview contacts are unaffected
+        this.digitalContactMap.forEach((contact) => {
+            const isViewOnlyCase = this.viewOnlyCases.includes(contact.caseId);
+            if (!isViewOnlyCase && !responseContactIds.has(contact.caseId)) {
+                const contactInMap = Object.assign(Object.assign({}, contact), { eventDetails: unassignedEventDetails });
+                this.updatePublishDigitalContactMap(contactInMap);
+                this.digitalContactMap.delete(contact.caseId);
+            }
+        });
+    }
+    /**
      * Method to invoke user slot API and polling for data reconcile based on case
      * @example
      * ```
@@ -842,7 +893,7 @@ export class DigitalContactManager {
      * this method will be called in case of MESSAGE_ADDED_INTO_CASE & CASE_STATUS_CHANGED event
      */
     updatePublishDigitalContactMap(currentContact) {
-        var _a, _b, _c, _d, _e;
+        var _a, _b, _c, _d, _e, _f;
         const currentContactTraceId = (_a = currentContact === null || currentContact === void 0 ? void 0 : currentContact.eventDetails) === null || _a === void 0 ? void 0 : _a.traceId;
         const actualEventName = this.getActualEventName((_b = currentContact === null || currentContact === void 0 ? void 0 : currentContact.eventDetails) === null || _b === void 0 ? void 0 : _b.eventType);
         // If revamp FT is off, always publish the contact
@@ -850,13 +901,23 @@ export class DigitalContactManager {
         if (!this.isWSAPIIntegrationRevampToggleEnabled || (this.isWSAPIIntegrationRevampToggleEnabled && (this.getTraceIdFromEventSyncDictionary(actualEventName, currentContact.caseId) !== currentContactTraceId))) {
             const isViewOnlyCase = this.viewOnlyCases.includes(currentContact === null || currentContact === void 0 ? void 0 : currentContact.caseId);
             //isAssignedToAgentInbox is false for viewOnly cases and true for !viewOnly cases
-            currentContact.isAssignedToAgentInbox = !isViewOnlyCase; //when we receive any event on web socket we set this flag if case is present in viewOnlyCases array    else{
+            // Only override this flag for inbox assignment/unassignment events; message and other
+            // events should not mutate it to avoid incorrect state transitions (e.g. via the
+            // API-path handleMessageAddedIntoCaseEvent introduced by the WS revamp FT).
+            const isInboxAssignmentEvent = [
+                CXoneDigitalEventType.CASE_INBOX_ASSIGNED,
+                CXoneDigitalEventType.CASE_INBOX_UNASSIGNED,
+                CXoneDigitalEventType.CASE_INBOX_ASSIGNEE_CHANGED
+            ].includes((_c = currentContact.eventDetails) === null || _c === void 0 ? void 0 : _c.eventType);
+            if (isInboxAssignmentEvent) {
+                currentContact.isAssignedToAgentInbox = !isViewOnlyCase;
+            }
             // this check is for maintaining map of websocket data which is intended for current login user only.
             // as on websocket event we can also receive the data of subscribed cases using event-hub-subscriptions api.
-            if (((_d = (_c = currentContact.case) === null || _c === void 0 ? void 0 : _c.inboxAssigneeUser) === null || _d === void 0 ? void 0 : _d.incontactId) === this.currentUserId || isViewOnlyCase) {
+            if (((_e = (_d = currentContact.case) === null || _d === void 0 ? void 0 : _d.inboxAssigneeUser) === null || _e === void 0 ? void 0 : _e.incontactId) === this.currentUserId || isViewOnlyCase) {
                 const customFieldDefinitions = currentContact.contactCustomFieldDefs;
                 try { // TODO needs to be checked for "TypeError: Cannot assign to read only property 'label' of object '#<Object>'" try catch to avoid any breaking changes in case of any issue in below code
-                    if (((_e = currentContact.case.customFields) === null || _e === void 0 ? void 0 : _e.length) && (customFieldDefinitions === null || customFieldDefinitions === void 0 ? void 0 : customFieldDefinitions.length)) {
+                    if (((_f = currentContact.case.customFields) === null || _f === void 0 ? void 0 : _f.length) && (customFieldDefinitions === null || customFieldDefinitions === void 0 ? void 0 : customFieldDefinitions.length)) {
                         // if case has a custom fields then we have to update label and values
                         currentContact.case.customFields.forEach((field) => {
                             var _a, _b;

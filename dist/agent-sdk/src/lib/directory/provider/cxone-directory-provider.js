@@ -1700,7 +1700,7 @@ export class CXoneDirectoryProvider {
                             // Remove entries present in currentAddressBookEntries but not in addressBookEntries
                             currentAddressBookEntries = currentAddressBookEntries.filter((currentAddressBookEntry) => addressBookEntries.some((addressBookEntry) => addressBookEntry.addressBookEntryId === currentAddressBookEntry.addressBookEntryId));
                             addressBookEntries.forEach((addressBookEntry, entryIndex) => {
-                                var _a;
+                                var _a, _b;
                                 addressBookEntry.addressBookName = addressBook.addressBookName;
                                 const matchedEntryIndex = currentAddressBookEntries.findIndex((currentAddressBookEntry) => currentAddressBookEntry.addressBookEntryId === addressBookEntry.addressBookEntryId);
                                 // FAVORITES SYNC LOGIC
@@ -1712,10 +1712,10 @@ export class CXoneDirectoryProvider {
                                     currentFavAddressBookList[favIndex] = addressBookEntry;
                                 }
                                 else {
-                                    // Added the following check to handle cases where the user searches using the favorites dropdown and no items match. 
+                                    // Added the following check to handle cases where the user searches using the favorites dropdown and no items match & then navigate to all section. 
                                     // In such scenarios, currentFavAddressBookList becomes empty. This check also includes validation from local storage.
-                                    if (currentAddressBookEntries[matchedEntryIndex].isFavorite
-                                        && (currFavListInLS === null || currFavListInLS === void 0 ? void 0 : currFavListInLS.includes((_a = currentAddressBookEntries[matchedEntryIndex]) === null || _a === void 0 ? void 0 : _a.addressBookEntryId))) {
+                                    if (matchedEntryIndex >= 0 && ((_a = currentAddressBookEntries[matchedEntryIndex]) === null || _a === void 0 ? void 0 : _a.isFavorite)
+                                        && (currFavListInLS === null || currFavListInLS === void 0 ? void 0 : currFavListInLS.includes((_b = currentAddressBookEntries[matchedEntryIndex]) === null || _b === void 0 ? void 0 : _b.addressBookEntryId))) {
                                         addressBookEntry.isFavorite = true;
                                     }
                                     else {

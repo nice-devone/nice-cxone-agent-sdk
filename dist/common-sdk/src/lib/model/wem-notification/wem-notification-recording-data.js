@@ -16,7 +16,7 @@ class WemNotificationRecordingData {
       * ```
       */
     parse(message) {
-        var _a, _b, _c, _d, _e, _f, _g, _h, _j, _k, _l, _m, _o, _p;
+        var _a, _b, _c, _d, _e, _f, _g, _h, _j, _k, _l, _m, _o, _p, _q, _r, _s, _t;
         this.id = (_a = message.headers) === null || _a === void 0 ? void 0 : _a.notificationUuid;
         this.recordingId = ((_c = (_b = message.data) === null || _b === void 0 ? void 0 : _b.payload) === null || _c === void 0 ? void 0 : _c.recordingId) || '';
         this.contactId = ((_e = (_d = message.data) === null || _d === void 0 ? void 0 : _d.payload) === null || _e === void 0 ? void 0 : _e.contactId) || '';
@@ -28,6 +28,8 @@ class WemNotificationRecordingData {
         this.notificationType = agent_message_notification_1.NotificationTypeEnum.RecordingNotification;
         this.isRealtimeNotificationEnabled = false;
         this.timestamp = ((_p = (_o = message.data) === null || _o === void 0 ? void 0 : _o.payload) === null || _p === void 0 ? void 0 : _p.timestamp) ? new Date(message.data.payload.timestamp) : undefined;
+        this.interactionId = ((_r = (_q = message.data) === null || _q === void 0 ? void 0 : _q.payload) === null || _r === void 0 ? void 0 : _r.interactionId) || undefined;
+        this.contactNo = ((_t = (_s = message.data) === null || _s === void 0 ? void 0 : _s.payload) === null || _t === void 0 ? void 0 : _t.contactNo) || undefined;
     }
     /**
      * Method to parse data from Recording Manager API
@@ -54,6 +56,8 @@ class WemNotificationRecordingData {
         this.template = 'RecordingManagerStatus';
         this.notificationType = agent_message_notification_1.NotificationTypeEnum.RecordingNotification;
         this.isRealtimeNotificationEnabled = false;
+        this.interactionId = (data === null || data === void 0 ? void 0 : data.interactionId) || undefined;
+        this.contactNo = (data === null || data === void 0 ? void 0 : data.contactNo) || undefined;
     }
 }
 exports.WemNotificationRecordingData = WemNotificationRecordingData;

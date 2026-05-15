@@ -12,6 +12,8 @@ export declare class CXoneDynamicDirectory {
     private newGenWsProvider;
     private currentSearchDirectoriesRequest;
     private currentNewGenSearchDirectoriesRequest?;
+    private pendingNewGenSubscriptionId?;
+    private isPendingNewGenUnsubscribe;
     private searchDirectoriesResponse;
     private searchNewGenDirectoriesResponse;
     onMessageReceived: Subject<DynamicDirectoyMessage>;

@@ -59,6 +59,14 @@ export declare class WemNotificationRecordingData {
      */
     timestamp?: Date;
     /**
+     * @remarks Interaction id - stable across transfers/conferences
+     */
+    interactionId?: string;
+    /**
+     * @remarks Contact number - stable per agent leg
+     */
+    contactNo?: string;
+    /**
       * The parse will take the data object and assign the values to the WemNotificationDisplayData class properties
       * @param message - WemNotificationMessage type message
       * @example -

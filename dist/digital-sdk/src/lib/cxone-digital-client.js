@@ -40,10 +40,18 @@ export class CXoneDigitalClient {
         this.subscribePollingResponseMessage = () => {
             var _a, _b;
             (_b = (_a = MessageBus === null || MessageBus === void 0 ? void 0 : MessageBus.instance) === null || _a === void 0 ? void 0 : _a.onResponseMessage) === null || _b === void 0 ? void 0 : _b.subscribe((msg) => {
-                var _a;
+                var _a, _b, _c;
                 if ((msg === null || msg === void 0 ? void 0 : msg.type) === MessageType.START_USER_SLOT_API_POLLING) {
                     const userSlotResponse = UserSlotsSchema.validateSync(msg === null || msg === void 0 ? void 0 : msg.data, { stripUnknown: true });
-                    (_a = this.digitalContactManager) === null || _a === void 0 ? void 0 : _a.parseUserSlotPollResponse(userSlotResponse, false);
+                    // New FT path: non-leader tabs use handleUserSlotPollResponse; leader tab already handles via onUserSlotEvent subscription
+                    if (FeatureToggleService.instance.getFeatureToggleSync("release-cx-agent-userslot-no-restriction-AW-55667" /* FeatureToggles.ENABLE_OLD_USER_SLOT_FLOW */)) {
+                        if (!((_a = CXoneLeaderElector.instance) === null || _a === void 0 ? void 0 : _a.isLeader)) {
+                            (_b = this.digitalContactManager) === null || _b === void 0 ? void 0 : _b.handleUserSlotPollResponse(userSlotResponse);
+                        }
+                    }
+                    else {
+                        (_c = this.digitalContactManager) === null || _c === void 0 ? void 0 : _c.parseUserSlotPollResponse(userSlotResponse, false);
+                    }
                 }
             });
         };
@@ -65,9 +73,13 @@ export class CXoneDigitalClient {
                     }
                     if (isRefreshTokenFlowStarted) {
                         // Calling manageUserSlotDetails to start polling of user-slot API once leader is elected an FT is on, in-order to avoid leader undefined issue
-                        const isUserSlotFTEnabled = yield CXoneDigitalUtil.instance.isUserSlotFeatureToggleEnabled();
-                        if (isUserSlotFTEnabled) {
-                            (_a = this.digitalContactManager) === null || _a === void 0 ? void 0 : _a.manageUserSlotDetails();
+                        // Skip if ENABLE_OLD_USER_SLOT_FLOW is active — polling is already started unconditionally in handleDigitalUserSlot()
+                        const isOldUserSlotFlowEnabled = FeatureToggleService.instance.getFeatureToggleSync("release-cx-agent-userslot-no-restriction-AW-55667" /* FeatureToggles.ENABLE_OLD_USER_SLOT_FLOW */);
+                        if (!isOldUserSlotFlowEnabled) {
+                            const isUserSlotFTEnabled = yield CXoneDigitalUtil.instance.isUserSlotFeatureToggleEnabled();
+                            if (isUserSlotFTEnabled) {
+                                (_a = this.digitalContactManager) === null || _a === void 0 ? void 0 : _a.manageUserSlotDetails();
+                            }
                         }
                         // Update Digital agent status polling
                         if (!this.isStartedDigitalStatusPolling &&

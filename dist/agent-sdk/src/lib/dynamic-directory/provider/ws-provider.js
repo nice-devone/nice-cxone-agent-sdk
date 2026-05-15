@@ -312,5 +312,16 @@ export class WSProvider extends WebsocketClient {
             super.sendMessage(unsubscribe, worker);
         }
     }
+    /**
+     * Returns whether the websocket is currently connected.
+     * @returns True when the provider has an active websocket connection.
+     * @example
+     * ```
+     * this.isConnected();
+     * ```
+     */
+    isConnected() {
+        return this.connected;
+    }
 }
 //# sourceMappingURL=ws-provider.js.map

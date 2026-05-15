@@ -82,5 +82,7 @@ var AgentAssistConfigACPParamsKeys;
     AgentAssistConfigACPParamsKeys["SHOW_AUTOSUMMARY_CARD"] = "showAutoSummaryCard";
     AgentAssistConfigACPParamsKeys["AUTOSUMMARY_CARD_FEATURES"] = "autoSummaryCardFeatures";
     AgentAssistConfigACPParamsKeys["SECONDARY_KNOWLEDGE_HUB_CONFIG"] = "secondaryKnowledgeHubConfig";
+    AgentAssistConfigACPParamsKeys["ENABLE_DIRECT_QUERY_FROM_KNOWLEDGE_HUB"] = "enableDirectQuery";
+    AgentAssistConfigACPParamsKeys["ENABLE_SECONDARY_DIRECT_QUERY_FROM_KNOWLEDGE_HUB"] = "enableSecondaryDirectQuery";
 })(AgentAssistConfigACPParamsKeys = exports.AgentAssistConfigACPParamsKeys || (exports.AgentAssistConfigACPParamsKeys = {}));
 //# sourceMappingURL=agent-assist-configuration.js.map

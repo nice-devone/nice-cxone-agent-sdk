@@ -528,17 +528,22 @@ export class ContactManager {
                 // we need to fetch dispositions unconditionally. If call is ended and user refreshes, we still need the disposotion list
                 const isSmartReachFTEnabled = (_a = FeatureToggleService.instance.getFeatureToggleSync("release-acd-smartreach-voice-pmi-OB-18214" /* FeatureToggles.SMARTREACH_VOICE_PMI_FEATURE_TOGGLE */)) !== null && _a !== void 0 ? _a : false;
                 // If smart reach feature toggle is enabled and the outbound strategy is smart reach then we need to fetch dispositions from smart reach otherwise we can fetch from regular disposition api
-                try {
-                    const skillResponse = isSmartReachFTEnabled ? yield this.skillService.getSkillById(callContactEvent.skill) : null;
-                    if ((skillResponse === null || skillResponse === void 0 ? void 0 : skillResponse.outboundStrategy) === OutboundStrategy.SMART_REACH_DIALING) {
-                        this.getSmartReachDispositionsOnContactEvent(callContactEvent.skill, callContactEvent.contactId, MediaType.VOICE);
-                    }
-                    else {
-                        this.getDispositionsOnContactEvent(callContactEvent.skill, callContactEvent.contactId, MediaType.VOICE);
-                    }
+                if (isSmartReachFTEnabled) {
+                    this.skillService.getSkillById(callContactEvent.skill)
+                        .then((skillResponse) => {
+                        if ((skillResponse === null || skillResponse === void 0 ? void 0 : skillResponse.outboundStrategy) === OutboundStrategy.SMART_REACH) {
+                            this.getSmartReachDispositionsOnContactEvent(callContactEvent.skill, callContactEvent.contactId, MediaType.VOICE);
+                        }
+                        else {
+                            this.getDispositionsOnContactEvent(callContactEvent.skill, callContactEvent.contactId, MediaType.VOICE);
+                        }
+                    })
+                        .catch((error) => {
+                        this.logger.error('callContactEventHandler', `Error fetching skill details for skillId: ${callContactEvent.skill}, error: ${error}`);
+                    });
                 }
-                catch (error) {
-                    this.logger.error('callContactEventHandler', `Error fetching skill details for skillId: ${callContactEvent.skill}, error: ${error}`);
+                else {
+                    this.getDispositionsOnContactEvent(callContactEvent.skill, callContactEvent.contactId, MediaType.VOICE);
                 }
                 this.getTagsOnContactEvent(callContactEvent.skill, callContactEvent.contactId);
             }

@@ -5,6 +5,7 @@ import userSlotWorkerCode from './user-slot-worker';
 import eventHubWorkerCode from './event-hub-worker';
 import wsWorkerACPCode from './ws-worker-acp';
 import wsWorkerAgentAssistCode from './ws-worker-agent-assist';
+import wsWorkerAgenticCode from './ws-agentic-worker';
 import uiqWorkerCode from './uiq-worker';
 /**
  * Class to create and load worker based on provided script
@@ -37,6 +38,9 @@ export class LoadWorker {
                 break;
             case 'ws-worker-acp':
                 worker = this.initWorker(wsWorkerACPCode, workerName);
+                break;
+            case 'ws-worker-agentic':
+                worker = this.initWorker(wsWorkerAgenticCode, workerName);
                 break;
             case 'ws-worker-agent-assist':
                 worker = this.initWorker(wsWorkerAgentAssistCode, workerName);

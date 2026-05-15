@@ -20,6 +20,7 @@ export declare class CopilotService {
     private AGENT_COPILOT_SEARCH;
     private AGENT_COPILOT_FINAL_SUMMARY;
     private AGENT_COPILOT_HEALTH_CHECK;
+    private AGENT_COPILOT_AGENTIC_WS_URL;
     private AGENT_COPILOT_AGENT_ASSIST_HUB_CONFIG;
     private AGENT_COPILOT_GET_ADAPTIVE_CARD_SCHEMAS;
     private AGENT_COPILOT_EMAIL_APIS;
@@ -137,6 +138,16 @@ export declare class CopilotService {
      * ```
      */
     addAdaptiveCardSchemaToIndexDB: (copilotReduxSlice: CcfCopilotData) => Promise<void>;
+    /**
+     * Used to fetch the agentic WebSocket URL for the second worker connection
+     * @example -
+     * ```
+     * copilotService.fetchAgenticWebSocketUrl();
+     * ```
+     */
+    fetchAgenticWebSocketUrl(): Promise<{
+        agenticWebsocketURL: string;
+    }>;
     /**
      * Used to get the copilot health
      * @param contactId - contact Id of current active contact
@@ -310,15 +321,17 @@ export declare class CopilotService {
     fetchGeneratedFinalSummary(contactId: string): Promise<unknown>;
     /**
      * Used to get task response based on the intentName for a given contactId
+     * @param contactId - contact Id
      * @param intentConfig - intent config
-     * @param contactId  - contact Id
-     * @param taskSessionUid - task session unique id
+     * @param formCapturedata - form capture data captured from adaptive card slots
+     * @param taskSessionUid - task session unique id, preserved across follow-up calls in the same workflow session
+     * @param query - optional free-text query forwarded to task-assist (e.g. search-bar input for an ongoing workflow); included in the request body whenever it is defined, including the empty string
      * @example -
      * ```
      * copilotService.getTaskResponse('Task intent name here', '12321');
      * ```
      */
-    getTaskResponse(contactId: string, intentConfig: IntentConfig, formCapturedata?: Record<string, unknown>, taskSessionUid?: string): Promise<string>;
+    getTaskResponse(contactId: string, intentConfig: IntentConfig, formCapturedata?: Record<string, unknown>, taskSessionUid?: string, query?: string): Promise<string>;
     /**
      * Used to get all copilot adaptive card schemas
      * @example -
@@ -450,7 +463,7 @@ export declare class CopilotService {
         decisionTreeId: string;
         sectionId: string;
         questionId: string;
-        newResponse: string;
+        newResponse: string | number | boolean;
     }): Promise<DecisionTreeData>;
     /**
    * Submits the fully completed Decision Tree to the backend.

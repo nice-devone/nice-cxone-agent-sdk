@@ -89,5 +89,9 @@ export declare enum AgentCopilotContentType {
     /**
      * Represents the copilot checklist content type.
      */
-    CHECKLIST = "checklist"
+    CHECKLIST = "checklist",
+    /**
+     * Represents the copilot workflow response content type (Cognigy integration).
+     */
+    WORKFLOW_RESPONSE = "workflowResponse"
 }
