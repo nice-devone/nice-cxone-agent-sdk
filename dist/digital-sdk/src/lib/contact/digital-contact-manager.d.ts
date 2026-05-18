@@ -50,6 +50,7 @@ export declare class DigitalContactManager {
     private digitalEventSyncDictionary;
     private isWSAPIIntegrationRevampToggleEnabled;
     private isDigitalEventDeltaPublishingEnabled;
+    private isOldUserSlotFlowEnabled;
     private readonly requestManager;
     private readonly SYNC_ENABLED_EVENTS;
     private readonly deltaEvents;
@@ -240,6 +241,22 @@ export declare class DigitalContactManager {
      * ```
     */
     manageUserSlotDetails(): Promise<void>;
+    /**
+     * Method to handle digital user slot polling under the new simplified flow.
+     * Starts user slot polling directly without any feature toggle or leader election dependency.
+     * @example
+     * ```
+     *  handleDigitalUserSlot()
+     * ```
+     */
+    handleDigitalUserSlot(): void;
+    /**
+     * Parses the user slot poll response and updates the digital contact map accordingly (AW-55667).
+     * Adds newly assigned contacts and removes unassigned ones on every poll cycle.
+     * @param userSlotResponse - The response containing user slots information.
+     * @example handleUserSlotPollResponse(userSlotResponse)
+     */
+    handleUserSlotPollResponse(userSlotResponse: UserSlots): void;
     /**
      * Method to invoke user slot API and polling for data reconcile based on case
      * @example

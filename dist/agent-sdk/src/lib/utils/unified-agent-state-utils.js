@@ -13,12 +13,15 @@ import { ProductFeatureUtils } from '../product-feature/product-feature-utils';
 export const isUnifiedAgentStateEnabled = () => __awaiter(void 0, void 0, void 0, function* () {
     const ccfLogger = new Logger('CcfLogger', 'isUnifiedAgentStateEnabled');
     try {
+        const unifiedAgentStateFf4jToggle = FeatureToggleService.instance.getFeatureToggleSync("release-cx-directory-agent-state-working-digital-AW-28472" /* FeatureToggles.DIRECTORY_AGENT_STATE_WORKING_DIGITAL_FEATURE_TOGGLE */);
+        if (unifiedAgentStateFf4jToggle) {
+            return true;
+        }
         const unifiedAgentStateFf4jToggleV2 = FeatureToggleService.instance.getFeatureToggleSync("release-cx-directory-agent-state-working-digital-v2-AW-52273" /* FeatureToggles.DIRECTORY_AGENT_STATE_WORKING_DIGITAL_V2_FEATURE_TOGGLE */);
         const unifiedAgentStateTenantToggle = yield ProductFeatureUtils.checkProductEnablement(CXoneProductFeature.UNIFIED_AGENT_STATE);
         return unifiedAgentStateFf4jToggleV2 && unifiedAgentStateTenantToggle;
     }
     catch (error) {
-        // Handle error
         if (error instanceof Error) {
             ccfLogger.error('isUnifiedAgentStateEnabled', error.message);
         }

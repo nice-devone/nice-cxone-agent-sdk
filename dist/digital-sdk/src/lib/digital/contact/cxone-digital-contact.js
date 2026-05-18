@@ -180,7 +180,7 @@ export class CXoneDigitalContact extends CXoneContact {
      * @example
      */
     parse(validatedResponse) {
-        var _a, _b, _c, _d, _e, _f, _g, _h, _j, _k, _l, _m, _o, _p, _q, _r, _s, _t, _u, _v, _w, _x, _y, _z, _0, _1, _2, _3, _4, _5, _6, _7, _8, _9, _10, _11, _12, _13, _14;
+        var _a, _b, _c, _d, _e, _f, _g, _h, _j, _k, _l, _m, _o, _p, _q, _r, _s, _t, _u, _v, _w, _x, _y, _z, _0, _1, _2, _3, _4, _5, _6, _7, _8, _9, _10, _11, _12, _13, _14, _15;
         return __awaiter(this, void 0, void 0, function* () {
             if (validatedResponse) {
                 const { data } = validatedResponse;
@@ -195,7 +195,9 @@ export class CXoneDigitalContact extends CXoneContact {
                 this.channel = data === null || data === void 0 ? void 0 : data.channel;
                 this.caseId = (_a = data === null || data === void 0 ? void 0 : data.case) === null || _a === void 0 ? void 0 : _a.id;
                 this.inboxAssignee = (_b = data === null || data === void 0 ? void 0 : data.case) === null || _b === void 0 ? void 0 : _b.inboxAssigneeUser;
-                this.isAssignedToAgentInbox = data === null || data === void 0 ? void 0 : data.isAssignedToAgentInbox;
+                // Preserve existing isAssignedToAgentInbox when the event data does not include it
+                // (e.g. MESSAGE_ADDED_INTO_CASE events do not carry this field and must not reset it)
+                this.isAssignedToAgentInbox = (_c = data === null || data === void 0 ? void 0 : data.isAssignedToAgentInbox) !== null && _c !== void 0 ? _c : this.isAssignedToAgentInbox;
                 if (data === null || data === void 0 ? void 0 : data.routingQueue) {
                     this.routingQueue = data === null || data === void 0 ? void 0 : data.routingQueue;
                 }
@@ -211,34 +213,34 @@ export class CXoneDigitalContact extends CXoneContact {
                 if (data === null || data === void 0 ? void 0 : data.message) {
                     // When message content is large '/details' api and websocket strips down html tags,to get original message format 
                     // we need to call this method seprately before publishing the messagge to consumer. change made for AW-4252
-                    if ((_c = data === null || data === void 0 ? void 0 : data.message) === null || _c === void 0 ? void 0 : _c.hasAdditionalMessageContent) {
+                    if ((_d = data === null || data === void 0 ? void 0 : data.message) === null || _d === void 0 ? void 0 : _d.hasAdditionalMessageContent) {
                         data.message = yield this.getSingleMessageAdditionalContent(data === null || data === void 0 ? void 0 : data.message);
                     }
                     data.message['xTraceId'] = validatedResponse.traceId;
-                    if (((_d = this.channel) === null || _d === void 0 ? void 0 : _d.hasTreeStructure) && !((_e = data.message) === null || _e === void 0 ? void 0 : _e.replyToMessage)) {
+                    if (((_e = this.channel) === null || _e === void 0 ? void 0 : _e.hasTreeStructure) && !((_f = data.message) === null || _f === void 0 ? void 0 : _f.replyToMessage)) {
                         this.originURL = data.message.url;
                     }
-                    if (((_f = data === null || data === void 0 ? void 0 : data.message) === null || _f === void 0 ? void 0 : _f.direction) === 'inbound') {
-                        this.customerMessageUpdatedAt = (_g = data === null || data === void 0 ? void 0 : data.message) === null || _g === void 0 ? void 0 : _g.createdAt;
+                    if (((_g = data === null || data === void 0 ? void 0 : data.message) === null || _g === void 0 ? void 0 : _g.direction) === 'inbound') {
+                        this.customerMessageUpdatedAt = (_h = data === null || data === void 0 ? void 0 : data.message) === null || _h === void 0 ? void 0 : _h.createdAt;
                     }
-                    this.hasUnreadMessage = !((_h = data === null || data === void 0 ? void 0 : data.message) === null || _h === void 0 ? void 0 : _h.isRead);
-                    if ((_j = this.messages) === null || _j === void 0 ? void 0 : _j.length) {
+                    this.hasUnreadMessage = !((_j = data === null || data === void 0 ? void 0 : data.message) === null || _j === void 0 ? void 0 : _j.isRead);
+                    if ((_k = this.messages) === null || _k === void 0 ? void 0 : _k.length) {
                         const matchedMessage = this.messages.findIndex(item => { var _a; return item.id === ((_a = data === null || data === void 0 ? void 0 : data.message) === null || _a === void 0 ? void 0 : _a.id); });
                         if (matchedMessage !== -1) {
                             if (this.eventDetails.eventType === CXoneDigitalEventType.MESSAGE_DELIVERY_STATUS_CHANGED ||
                                 this.eventDetails.eventType === CXoneDigitalEventType.MESSAGE_SEEN_CHANGED) {
                                 // created a new object of message and updated delivered and customerStatistics fields in order to avoid type error assigning to readd only object
                                 const message = Object.assign({}, this.messages[matchedMessage]);
-                                message.delivered = (_k = data === null || data === void 0 ? void 0 : data.message) === null || _k === void 0 ? void 0 : _k.delivered;
-                                message.customerStatistics = (_l = data === null || data === void 0 ? void 0 : data.message) === null || _l === void 0 ? void 0 : _l.customerStatistics;
+                                message.delivered = (_l = data === null || data === void 0 ? void 0 : data.message) === null || _l === void 0 ? void 0 : _l.delivered;
+                                message.customerStatistics = (_m = data === null || data === void 0 ? void 0 : data.message) === null || _m === void 0 ? void 0 : _m.customerStatistics;
                                 this.messages[matchedMessage] = message;
                             }
-                            else if (((_m = this.messages[matchedMessage].tags) === null || _m === void 0 ? void 0 : _m.length) !== ((_p = (_o = data === null || data === void 0 ? void 0 : data.message) === null || _o === void 0 ? void 0 : _o.tags) === null || _p === void 0 ? void 0 : _p.length)) {
-                                this.messages[matchedMessage].tags = (_r = (_q = data === null || data === void 0 ? void 0 : data.message) === null || _q === void 0 ? void 0 : _q.tags) === null || _r === void 0 ? void 0 : _r.slice(0);
+                            else if (((_o = this.messages[matchedMessage].tags) === null || _o === void 0 ? void 0 : _o.length) !== ((_q = (_p = data === null || data === void 0 ? void 0 : data.message) === null || _p === void 0 ? void 0 : _p.tags) === null || _q === void 0 ? void 0 : _q.length)) {
+                                this.messages[matchedMessage].tags = (_s = (_r = data === null || data === void 0 ? void 0 : data.message) === null || _r === void 0 ? void 0 : _r.tags) === null || _s === void 0 ? void 0 : _s.slice(0);
                             }
                         }
                         else {
-                            (_s = this.messages) === null || _s === void 0 ? void 0 : _s.push(data.message);
+                            (_t = this.messages) === null || _t === void 0 ? void 0 : _t.push(data.message);
                         }
                     }
                 }
@@ -259,33 +261,33 @@ export class CXoneDigitalContact extends CXoneContact {
                         return Object.assign(Object.assign({}, message), { messageNotes: [...(data.messageNotes || []).filter((msgNote) => msgNote.message.id === message.id)] });
                     });
                     // Assign value true if at least one message is unread in case
-                    this.hasUnreadMessage = (_t = data === null || data === void 0 ? void 0 : data.messages) === null || _t === void 0 ? void 0 : _t.some((msg) => !msg.isRead);
+                    this.hasUnreadMessage = (_u = data === null || data === void 0 ? void 0 : data.messages) === null || _u === void 0 ? void 0 : _u.some((msg) => !msg.isRead);
                     this.messages = messages;
                 }
-                this.isCaseAssigned = ((_u = this.case) === null || _u === void 0 ? void 0 : _u.inboxAssignee) && (((_w = (_v = this.case) === null || _v === void 0 ? void 0 : _v.inboxAssigneeUser) === null || _w === void 0 ? void 0 : _w.incontactId) === ((_y = (_x = CXoneUser === null || CXoneUser === void 0 ? void 0 : CXoneUser.instance) === null || _x === void 0 ? void 0 : _x.getUserInfo()) === null || _y === void 0 ? void 0 : _y.userId)) ? true : false;
+                this.isCaseAssigned = ((_v = this.case) === null || _v === void 0 ? void 0 : _v.inboxAssignee) && (((_x = (_w = this.case) === null || _w === void 0 ? void 0 : _w.inboxAssigneeUser) === null || _x === void 0 ? void 0 : _x.incontactId) === ((_z = (_y = CXoneUser === null || CXoneUser === void 0 ? void 0 : CXoneUser.instance) === null || _y === void 0 ? void 0 : _y.getUserInfo()) === null || _z === void 0 ? void 0 : _z.userId)) ? true : false;
                 this.type = ContactType.DIGITAL_CONTACT;
-                this.interactionId = (_z = data === null || data === void 0 ? void 0 : data.case) === null || _z === void 0 ? void 0 : _z.interactionId;
-                this.channelType = (_0 = data === null || data === void 0 ? void 0 : data.channel) === null || _0 === void 0 ? void 0 : _0.realExternalPlatformId;
-                this.customerName = ((_1 = data === null || data === void 0 ? void 0 : data.case) === null || _1 === void 0 ? void 0 : _1.direction) === 'outbound' ? ((_4 = (_3 = (_2 = data === null || data === void 0 ? void 0 : data.case) === null || _2 === void 0 ? void 0 : _2.authorEndUserIdentity) === null || _3 === void 0 ? void 0 : _3.fullName) !== null && _4 !== void 0 ? _4 : (((_5 = data === null || data === void 0 ? void 0 : data.channel) === null || _5 === void 0 ? void 0 : _5.name) || ((_6 = data === null || data === void 0 ? void 0 : data.channel) === null || _6 === void 0 ? void 0 : _6.idOnExternalPlatform))) : (_8 = (_7 = data === null || data === void 0 ? void 0 : data.case) === null || _7 === void 0 ? void 0 : _7.authorEndUserIdentity) === null || _8 === void 0 ? void 0 : _8.fullName;
+                this.interactionId = (_0 = data === null || data === void 0 ? void 0 : data.case) === null || _0 === void 0 ? void 0 : _0.interactionId;
+                this.channelType = (_1 = data === null || data === void 0 ? void 0 : data.channel) === null || _1 === void 0 ? void 0 : _1.realExternalPlatformId;
+                this.customerName = ((_2 = data === null || data === void 0 ? void 0 : data.case) === null || _2 === void 0 ? void 0 : _2.direction) === 'outbound' ? ((_5 = (_4 = (_3 = data === null || data === void 0 ? void 0 : data.case) === null || _3 === void 0 ? void 0 : _3.authorEndUserIdentity) === null || _4 === void 0 ? void 0 : _4.fullName) !== null && _5 !== void 0 ? _5 : (((_6 = data === null || data === void 0 ? void 0 : data.channel) === null || _6 === void 0 ? void 0 : _6.name) || ((_7 = data === null || data === void 0 ? void 0 : data.channel) === null || _7 === void 0 ? void 0 : _7.idOnExternalPlatform))) : (_9 = (_8 = data === null || data === void 0 ? void 0 : data.case) === null || _8 === void 0 ? void 0 : _8.authorEndUserIdentity) === null || _9 === void 0 ? void 0 : _9.fullName;
                 this.customerId = data === null || data === void 0 ? void 0 : data.customerId;
-                this.skill = (_9 = data === null || data === void 0 ? void 0 : data.routingQueue) === null || _9 === void 0 ? void 0 : _9.name;
-                this.status = (_10 = data === null || data === void 0 ? void 0 : data.case) === null || _10 === void 0 ? void 0 : _10.status;
-                this.startTime = (_11 = data === null || data === void 0 ? void 0 : data.case) === null || _11 === void 0 ? void 0 : _11.createdAt;
+                this.skill = (_10 = data === null || data === void 0 ? void 0 : data.routingQueue) === null || _10 === void 0 ? void 0 : _10.name;
+                this.status = (_11 = data === null || data === void 0 ? void 0 : data.case) === null || _11 === void 0 ? void 0 : _11.status;
+                this.startTime = (_12 = data === null || data === void 0 ? void 0 : data.case) === null || _12 === void 0 ? void 0 : _12.createdAt;
                 if (data === null || data === void 0 ? void 0 : data.messageDrafts) {
                     this.messageDrafts = data === null || data === void 0 ? void 0 : data.messageDrafts;
                 }
                 if (data === null || data === void 0 ? void 0 : data.messageNote) {
                     switch (validatedResponse.eventType) {
                         case CXoneDigitalEventType.MESSAGE_NOTE_CREATED:
-                            this.messages = (_12 = this.messages) === null || _12 === void 0 ? void 0 : _12.map(message => message.id === (data === null || data === void 0 ? void 0 : data.messageNote.message.id)
+                            this.messages = (_13 = this.messages) === null || _13 === void 0 ? void 0 : _13.map(message => message.id === (data === null || data === void 0 ? void 0 : data.messageNote.message.id)
                                 ? Object.assign(Object.assign({}, message), { messageNotes: [...(message.messageNotes || []), data === null || data === void 0 ? void 0 : data.messageNote] }) : Object.assign({}, message));
                             break;
                         case CXoneDigitalEventType.MESSAGE_NOTE_DELETED:
-                            this.messages = (_13 = this.messages) === null || _13 === void 0 ? void 0 : _13.map(message => message.id === (data === null || data === void 0 ? void 0 : data.messageNote.message.id)
+                            this.messages = (_14 = this.messages) === null || _14 === void 0 ? void 0 : _14.map(message => message.id === (data === null || data === void 0 ? void 0 : data.messageNote.message.id)
                                 ? Object.assign(Object.assign({}, message), { messageNotes: (((message === null || message === void 0 ? void 0 : message.messageNotes) || []).filter((msgNote) => { var _a; return msgNote.id !== ((_a = data === null || data === void 0 ? void 0 : data.messageNote) === null || _a === void 0 ? void 0 : _a.id); })) }) : Object.assign({}, message));
                             break;
                         case CXoneDigitalEventType.MESSAGE_NOTE_UPDATED:
-                            this.messages = (_14 = this.messages) === null || _14 === void 0 ? void 0 : _14.map(message => message.id === (data === null || data === void 0 ? void 0 : data.messageNote.message.id)
+                            this.messages = (_15 = this.messages) === null || _15 === void 0 ? void 0 : _15.map(message => message.id === (data === null || data === void 0 ? void 0 : data.messageNote.message.id)
                                 ? Object.assign(Object.assign({}, message), { messageNotes: (((message === null || message === void 0 ? void 0 : message.messageNotes) || []).map((msgNote) => { var _a; return msgNote.id === ((_a = data === null || data === void 0 ? void 0 : data.messageNote) === null || _a === void 0 ? void 0 : _a.id) ? data.messageNote : msgNote; })) }) : Object.assign({}, message));
                             break;
                         default: break;

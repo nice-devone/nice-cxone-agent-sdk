@@ -21,6 +21,7 @@ export class CXoneDynamicDirectory {
         this.wsProvider = new WSProvider(this);
         this.newGenWsProvider = new WSProvider(this);
         this.currentSearchDirectoriesRequest = {};
+        this.isPendingNewGenUnsubscribe = false;
         this.searchDirectoriesResponse = new SearchDirectoriesResponse();
         this.searchNewGenDirectoriesResponse = new SearchDirectoriesResponse();
         this.onMessageReceived = new Subject();
@@ -540,6 +541,7 @@ export class CXoneDynamicDirectory {
      * ```
      */
     searchNewGenDirectories(searchNewGenDirectoriesRequest) {
+        const previousNewGenSubscriptionId = this.searchNewGenDirectoriesResponse.subscriptionId;
         this.currentNewGenSearchDirectoriesRequest = searchNewGenDirectoriesRequest;
         const cxOneConfig = this.auth.getCXoneConfig();
         const authToken = this.auth.getAuthToken();
@@ -580,8 +582,21 @@ export class CXoneDynamicDirectory {
                         this.currentNewGenSearchDirectoriesRequest.subscriptionId =
                             this.searchNewGenDirectoriesResponse.subscriptionId;
                     }
+                    if (this.validationUtils.isNotNullOrEmpty(previousNewGenSubscriptionId) &&
+                        this.newGenWsProvider.isConnected()) {
+                        this.pendingNewGenSubscriptionId =
+                            this.searchNewGenDirectoriesResponse.subscriptionId;
+                        // Only send unsubscribeSearch if one is not already pending to avoid enqueuing multiple unsubscribe requests
+                        if (!this.isPendingNewGenUnsubscribe) {
+                            this.isPendingNewGenUnsubscribe = true;
+                            this.newGenWsProvider.unsubscribeSearch(previousNewGenSubscriptionId);
+                        }
+                    }
                     this.newGenWsProvider.connectNewGenSocket();
-                    this.socketMessageHandler(this.newGenWsProvider, true);
+                    if (!this.newGenMessageReceivedSubscription ||
+                        this.newGenMessageReceivedSubscription.closed) {
+                        this.socketMessageHandler(this.newGenWsProvider, true);
+                    }
                 }
                 this.updateFavNewGenDirEntriesFromClientData();
                 this.publishFinalDynamicDirectoryResponse(this.searchNewGenDirectoriesResponse, true);
@@ -685,6 +700,9 @@ export class CXoneDynamicDirectory {
                     const subscriptionId = isNewGen
                         ? (_b = (_a = this.currentNewGenSearchDirectoriesRequest) === null || _a === void 0 ? void 0 : _a.subscriptionId) !== null && _b !== void 0 ? _b : ''
                         : (_d = (_c = this.currentSearchDirectoriesRequest) === null || _c === void 0 ? void 0 : _c.subscriptionId) !== null && _d !== void 0 ? _d : '';
+                    if (isNewGen && this.isPendingNewGenUnsubscribe) {
+                        break;
+                    }
                     if (subscriptionId) {
                         provider.subscribeSearch(subscriptionId);
                     }
@@ -700,6 +718,15 @@ export class CXoneDynamicDirectory {
                     break;
                 }
                 case WSCommand.UNSUBSCRIBED: {
+                    if (isNewGen && this.isPendingNewGenUnsubscribe) {
+                        this.isPendingNewGenUnsubscribe = false;
+                        const subscriptionIdToSubscribe = this.pendingNewGenSubscriptionId;
+                        this.pendingNewGenSubscriptionId = undefined;
+                        if (subscriptionIdToSubscribe) {
+                            provider.subscribeSearch(subscriptionIdToSubscribe);
+                        }
+                        break;
+                    }
                     provider.close();
                     if (isNewGen) {
                         if (this.newGenMessageReceivedSubscription) {
@@ -714,7 +741,7 @@ export class CXoneDynamicDirectory {
                     break;
                 }
                 case WSCommand.MESSAGE: {
-                    const mergedResult = this.mergeSearchResults(message);
+                    const mergedResult = this.mergeSearchResults(message, isNewGen);
                     if (isNewGen) {
                         this.searchNewGenDirectoriesResponse.error = null;
                         this.publishFinalDynamicDirectoryResponse(mergedResult, true);
@@ -754,7 +781,7 @@ export class CXoneDynamicDirectory {
      * this.connectSocket();
      * ```
      */
-    mergeSearchResults(message) {
+    mergeSearchResults(message, isNewGen) {
         var _a, _b;
         const presenceOrder = {
             Green: 3,
@@ -762,7 +789,7 @@ export class CXoneDynamicDirectory {
             Yellow: 2,
             Grey: 1,
         };
-        const activeResponse = this.currentNewGenSearchDirectoriesRequest
+        const activeResponse = isNewGen
             ? this.searchNewGenDirectoriesResponse
             : this.searchDirectoriesResponse;
         if (!(activeResponse === null || activeResponse === void 0 ? void 0 : activeResponse.directoryEntries))

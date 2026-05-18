@@ -23,6 +23,7 @@ export class CopilotService {
         this.AGENT_COPILOT_SEARCH = this.AGENT_COPILOT_BASE_URI + 'agent-search';
         this.AGENT_COPILOT_FINAL_SUMMARY = this.AGENT_COPILOT_BASE_URI + 'final-summary';
         this.AGENT_COPILOT_HEALTH_CHECK = this.AGENT_COPILOT_BASE_URI + 'copilot-health';
+        this.AGENT_COPILOT_AGENTIC_WS_URL = this.AGENT_COPILOT_BASE_URI + 'agentic-websocket-url';
         this.AGENT_COPILOT_AGENT_ASSIST_HUB_CONFIG = this.AGENT_COPILOT_BASE_URI_V2 + 'license/retrieve-aah-config';
         this.AGENT_COPILOT_GET_ADAPTIVE_CARD_SCHEMAS = '/agent-copilot/v2/adaptive-cards?cardType={cardType}&cxaClientVersion={cxaClientVersion}';
         this.AGENT_COPILOT_EMAIL_APIS = {
@@ -570,6 +571,27 @@ export class CopilotService {
         return JSON.parse(localStorage.getItem(key) || '{}');
     }
     /**
+     * Used to fetch the agentic WebSocket URL for the second worker connection
+     * @example -
+     * ```
+     * copilotService.fetchAgenticWebSocketUrl();
+     * ```
+     */
+    fetchAgenticWebSocketUrl() {
+        return new Promise((resolve, reject) => {
+            const reqInit = this.getBaseHttpRequest({});
+            const baseUrl = this.getBaseUrlForAcp();
+            const url = baseUrl + this.AGENT_COPILOT_AGENTIC_WS_URL;
+            HttpClient === null || HttpClient === void 0 ? void 0 : HttpClient.get(url, reqInit).then((response) => {
+                resolve(response.data);
+            }, (error) => {
+                const errorResponse = new CXoneSdkError(CXoneSdkErrorType.CXONE_API_ERROR, 'Failed to fetch agentic websocket URL', error);
+                this.logger.error('fetchAgenticWebSocketUrl', errorResponse.toString());
+                reject(errorResponse);
+            });
+        });
+    }
+    /**
     * Use to process an editor command to get the Simplified/Rephrased/Expanded text in reponse
     * @param action - email action
     * @param context - editor text
@@ -687,27 +709,29 @@ export class CopilotService {
     ;
     /**
      * Used to get task response based on the intentName for a given contactId
+     * @param contactId - contact Id
      * @param intentConfig - intent config
-     * @param contactId  - contact Id
-     * @param taskSessionUid - task session unique id
+     * @param formCapturedata - form capture data captured from adaptive card slots
+     * @param taskSessionUid - task session unique id, preserved across follow-up calls in the same workflow session
+     * @param query - optional free-text query forwarded to task-assist (e.g. search-bar input for an ongoing workflow); included in the request body whenever it is defined, including the empty string
      * @example -
      * ```
      * copilotService.getTaskResponse('Task intent name here', '12321');
      * ```
      */
-    getTaskResponse(contactId, intentConfig, formCapturedata, taskSessionUid) {
+    getTaskResponse(contactId, intentConfig, formCapturedata, taskSessionUid, query) {
         return new Promise((resolve, reject) => {
             var _a;
             const aahConfiguration = this.getAgentAssistConfig && this.getAgentAssistConfig(`${contactId}`, true);
             const taskAssistConfig = (_a = aahConfiguration === null || aahConfiguration === void 0 ? void 0 : aahConfiguration.Params) === null || _a === void 0 ? void 0 : _a.taskAssistConfig;
-            const req = Object.assign(Object.assign({ intentConfig }, (formCapturedata
+            const req = Object.assign(Object.assign(Object.assign({ intentConfig }, (formCapturedata
                 ? {
                     slots: Object.entries(formCapturedata).map(([key, value]) => ({
                         slotName: key,
                         value: value,
                     })),
                 }
-                : {})), { virtualAgentId: taskAssistConfig.virtualAgentId, taskSessionUid });
+                : {})), { virtualAgentId: taskAssistConfig.virtualAgentId, taskSessionUid }), (query !== undefined ? { query } : {}));
             const reqInit = this.getBaseHttpRequest(req);
             const baseUrl = this.getBaseUrlForAcp();
             const taskResponseUrl = baseUrl + this.TASK_ASSIST.replace('{contactId}', contactId);

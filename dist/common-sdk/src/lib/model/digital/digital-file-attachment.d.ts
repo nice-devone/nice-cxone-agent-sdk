@@ -10,4 +10,8 @@ export interface DigitalFileAttachment {
     * @remarks - s3 bucket link url of uploaded file
     */
     url: string;
+    /**
+     * @remarks - indicates if the attachment is inline
+     */
+    isInline?: boolean;
 }
