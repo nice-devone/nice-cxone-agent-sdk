@@ -38,6 +38,7 @@ import { CXoneDigitalReplyRequest } from "@nice-devone/common-sdk";
 import { uuid } from "uuidv4";
 import HorizontalCards from "./horizontal-cards-caseIds/HorizontalCards";
 import { tryCatchWrapper } from "../../utils/tryCatchWrapper";
+import { useEventLog } from "../../context/EventLogContext";
 import SendIcon from "@mui/icons-material/Send";
 import InboxIcon from "@mui/icons-material/Inbox";
 
@@ -51,12 +52,15 @@ const DigitalSdk = () => {
 
   const [digitalContacts, setDigitalContacts] = useState([] as any);
   const [selectedDigitalContact, setSelectedDigitalContact] = useState({} as any);
+  const { logEvent } = useEventLog();
 
 
   const [messages, setMessages] = useState([] as any);
 
   useEffect(() => {
+    logEvent({ source: "Digital", kind: "request", name: "initDigitalEngagement" });
     CXoneDigitalClient.instance.initDigitalEngagement().finally(() => { 
+      logEvent({ source: "Digital", kind: "response", name: "initDigitalEngagement complete" });
       setInitEngagement(true);
     })
    
@@ -85,12 +89,14 @@ const DigitalSdk = () => {
     const digitalSdkwebsoket=async()=>{
       CXoneDigitalClient.instance.digitalContactManager.onDigitalContactNewMessageEvent?.subscribe(
         (eventData) => {
+          logEvent({ source: "Digital", kind: "event", name: "onDigitalContactNewMessageEvent", data: eventData });
           console.log("eventData", eventData);
         }
       );
      
       CXoneDigitalClient.instance.digitalContactManager.onDigitalContactEvent?.subscribe(
        async (digitalConct: any) => {
+        logEvent({ source: "Digital", kind: "event", name: `onDigitalContactEvent (case ${digitalConct?.caseId ?? "?"})`, data: digitalConct });
         // Update the existing digital contact if it already exists, otherwise add the new contact
         setDigitalContacts((prevState: any) => {
           if (prevState.some((contact: any) => contact.caseId === digitalConct.caseId)) {
@@ -142,12 +148,15 @@ const DigitalSdk = () => {
     const sendReply = (e: { preventDefault: () => void }) => {
       e.preventDefault();
       digitalContactInstance = new CXoneDigitalContact();
+      logEvent({ source: "Digital", kind: "request", name: "CXoneDigitalContact.reply", data: replyObject });
       digitalContactInstance
         .reply(replyObject, selectedDigitalContact?.channel?.id, uuid())
         .then((res) => {
+          logEvent({ source: "Digital", kind: "response", name: "reply success", data: res });
           console.log("Reply Sent Successfully!", res);
         })
         .catch((err) => {
+          logEvent({ source: "Digital", kind: "error", name: "reply failed", data: err });
           console.log("Reply Unsuccessful", JSON.stringify(err));
         });
       setInputValue("");
@@ -160,7 +169,7 @@ const DigitalSdk = () => {
         };
 
   return (
-    <Box sx={{ maxWidth: 900, mx: "auto", py: 2 }}>
+    <Box sx={{ maxWidth: 900, mx: "auto", py: 2, width: "100%" }}>
       <Typography variant="h5" sx={{ mb: 3, fontWeight: 700, color: "primary.dark" }}>
         Digital SDK
       </Typography>

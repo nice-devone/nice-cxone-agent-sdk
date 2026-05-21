@@ -33,6 +33,8 @@ import React, { useEffect, useRef, useState } from "react";
 import {  AuthToken } from "@nice-devone/common-sdk";
 import { AuthSettings, AuthStatus,  AuthWithCodeReq,  AuthWithTokenReq, CXoneAuth } from "@nice-devone/auth-sdk";
 import { LocalStorageHelper } from "@nice-devone/core-sdk";
+import { useEventLog } from "../../context/EventLogContext";
+import { authDefaults } from "./authDefaults";
 import LockOpenIcon from "@mui/icons-material/LockOpen";
 import VpnKeyIcon from "@mui/icons-material/VpnKey";
 import CheckCircleIcon from "@mui/icons-material/CheckCircle";
@@ -41,6 +43,10 @@ import HourglassEmptyIcon from "@mui/icons-material/HourglassEmpty";
 
 
 
+const DEFAULT_HOST_NAME = authDefaults.hostName;
+const DEFAULT_CLIENT_ID = authDefaults.clientId;
+const DEFAULT_REDIRECT_URI = authDefaults.redirectUri;
+
 const Auth = () => {
   
 
@@ -48,12 +54,14 @@ const Auth = () => {
   const clientId: React.RefObject<HTMLInputElement> = useRef(null);
   const redirectUri: React.RefObject<HTMLInputElement> = useRef(null);
   const accessToken: React.RefObject<HTMLInputElement> = useRef(null);
+  const tokenFlowHostName: React.RefObject<HTMLInputElement> = useRef(null);
   const [authMode, updateAuthMode] = useState("page");
   const [codeChallenge, updateCodeChallenge] = useState("S256");
  
   const cxoneAuth = CXoneAuth.instance;
   const [authState, setAuth] = useState("");
   const [authToken, setAuthToken] = useState("");
+  const { logEvent } = useEventLog();
 
 
   //Auth callback will be captured here
@@ -82,6 +90,7 @@ const Auth = () => {
       originatingServiceIdentifier:'CMASDK'
     };
     LocalStorageHelper.setItem("auth_consumer", JSON.stringify(authSetting));
+    logEvent({ source: "Auth", kind: "request", name: "CXoneAuth.init", data: authSetting });
     cxoneAuth.init(authSetting);
   };
 
@@ -90,9 +99,11 @@ const Auth = () => {
   const authenticateClickHandler = () => {
     initAuth();
     LocalStorageHelper.setItem("display_mode", authMode);
+    logEvent({ source: "Auth", kind: "request", name: "getAuthorizeUrl", data: { authMode, codeChallenge } });
     cxoneAuth
       .getAuthorizeUrl(authMode, codeChallenge)
       .then((authUrl: string) => {
+        logEvent({ source: "Auth", kind: "response", name: "getAuthorizeUrl", data: { authUrl } });
         if (authMode === "page") {
           window.location.href = authUrl;
         } else if (authMode === "popup") {
@@ -125,6 +136,7 @@ const Auth = () => {
 
   function subscribeToAuth() {
     cxoneAuth.onAuthStatusChange.subscribe((data) => {
+      logEvent({ source: "Auth", kind: data.status === AuthStatus.AUTHENTICATION_FAILED ? "error" : "event", name: `onAuthStatusChange: ${data.status}`, data });
       switch (data.status) {
         case AuthStatus.AUTHENTICATING:
           setAuth("AUTHENTICATING");
@@ -152,10 +164,11 @@ const Auth = () => {
    * @example -
    */
   const handleButtonClick = () => {
-    if (!accessToken?.current?.value || !hostName?.current?.value) return;
+    if (!accessToken?.current?.value || !tokenFlowHostName?.current?.value) return;
     const authByToken: AuthWithTokenReq = {
       accessToken: accessToken?.current?.value,
     };
+    logEvent({ source: "Auth", kind: "request", name: "getAccessTokenByToken", data: { hostName: tokenFlowHostName.current.value } });
     cxoneAuth.getAccessTokenByToken(authByToken);
   };
 
@@ -178,7 +191,7 @@ const Auth = () => {
   const statusDisplay = getAuthStatusDisplay();
 
   return (
-    <Box sx={{ maxWidth: 900, mx: "auto", py: 2 }}>
+    <Box sx={{ maxWidth: 900, mx: "auto", py: 2, width: "100%" }}>
       <Typography variant="h5" sx={{ mb: 3, fontWeight: 700, color: "primary.dark" }}>
         Authentication
       </Typography>
@@ -202,7 +215,7 @@ const Auth = () => {
                   variant="outlined"
                   InputLabelProps={{ shrink: true }}
                   inputRef={hostName}
-                  defaultValue={"https://cxone.niceincontact.com"}
+                  defaultValue={DEFAULT_HOST_NAME}
                   required
                   size="small"
                 />
@@ -214,7 +227,7 @@ const Auth = () => {
                   variant="outlined"
                   InputLabelProps={{ shrink: true }}
                   inputRef={clientId}
-                  defaultValue=""
+                  defaultValue={DEFAULT_CLIENT_ID}
                   required
                   size="small"
                 />
@@ -226,7 +239,7 @@ const Auth = () => {
                   variant="outlined"
                   InputLabelProps={{ shrink: true }}
                   inputRef={redirectUri}
-                  defaultValue="http://localhost:3000/auth-callback"
+                  defaultValue={DEFAULT_REDIRECT_URI}
                   required
                   size="small"
                 />
@@ -321,8 +334,8 @@ const Auth = () => {
                   label="Host Name"
                   variant="outlined"
                   InputLabelProps={{ shrink: true }}
-                  inputRef={hostName}
-                  defaultValue={"https://cxone.test.niceincontact.com"}
+                  inputRef={tokenFlowHostName}
+                  defaultValue={DEFAULT_HOST_NAME}
                   required
                   size="small"
                 />

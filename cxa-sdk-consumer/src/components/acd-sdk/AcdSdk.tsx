@@ -45,6 +45,7 @@ import { AgentSettings } from "@nice-devone/core-sdk";
 import { UserInfo } from "@nice-devone/common-sdk";
 import { useLocation } from "react-router-dom";
 import { tryCatchWrapper } from "../../utils/tryCatchWrapper";
+import { useEventLog } from "../../context/EventLogContext";
 import { CcfMessageType } from '@nice-devone/shared-apps-lib';
 import PlayArrowIcon from "@mui/icons-material/PlayArrow";
 import StopIcon from "@mui/icons-material/Stop";
@@ -62,6 +63,7 @@ const AcdSdk = () => {
   const [voiceContact, setVoiceContact] = useState({} as CXoneVoiceContact);
   const [initEngagement, setInitEngagement] = useState(false);  
   const location = useLocation();
+  const { logEvent } = useEventLog();
 
   const endSessionRequest: EndSessionRequest = {
     forceLogoff: false,
@@ -70,7 +72,9 @@ const AcdSdk = () => {
   };
 
   useEffect(() => {
+    logEvent({ source: "ACD", kind: "request", name: "initAcdEngagement" });
     CXoneAcdClient.instance.initAcdEngagement().finally(() => {
+      logEvent({ source: "ACD", kind: "response", name: "initAcdEngagement complete" });
       setInitEngagement(true);
     })
     CXoneAcdClient.instance.setClickToDialCustomAgentUrl(
@@ -138,6 +142,7 @@ const AcdSdk = () => {
     if (agentId) {
       CXoneAcdClient.instance.session.agentStateService.agentStateSubject.subscribe(
         (agentState: any) => {
+          logEvent({ source: "ACD", kind: "event", name: "agentStateSubject", data: agentState });
           setAgentStatus(agentState);
         }
       );
@@ -145,12 +150,14 @@ const AcdSdk = () => {
       CXoneAcdClient.instance.contactManager.voiceContactUpdateEvent.subscribe(
         (data: CXoneVoiceContact) => {
          
+          logEvent({ source: "ACD", kind: "event", name: "voiceContactUpdateEvent", data });
           setVoiceContact(data);
           console.log("voice contact", data);
         }
       );
 
       CXoneAcdClient.instance.session.agentLegEvent.subscribe((data: any) => {
+        logEvent({ source: "ACD", kind: "event", name: `agentLegEvent: ${data?.status ?? "?"}`, data });
         CXoneVoiceClient.instance.handleAgentLegEvent(data);
         if (data.status === "Dialing") {
           // CXoneVoiceClient.instance.triggerAutoAccept(data.agentLegId);
@@ -171,6 +178,7 @@ const AcdSdk = () => {
 
       CXoneAcdClient.instance.session.onAgentSessionChange.subscribe(
         async (agentSessionChange) => {
+          logEvent({ source: "ACD", kind: "event", name: `onAgentSessionChange: ${agentSessionChange.status}`, data: agentSessionChange });
           switch (agentSessionChange.status) {
             case AgentSessionStatus.JOIN_SESSION_SUCCESS:
             case AgentSessionStatus.SESSION_START: {
@@ -251,12 +259,14 @@ const AcdSdk = () => {
   };
 
   const startSessiononCall = () => {
+    logEvent({ source: "ACD", kind: "request", name: "session.startSession", data: { stationId: "", stationPhoneNumber: "WebRTC" } });
     CXoneAcdClient.instance.session
       .startSession({
         stationId: "",
         stationPhoneNumber: "WebRTC",
       })
       .then((response: any) => {
+        logEvent({ source: "ACD", kind: "response", name: "startSession success", data: response });
         console.log("Session start successfully");
         setStartSessionButton(true);
         LocalStorageHelper.setItem("startsessionButton", "true");
@@ -264,6 +274,7 @@ const AcdSdk = () => {
         setEndSessionButton(false);
       })
       .catch((err: any) => {
+        logEvent({ source: "ACD", kind: "error", name: "startSession failed", data: err });
         setStartSessionButton(false);
         LocalStorageHelper.setItem("startsessionButton", "false");
         setAgentLegButton(true);
@@ -273,9 +284,11 @@ const AcdSdk = () => {
   };
 
   const manualStartSession = () => {
+    logEvent({ source: "ACD", kind: "request", name: "session.joinSession" });
     CXoneAcdClient.instance.session
       .joinSession()
       .then((response: any) => {
+        logEvent({ source: "ACD", kind: "response", name: "joinSession success", data: response });
         console.log("Joined Session successfully");
         setStartSessionButton(true);
         LocalStorageHelper.setItem("startsessionButton", "true");
@@ -283,6 +296,7 @@ const AcdSdk = () => {
         setEndSessionButton(false);
       })
       .catch(() => {
+        logEvent({ source: "ACD", kind: "info", name: "joinSession failed → fallback to startSession" });
         startSessiononCall();
       });
 
@@ -292,9 +306,11 @@ const AcdSdk = () => {
   };
 
   const endSessionButtonClick = () => {
+    logEvent({ source: "ACD", kind: "request", name: "session.endSession", data: endSessionRequest });
     CXoneAcdClient.instance.session
       .endSession(endSessionRequest)
       .then((response: any) => {
+        logEvent({ source: "ACD", kind: "response", name: "endSession success", data: response });
         console.log("Session ended successfully");
         setEndSessionButton(true);
         setStartSessionButton(false);
@@ -302,6 +318,7 @@ const AcdSdk = () => {
         setAgentLegButton(true);
       })
       .catch((err: any) => {
+        logEvent({ source: "ACD", kind: "error", name: "endSession failed", data: err });
         console.log(err.message ?? "An error occured");
       });
     CXoneAcdClient.instance.session.onAgentSessionChange.next({
@@ -311,32 +328,45 @@ const AcdSdk = () => {
 
   const onAgentLegClick = async () => {
     try {
+      logEvent({ source: "ACD", kind: "request", name: "dialAgentLeg" });
       await CXoneAcdClient.instance.agentLegService.dialAgentLeg();
+      logEvent({ source: "ACD", kind: "response", name: "dialAgentLeg success" });
     } catch (error) {
+      logEvent({ source: "ACD", kind: "error", name: "dialAgentLeg failed", data: error });
       console.log("agent leg error", error);
     }
   };
 
   return (
-    <Box sx={{ maxWidth: 900, mx: "auto", py: 2 }}>
+    <Box sx={{ maxWidth: 900, mx: "auto", py: 2, width: "100%" }}>
       <Typography variant="h5" sx={{ mb: 3, fontWeight: 700, color: "primary.dark" }}>
         ACD SDK
       </Typography>
 
       {/* Session Controls */}
       <Card sx={{ mb: 3 }}>
-        <CardContent sx={{ p: 3 }}>
-          <Stack direction="row" alignItems="center" justifyContent="space-between">
+        <CardContent sx={{ p: { xs: 2, sm: 3 } }}>
+          <Stack
+            direction={{ xs: "column", sm: "row" }}
+            alignItems={{ xs: "stretch", sm: "center" }}
+            justifyContent="space-between"
+            spacing={2}
+          >
             <Typography variant="h6" sx={{ fontSize: "1.1rem" }}>
               Session Controls
             </Typography>
-            <Stack direction="row" spacing={1.5}>
+            <Stack
+              direction={{ xs: "column", sm: "row" }}
+              spacing={1.5}
+              sx={{ width: { xs: "100%", sm: "auto" } }}
+            >
               <Button
                 onClick={() => manualStartSession()}
                 variant="contained"
                 color="success"
                 startIcon={<PlayArrowIcon />}
                 disabled={startSessionButton}
+                fullWidth
               >
                 Start Session
               </Button>
@@ -346,6 +376,7 @@ const AcdSdk = () => {
                 color="error"
                 startIcon={<StopIcon />}
                 disabled={endSessionButton}
+                fullWidth
               >
                 End Session
               </Button>
@@ -354,6 +385,7 @@ const AcdSdk = () => {
                 variant="outlined"
                 startIcon={<HeadsetMicIcon />}
                 disabled={agentLegButton}
+                fullWidth
               >
                 Agent Leg
               </Button>
@@ -364,7 +396,7 @@ const AcdSdk = () => {
 
       {/* Agent State & Dial */}
       <Card>
-        <CardContent sx={{ p: 3 }}>
+        <CardContent sx={{ p: { xs: 2, sm: 3 } }}>
           <Stack direction="row" alignItems="center" spacing={1.5} sx={{ mb: 2 }}>
             <Typography variant="h6" sx={{ fontSize: "1.1rem" }}>
               Agent State & Dial
@@ -372,7 +404,13 @@ const AcdSdk = () => {
           </Stack>
           <Divider sx={{ mb: 2.5 }} />
 
-          <Stack direction="row" spacing={3} sx={{ mb: 3 }}>
+          <Stack
+            direction={{ xs: "column", sm: "row" }}
+            spacing={{ xs: 2, sm: 3 }}
+            sx={{ mb: 3 }}
+            useFlexGap
+            flexWrap="wrap"
+          >
             <Box>
               <Typography variant="caption" color="text.secondary">Current State</Typography>
               <Stack direction="row" alignItems="center" spacing={1} sx={{ mt: 0.5 }}>

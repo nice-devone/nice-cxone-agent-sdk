@@ -18,7 +18,7 @@
  * ```
  */
 import  React,{useEffect,  useState} from "react";
-import { styled, Theme } from "@mui/material/styles";
+import { styled, Theme, useTheme } from "@mui/material/styles";
 import Box from "@mui/material/Box";
 import Drawer from "@mui/material/Drawer";
 import CssBaseline from "@mui/material/CssBaseline";
@@ -31,12 +31,19 @@ import ListItemIcon from "@mui/material/ListItemIcon";
 import Typography from "@mui/material/Typography";
 import Avatar from "@mui/material/Avatar";
 import Chip from "@mui/material/Chip";
+import AppBar from "@mui/material/AppBar";
+import Toolbar from "@mui/material/Toolbar";
+import IconButton from "@mui/material/IconButton";
+import Container from "@mui/material/Container";
+import useMediaQuery from "@mui/material/useMediaQuery";
+import MenuIcon from "@mui/icons-material/Menu";
 import { Route, Routes, useLocation, useNavigate } from "react-router-dom";
 import CxaPlaceholder from "../cxa-placeholder/CxaPlaceholder";
 import AcdSdk from "../acd-sdk/AcdSdk";
 import DigitalSdk from "../digital-sdk/DigitalSdk";
 import Auth from "../auth/Auth";
 import AuthCallBack from "../auth/AuthCallback";
+import EventViewer from "../event-viewer/EventViewer";
 import { CXoneAcdClient } from "@nice-devone/acd-sdk";
 import LockOpenIcon from "@mui/icons-material/LockOpen";
 import HeadsetMicIcon from "@mui/icons-material/HeadsetMic";
@@ -146,30 +153,15 @@ export const ccfAccessTokenFlowStyles = (theme: Theme) => {
   return styles;
 };
 
-const Main = styled("main", { shouldForwardProp: (prop) => prop !== "open" })<{
-  open?: boolean;
-}>(({ theme }) => ({
+const Main = styled("main")(({ theme }) => ({
   flexGrow: 1,
-  padding: theme.spacing(3),
-  transition: theme.transitions.create("margin", {
-    easing: theme.transitions.easing.sharp,
-    duration: theme.transitions.duration.leavingScreen,
-  }),
-  marginLeft: `-${drawerWidth}px`,
+  padding: theme.spacing(2),
   minHeight: "100vh",
   backgroundColor: "#f0f2f5",
-  variants: [
-    {
-      props: ({ open }) => open,
-      style: {
-        transition: theme.transitions.create("margin", {
-          easing: theme.transitions.easing.easeOut,
-          duration: theme.transitions.duration.enteringScreen,
-        }),
-        marginLeft: 0,
-      },
-    },
-  ],
+  width: "100%",
+  [theme.breakpoints.up("md")]: {
+    padding: theme.spacing(3),
+  },
 }));
 
 const tabIcons = [
@@ -184,8 +176,11 @@ const tabIcons = [
 export default function NavBar() {
   const [selectedIndex, setSelectedIndex] = React.useState<number | null>(localStorage.getItem("selectedIndex") ? parseInt(localStorage.getItem("selectedIndex")!) : 0);
   const [disableTab, setDisableTab] = useState(true);
+  const [mobileOpen, setMobileOpen] = useState(false);
   const navigate = useNavigate();
   const location = useLocation();
+  const theme = useTheme();
+  const isDesktop = useMediaQuery(theme.breakpoints.up("md"));
 
   useEffect(() => {
     if(location.pathname === "/") setSelectedIndex(0)
@@ -196,6 +191,7 @@ export default function NavBar() {
   },[location.pathname,selectedIndex])
 
   const handleListItemClick = async(index: number) => {
+    if (!isDesktop) setMobileOpen(false);
     if (index === 0) navigate("/");
     if (index === 1) navigate("/acd-sdk");
     if (index === 2) navigate("/digital-sdk");
@@ -247,25 +243,8 @@ export default function NavBar() {
     };
   }, []);
 
-  return (
-    <Box sx={{ display: "flex" }}>
-      <CssBaseline />
-      <Drawer
-        sx={{
-          width: drawerWidth,
-          flexShrink: 0,
-          "& .MuiDrawer-paper": {
-            width: drawerWidth,
-            boxSizing: "border-box",
-            background: "linear-gradient(180deg, #1a237e 0%, #0d1b60 100%)",
-            color: "#ffffff",
-            borderRight: "none",
-          },
-        }}
-        variant="persistent"
-        anchor="left"
-        open={true}
-      >
+  const drawerContent = (
+    <>
         <Box sx={{ p: 2.5, display: "flex", alignItems: "center", gap: 1.5 }}>
           <Avatar
             sx={{
@@ -348,16 +327,97 @@ export default function NavBar() {
             }}
           />
         </Box>
+    </>
+  );
+
+  const drawerPaperSx = {
+    width: drawerWidth,
+    boxSizing: "border-box" as const,
+    background: "linear-gradient(180deg, #1a237e 0%, #0d1b60 100%)",
+    color: "#ffffff",
+    borderRight: "none",
+  };
+
+  const currentTabLabel = tabNamesArray[selectedIndex ?? 0] ?? "CXone SDK";
+
+  return (
+    <Box sx={{ display: "flex", minHeight: "100vh" }}>
+      <CssBaseline />
+
+      {/* Mobile AppBar with hamburger */}
+      <AppBar
+        position="fixed"
+        sx={{
+          display: { xs: "flex", md: "none" },
+          background: "linear-gradient(135deg, #1a237e 0%, #283593 100%)",
+          boxShadow: "0 2px 8px rgba(0,0,0,0.15)",
+        }}
+      >
+        <Toolbar variant="dense">
+          <IconButton
+            color="inherit"
+            edge="start"
+            onClick={() => setMobileOpen(true)}
+            aria-label="open navigation"
+            sx={{ mr: 1.5 }}
+          >
+            <MenuIcon />
+          </IconButton>
+          <HubIcon sx={{ color: "#64b5f6", mr: 1 }} />
+          <Typography variant="subtitle1" sx={{ fontWeight: 700, flexGrow: 1 }}>
+            CXone SDK
+          </Typography>
+          <Typography variant="caption" sx={{ opacity: 0.8 }}>
+            {currentTabLabel}
+          </Typography>
+        </Toolbar>
+      </AppBar>
+
+      {/* Permanent drawer for desktop */}
+      <Drawer
+        variant="permanent"
+        anchor="left"
+        open
+        sx={{
+          display: { xs: "none", md: "block" },
+          width: drawerWidth,
+          flexShrink: 0,
+          "& .MuiDrawer-paper": drawerPaperSx,
+        }}
+      >
+        {drawerContent}
       </Drawer>
-      <Main open={true}>
-        <Routes>
-          <Route path="/auth-callback" element={<AuthCallBack />} />
-          <Route path="/" element={ <Auth/> }/>
-          <Route path="/acd-sdk"  element={<AcdSdk />}/>
-          <Route path="/digital-sdk" element={ <DigitalSdk/>}/>
-          <Route path="/cxa-placeholder" element={<CxaPlaceholder />} />
-        </Routes>
+
+      {/* Temporary drawer for mobile */}
+      <Drawer
+        variant="temporary"
+        anchor="left"
+        open={mobileOpen}
+        onClose={() => setMobileOpen(false)}
+        ModalProps={{ keepMounted: true }}
+        sx={{
+          display: { xs: "block", md: "none" },
+          "& .MuiDrawer-paper": drawerPaperSx,
+        }}
+      >
+        {drawerContent}
+      </Drawer>
+
+      <Main>
+        {/* Spacer to offset fixed AppBar on mobile */}
+        <Toolbar variant="dense" sx={{ display: { xs: "block", md: "none" } }} />
+        <Container maxWidth="lg" disableGutters sx={{ px: { xs: 1, sm: 2 }, pb: 8 }}>
+          <Routes>
+            <Route path="/auth-callback" element={<AuthCallBack />} />
+            <Route path="/" element={ <Auth/> }/>
+            <Route path="/acd-sdk"  element={<AcdSdk />}/>
+            <Route path="/digital-sdk" element={ <DigitalSdk/>}/>
+            <Route path="/cxa-placeholder" element={<CxaPlaceholder />} />
+          </Routes>
+        </Container>
       </Main>
+
+      <EventViewer leftOffset={isDesktop ? drawerWidth : 0} />
     </Box>
   );
 }
