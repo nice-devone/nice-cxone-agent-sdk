@@ -3,7 +3,7 @@
  * Edit these to change the pre-filled values shown in the UI.
  */
 export const authDefaults = {
-  hostName: "https://cxone.staging.niceincontact.com",
-  clientId: "Salesforce Agent Console@inContact Inc.",
+  hostName: "https://cxone.niceincontact.com",
+  clientId: ".",
   redirectUri: "http://localhost:3000/auth-callback",
 };
