@@ -47,6 +47,7 @@ import { CXoneClient } from "@nice-devone/agent-sdk";
 import { LocalStorageHelper, StorageKeys, AgentSettings } from "@nice-devone/core-sdk";
 import VoiceControls from "./voice-controls/VoiceControls";
 import Outbound from "./outbound/Outbound";
+import DirectoryAndAddressBook from "./directory-address-book/DirectoryAndAddressBook";
 import { UserInfo } from "@nice-devone/common-sdk";
 import { useLocation } from "react-router-dom";
 import { tryCatchWrapper } from "../../utils/tryCatchWrapper";
@@ -820,6 +821,9 @@ const AcdSdk = () => {
             )}
         </CardContent>
       </Card>
+
+      {/* Directory & Address Book */}
+      <DirectoryAndAddressBook />
     </Box>
   );
 };
