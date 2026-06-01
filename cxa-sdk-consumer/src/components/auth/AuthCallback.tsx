@@ -30,6 +30,7 @@ import {
   import { AuthStatus, AuthWithCodeReq, CXoneAuth } from "@nice-devone/auth-sdk";
   import { useNavigate } from "react-router-dom";
   import { LocalStorageHelper } from "@nice-devone/core-sdk";
+  import { authDefaults } from "./authDefaults";
   
   
   const AuthCallBack = () => {
@@ -135,7 +136,7 @@ import {
                   variant="outlined"
                   InputLabelProps={{ shrink: true }}
                   inputRef={hostName}
-                  defaultValue={"https://cxone.test.niceincontact.com"}
+                  defaultValue={authDefaults.hostName}
                   required
                 />
                 <TextField
@@ -144,7 +145,7 @@ import {
                   variant="outlined"
                   InputLabelProps={{ shrink: true }}
                   inputRef={clientId}
-                  defaultValue=""
+                  defaultValue={authDefaults.clientId}
                   required
                 />
                 <TextField
@@ -153,7 +154,7 @@ import {
                   variant="outlined"
                   InputLabelProps={{ shrink: true }}
                   inputRef={redirectUri}
-                  defaultValue="http://localhost:3000/auth-callback"
+                  defaultValue={authDefaults.redirectUri}
                   required
                 />
                 <FormControl
