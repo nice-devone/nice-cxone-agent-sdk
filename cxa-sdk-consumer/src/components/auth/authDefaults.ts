@@ -4,6 +4,6 @@
  */
 export const authDefaults = {
   hostName: "https://cxone.niceincontact.com",
-  clientId: ".",
+  clientId: "",
   redirectUri: "http://localhost:3000/auth-callback",
 };
