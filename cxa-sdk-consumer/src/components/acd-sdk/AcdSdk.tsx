@@ -30,27 +30,36 @@ import {
   CardContent,
   Chip,
   Divider,
+  FormControl,
+  InputLabel,
+  MenuItem,
+  Select,
+  SelectChangeEvent,
   Stack,
+  TextField,
   Typography,
 } from "@mui/material";
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import { CXoneAcdClient, CXoneVoiceContact } from "@nice-devone/acd-sdk";
 import { AgentSessionStatus, EndSessionRequest } from "@nice-devone/common-sdk";
 import { CXoneVoiceClient } from "@nice-devone/voice-sdk";
 import { CXoneClient } from "@nice-devone/agent-sdk";
-import { LocalStorageHelper, StorageKeys } from "@nice-devone/core-sdk";
+import { LocalStorageHelper, StorageKeys, AgentSettings } from "@nice-devone/core-sdk";
 import VoiceControls from "./voice-controls/VoiceControls";
 import Outbound from "./outbound/Outbound";
-import { AgentSettings } from "@nice-devone/core-sdk";
 import { UserInfo } from "@nice-devone/common-sdk";
 import { useLocation } from "react-router-dom";
 import { tryCatchWrapper } from "../../utils/tryCatchWrapper";
+
 import { useEventLog } from "../../context/EventLogContext";
 import { CcfMessageType } from '@nice-devone/shared-apps-lib';
 import PlayArrowIcon from "@mui/icons-material/PlayArrow";
 import StopIcon from "@mui/icons-material/Stop";
 import HeadsetMicIcon from "@mui/icons-material/HeadsetMic";
 import CircleIcon from "@mui/icons-material/Circle";
+import CallIcon from "@mui/icons-material/Call";
+import CallEndIcon from "@mui/icons-material/CallEnd";
+import PersonAddIcon from "@mui/icons-material/PersonAdd";
 
 
 const AcdSdk = () => {
@@ -61,7 +70,21 @@ const AcdSdk = () => {
   const [endSessionButton, setEndSessionButton] = useState(true);
   const [agentLegButton, setAgentLegButton] = useState(true);
   const [voiceContact, setVoiceContact] = useState({} as CXoneVoiceContact);
-  const [initEngagement, setInitEngagement] = useState(false);  
+  const [initEngagement, setInitEngagement] = useState(false);
+  const [voiceConnectionState, setVoiceConnectionState] = useState<any>(null);
+  const [voiceCallState, setVoiceCallState] = useState<any>(null);
+  const [isHandlingInboundCall, setIsHandlingInboundCall] = useState(false);
+  const [unavailableCodes, setUnavailableCodes] = useState<Array<{ reason: string; isAcw?: boolean }>>([]);
+  const [selectedAgentState, setSelectedAgentState] = useState<string>("available");
+  const [isChangingAgentState, setIsChangingAgentState] = useState(false);
+  const [consultTargetAgentId, setConsultTargetAgentId] = useState<string>("");
+  const [isConsultingAgent, setIsConsultingAgent] = useState(false);
+  const audioElementRef = useRef<HTMLAudioElement | null>(null);
+  const subscriptionsInitializedRef = useRef(false);
+  const webRtcInitializedRef = useRef(false);
+  const initMethodsRef = useRef<() => Promise<void>>(async() => undefined);
+  const manualStartSessionRef = useRef<() => void>(() => undefined);
+  const initWebRTCRef = useRef<() => Promise<void>>(async() => undefined);
   const location = useLocation();
   const { logEvent } = useEventLog();
 
@@ -76,39 +99,52 @@ const AcdSdk = () => {
     CXoneAcdClient.instance.initAcdEngagement().finally(() => {
       logEvent({ source: "ACD", kind: "response", name: "initAcdEngagement complete" });
       setInitEngagement(true);
-    })
+    });
     CXoneAcdClient.instance.setClickToDialCustomAgentUrl(
         "http://localhost:3000/"
-      ); 
-      window.addEventListener('message', extensionClickToDialHandler);
-   
-  },[])
+      );
+    window.addEventListener('message', extensionClickToDialHandler);
+
+    return () => {
+      window.removeEventListener('message', extensionClickToDialHandler);
+    };
+  }, [logEvent]);
 
   useEffect(() => {
-    if(initEngagement){
-      tryCatchWrapper(initMethods, (error) => {
-        console.log("error", error);
+    const connectionSubscription = CXoneVoiceClient.instance.onConnectionStatusChanged.subscribe((connectionState: any) => {
+      logEvent({
+        source: "Voice",
+        kind: "event",
+        name: `onConnectionStatusChanged: ${connectionState?.status ?? 'unknown'}`,
+        data: connectionState,
       });
-    }
-    
-  }, [location.pathname,initEngagement]);
+      setVoiceConnectionState(connectionState);
+    });
 
-  useEffect(() => { 
-    if(initEngagement){
-      manualStartSession();
-    }
-    
-  },[initEngagement])
+    const callSubscription = CXoneVoiceClient.instance.onCallStatusChanged.subscribe((callState: any) => {
+      logEvent({
+        source: "Voice",
+        kind: "event",
+        name: `onCallStatusChanged: ${callState?.status ?? 'unknown'}`,
+        data: callState,
+      });
+      setVoiceCallState(callState);
+    });
 
+    return () => {
+      connectionSubscription.unsubscribe();
+      callSubscription.unsubscribe();
+    };
+  }, [logEvent]);
 
   useEffect(() => {
     
-    if (LocalStorageHelper.getItem("startsessionButton") == "true") {
+    if (LocalStorageHelper.getItem("startsessionButton") === "true") {
       setStartSessionButton(true);
       setEndSessionButton(false);
       setAgentLegButton(false);
     }
-    if (LocalStorageHelper.getItem("startsessionButton") == "false") {
+    if (LocalStorageHelper.getItem("startsessionButton") === "false") {
       setStartSessionButton(false);
       setEndSessionButton(true);
       setAgentLegButton(true);
@@ -130,9 +166,13 @@ const AcdSdk = () => {
     };
   }
 
+
+
   const initMethods = async () => {
-    
-  
+    if (subscriptionsInitializedRef.current) {
+      return;
+    }
+
     const getLastLoggedInAgentId = LocalStorageHelper.getItem(
       StorageKeys.LAST_LOGGED_IN_AGENT_ID
     );
@@ -140,6 +180,8 @@ const AcdSdk = () => {
     const agentId = getLastLoggedInAgentId?.toString();
 
     if (agentId) {
+      subscriptionsInitializedRef.current = true;
+
       CXoneAcdClient.instance.session.agentStateService.agentStateSubject.subscribe(
         (agentState: any) => {
           logEvent({ source: "ACD", kind: "event", name: "agentStateSubject", data: agentState });
@@ -149,7 +191,6 @@ const AcdSdk = () => {
 
       CXoneAcdClient.instance.contactManager.voiceContactUpdateEvent.subscribe(
         (data: CXoneVoiceContact) => {
-         
           logEvent({ source: "ACD", kind: "event", name: "voiceContactUpdateEvent", data });
           setVoiceContact(data);
           console.log("voice contact", data);
@@ -157,10 +198,9 @@ const AcdSdk = () => {
       );
 
       CXoneAcdClient.instance.session.agentLegEvent.subscribe((data: any) => {
-        logEvent({ source: "ACD", kind: "event", name: `agentLegEvent: ${data?.status ?? "?"}`, data });
+        logEvent({ source: "ACD", kind: "event", name: `agentLegEvent: ${data?.status ?? 'unknown'}`, data });
         CXoneVoiceClient.instance.handleAgentLegEvent(data);
-        if (data.status === "Dialing") {
-          // CXoneVoiceClient.instance.triggerAutoAccept(data.agentLegId);
+        if (data?.status === "Dialing") {
           CXoneVoiceClient.instance.connectAgentLeg(data.agentLegId);
         }
       });
@@ -183,12 +223,16 @@ const AcdSdk = () => {
             case AgentSessionStatus.JOIN_SESSION_SUCCESS:
             case AgentSessionStatus.SESSION_START: {
               console.log("Session started successfully.....");
-              
+
               initWebRTC();
               break;
             }
             case AgentSessionStatus.SESSION_END: {
               console.log("Session ended successfully.....");
+            
+              webRtcInitializedRef.current = false;
+              setVoiceConnectionState(null);
+              setVoiceCallState(null);
               setStartSessionButton(false);
               break;
             }
@@ -199,14 +243,6 @@ const AcdSdk = () => {
           }
         }
       );
-
-      CXoneAcdClient.instance.contactManager.voiceContactUpdateEvent.subscribe(
-        (cxoneContact: CXoneVoiceContact) => {
-      
-          setVoiceContact(cxoneContact);
-        }
-      );
-
       connectCopilot();
 
     } else {
@@ -243,18 +279,45 @@ const AcdSdk = () => {
 
   const initWebRTC = async () => {
     try {
-      const agentSettings = (await getWebRtcServiceUrls()) as {
+      if (webRtcInitializedRef.current) {
+        return;
+      }
+
+      const settings = (await getWebRtcServiceUrls()) as {
         agentId: string;
         agentSettings: AgentSettings;
         userInfo: UserInfo;
       };
-      
-          const app = "Nice CXone SDK Consumer"
-          const appName = `${(app || 'cxa').toUpperCase()}: ${agentSettings?.agentSettings.cxaClientVersion}`;
-          await CXoneVoiceClient.instance.connectServer(agentSettings?.agentId, agentSettings?.agentSettings, new Audio('<audio ref={audio_tag} id="audio" controls autoPlay/>'), appName);
-          console.log("Connected to WebRTC");
+
+      if (!settings) {
+        logEvent({ source: "Voice", kind: "error", name: "CXoneVoiceClient.connectServer aborted: agent settings unavailable" });
+        console.log("Agent settings unavailable for WebRTC connection");
+        return;
+      }
+
+      if (!audioElementRef.current) {
+        logEvent({ source: "Voice", kind: "info", name: "WebRTC init deferred: <audio> element not mounted yet" });
+        console.log("Audio element not mounted, WebRTC init deferred");
+        return;
+      }
+
+      const app = "Nice CXone SDK Consumer";
+      const appName = `${(app || 'cxa').toUpperCase()}: ${settings.agentSettings.cxaClientVersion}`;
+
+      logEvent({ source: "Voice", kind: "request", name: "CXoneVoiceClient.connectServer", data: { agentId: settings.agentId, appName } });
+      await CXoneVoiceClient.instance.connectServer(
+        settings.agentId,
+        settings.agentSettings,
+        audioElementRef.current as HTMLAudioElement,
+        appName,
+      );
+      webRtcInitializedRef.current = true;
+      logEvent({ source: "Voice", kind: "response", name: "CXoneVoiceClient.connectServer success" });
+      console.log("Connected to WebRTC");
     } catch (e) {
-      console.log(e);
+      webRtcInitializedRef.current = false;
+      logEvent({ source: "Voice", kind: "error", name: "CXoneVoiceClient.connectServer failed", data: e });
+      console.log("WebRTC connect failed", e);
     }
   };
 
@@ -305,6 +368,50 @@ const AcdSdk = () => {
     });
   };
 
+  initMethodsRef.current = initMethods;
+  manualStartSessionRef.current = manualStartSession;
+  initWebRTCRef.current = initWebRTC;
+
+  useEffect(() => {
+    if (initEngagement) {
+      tryCatchWrapper(() => initMethodsRef.current(), (error) => {
+        console.log("error", error);
+      });
+    }
+  }, [location.pathname, initEngagement]);
+
+  useEffect(() => {
+    if (initEngagement) {
+      manualStartSessionRef.current();
+    }
+  }, [initEngagement]);
+
+  // Auto-retry WebRTC connect when session becomes active and audio element is mounted
+  useEffect(() => {
+    if (startSessionButton && !webRtcInitializedRef.current) {
+      initWebRTCRef.current();
+    }
+  }, [startSessionButton, voiceConnectionState]);
+
+  // Fetch unavailable codes once when the session becomes active
+  useEffect(() => {
+    if (startSessionButton && unavailableCodes.length === 0) {
+      loadUnavailableCodes();
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [startSessionButton]);
+
+  // Sync the selected dropdown value with the current agent state coming from SDK
+  useEffect(() => {
+    const currentState = agentStatus?.currentState?.state?.toLowerCase?.();
+    const currentReason = agentStatus?.currentState?.reason;
+    if (currentState === "available") {
+      setSelectedAgentState("available");
+    } else if (currentState === "unavailable" && currentReason) {
+      setSelectedAgentState(currentReason);
+    }
+  }, [agentStatus]);
+
   const endSessionButtonClick = () => {
     logEvent({ source: "ACD", kind: "request", name: "session.endSession", data: endSessionRequest });
     CXoneAcdClient.instance.session
@@ -336,6 +443,106 @@ const AcdSdk = () => {
       console.log("agent leg error", error);
     }
   };
+
+  const handleAcceptInboundCall = async () => {
+    if (!voiceContact?.contactID) {
+      return;
+    }
+
+    try {
+      setIsHandlingInboundCall(true);
+      logEvent({ source: "ACD", kind: "request", name: "acceptContact", data: { contactId: voiceContact.contactID } });
+      await CXoneAcdClient.instance.contactManager.contactService.acceptContact(voiceContact.contactID);
+      logEvent({ source: "ACD", kind: "response", name: "acceptContact success", data: { contactId: voiceContact.contactID } });
+    } catch (error) {
+      logEvent({ source: "ACD", kind: "error", name: "acceptContact failed", data: error });
+      console.log("accept inbound call error", error);
+    } finally {
+      setIsHandlingInboundCall(false);
+    }
+  };
+
+  const handleRejectInboundCall = async () => {
+    if (!voiceContact?.contactID) {
+      return;
+    }
+
+    try {
+      setIsHandlingInboundCall(true);
+      logEvent({ source: "ACD", kind: "request", name: "rejectContact", data: { contactId: voiceContact.contactID } });
+      await CXoneAcdClient.instance.contactManager.contactService.rejectContact(voiceContact.contactID);
+      logEvent({ source: "ACD", kind: "response", name: "rejectContact success", data: { contactId: voiceContact.contactID } });
+    } catch (error) {
+      logEvent({ source: "ACD", kind: "error", name: "rejectContact failed", data: error });
+      console.log("reject inbound call error", error);
+    } finally {
+      setIsHandlingInboundCall(false);
+    }
+  };
+
+  const loadUnavailableCodes = async () => {
+    try {
+      logEvent({ source: "ACD", kind: "request", name: "getTeamUnavailableCodes" });
+      const codes = await CXoneAcdClient.instance.getTeamUnavailableCodes();
+      if (Array.isArray(codes)) {
+        const active = codes.filter((code: any) => code?.isActive !== false);
+        setUnavailableCodes(active.map((code: any) => ({ reason: code.reason, isAcw: code.isAcw })));
+        logEvent({ source: "ACD", kind: "response", name: "getTeamUnavailableCodes success", data: { count: active.length } });
+      }
+    } catch (error) {
+      logEvent({ source: "ACD", kind: "error", name: "getTeamUnavailableCodes failed", data: error });
+      console.log("getTeamUnavailableCodes error", error);
+    }
+  };
+
+  const handleAgentStateChange = (event: SelectChangeEvent<string>) => {
+    setSelectedAgentState(event.target.value);
+  };
+
+  const handleConsultAgent = async () => {
+    const trimmed = consultTargetAgentId.trim();
+    const numericAgentId = Number(trimmed);
+    if (!trimmed || Number.isNaN(numericAgentId)) {
+      logEvent({ source: "ACD", kind: "error", name: "consultAgent skipped: invalid target agent id", data: { value: consultTargetAgentId } });
+      return;
+    }
+
+    try {
+      setIsConsultingAgent(true);
+      logEvent({ source: "ACD", kind: "request", name: "consultAgent", data: { targetAgentId: numericAgentId } });
+      await CXoneAcdClient.instance.contactManager.voiceService.consultAgent(numericAgentId);
+      logEvent({ source: "ACD", kind: "response", name: "consultAgent success", data: { targetAgentId: numericAgentId } });
+    } catch (error) {
+      logEvent({ source: "ACD", kind: "error", name: "consultAgent failed", data: error });
+      console.log("consultAgent error", error);
+    } finally {
+      setIsConsultingAgent(false);
+    }
+  };
+
+  const applyAgentState = async () => {
+    const isAvailable = selectedAgentState === "available";
+    const agentState = {
+      state: isAvailable ? "Available" : "Unavailable",
+      reason: isAvailable ? "" : selectedAgentState,
+    };
+
+    try {
+      setIsChangingAgentState(true);
+      logEvent({ source: "ACD", kind: "request", name: "setAgentState", data: agentState });
+      await CXoneAcdClient.instance.session.setAgentState(agentState);
+      logEvent({ source: "ACD", kind: "response", name: "setAgentState success", data: agentState });
+    } catch (error) {
+      logEvent({ source: "ACD", kind: "error", name: "setAgentState failed", data: error });
+      console.log("setAgentState error", error);
+    } finally {
+      setIsChangingAgentState(false);
+    }
+  };
+
+  const isInboundPendingCall =
+    voiceContact?.status === "Incoming" ||
+    voiceContact?.status === "Ringing";
 
   return (
     <Box sx={{ maxWidth: 900, mx: "auto", py: 2, width: "100%" }}>
@@ -391,6 +598,58 @@ const AcdSdk = () => {
               </Button>
             </Stack>
           </Stack>
+          <Divider sx={{ my: 2.5 }} />
+          <Typography variant="subtitle2" sx={{ mb: 1.5, color: "text.secondary" }}>
+            Voice Media
+          </Typography>
+          <Stack
+            direction={{ xs: "column", sm: "row" }}
+            spacing={{ xs: 2, sm: 3 }}
+            sx={{ mb: 2.5 }}
+            useFlexGap
+            flexWrap="wrap"
+          >
+            <Box>
+              <Typography variant="caption" color="text.secondary">Connection Status</Typography>
+              <Typography variant="body1" sx={{ mt: 0.5, fontWeight: 600 }}>
+                {voiceConnectionState?.status || "Not connected"}
+              </Typography>
+            </Box>
+            <Box>
+              <Typography variant="caption" color="text.secondary">Call Status</Typography>
+              <Typography variant="body1" sx={{ mt: 0.5, fontWeight: 600 }}>
+                {voiceCallState?.status || "Idle"}
+              </Typography>
+            </Box>
+            {voiceCallState?.contactId && (
+              <Box>
+                <Typography variant="caption" color="text.secondary">Voice Contact Id</Typography>
+                <Typography variant="body1" sx={{ mt: 0.5 }}>
+                  {voiceCallState.contactId}
+                </Typography>
+              </Box>
+            )}
+            <Button
+              onClick={() => {
+                webRtcInitializedRef.current = false;
+                initWebRTCRef.current();
+              }}
+              variant="contained"
+              color="primary"
+              size="small"
+              startIcon={<HeadsetMicIcon />}
+              sx={{ alignSelf: "center" }}
+            >
+              Connect Voice
+            </Button>
+          </Stack>
+          <audio
+            ref={audioElementRef}
+            id="acd-webrtc-audio"
+            controls
+            autoPlay
+            style={{ width: "100%" }}
+          />
         </CardContent>
       </Card>
 
@@ -449,15 +708,109 @@ const AcdSdk = () => {
 
           <Divider sx={{ mb: 2.5 }} />
           <Typography variant="subtitle2" sx={{ mb: 1.5, color: "text.secondary" }}>
+            Change Agent State
+          </Typography>
+          <Stack
+            direction={{ xs: "column", sm: "row" }}
+            spacing={1.5}
+            alignItems={{ xs: "stretch", sm: "center" }}
+            sx={{ mb: 3 }}
+          >
+            <FormControl size="small" sx={{ minWidth: { xs: "100%", sm: 260 } }} disabled={!startSessionButton}>
+              <InputLabel id="agent-state-select-label">Agent State</InputLabel>
+              <Select
+                labelId="agent-state-select-label"
+                label="Agent State"
+                value={selectedAgentState}
+                onChange={handleAgentStateChange}
+              >
+                <MenuItem value="available">Available</MenuItem>
+                {unavailableCodes.map((code) => (
+                  <MenuItem key={code.reason} value={code.reason}>
+                    Unavailable — {code.reason}
+                  </MenuItem>
+                ))}
+              </Select>
+            </FormControl>
+            <Button
+              variant="contained"
+              color="primary"
+              onClick={applyAgentState}
+              disabled={!startSessionButton || isChangingAgentState}
+            >
+              Apply
+            </Button>
+          </Stack>
+
+          <Divider sx={{ mb: 2.5 }} />
+          <Typography variant="subtitle2" sx={{ mb: 1.5, color: "text.secondary" }}>
             Outbound Dial
           </Typography>
           {initEngagement && <Outbound />}
 
-          {(agentStatus?.currentState?.cxoneState === "OutboundContact" ||
-            agentStatus?.currentState?.cxoneState === "InboundContact") &&
-            voiceContact &&
-            Object.keys(voiceContact).length > 0 && (
+          {voiceContact?.contactID && isInboundPendingCall && (
+            <Box sx={{ mt: 2 }}>
+              <Divider sx={{ mb: 2 }} />
+              <Typography variant="subtitle2" sx={{ mb: 1.5, color: "text.secondary" }}>
+                Incoming Call
+              </Typography>
+              <Stack direction={{ xs: "column", sm: "row" }} spacing={1.5}>
+                <Button
+                  variant="contained"
+                  color="success"
+                  startIcon={<CallIcon />}
+                  disabled={isHandlingInboundCall}
+                  onClick={handleAcceptInboundCall}
+                >
+                  Accept
+                </Button>
+                <Button
+                  variant="contained"
+                  color="error"
+                  startIcon={<CallEndIcon />}
+                  disabled={isHandlingInboundCall}
+                  onClick={handleRejectInboundCall}
+                >
+                  Reject
+                </Button>
+              </Stack>
+            </Box>
+          )}
+
+          {voiceContact?.contactID &&
+            !isInboundPendingCall &&
+            voiceContact?.status !== "Ended" &&
+            voiceContact?.status !== "Disconnected" && (
               <Box sx={{ mt: 2 }}>
+                <Divider sx={{ mb: 2 }} />
+                <Typography variant="subtitle2" sx={{ mb: 1.5, color: "text.secondary" }}>
+                  Consult Agent
+                </Typography>
+                <Stack
+                  direction={{ xs: "column", sm: "row" }}
+                  spacing={1.5}
+                  alignItems={{ xs: "stretch", sm: "center" }}
+                  sx={{ mb: 2 }}
+                >
+                  <TextField
+                    label="Target Agent Id"
+                    size="small"
+                    value={consultTargetAgentId}
+                    onChange={(e) => setConsultTargetAgentId(e.target.value)}
+                    placeholder="e.g. 1234567"
+                    inputProps={{ inputMode: "numeric", pattern: "[0-9]*" }}
+                    sx={{ minWidth: { xs: "100%", sm: 260 } }}
+                  />
+                  <Button
+                    variant="contained"
+                    color="primary"
+                    startIcon={<PersonAddIcon />}
+                    onClick={handleConsultAgent}
+                    disabled={isConsultingAgent || !consultTargetAgentId.trim()}
+                  >
+                    Consult Agent
+                  </Button>
+                </Stack>
                 <Divider sx={{ mb: 2 }} />
                 <Typography variant="subtitle2" sx={{ mb: 1.5, color: "text.secondary" }}>
                   Voice Controls

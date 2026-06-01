@@ -19,14 +19,41 @@ import PhoneForwardedIcon from "@mui/icons-material/PhoneForwarded";
 import PersonIcon from "@mui/icons-material/Person";
 import PhoneIcon from "@mui/icons-material/Phone";
 import SupportAgentIcon from "@mui/icons-material/SupportAgent";
+import MicIcon from "@mui/icons-material/Mic";
+import MicOffIcon from "@mui/icons-material/MicOff";
+
+const DTMF_FREQUENCIES: Record<string, { low: number; high: number }> = {
+  '1': { low: 697, high: 1209 },
+  '2': { low: 697, high: 1336 },
+  '3': { low: 697, high: 1477 },
+  'A': { low: 697, high: 1633 },
+  '4': { low: 770, high: 1209 },
+  '5': { low: 770, high: 1336 },
+  '6': { low: 770, high: 1477 },
+  'B': { low: 770, high: 1633 },
+  '7': { low: 852, high: 1209 },
+  '8': { low: 852, high: 1336 },
+  '9': { low: 852, high: 1477 },
+  'C': { low: 852, high: 1633 },
+  '*': { low: 941, high: 1209 },
+  '0': { low: 941, high: 1336 },
+  '#': { low: 941, high: 1477 },
+  'D': { low: 941, high: 1633 },
+};
 
 
 const VoiceControls = ({voiceContact}:{voiceContact:CXoneVoiceContact}) => {
   const [holdeResume, setHoldeResume] = useState('Hold');
   const [hangUpButtonIsEnabled, setHangUpButtonIsEnabled] = useState(true);
   const [isRecordButtonVisible, setIsRecordButtonVisible] = useState(false);
+  const [isMuted, setIsMuted] = useState(false);
+  const [isMuteBusy, setIsMuteBusy] = useState(false);
   const [consultAgentId, setConsultAgentId] = useState('');
   const [isConsulting, setIsConsulting] = useState(false);
+  const [dtmfSequence, setDtmfSequence] = useState('');
+  const [toneDurationMS, setToneDurationMS] = useState('340');
+  const [toneSpacingMS, setToneSpacingMS] = useState('0');
+  const [isSendingDtmf, setIsSendingDtmf] = useState(false);
 
   // Conference participants list (mirrors CMA's `usersInConference: Participant[]`).
   // Built from voiceContactUpdateEvent so we always render every leg the agent has.
@@ -62,6 +89,98 @@ const VoiceControls = ({voiceContact}:{voiceContact:CXoneVoiceContact}) => {
   // the original leg's own "Active" event fires first.
   const originalContactIdRef = useRef<string>('');
   const originalMasterIdRef = useRef<string>('');
+  const audioContextRef = useRef<AudioContext | null>(null);
+  const dtmfKeypadTones = ['1', '2', '3', '4', '5', '6', '7', '8', '9', '*', '0', '#'];
+
+  const getAudioContext = async() => {
+    const audioWindow = window as Window & typeof globalThis & { webkitAudioContext?: typeof AudioContext };
+    const AudioContextConstructor = audioWindow.AudioContext || audioWindow.webkitAudioContext;
+
+    if (!AudioContextConstructor) {
+      return null;
+    }
+
+    if (!audioContextRef.current) {
+      audioContextRef.current = new AudioContextConstructor();
+    }
+
+    if (audioContextRef.current.state === 'suspended') {
+      await audioContextRef.current.resume();
+    }
+
+    return audioContextRef.current;
+  }
+
+  const playLocalDtmfTone = async(tone: string, durationMS: number) => {
+    const normalizedTone = tone.toUpperCase();
+    const frequencies = DTMF_FREQUENCIES[normalizedTone];
+
+    if (!frequencies) {
+      return;
+    }
+
+    const audioContext = await getAudioContext();
+
+    if (!audioContext) {
+      console.log('[DTMF] AudioContext not available for local tone playback');
+      return;
+    }
+
+    const gainNode = audioContext.createGain();
+    gainNode.gain.setValueAtTime(0.0001, audioContext.currentTime);
+    gainNode.gain.exponentialRampToValueAtTime(0.12, audioContext.currentTime + 0.01);
+    gainNode.connect(audioContext.destination);
+
+    const lowOscillator = audioContext.createOscillator();
+    lowOscillator.type = 'sine';
+    lowOscillator.frequency.setValueAtTime(frequencies.low, audioContext.currentTime);
+    lowOscillator.connect(gainNode);
+
+    const highOscillator = audioContext.createOscillator();
+    highOscillator.type = 'sine';
+    highOscillator.frequency.setValueAtTime(frequencies.high, audioContext.currentTime);
+    highOscillator.connect(gainNode);
+
+    lowOscillator.start();
+    highOscillator.start();
+
+    const safeDurationMS = Math.max(durationMS, 70);
+    const stopTime = audioContext.currentTime + safeDurationMS / 1000;
+    gainNode.gain.exponentialRampToValueAtTime(0.0001, stopTime);
+    lowOscillator.stop(stopTime);
+    highOscillator.stop(stopTime);
+
+    return new Promise<void>((resolve) => {
+      highOscillator.onended = () => {
+        lowOscillator.disconnect();
+        highOscillator.disconnect();
+        gainNode.disconnect();
+        resolve();
+      };
+    });
+  }
+
+  const playLocalDtmfSequence = async(sequence: string) => {
+    const safeDurationMS = Number(toneDurationMS) || 340;
+    const safeSpacingMS = Number(toneSpacingMS) || 0;
+
+    for (const tone of sequence.toUpperCase()) {
+      if (tone === ',') {
+        await new Promise((resolve) => window.setTimeout(resolve, 2000));
+        continue;
+      }
+
+      if (!DTMF_FREQUENCIES[tone]) {
+        continue;
+      }
+
+      await playLocalDtmfTone(tone, safeDurationMS);
+
+      if (safeSpacingMS > 0) {
+        await new Promise((resolve) => window.setTimeout(resolve, safeSpacingMS));
+      }
+    }
+  }
 
   useEffect(() => {
      CXoneClient.instance.notification
@@ -153,6 +272,12 @@ const VoiceControls = ({voiceContact}:{voiceContact:CXoneVoiceContact}) => {
 
          const contactStatus = cxoneContact.status?.toLowerCase();
          const tracker = holdingContactsTracker.current;
+
+         // Sync mute state from SDK whenever an event carries agentMuted
+         if ('agentMuted' in (cxoneContact as any)) {
+           const sdkMuted = !!(cxoneContact as any).agentMuted;
+           setIsMuted((prev) => (prev !== sdkMuted ? sdkMuted : prev));
+         }
 
          // Maintain participants map: add/update on every non-terminal status, remove on disconnect.
          // This mirrors how CMA's slice rebuilds usersInConference from each voice event.
@@ -295,6 +420,14 @@ const VoiceControls = ({voiceContact}:{voiceContact:CXoneVoiceContact}) => {
   },[])
 
   useEffect(() => {
+    return () => {
+      if (audioContextRef.current) {
+        audioContextRef.current.close().catch(() => undefined);
+      }
+    };
+  }, []);
+
+  useEffect(() => {
     if(holdeResume==='Hold'){
       setHangUpButtonIsEnabled(true)
     }else{
@@ -320,6 +453,30 @@ const VoiceControls = ({voiceContact}:{voiceContact:CXoneVoiceContact}) => {
       await voiceContact.end()
     }
 
+    const handleToggleMute = async (e: React.MouseEvent<HTMLButtonElement>) => {
+      e.preventDefault();
+      if (!voiceContact || !voiceContact.contactID) {
+        console.log('[mute] no active voice contact');
+        return;
+      }
+      setIsMuteBusy(true);
+      try {
+        if (isMuted) {
+          const res = await voiceContact.unmute();
+          console.log('[mute] unmute response', res);
+          setIsMuted(false);
+        } else {
+          const res = await voiceContact.mute();
+          console.log('[mute] mute response', res);
+          setIsMuted(true);
+        }
+      } catch (err) {
+        console.log('[mute] toggle failed', err);
+      } finally {
+        setIsMuteBusy(false);
+      }
+    };
+
     const startRecord=(e: React.MouseEvent<HTMLButtonElement>)=>{
       e.preventDefault();
       const voiceControlService = new VoiceControlService();
@@ -330,6 +487,39 @@ const VoiceControls = ({voiceContact}:{voiceContact:CXoneVoiceContact}) => {
       e.preventDefault();
       const voiceControlService = new VoiceControlService();
       voiceControlService.stopCallRecording(voiceContact.contactID).then((res)=>{ console.log(res) }).catch((err)=>{ console.log(err) })
+    }
+
+    const sendDtmfTone = async(sequence: string) => {
+      if (!sequence) {
+        return;
+      }
+
+      const dtmfPayload = {
+        dtmfSequence: sequence,
+        toneDurationMS: Number(toneDurationMS) || 340,
+        toneSpacingMS: Number(toneSpacingMS) || 0,
+      };
+
+      try {
+        setIsSendingDtmf(true);
+        const response = await CXoneAcdClient.instance.contactManager.voiceService.sendDtmf(dtmfPayload);
+        console.log('%c[DTMF] Sent successfully', 'color: #00AA44; font-weight: bold;', dtmfPayload, response);
+      } catch (error) {
+        console.log('%c[DTMF] Send failed', 'color: #CC0000; font-weight: bold;', dtmfPayload, error);
+      } finally {
+        setIsSendingDtmf(false);
+      }
+    }
+
+    const handleSendDtmfSequence = async(e: React.MouseEvent<HTMLButtonElement>) => {
+      e.preventDefault();
+      void playLocalDtmfSequence(dtmfSequence);
+      await sendDtmfTone(dtmfSequence);
+    }
+
+    const handleSendSingleTone = async(tone: string) => {
+      void playLocalDtmfTone(tone, Number(toneDurationMS) || 340);
+      await sendDtmfTone(tone);
     }
 
     // Helper: detect if input is a phone number (10+ digits) vs agent ID (shorter number)
@@ -543,6 +733,15 @@ const VoiceControls = ({voiceContact}:{voiceContact:CXoneVoiceContact}) => {
           Hang Up
         </Button>
         <Button
+          variant={isMuted ? "contained" : "outlined"}
+          color={isMuted ? "error" : "primary"}
+          startIcon={isMuted ? <MicOffIcon /> : <MicIcon />}
+          disabled={isMuteBusy}
+          onClick={(e) => handleToggleMute(e)}
+        >
+          {isMuted ? 'Unmute' : 'Mute'}
+        </Button>
+        <Button
           onClick={startRecord}
           variant="contained"
           color="secondary"
@@ -560,6 +759,56 @@ const VoiceControls = ({voiceContact}:{voiceContact:CXoneVoiceContact}) => {
         >
           Stop Record
         </Button>
+      </Stack>
+
+      <Divider sx={{ my: 2 }} />
+      <Typography variant="subtitle2" sx={{ mb: 1, fontWeight: 600 }}>
+        DTMF
+      </Typography>
+      <Stack direction={{ xs: 'column', md: 'row' }} spacing={1.5} sx={{ mb: 1.5 }}>
+        <TextField
+          size="small"
+          label="DTMF sequence"
+          value={dtmfSequence}
+          onChange={(e) => setDtmfSequence(e.target.value)}
+          placeholder="123#"
+          fullWidth
+        />
+        <TextField
+          size="small"
+          label="Tone duration (ms)"
+          value={toneDurationMS}
+          onChange={(e) => setToneDurationMS(e.target.value)}
+          sx={{ minWidth: 170 }}
+        />
+        <TextField
+          size="small"
+          label="Tone spacing (ms)"
+          value={toneSpacingMS}
+          onChange={(e) => setToneSpacingMS(e.target.value)}
+          sx={{ minWidth: 170 }}
+        />
+        <Button
+          variant="contained"
+          onClick={handleSendDtmfSequence}
+          disabled={!dtmfSequence || isSendingDtmf}
+        >
+          Send Sequence
+        </Button>
+      </Stack>
+      <Stack direction="row" spacing={1} flexWrap="wrap" useFlexGap>
+        {dtmfKeypadTones.map((tone) => (
+          <Button
+            key={tone}
+            variant="outlined"
+            size="small"
+            disabled={isSendingDtmf}
+            onClick={() => handleSendSingleTone(tone)}
+            sx={{ minWidth: 48 }}
+          >
+            {tone}
+          </Button>
+        ))}
       </Stack>
 
       {/* Transfer & Conference — CMA Directory Style */}
