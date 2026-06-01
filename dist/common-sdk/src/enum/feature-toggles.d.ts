@@ -11,6 +11,7 @@ export declare const enum FeatureToggles {
     CXA_LOCATION_SERVICE = "release-cxa-location-service-AW-15862",
     CXA_RECORDING_NOTIFICATION_COMPLIANCE = "release-cxa-recording-compliance-AW-37942",
     CXA_RECORDING_NOTIFICATION_API_POLLING = "release-cxa-recording-api-polling-AW-37942",
+    DIRECTORY_AGENT_STATE_WORKING_DIGITAL_FEATURE_TOGGLE = "release-cx-directory-agent-state-working-digital-AW-28472",
     DIRECTORY_AGENT_STATE_WORKING_DIGITAL_V2_FEATURE_TOGGLE = "release-cx-directory-agent-state-working-digital-v2-AW-52273",
     EMAIL_RENDERING_FEATURE_TOGGLE = "release-cx-agent-email-rendering-AW-37207",
     GET_ADAPTIVE_CARD_SCHEMAS_FROM_S3 = "release-agentcopilot-schema-versioning-CSA-15839",
@@ -69,8 +70,11 @@ export declare const enum FeatureToggles {
     ABORT_DELAY_DIGITAL_API_TOGGLE = "release-cx-agent-abort-delay-API-on-contact-switch-AW-48514",
     MULTICRM_SUPPORT_FEATURE_TOGGLE = "release-AgentIntegrations-MultiCRM-CRM-21625",
     AGENT_COPILOT_WEBSOCKET_HEARTBEAT_MONITOR = "release-agentcopilot-ws-CSA-61650",
+    AGENTIC_WEBSOCKET = "release-agentcopilot-websocket-CSA-69545",
     DRAGON_LOGOUT_SUPPORT_FEATURE_TOGGLE = "release-cx-agent-dragon-logout-support-AW-54575",
     DESKTOP_PROFILE_UNASSIGN_DISMISS_FEATURE_TOGGLE = "release-CMA-desktop-profile-unassign-dismiss-AW-52537",
     COPILOT_PAGE_UX_TOOLBAR = "release-agentcopilot-copilot-page-ux-toolbar-CSA-51879",
-    COPILOT_CHECKLIST_FEATURE_TOGGLE = "release-agentcopilot-checklist-CSA-69545"
+    COPILOT_CHECKLIST_FEATURE_TOGGLE = "release-agentcopilot-checklist-CSA-69545",
+    ENABLE_OLD_USER_SLOT_FLOW = "release-cx-agent-userslot-no-restriction-AW-55667",
+    COPILOT_MULTITURN_WORKFLOWS = "release-agentcopilot-multiturn-workflows-CSA-59910"
 }

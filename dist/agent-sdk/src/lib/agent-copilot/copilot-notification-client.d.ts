@@ -1,6 +1,9 @@
 import { Subject } from 'rxjs';
 import { AgentAssistErrorResponse, AgentAssistBaseResponse, VoiceTranscriptionResponse } from '@nice-devone/common-sdk';
 import { AgentAssistInput, AgentAssistNotificationService } from '../agent-assist/agent-assist-notification-service';
+export declare const HEARTBEAT_INTERVAL = 20000;
+export declare const AGENTIC_HEARTBEAT_INTERVAL = 30000;
+export declare const HEARTBEAT_MISS_THRESHOLD = 3;
 /**
  *  web socket class for agent copilot
  */
@@ -8,10 +11,10 @@ export declare class CopilotNotificationClient extends AgentAssistNotificationSe
     private agentId;
     private webSocketUri;
     private subscriptionTopics;
-    private heartbeatMonitorTimer;
-    private heartbeatAckReceived;
-    private heartbeatMissCount;
     private lastHeartbeatReceivedAt;
+    private heartbeatState;
+    private agenticHeartbeatState;
+    private agenticWssWorker;
     onMessageNotification: Subject<AgentAssistBaseResponse>;
     onVoiceTranscriptionMessage: Subject<VoiceTranscriptionResponse>;
     onVoiceTranscriptionError: Subject<AgentAssistErrorResponse>;
@@ -23,8 +26,9 @@ export declare class CopilotNotificationClient extends AgentAssistNotificationSe
     connect(websocketServerUri: string, agentId: string, agentCopilotInput?: AgentAssistInput): boolean;
     /**
      * Adds default subscriptions for agent copilot, and any additional passed subscriptions.
-     * This method ensures that the agent copilot and health topics are included in the subscription list.
-     * @example -  addSubscriptionTopics();
+     * When the AGENTIC_WEBSOCKET toggle is ON the agenticWssWorker owns the copilot topics,
+     * so they are skipped on the old worker.
+     * @example -  addSubscriptionTopics([]);
      */
     private addSubscriptionTopics;
     /**
@@ -65,27 +69,57 @@ export declare class CopilotNotificationClient extends AgentAssistNotificationSe
      */
     broadcastCopilotNotifications(message: any): void;
     /**
-     * Starts monitoring heartbeat acknowledgments for the active connection.
-     * If three consecutive acknowledgment windows are missed, the connection is closed and reconnected.
-     * @example - startHeartbeatMonitor()
+     * Initialises the agentic WebSocket worker when the AGENTIC_WEBSOCKET toggle is ON.
+     * Reuses an existing worker instance if already created (preserves reconnect state).
+     * @example - initAgenticWorker('12345')
      */
-    private startHeartbeatMonitor;
+    private initAgenticWorker;
     /**
-     * Stops the heartbeat monitor timer and resets its state.
-     * @example - stopHeartbeatMonitor()
+     * Sends SUBSCRIBE frames for the two agentic copilot topics to the agentic worker.
+     * Called on the worker's 'open' event.
+     * @param agentId - the agent's identifier used to build the topic names
+     * @example - subscribeAgenticTopics('12345')
      */
-    private stopHeartbeatMonitor;
+    private subscribeAgenticTopics;
     /**
-     * Handles a HEARTBEAT_ACK message received from the server.
-     * Resets the missed heartbeat count for the active connection.
-     * @example - handleHeartbeatAck()
+     * Terminates both the primary wssWorker and the agenticWssWorker.
+     * @example - terminateWebSocketWorker()
      */
-    private handleHeartbeatAck;
+    terminateWebSocketWorker(): void;
+    /**
+     * Starts a heartbeat monitor for the given state object.
+     * After HEARTBEAT_MISS_THRESHOLD consecutive missed acknowledgments, stops the monitor
+     * and calls onThreshold to trigger the appropriate reconnect action.
+     * @param state - mutable heartbeat state (timer, ackReceived, missCount)
+     * @param interval - polling interval in milliseconds
+     * @param label - log label used in warn/info messages
+     * @param onThreshold - callback invoked when miss threshold is reached
+     * @example - startHeartbeatMonitorFor(this.heartbeatState, HEARTBEAT_INTERVAL, 'Heartbeat', this.onClosed())
+     */
+    private startHeartbeatMonitorFor;
+    /**
+     * Clears the heartbeat monitor interval for the given state and resets its fields.
+     * @param state - mutable heartbeat state to clear
+     * @example - stopHeartbeatMonitorFor(this.heartbeatState)
+     */
+    private stopHeartbeatMonitorFor;
+    /**
+     * Marks a HEARTBEAT_ACK as received for the given state and resets the miss counter.
+     * @param state - mutable heartbeat state to update
+     * @param label - log label used in the info message
+     * @example - handleHeartbeatAckFor(this.heartbeatState, 'Heartbeat')
+     */
+    private handleHeartbeatAckFor;
     /**
      * Returns whether the heartbeat monitor logic is enabled for agent copilot websocket reconnects.
      * @example - isHeartbeatMonitorEnabled()
      */
     private isHeartbeatMonitorEnabled;
+    /**
+     * Returns whether the agentic WebSocket feature toggle is enabled.
+     * @example - isAgenticWsEnabled()
+     */
+    private isAgenticWsEnabled;
     /**
      * Callback method when a connection is open and ready to send and receive data
      * @example - onOpen()

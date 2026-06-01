@@ -10,3 +10,4 @@ export * from './copilot-task-assist';
 export * from './copilot-decision-tree-data';
 export * from './copilot-custom-adaptive-card';
 export * from './copilot-checklist-data';
+export * from './copilot-workflow-space';

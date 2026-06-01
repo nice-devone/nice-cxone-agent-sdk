@@ -77,7 +77,9 @@ export declare enum AgentAssistConfigACPParamsKeys {
     AUTOSUMMARY_TO_OUTCOME_PANEL = "autoSummaryToOutcomePanel",
     SHOW_AUTOSUMMARY_CARD = "showAutoSummaryCard",
     AUTOSUMMARY_CARD_FEATURES = "autoSummaryCardFeatures",
-    SECONDARY_KNOWLEDGE_HUB_CONFIG = "secondaryKnowledgeHubConfig"
+    SECONDARY_KNOWLEDGE_HUB_CONFIG = "secondaryKnowledgeHubConfig",
+    ENABLE_DIRECT_QUERY_FROM_KNOWLEDGE_HUB = "enableDirectQuery",
+    ENABLE_SECONDARY_DIRECT_QUERY_FROM_KNOWLEDGE_HUB = "enableSecondaryDirectQuery"
 }
 export interface CopilotProfileConfig {
     /**
@@ -275,4 +277,12 @@ export interface KnowledgeHubConfiguration {
      * Indicates if feedback for secondary knowledge hub articles is enabled.
      */
     secondaryFeedbackEnabled?: boolean;
+    /**
+     * Indicates if direct query from knowledge hub is enabled.
+     */
+    enableDirectQuery?: boolean;
+    /**
+     * Indicates if direct query from secondary knowledge hub is enabled.
+     */
+    enableSecondaryDirectQuery?: boolean;
 }

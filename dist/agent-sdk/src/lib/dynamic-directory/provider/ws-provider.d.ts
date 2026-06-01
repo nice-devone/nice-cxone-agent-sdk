@@ -138,4 +138,13 @@ export declare class WSProvider extends WebsocketClient {
      * ```
      */
     unsubscribeSearch(subscriptionId: string): void;
+    /**
+     * Returns whether the websocket is currently connected.
+     * @returns True when the provider has an active websocket connection.
+     * @example
+     * ```
+     * this.isConnected();
+     * ```
+     */
+    isConnected(): boolean;
 }

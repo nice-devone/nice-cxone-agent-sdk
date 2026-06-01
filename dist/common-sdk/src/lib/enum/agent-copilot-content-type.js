@@ -94,5 +94,9 @@ var AgentCopilotContentType;
      * Represents the copilot checklist content type.
      */
     AgentCopilotContentType["CHECKLIST"] = "checklist";
+    /**
+     * Represents the copilot workflow response content type (Cognigy integration).
+     */
+    AgentCopilotContentType["WORKFLOW_RESPONSE"] = "workflowResponse";
 })(AgentCopilotContentType = exports.AgentCopilotContentType || (exports.AgentCopilotContentType = {}));
 //# sourceMappingURL=agent-copilot-content-type.js.map

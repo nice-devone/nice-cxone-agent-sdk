@@ -120,6 +120,7 @@ export const StorageKeys = {
     IS_VOICE_TRANSCRIPT_ENABLED: 'isVoiceTranscriptEnabled',
     IS_AGENT_COPILOT_ENABLED: 'isAgentCopilotEnabled',
     SHOULD_GRAFANA_FARO_LOGS_BE_COLLECTED: 'shouldGrafanaFaroLogsBeCollected',
+    AGENTIC_COPILOT_WS_URL: 'agenticCopilotWSUrl',
 };
 export const NotificationSettings = {
     ACCESSIBILITY: 'Accessibility',
