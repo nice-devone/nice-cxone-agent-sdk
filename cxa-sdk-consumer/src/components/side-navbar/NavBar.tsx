@@ -196,7 +196,7 @@ export default function NavBar() {
     if (index === 2) navigate("/digital-sdk");
     if (index === 3) navigate("/cxa-placeholder");
     if (index === 4) {
-     CXoneAcdClient.instance.initAcdEngagement();
+
      CXoneAcdClient.instance.session
      .endSession({
       forceLogoff: false,
