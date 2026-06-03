@@ -33,13 +33,16 @@ import React, { useEffect, useRef, useState } from "react";
 import {  AuthToken } from "@nice-devone/common-sdk";
 import { AuthSettings, AuthStatus,  AuthWithCodeReq,  AuthWithTokenReq, CXoneAuth } from "@nice-devone/auth-sdk";
 import { LocalStorageHelper } from "@nice-devone/core-sdk";
-import { useEventLog } from "../../context/EventLogContext";
+import { Logger } from '@nice-devone/core-sdk';
 import { authDefaults } from "./authDefaults";
 import LockOpenIcon from "@mui/icons-material/LockOpen";
 import VpnKeyIcon from "@mui/icons-material/VpnKey";
 import CheckCircleIcon from "@mui/icons-material/CheckCircle";
 import ErrorIcon from "@mui/icons-material/Error";
 import HourglassEmptyIcon from "@mui/icons-material/HourglassEmpty";
+
+const logger = new Logger('SDK-CONSUMER', 'Auth');
+
 
 
 
@@ -61,7 +64,7 @@ const Auth = () => {
   const cxoneAuth = CXoneAuth.instance;
   const [authState, setAuth] = useState("");
   const [authToken, setAuthToken] = useState("");
-  const { logEvent } = useEventLog();
+
 
 
   //Auth callback will be captured here
@@ -90,7 +93,7 @@ const Auth = () => {
       originatingServiceIdentifier:'CMASDK'
     };
     LocalStorageHelper.setItem("auth_consumer", JSON.stringify(authSetting));
-    logEvent({ source: "Auth", kind: "request", name: "CXoneAuth.init", data: authSetting });
+    logger.info("CXoneAuth.init", JSON.stringify(authSetting));
     cxoneAuth.init(authSetting);
   };
 
@@ -99,11 +102,11 @@ const Auth = () => {
   const authenticateClickHandler = () => {
     initAuth();
     LocalStorageHelper.setItem("display_mode", authMode);
-    logEvent({ source: "Auth", kind: "request", name: "getAuthorizeUrl", data: { authMode, codeChallenge } });
+    logger.info("getAuthorizeUrl", JSON.stringify({ authMode, codeChallenge }));
     cxoneAuth
       .getAuthorizeUrl(authMode, codeChallenge)
       .then((authUrl: string) => {
-        logEvent({ source: "Auth", kind: "response", name: "getAuthorizeUrl", data: { authUrl } });
+        logger.info("getAuthorizeUrl", JSON.stringify({ authUrl }));
         if (authMode === "page") {
           window.location.href = authUrl;
         } else if (authMode === "popup") {
@@ -136,7 +139,7 @@ const Auth = () => {
 
   function subscribeToAuth() {
     cxoneAuth.onAuthStatusChange.subscribe((data) => {
-      logEvent({ source: "Auth", kind: data.status === AuthStatus.AUTHENTICATION_FAILED ? "error" : "event", name: `onAuthStatusChange: ${data.status}`, data });
+      ((data.status === AuthStatus.AUTHENTICATION_FAILED ? "error" : "event") === 'error' ? logger.error.bind(logger) : logger.info.bind(logger))(`onAuthStatusChange: ${data.status}`, JSON.stringify(data));
       switch (data.status) {
         case AuthStatus.AUTHENTICATING:
           setAuth("AUTHENTICATING");
@@ -168,7 +171,7 @@ const Auth = () => {
     const authByToken: AuthWithTokenReq = {
       accessToken: accessToken?.current?.value,
     };
-    logEvent({ source: "Auth", kind: "request", name: "getAccessTokenByToken", data: { hostName: tokenFlowHostName.current.value } });
+    logger.info("getAccessTokenByToken", JSON.stringify({ hostName: tokenFlowHostName.current.value }));
     cxoneAuth.getAccessTokenByToken(authByToken);
   };
 

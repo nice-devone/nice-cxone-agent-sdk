@@ -23,11 +23,13 @@ const CxaPlaceholder=()=>{
     const cxoneAuth = CXoneAuth.instance;
 
     useEffect(()=>{
+      // Launch CXone Agent in iframe
             cxoneAuth.launchCXoneAgent(
                       "launchCXA",
                       "https://cxagent.nicecxone.com?src=sdk",
                       { width: "400px", height: "500px" }
                     );
+   
     },[])
 
   const handleSwitchContact = () => {

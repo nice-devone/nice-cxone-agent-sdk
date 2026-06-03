@@ -43,7 +43,6 @@ import AcdSdk from "../acd-sdk/AcdSdk";
 import DigitalSdk from "../digital-sdk/DigitalSdk";
 import Auth from "../auth/Auth";
 import AuthCallBack from "../auth/AuthCallback";
-import EventViewer from "../event-viewer/EventViewer";
 import { CXoneAcdClient } from "@nice-devone/acd-sdk";
 import LockOpenIcon from "@mui/icons-material/LockOpen";
 import HeadsetMicIcon from "@mui/icons-material/HeadsetMic";
@@ -416,8 +415,6 @@ export default function NavBar() {
           </Routes>
         </Container>
       </Main>
-
-      <EventViewer leftOffset={isDesktop ? drawerWidth : 0} />
     </Box>
   );
 }

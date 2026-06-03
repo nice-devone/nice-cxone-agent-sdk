@@ -7,7 +7,7 @@
 - [Git](https://git-scm.com/downloads)
 - [nvm (optional)](https://github.com/nvm-sh/nvm?tab=readme-ov-file)
 - [CXone Agent client Id generation](https://developer.niceincontact.com/Documentation/GettingStarted)
-    - The Redirect URI must be configured.
+  - The Redirect URI must be configured.
 
 ## Steps to Set Up Sample Consumer App Locally
 
@@ -53,6 +53,7 @@ npm install
 ```
 
 > If installation fails due to peer dependency conflicts, retry with:
+>
 > ```sh
 > npm install --legacy-peer-deps
 > ```
