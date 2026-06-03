@@ -62,6 +62,7 @@ type FetchInteractionsOptions = {
 const PAGE_SIZE = 25;
 const STATUS_OPTIONS = ['ALL', 'NEW', 'OPEN', 'PENDING', 'ESCALATED', 'RESOLVED', 'CLOSED'];
 
+// SDK Logger
 const logger = new Logger('SDK-CONSUMER', 'DigitalSdk');
 
 
@@ -493,12 +494,14 @@ const DigitalSdk = () => {
     }, [UpdatedigitalContactCaseId, selectedDigitalContact.caseId]);
 
     const digitalSdkwebsoket=async()=>{
+      // Subscribe only once — re-subscribing on re-render would duplicate handlers.
       CXoneDigitalClient.instance.digitalContactManager.onDigitalContactNewMessageEvent?.subscribe(
         (eventData) => {
           logger.info('onDigitalContactNewMessageEvent', JSON.stringify(eventData));
         }
       );
      
+      // Subscribe only once — re-subscribing on re-render would duplicate handlers.
       CXoneDigitalClient.instance.digitalContactManager.onDigitalContactEvent?.subscribe(
        async (digitalConct: any) => {
 

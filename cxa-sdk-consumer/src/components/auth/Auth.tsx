@@ -41,6 +41,7 @@ import CheckCircleIcon from "@mui/icons-material/CheckCircle";
 import ErrorIcon from "@mui/icons-material/Error";
 import HourglassEmptyIcon from "@mui/icons-material/HourglassEmpty";
 
+// SDK Logger
 const logger = new Logger('SDK-CONSUMER', 'Auth');
 
 
@@ -138,6 +139,7 @@ const Auth = () => {
 
 
   function subscribeToAuth() {
+    // Subscribe only once — re-subscribing on re-render would duplicate handlers.
     cxoneAuth.onAuthStatusChange.subscribe((data) => {
       ((data.status === AuthStatus.AUTHENTICATION_FAILED ? "error" : "event") === 'error' ? logger.error.bind(logger) : logger.info.bind(logger))(`onAuthStatusChange: ${data.status}`, JSON.stringify(data));
       switch (data.status) {

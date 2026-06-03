@@ -196,6 +196,7 @@ const VoiceControls = ({voiceContact}:{voiceContact:CXoneVoiceContact}) => {
      // Subscribe to the agent's skills so we can pick a VALID outbound skillId
      // for dialPhone(). Mirrors CMA: see acdSessionEventMiddleware.ts subscribing to
      // CXoneClient.instance.directory.onUpdateSkillsEvent and filtering outbound phone skills.
+     // Subscribe only once — re-subscribing on re-render would duplicate handlers.
      CXoneClient.instance.directory.onUpdateSkillsEvent.subscribe((skills: any) => {
        if (!Array.isArray(skills)) return;
        const outbound = skills
@@ -207,6 +208,7 @@ const VoiceControls = ({voiceContact}:{voiceContact:CXoneVoiceContact}) => {
      });
      // Trigger the fetch.
      try { CXoneClient.instance.directory.getAgentSkills(); } catch (e) { console.log('getAgentSkills failed:', e); }
+     // Subscribe only once — re-subscribing on re-render would duplicate handlers.
      CXoneClient.instance.notification.onCXoneNotificationEvent.subscribe(
        (res) => {
          console.log("Notification received in recording", res);
@@ -246,6 +248,7 @@ const VoiceControls = ({voiceContact}:{voiceContact:CXoneVoiceContact}) => {
      // returns 403 when the agent's role/tenant lacks the Interaction Recording entitlement.
      // Disable via REACT_APP_DISABLE_RECORDING_POLL=true if you don't have that permission in staging.
      const recordingPollDisabled = process.env.REACT_APP_DISABLE_RECORDING_POLL === 'true';
+     // Subscribe only once — re-subscribing on re-render would duplicate handlers.
      CXoneAcdClient.instance.contactManager.voiceCallRecordServicePollingEvent.subscribe(
        (isVoiceContactActive: boolean) => {
          if (recordingPollDisabled) return;
@@ -258,6 +261,7 @@ const VoiceControls = ({voiceContact}:{voiceContact:CXoneVoiceContact}) => {
      );
 
      // Subscribe to voice contact events for hold/transfer/conference classification
+     // Subscribe only once — re-subscribing on re-render would duplicate handlers.
      CXoneAcdClient.instance.contactManager.voiceContactUpdateEvent.subscribe(
        (cxoneContact: CXoneVoiceContact) => {
          console.log('%c[VOICE CONTACT]', 'color: #00AAFF; font-weight: bold;',

@@ -61,6 +61,7 @@ import CallEndIcon from "@mui/icons-material/CallEnd";
 import PersonAddIcon from "@mui/icons-material/PersonAdd";
 import { Logger } from '@nice-devone/core-sdk';
 
+// SDK Logger
 const logger = new Logger('SDK-CONSUMER', 'AcdSdk');
 
 
@@ -114,11 +115,13 @@ const AcdSdk = () => {
   }, []);
 
   useEffect(() => {
+    // Subscribe only once — re-subscribing on re-render would duplicate handlers.
     const connectionSubscription = CXoneVoiceClient.instance.onConnectionStatusChanged.subscribe((connectionState: any) => {
       logger.info(`onConnectionStatusChanged: ${connectionState?.status ?? 'unknown'}`, JSON.stringify(connectionState));
       setVoiceConnectionState(connectionState);
     });
 
+    // Subscribe only once — re-subscribing on re-render would duplicate handlers.
     const callSubscription = CXoneVoiceClient.instance.onCallStatusChanged.subscribe((callState: any) => {
       logger.info(`onCallStatusChanged: ${callState?.status ?? 'unknown'}`, JSON.stringify(callState));
       setVoiceCallState(callState);
@@ -175,6 +178,7 @@ const AcdSdk = () => {
     if (agentId) {
       subscriptionsInitializedRef.current = true;
 
+      // Subscribe only once — re-subscribing on re-render would duplicate handlers.
       CXoneAcdClient.instance.session.agentStateService.agentStateSubject.subscribe(
         (agentState: any) => {
           logger.info("agentStateSubject", JSON.stringify(agentState));
@@ -182,6 +186,7 @@ const AcdSdk = () => {
         }
       );
 
+      // Subscribe only once — re-subscribing on re-render would duplicate handlers.
       CXoneAcdClient.instance.contactManager.voiceContactUpdateEvent.subscribe(
         (data: CXoneVoiceContact) => {
           logger.info("voiceContactUpdateEvent", JSON.stringify(data));
@@ -190,6 +195,7 @@ const AcdSdk = () => {
         }
       );
 
+      // Subscribe only once — re-subscribing on re-render would duplicate handlers.
       CXoneAcdClient.instance.session.agentLegEvent.subscribe((data: any) => {
         logger.info(`agentLegEvent: ${data?.status ?? 'unknown'}`, JSON.stringify(data));
         CXoneVoiceClient.instance.handleAgentLegEvent(data);
@@ -198,17 +204,20 @@ const AcdSdk = () => {
         }
       });
 
+      // Subscribe only once — re-subscribing on re-render would duplicate handlers.
       CXoneClient.instance.skillActivityQueue.agentQueueSubject.subscribe(
         (queues: any) => {
           console.log("queues", queues);
         }
       );
+      // Subscribe only once — re-subscribing on re-render would duplicate handlers.
       CXoneClient.instance.skillActivityQueue.agentQueuesDetailSubject.subscribe(
         (queues: any) => {
           console.log("queues details", queues);
         }
       );
 
+      // Subscribe only once — re-subscribing on re-render would duplicate handlers.
       CXoneAcdClient.instance.session.onAgentSessionChange.subscribe(
         async (agentSessionChange) => {
           logger.info(`onAgentSessionChange: ${agentSessionChange.status}`, JSON.stringify(agentSessionChange));
@@ -249,6 +258,7 @@ const AcdSdk = () => {
       const {aahNotificationWssUri} = LocalStorageHelper.getItem("cxone_config", true);
       const userInfo = LocalStorageHelper.getItem("user_info", true) as UserInfo;
       CXoneClient.instance.copilotNotificationClient.connect(aahNotificationWssUri, userInfo.icAgentId);
+      // Subscribe only once — re-subscribing on re-render would duplicate handlers.
       CXoneClient.instance.copilotNotificationClient.onMessageNotification.subscribe(
         (msg: any) => {
           console.log("Received message:", msg);

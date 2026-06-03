@@ -49,6 +49,7 @@ import {
 import { Logger } from '@nice-devone/core-sdk';
 
 
+// SDK Logger
 const logger = new Logger('SDK-CONSUMER', 'DirectoryAndAddressBook');
 const DEFAULT_PAGE_SIZE = 50;
 
@@ -159,6 +160,7 @@ const DirectoryAndAddressBook: React.FC = () => {
         return;
       }
       hasDirectorySubscriptionRef.current = true;
+      // Subscribe only once — re-subscribing on re-render would duplicate handlers.
       directorySubRef.current = dyn.searchDirectoryResult.subscribe(
         (response: SearchDirectoriesResponse & { subscriptionId?: string }) => {
           // Capture subscriptionId from the first response so follow-up calls
@@ -190,6 +192,7 @@ const DirectoryAndAddressBook: React.FC = () => {
         return;
       }
       hasAddressBookSubscriptionRef.current = true;
+      // Subscribe only once — re-subscribing on re-render would duplicate handlers.
       addressBookSubRef.current = directory.directoryEvent.subscribe(
         (response: DirectoryResponse) => {
           if (!response?.addressBookList) return;

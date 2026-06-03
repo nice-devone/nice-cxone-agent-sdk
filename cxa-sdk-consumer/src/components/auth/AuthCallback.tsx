@@ -99,6 +99,7 @@ import {
     }
   },[authToken]);
     function subscribeToAuth() {
+      // Subscribe only once — re-subscribing on re-render would duplicate handlers.
       cxoneAuth.onAuthStatusChange.subscribe((data) => {
         switch (data.status) {
           case AuthStatus.AUTHENTICATING:
