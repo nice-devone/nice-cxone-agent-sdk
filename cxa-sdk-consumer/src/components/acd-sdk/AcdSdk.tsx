@@ -117,13 +117,13 @@ const AcdSdk = () => {
   useEffect(() => {
     // Subscribe only once — re-subscribing on re-render would duplicate handlers.
     const connectionSubscription = CXoneVoiceClient.instance.onConnectionStatusChanged.subscribe((connectionState: any) => {
-      logger.info(`onConnectionStatusChanged: ${connectionState?.status ?? 'unknown'}`, JSON.stringify(connectionState));
+      logger.info(`onConnectionStatusChanged: ${connectionState?.status ?? 'unknown'}`, '');
       setVoiceConnectionState(connectionState);
     });
 
     // Subscribe only once — re-subscribing on re-render would duplicate handlers.
     const callSubscription = CXoneVoiceClient.instance.onCallStatusChanged.subscribe((callState: any) => {
-      logger.info(`onCallStatusChanged: ${callState?.status ?? 'unknown'}`, JSON.stringify(callState));
+      logger.info(`onCallStatusChanged: ${callState?.status ?? 'unknown'}`, '');
       setVoiceCallState(callState);
     });
 
@@ -181,7 +181,7 @@ const AcdSdk = () => {
       // Subscribe only once — re-subscribing on re-render would duplicate handlers.
       CXoneAcdClient.instance.session.agentStateService.agentStateSubject.subscribe(
         (agentState: any) => {
-          logger.info("agentStateSubject", JSON.stringify(agentState));
+          logger.info("agentStateSubject", '');
           setAgentStatus(agentState);
         }
       );
@@ -189,7 +189,7 @@ const AcdSdk = () => {
       // Subscribe only once — re-subscribing on re-render would duplicate handlers.
       CXoneAcdClient.instance.contactManager.voiceContactUpdateEvent.subscribe(
         (data: CXoneVoiceContact) => {
-          logger.info("voiceContactUpdateEvent", JSON.stringify(data));
+          logger.info("voiceContactUpdateEvent", '');
           setVoiceContact(data);
           console.log("voice contact", data);
         }
@@ -197,7 +197,7 @@ const AcdSdk = () => {
 
       // Subscribe only once — re-subscribing on re-render would duplicate handlers.
       CXoneAcdClient.instance.session.agentLegEvent.subscribe((data: any) => {
-        logger.info(`agentLegEvent: ${data?.status ?? 'unknown'}`, JSON.stringify(data));
+        logger.info(`agentLegEvent: ${data?.status ?? 'unknown'}`, '');
         CXoneVoiceClient.instance.handleAgentLegEvent(data);
         if (data?.status === "Dialing") {
           CXoneVoiceClient.instance.connectAgentLeg(data.agentLegId);
@@ -220,7 +220,7 @@ const AcdSdk = () => {
       // Subscribe only once — re-subscribing on re-render would duplicate handlers.
       CXoneAcdClient.instance.session.onAgentSessionChange.subscribe(
         async (agentSessionChange) => {
-          logger.info(`onAgentSessionChange: ${agentSessionChange.status}`, JSON.stringify(agentSessionChange));
+          logger.info(`onAgentSessionChange: ${agentSessionChange.status}`, '');
           switch (agentSessionChange.status) {
             case AgentSessionStatus.JOIN_SESSION_SUCCESS:
             case AgentSessionStatus.SESSION_START: {
@@ -307,7 +307,7 @@ const AcdSdk = () => {
       const app = "Nice CXone SDK Consumer";
       const appName = `${(app || 'cxa').toUpperCase()}: ${settings.agentSettings.cxaClientVersion}`;
 
-      logger.info("CXoneVoiceClient.connectServer", JSON.stringify({ agentId: settings.agentId, appName }));
+      logger.info("CXoneVoiceClient.connectServer", '');
       await CXoneVoiceClient.instance.connectServer(
         settings.agentId,
         settings.agentSettings,
@@ -319,20 +319,20 @@ const AcdSdk = () => {
       console.log("Connected to WebRTC");
     } catch (e) {
       webRtcInitializedRef.current = false;
-      logger.error("CXoneVoiceClient.connectServer failed", JSON.stringify(e));
+      logger.error("CXoneVoiceClient.connectServer failed", '');
       console.log("WebRTC connect failed", e);
     }
   };
 
   const startSessiononCall = () => {
-    logger.info("session.startSession", JSON.stringify({ stationId: "", stationPhoneNumber: "WebRTC" }));
+    logger.info("session.startSession", '');
     CXoneAcdClient.instance.session
       .startSession({
         stationId: "",
         stationPhoneNumber: "WebRTC",
       })
       .then((response: any) => {
-        logger.info("startSession success", JSON.stringify(response));
+        logger.info("startSession success", '');
         console.log("Session start successfully");
         setStartSessionButton(true);
         LocalStorageHelper.setItem("startsessionButton", "true");
@@ -340,7 +340,7 @@ const AcdSdk = () => {
         setEndSessionButton(false);
       })
       .catch((err: any) => {
-        logger.error("startSession failed", JSON.stringify(err));
+        logger.error("startSession failed", '');
         setStartSessionButton(false);
         LocalStorageHelper.setItem("startsessionButton", "false");
         setAgentLegButton(true);
@@ -354,7 +354,7 @@ const AcdSdk = () => {
     CXoneAcdClient.instance.session
       .joinSession()
       .then((response: any) => {
-        logger.info("joinSession success", JSON.stringify(response));
+        logger.info("joinSession success", '');
         console.log("Joined Session successfully");
         setStartSessionButton(true);
         LocalStorageHelper.setItem("startsessionButton", "true");
@@ -416,11 +416,11 @@ const AcdSdk = () => {
   }, [agentStatus]);
 
   const endSessionButtonClick = () => {
-    logger.info("session.endSession", JSON.stringify(endSessionRequest));
+    logger.info("session.endSession", '');
     CXoneAcdClient.instance.session
       .endSession(endSessionRequest)
       .then((response: any) => {
-        logger.info("endSession success", JSON.stringify(response));
+        logger.info("endSession success", '');
         console.log("Session ended successfully");
         setEndSessionButton(true);
         setStartSessionButton(false);
@@ -428,7 +428,7 @@ const AcdSdk = () => {
         setAgentLegButton(true);
       })
       .catch((err: any) => {
-        logger.error("endSession failed", JSON.stringify(err));
+        logger.error("endSession failed", '');
         console.log(err.message ?? "An error occured");
       });
     CXoneAcdClient.instance.session.onAgentSessionChange.next({
@@ -442,7 +442,7 @@ const AcdSdk = () => {
       await CXoneAcdClient.instance.agentLegService.dialAgentLeg();
       logger.info("dialAgentLeg success", '');
     } catch (error) {
-      logger.error("dialAgentLeg failed", JSON.stringify(error));
+      logger.error("dialAgentLeg failed", '');
       console.log("agent leg error", error);
     }
   };
@@ -454,11 +454,11 @@ const AcdSdk = () => {
 
     try {
       setIsHandlingInboundCall(true);
-      logger.info("acceptContact", JSON.stringify({ contactId: voiceContact.contactID }));
+      logger.info("acceptContact", '');
       await CXoneAcdClient.instance.contactManager.contactService.acceptContact(voiceContact.contactID);
-      logger.info("acceptContact success", JSON.stringify({ contactId: voiceContact.contactID }));
+      logger.info("acceptContact success", '');
     } catch (error) {
-      logger.error("acceptContact failed", JSON.stringify(error));
+      logger.error("acceptContact failed", '');
       console.log("accept inbound call error", error);
     } finally {
       setIsHandlingInboundCall(false);
@@ -472,11 +472,11 @@ const AcdSdk = () => {
 
     try {
       setIsHandlingInboundCall(true);
-      logger.info("rejectContact", JSON.stringify({ contactId: voiceContact.contactID }));
+      logger.info("rejectContact", '');
       await CXoneAcdClient.instance.contactManager.contactService.rejectContact(voiceContact.contactID);
-      logger.info("rejectContact success", JSON.stringify({ contactId: voiceContact.contactID }));
+      logger.info("rejectContact success", '');
     } catch (error) {
-      logger.error("rejectContact failed", JSON.stringify(error));
+      logger.error("rejectContact failed", '');
       console.log("reject inbound call error", error);
     } finally {
       setIsHandlingInboundCall(false);
@@ -490,10 +490,10 @@ const AcdSdk = () => {
       if (Array.isArray(codes)) {
         const active = codes.filter((code: any) => code?.isActive !== false);
         setUnavailableCodes(active.map((code: any) => ({ reason: code.reason, isAcw: code.isAcw })));
-        logger.info("getTeamUnavailableCodes success", JSON.stringify({ count: active.length }));
+        logger.info("getTeamUnavailableCodes success", '');
       }
     } catch (error) {
-      logger.error("getTeamUnavailableCodes failed", JSON.stringify(error));
+      logger.error("getTeamUnavailableCodes failed", '');
       console.log("getTeamUnavailableCodes error", error);
     }
   };
@@ -506,17 +506,17 @@ const AcdSdk = () => {
     const trimmed = consultTargetAgentId.trim();
     const numericAgentId = Number(trimmed);
     if (!trimmed || Number.isNaN(numericAgentId)) {
-      logger.error("consultAgent skipped: invalid target agent id", JSON.stringify({ value: consultTargetAgentId }));
+      logger.error("consultAgent skipped: invalid target agent id", '');
       return;
     }
 
     try {
       setIsConsultingAgent(true);
-      logger.info("consultAgent", JSON.stringify({ targetAgentId: numericAgentId }));
+      logger.info("consultAgent", '');
       await CXoneAcdClient.instance.contactManager.voiceService.consultAgent(numericAgentId);
-      logger.info("consultAgent success", JSON.stringify({ targetAgentId: numericAgentId }));
+      logger.info("consultAgent success", '');
     } catch (error) {
-      logger.error("consultAgent failed", JSON.stringify(error));
+      logger.error("consultAgent failed", '');
       console.log("consultAgent error", error);
     } finally {
       setIsConsultingAgent(false);
@@ -532,11 +532,11 @@ const AcdSdk = () => {
 
     try {
       setIsChangingAgentState(true);
-      logger.info("setAgentState", JSON.stringify(agentState));
+      logger.info("setAgentState", '');
       await CXoneAcdClient.instance.session.setAgentState(agentState);
-      logger.info("setAgentState success", JSON.stringify(agentState));
+      logger.info("setAgentState success", '');
     } catch (error) {
-      logger.error("setAgentState failed", JSON.stringify(error));
+      logger.error("setAgentState failed", '');
       console.log("setAgentState error", error);
     } finally {
       setIsChangingAgentState(false);

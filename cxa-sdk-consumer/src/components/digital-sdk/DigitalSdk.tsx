@@ -140,23 +140,16 @@ const DigitalSdk = () => {
       searchRequest.scrollToken = scrollToken;
     }
     setInteractionSearchLoading(true);
-    logger.info('getDigitalContactSearchResult request', JSON.stringify(searchRequest));
+    logger.info('getDigitalContactSearchResult request', '');
     searchApi(searchRequest)
       .then((response: any) => {
         setInteractionResults(response?.data ?? []);
         setTotalHits(response?.hits ?? 0);
         setNextScrollToken(response?.scrollToken);
-        logger.info(
-          'getDigitalContactSearchResult success',
-          JSON.stringify({
-            hits: response?.hits ?? 0,
-            count: response?.data?.length ?? 0,
-            hasNextScrollToken: Boolean(response?.scrollToken),
-          }),
-        );
+        logger.info('getDigitalContactSearchResult success', '');
       })
       .catch((error: unknown) => {
-        logger.error('getDigitalContactSearchResult failed', JSON.stringify(error instanceof Error ? error.message : error));
+        logger.error('getDigitalContactSearchResult failed', '');
         setInteractionResults([]);
         setTotalHits(0);
         setNextScrollToken(undefined);
@@ -227,13 +220,7 @@ const DigitalSdk = () => {
     );
     const myAgentId = getMyInboxAgentId();
     if (typeof searchApi !== 'function' || !myAgentId) {
-      logger.warn(
-        'loadMyAssignedContacts preconditions not met',
-        JSON.stringify({
-          hasApi: typeof searchApi === 'function',
-          hasAgentId: Boolean(myAgentId),
-        }),
-      );
+      logger.warn('loadMyAssignedContacts preconditions not met', '');
       return;
     }
     // Match CMA's "my inbox" view: every open/in-progress status assigned to me.
@@ -251,18 +238,11 @@ const DigitalSdk = () => {
         name: statusValue,
       })),
     };
-    logger.info('loadMyAssignedContacts request', JSON.stringify(searchRequest));
+    logger.info('loadMyAssignedContacts request', '');
     searchApi(searchRequest)
       .then((response: any) => {
         const rows: any[] = response?.data ?? [];
-        logger.info(
-          'loadMyAssignedContacts success',
-          JSON.stringify({
-            hits: response?.hits ?? 0,
-            count: rows.length,
-            myAgentId,
-          }),
-        );
+        logger.info('loadMyAssignedContacts success', '');
         // Seed the Active Contacts list with whatever is already assigned to me.
         setDigitalContacts((prevState: any[]) => {
           const merged = [...prevState];
@@ -295,10 +275,7 @@ const DigitalSdk = () => {
         });
       })
       .catch((error: unknown) => {
-        logger.error(
-          'loadMyAssignedContacts failed',
-          JSON.stringify(error instanceof Error ? error.message : error),
-        );
+        logger.error('loadMyAssignedContacts failed', '');
       });
   };
 
@@ -309,7 +286,7 @@ const DigitalSdk = () => {
     if (!contactId) return;
     setSelectedDigitalContact((prev: any) => ({ ...prev, caseId: contactId }));
     setMessages([]);
-    logger.info('digitalContactManager.getContactDetails request', JSON.stringify({ contactId, isAssignedToAgentInbox }));
+    logger.info('digitalContactManager.getContactDetails request', '');
     CXoneDigitalClient.instance.digitalContactManager?.getContactDetails?.(
       contactId,
       isAssignedToAgentInbox,
@@ -322,19 +299,15 @@ const DigitalSdk = () => {
       CXoneDigitalClient.instance.digitalContactManager?.digitalContactService,
     );
     if (!interactionId || typeof assignApi !== 'function' || !currentUserId) {
-      logger.warn('Assign to Me preconditions not met', JSON.stringify({
-        interactionId,
-        hasApi: typeof assignApi === 'function',
-        hasUserId: Boolean(currentUserId),
-      }));
+      logger.warn('Assign to Me preconditions not met', '');
       setAssignmentNotice({ severity: 'error', message: 'Unable to assign' });
       return;
     }
     setAssigningInteractionId(interactionId);
-    logger.info('changeAssignedUser request', JSON.stringify({ interactionId, currentUserId }));
+    logger.info('changeAssignedUser request', '');
     assignApi(interactionId, currentUserId)
       .then((response: any) => {
-        logger.info('changeAssignedUser success', JSON.stringify(response));
+        logger.info('changeAssignedUser success', '');
         setAssignmentNotice({
           severity: 'success',
           message: `Interaction ${interactionId} assigned to you successfully.`,
@@ -385,7 +358,7 @@ const DigitalSdk = () => {
         hydrateDigitalContact(interactionId, true);
       })
       .catch((error: unknown) => {
-        logger.error('changeAssignedUser failed', JSON.stringify(error instanceof Error ? error.message : error));
+        logger.error('changeAssignedUser failed', '');
         setAssignmentNotice({ severity: 'error', message: 'Unable to assign' });
       })
       .finally(() => {
@@ -457,7 +430,7 @@ const DigitalSdk = () => {
         const loadInteractions = fetchInteractionResultsRef.current;
         if (initWebsocket) {
           tryCatchWrapper(initWebsocket, (error) => {
-            logger.error('digitalSdkwebsoket init failed', JSON.stringify(error));
+            logger.error('digitalSdkwebsoket init failed', '');
           });
         }
         if (loadInteractions) {
@@ -497,7 +470,7 @@ const DigitalSdk = () => {
       // Subscribe only once — re-subscribing on re-render would duplicate handlers.
       CXoneDigitalClient.instance.digitalContactManager.onDigitalContactNewMessageEvent?.subscribe(
         (eventData) => {
-          logger.info('onDigitalContactNewMessageEvent', JSON.stringify(eventData));
+          logger.info('onDigitalContactNewMessageEvent', '');
         }
       );
      
@@ -544,20 +517,14 @@ const DigitalSdk = () => {
       // UpdatedigitalContactCaseId effect refreshes the panel.
       const caseId = contact?.caseId;
       if (caseId && existingMessages.length === 0) {
-        logger.info(
-          'onClickCaseId hydrating contact',
-          JSON.stringify({ caseId }),
-        );
+        logger.info('onClickCaseId hydrating contact', '');
         try {
           CXoneDigitalClient.instance.digitalContactManager?.getContactDetails?.(
             caseId,
             true,
           );
         } catch (error) {
-          logger.error(
-            'onClickCaseId getContactDetails failed',
-            JSON.stringify(error instanceof Error ? error.message : error),
-          );
+          logger.error('onClickCaseId getContactDetails failed', '');
         }
       }
     }
@@ -585,14 +552,14 @@ const DigitalSdk = () => {
         return;
       }
       digitalContactInstance = new CXoneDigitalContact();
-      logger.info('CXoneDigitalContact.reply request', JSON.stringify(replyObject));
+      logger.info('CXoneDigitalContact.reply request', '');
       digitalContactInstance
         .reply(replyObject, selectedDigitalContact?.channel?.id, uuid())
         .then((res) => {
-          logger.info('Reply Sent Successfully!', JSON.stringify(res));
+          logger.info('Reply Sent Successfully!', '');
         })
         .catch((err) => {
-          logger.error('Reply Unsuccessful', JSON.stringify(err));
+          logger.error('Reply Unsuccessful', '');
         });
       setInputValue('');
     };
