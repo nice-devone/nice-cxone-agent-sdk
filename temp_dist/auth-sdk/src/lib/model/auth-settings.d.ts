@@ -1,0 +1,28 @@
+/**
+ * CXone Authentication settings
+ * @see [DEVone Documentation](https://developer.niceincontact.com/Documentation/OpenIDConnectIntegration)
+ */
+export interface AuthSettings {
+    /**
+     * Required. CXone System issuer used to discover Open ID Connect endpoints dynamically
+     */
+    cxoneHostname: string;
+    /**
+     * Required. Your client_id was returned as part of your application registration.
+     */
+    clientId: string;
+    /**
+     * Required. This value will depend on your application, must match with application registration
+     */
+    redirectUri: string;
+    /**
+     * The originatingServiceIdentifier is used to specify the application that initiated the request.
+     * @deprecated This property will be removed in a future release. The originating service is derived internally thus CMA SDK consumers do not need to set this.
+     */
+    originatingServiceIdentifier?: string;
+    /**
+     * Optional. It will be passed unmodified to the redirect callback.
+     * For example, this might be used to store the URL that the user should be directed to after a successful login.
+     */
+    state?: string;
+}

@@ -1,0 +1,628 @@
+import { CXoneAuth } from '@nice-devone/auth-sdk';
+import { AgentCopilotSearchRequest, CopilotMessageData, CustomCopilotFilterTags, GuidanceFeedbackData, ContactFeedbackData, CopilotProfileConfig, ContactHistoryData, IntentConfig, DecisionTreeElement, DecisionTreeData, CustomAdaptiveCardElement, WorkflowSuggestionResponse, ChecklistCompletionType } from '@nice-devone/common-sdk';
+import { Logger, HttpUtilService, HttpRequestInit, ValidationUtils } from '@nice-devone/core-sdk';
+/**
+ * Represents a collection of Copilot message data indexed by case ID.
+ */
+declare type CcfCopilotData = {
+    [caseId: string]: CopilotMessageData;
+};
+/**
+ * Class for copilot base service
+ */
+export declare class CopilotService {
+    protected logger: Logger;
+    protected utilService: HttpUtilService;
+    protected validationUtilService: ValidationUtils;
+    auth: CXoneAuth;
+    private AGENT_COPILOT_BASE_URI;
+    private AGENT_COPILOT_BASE_URI_V2;
+    private AGENT_COPILOT_SEARCH;
+    private AGENT_COPILOT_FINAL_SUMMARY;
+    private AGENT_COPILOT_HEALTH_CHECK;
+    private AGENT_COPILOT_AGENT_ASSIST_HUB_CONFIG;
+    private AGENT_COPILOT_GET_ADAPTIVE_CARD_SCHEMAS;
+    private AGENT_COPILOT_EMAIL_APIS;
+    private PATH_GUIDANCE_FEEDBACK;
+    private PATH_CONTACT_FEEDBACK;
+    private PATH_KB_FILTER_UPDATE;
+    private JOURNEY_SUMMARY;
+    private FINAL_SUMMARY;
+    private EDITED_SUMMARY;
+    private TASK_ASSIST;
+    private aahConfigStore;
+    private AGENT_COPILOT_GET_ALL_ADAPTIVE_CARDS_SCHEMAS;
+    private AGENT_COPILOT_GET_TASK_ASSIST_FORM_PREFILLED_DATA;
+    private TASK_ASSIST_FORM_ADAPTIVE_CARD_SCHEMAS_URL;
+    private REFRESH_TOKENS;
+    private DECISION_TREE_BASE;
+    private AGENT_COPILOT_DECISION_TREE_APIS;
+    private AGENT_COPILOT_GET_TASK_ASSIST_ACTIVE_FILL_DATA;
+    private readonly CHECKLIST_BASE;
+    private readonly AGENT_COPILOT_CHECKLIST_APIS;
+    /**
+     * Create instance of CXoneAuth
+     * ```
+     * @example
+     * const copilotService = new CopilotService();
+     * ```
+     */
+    constructor();
+    /**
+     * @returns base url for ACP backend
+     * @example getBaseHttpRequest()
+     */
+    getBaseUrlForAcp: () => string;
+    /**
+     *  @param payload - additional payload
+     * @returns basic http request for ACP backend
+     * @example getBaseHttpRequest()
+     */
+    getBaseHttpRequest: (payload: any) => HttpRequestInit;
+    /**
+     * @returns payload
+     * @example commonPayload()
+     */
+    basePayload: () => {
+        contactId: any;
+        idToken: string;
+    };
+    /**
+     * Used to get the copilot info by search text
+     * @param connectionId - connection id to send with the data
+     * @example -
+     * ```
+     * copilotService.generateFinalSummary("some_connectionId");
+     * ```
+     */
+    generateFinalSummary(contactId: string, status: string): Promise<unknown>;
+    /**
+     * Used to get the copilot info by search text
+     * @param searchText - Agent search query
+     * @param activeContactId - contactId/caseId
+     * @example -
+     * ```
+     * copilotService.search("test",'1234');
+     * ```
+     */
+    search(searchText: string, activeContactId: string): Promise<AgentCopilotSearchRequest>;
+    /**
+     * Used to get the copilot adaptive card schema by cardType(all by default) and UI version
+     * @param cxaVersion - branch name indicating UI version
+     * @param cardType - type of adaptive card
+     * ```
+     * copilotService.fetchCopilotAdaptiveCardSchemasFromBucket('24.4.2', 'all');
+     * ```
+     */
+    fetchCopilotAdaptiveCardSchemasFromBucket: (cxaVersion: string, cardType?: string) => Promise<unknown>;
+    /**
+     * Used to get local storage data by the agentId
+     * @example -
+     * ```
+     * copilotService.getLsDataByAgentId();
+     * ```
+     */
+    getLsDataByAgentId(): any;
+    /**
+     * Used to put copilot data by the agentId into indexdb
+     * @example -
+     * ```
+     * copilotService.setCopilotIndexDb();
+     * ```
+     */
+    setCopilotIndexDb: (updatedReduxSlice: CcfCopilotData) => Promise<void>;
+    /**
+     * Used to get copilot data by the agentId into indexdb
+     * @example -
+     * ```
+     * copilotService.getCopilotIndexDb();
+     * ```
+     */
+    getCopilotIndexDb: () => Promise<{
+        [caseId: string]: CopilotMessageData;
+    }>;
+    /**
+     * Used to remove caseId record from copilot indexdb data
+     * @example -
+     * ```
+     * copilotService.removeCaseIdFromCopilotIndexDb('1695828916775981777');
+     * ```
+     */
+    removeCaseIdFromCopilotIndexDb: (caseId: string) => Promise<void>;
+    /**
+     * Used to put copilot redux slice data into indexdb
+     * @example -
+     * ```
+     * copilotService.setCopilotIndexDb(copilotReduxSlice);
+     * ```
+     */
+    addAdaptiveCardSchemaToIndexDB: (copilotReduxSlice: CcfCopilotData) => Promise<void>;
+    /**
+     * Used to get the copilot health
+     * @param contactId - contact Id of current active contact
+     * @example -
+     * ```
+     * copilotService.healthCheck('1234');
+     * ```
+     */
+    healthCheck: (contactId: string) => Promise<unknown>;
+    /**
+     * Used to get first name of agent logged in
+     * @example -
+     * ```
+     * copilotService.getAgentFirstName();
+     * ```
+     */
+    getAgentFirstName: () => any;
+    /**
+     * Used to set AAH config of contactId in localStorage
+     * @param contactId - contact Id for which AAH config needs to be stored
+     * @param aahConfig - AAH config for contactId
+     * @example -
+     * ```
+     * copilotService.setAgentAssistConfig('123123', {ContactId : '123123',});
+     * ```
+     */
+    setAgentAssistConfig: (contactId: string, aahConfig: string) => void;
+    /**
+     * Used to get AAH config for the contactId
+     * @param contactId - contact Id
+     * @param isObjectFlag - if the value fetched is object or not
+     * @example -
+     * ```
+     * copilotService.getAgentAssistConfig('12321',false);
+     * ```
+     */
+    getAgentAssistConfig: (contactId: string, isObjectFlag?: boolean) => any;
+    /**
+     * Used to get AAH config for the contactId
+     * @param contactId -  contact Id
+     * @example -
+     * ```
+     * copilotService.retriveAgentAssistConfig('12321');
+     * ```
+     */
+    retriveAgentAssistConfig: (contactId: string, mediaType?: string, agentAssistId?: string) => Promise<CopilotProfileConfig>;
+    /**
+     * Used to store AAH config for the contactId in browser memory by pulling from redis cache, if not already available
+     * @param contactId - contact Id
+     * @param mediaType - media type for the contact
+     * @param agentAssistId - agent assist ID
+     * @example -
+     * ```
+     * copilotService.storeAgentAssistConfig('12321');
+     * ```
+     */
+    storeAgentAssistConfig: (contactId: string, mediaType?: string, agentAssistId?: string) => Promise<any>;
+    /**
+     * Ensures the Agent Assist configuration for the given contactId is available in memory.
+     * If the configuration is not already cached (in the in-memory store or localStorage),
+     * it will be retrieved from the backend API and then returned.
+     *
+     * Unlike {@link storeAgentAssistConfig}, this method only attempts a backend retrieval
+     * when no cached configuration exists; it does not validate agentAssistId/mediaType changes.
+     *
+     * @param contactId - The contact (case) identifier whose Agent Assist configuration is required.
+     * @returns The loaded {@link CopilotProfileConfig} if available after cache check / retrieval; otherwise `undefined` if retrieval failed silently.
+     * @example
+     * ```ts
+     * const aahConfig = copilotService.resolveAgentAssistConfig('12321');
+     * if (aahConfig?.Params?.emailChannel) {
+     *   // proceed with email specific logic
+     * }
+     * ```
+     */
+    resolveAgentAssistConfig: (contactId: string) => Promise<CopilotProfileConfig | undefined>;
+    /**
+     * Used to get the last generated list of topics for the contact id
+     * @param contactId - contact Id
+     * @example -
+     * ```
+     * copilotService.getLastGeneratedTopics('12321');
+     * ```
+     */
+    getLastGeneratedTopics: (contactId: string) => Promise<unknown>;
+    /**
+      * Used to get the draft email by contactId and uniqueEmailId
+      * @param contactId - contact Id
+      * @param uniqueEmailId - unique email Id
+      * @example -
+      * ```
+      * copilotService.getDraftEmail('12321', 'uniqueEmailId');
+      * ```
+      */
+    getDraftEmail: (contactId: string, uniqueEmailId: string) => Promise<unknown>;
+    /**
+      * Used to get the draft email by contactId and uniqueEmailId
+      * @param contactId - contact Id
+      * @param emailIdentifier - unique email Id
+      * @param topics - list of topics
+      * @example -
+      * ```
+      * copilotService.generateEmail('12321', 'uniqueEmailId', [{topicId: '123', content: 'topicName'}]);
+      * ```
+      */
+    generateEmail: (contactId: string, emailIdentifier: string, topics: {
+        topicId: string;
+        content: string;
+    }[]) => Promise<string>;
+    /**
+     * Used to store the comprehensive feedback
+     * @param feedbackData - list of all feedbacks given by the agent
+     * @example -
+     * ```
+     * copilotService.sendGuidanceFeedback(feedbacks);
+     * ```
+     */
+    sendGuidanceFeedback: (feedbackData: GuidanceFeedbackData[]) => Promise<unknown>;
+    /**
+     * Used to store the overall subcard feedback
+     * @param contactFeedbackCard - contactFeedbackCard data given by the agent
+     * @example -
+     * ```
+     * copilotService.sendContactFeedback({overallFeedbackTitle: "1234", feedback: "feedback"});
+     * ```
+     */
+    sendContactFeedback: (contactFeedbackCard: ContactFeedbackData) => Promise<unknown>;
+    /**
+    * Use to process an editor command to get the Simplified/Rephrased/Expanded text in reponse
+    * @param action - email action
+    * @param context - editor text
+    * @param selectedText - selected text from editor
+    * @param contactId - contactId/caseId
+    * @example -
+    * ```
+    * copilotService.processEditorCommand("Simplify",'this is test','test','1234');
+    * ```
+    */
+    processEditorCommand(action: string, context: string, selectedText: string, contactId: string): Promise<string>;
+    /**
+    * Use to update copilot filters/ tag lists
+    * @param copilotFilterTags - tags for filters
+    * @param contactId - contactId/caseId
+    * @example -
+    * ```
+    * copilotService.updateCopilotFilters([{name: 'planYear', default: ['2024'], selected: ['2024','2025]}],'1234');
+    * ```
+    */
+    updateCopilotFilters(copilotFilterTags: Array<CustomCopilotFilterTags>, contactId: string): Promise<string>;
+    /**
+    * Use to get journey summary data
+    * @param contactHistory - contact history of the contact
+    * @param contactId - contactId/caseId
+    * @param customerId - customerId
+    * @param aahConfiguration - agent assist configuration
+    * @param customerName - customer name
+    * @example -
+    * ```
+    * copilotService.getJourneySummary([{contactNumber: '1234', channelType: 'Voice', contactDate: '2021-09-01', skill: 'skill', status: 'status'}],'1234','1234',{},'user');
+    * ```
+    */
+    getJourneySummary(contactHistory: ContactHistoryData[], contactId: string, customerUid: string, aahConfiguration: CopilotProfileConfig, customerName: string): Promise<string>;
+    /**
+     * Used to fetch the generated final summary
+     * @param connectionId - connection id to send with the data
+     * @example -
+     * ```
+     * copilotService.fetchGeneratedFinalSummary("1234");
+     * ```
+     */
+    fetchGeneratedFinalSummary(contactId: string): Promise<unknown>;
+    /**
+     * Used to get task response based on the intentName for a given contactId
+     * @param intentConfig - intent config
+     * @param contactId  - contact Id
+     * @param taskSessionUid - task session unique id
+     * @example -
+     * ```
+     * copilotService.getTaskResponse('Task intent name here', '12321');
+     * ```
+     */
+    getTaskResponse(contactId: string, intentConfig: IntentConfig, formCapturedata?: Record<string, unknown>, taskSessionUid?: string): Promise<string>;
+    /**
+     * Used to get all copilot adaptive card schemas
+     * @example -
+     * ```
+     * copilotService.fetchCopilotAllAdaptiveCardSchemas();
+     * ```
+     */
+    fetchCopilotAllAdaptiveCardSchemas: () => Promise<unknown>;
+    /**
+   * Used to get task assist form schema based on the intentName
+   * @param intentName - intent name
+   * @param contactId  - contact Id
+   * @example -
+   * ```
+   * copilotService.getTaskAssistFormSchema('Task intent name here','212324);
+   * ```
+   */
+    getTaskAssistFormSchema(intentName: string, contactId: string): Promise<string>;
+    /**
+   * Used to get task assist form pre-filled data based on the intentName
+   * @param intentConfig - intent config
+   * @param contactId  - contact Id
+   * @param objectId - objectId
+   * @example -
+   * ```
+   * copilotService.getTaskAssistFormPreFilledData('Task intent name here');
+   * ```
+   */
+    getTaskAssistFormPreFilledData(intentConfig: IntentConfig, contactId: string, objectId: string): Promise<string>;
+    /**
+     * Saves the edited summary for a given channel and contact number.
+     * @param channel - The communication channel.
+     * @param contactNumber - The contact number.
+     * @param summary - The edited summary text.
+     * @returns A promise that resolves with the response data.
+     * @example
+     * ```
+     * copilotService.saveEditedSummary('Voice', 123456789, 'This is the edited summary text.');
+     * ```
+     */
+    saveEditedSummary(channel: string, contactNumber: number, summary: string): Promise<string>;
+    /**
+     * Refreshes authentication tokens for the current agent session.
+     * @param idToken - The current ID token to refresh.
+     * @param accessToken - The current access token to refresh.
+     * @returns A promise that resolves with the refreshed idToken and accessToken.
+     * @example
+     * ```
+     * const tokens = await copilotService.refreshTokens('newIdToken', 'newAccessToken');
+     * ```
+     */
+    refreshTokens(idToken: string, accessToken: string): Promise<{
+        idToken: string;
+        accessToken: string;
+    }>;
+    /**
+   * Fetches an element configuration (Decision Tree or Custom Adaptive Card)
+   * for a given element ID.
+   *
+   * @param elementId - Unique ID of the element (Decision Tree or Custom Adaptive Card).
+   * @returns Promise resolving to either a DecisionTreeElement or CustomAdaptiveCardElement.
+   *
+   * @example
+   * ```ts
+   * const element = await copilotService.getElement("dt-001");
+   * if (element.type === 'decisionTree') {
+   *   const sections = element.config.sections;
+   *   // Process decision tree sections
+   * } else if (element.type === 'customAdaptiveCard') {
+   *   const schema = element.config.adaptiveCardSchema;
+   *   // Render adaptive card with schema
+   * }
+   * ```
+   */
+    getElement(elementId: string): Promise<DecisionTreeElement | CustomAdaptiveCardElement>;
+    /**
+   * Posts a Decision Tree section-change event to the backend.
+   *
+   * This is triggered when the agent switches to another section in the UI.
+   * Used for analytics, tracking, and server-side decision logic.
+   *
+   * @param taskSessionUid - Unique ID for the task session.
+   * @param contactId - Contact/Interaction ID associated with the tree.
+   * @param decisionTreeId - Decision Tree session/element ID.
+   * @param sectionId - The newly selected active section ID.
+   *
+   * @returns Promise resolving the raw API response.
+   *
+   * @example
+   * ```ts
+   * await copilotService.postDecisionTreeSectionChange(
+   *   "task-session-001",
+   *   "203444780887",
+   *   "a75bf9bb-203c-4850-b743-35e31f2f4421",
+   *   "22414-4141-4141-4242"
+   * );
+   * ```
+   */
+    postDecisionTreeSectionChange(taskSessionUid: string, contactId: string, decisionTreeId: string, sectionId: string): Promise<DecisionTreeData>;
+    /**
+   * Updates the answer for a single Decision Tree question.
+   *
+   * This is called when the user edits a field and clicks the ✓ save icon.
+   *
+   * @param taskSessionUid - unique ID for the task session.
+   * @param contactId - Contact/Interaction ID.
+   * @param decisionTreeId - Decision Tree ID related to the question.
+   * @param sectionId - Section containing the question.
+   * @param questionId - The specific Question ID to update.
+   * @param newResponse - The new answer/value for the question.
+   *
+   * @returns Promise resolving API response containing update summary.
+   *
+   * @example
+   * ```ts
+   * await copilotService.updateDecisionTreeResponse(
+   *  "task-session-001",
+   *   "203444780887",
+   *   "a75bf9bb-203c-4850-b743-35e31f2f4421",
+   *   "12414-4141-4141-4141",
+   *   "213123-3131-13131-3132",
+   *   "New Answer"
+   * );
+   * ```
+   */
+    updateDecisionTreeResponse(updateDecisionTreeResponsePayload: {
+        taskSessionUid: string;
+        contactId: string;
+        decisionTreeId: string;
+        sectionId: string;
+        questionId: string;
+        newResponse: string;
+    }): Promise<DecisionTreeData>;
+    /**
+   * Submits the fully completed Decision Tree to the backend.
+   *
+   * After submission, the backend may trigger follow-up workflows,
+   * notifications, or task-assist events.
+   *
+   * @param contactId - Contact/Interaction ID.
+   * @param decisionTreeId - ID of the Decision Tree being submitted.
+   *
+   * @returns Promise resolving server confirmation payload.
+   *
+   * @example
+   * ```ts
+   * await copilotService.submitDecisionTree(
+   *  "taskSessionUid",
+   *   "203444780887",
+   *   "a75bf9bb-203c-4850-b743-35e31f2f4421"
+   * );
+   * ```
+   */
+    submitDecisionTree(taskSessionUid: string, contactId: string, decisionTreeId: string): Promise<string>;
+    /**
+    * Skips a decision tree question for a given contact and question.
+     * @param taskSessionUid - The task session unique ID.
+     * @param contactId - The contact ID.
+     * @param decisionTreeId - The decision tree ID.
+     * @param questionId - The question ID to be skipped.
+     * @param sectionId - The section ID containing the question.
+     * @returns A promise that resolves with the response data.
+     * @example
+     * ```
+     * copilotService.skipDecisionTreeQuestion('taskSessionUid', 'contactId', 'decisionTreeId', 'questionId', 'sectionId');
+     * ```
+     */
+    skipDecisionTreeQuestion(taskSessionUid: string, contactId: string, decisionTreeId: string, questionId: string, sectionId: string): Promise<string>;
+    /**
+     * Cancels the Decision Tree session for a given contact.
+     *
+     * This is typically called when the agent decides to exit the Decision Tree
+     * without submitting it.
+     *
+     * @param taskSessionUid - The task session unique ID.
+     * @param contactId - Contact/Interaction ID.
+     * @param decisionTreeId - ID of the Decision Tree to be closed.
+     * @returns Promise resolving server confirmation payload.
+     * @example
+     * ```ts
+     * await copilotService.cancelDecisionTree(
+     * "taskSessionUid",
+     * "203444780887",
+     * "a75bf9bb-203c-4850-b743-35e31f2f4421"
+     * );
+     * ```
+     */
+    cancelDecisionTree(taskSessionUid: string, contactId: string, decisionTreeId: string): Promise<string>;
+    /**
+     * Fetches active pre-filled slot data for Task Assist based on the provided input slot.
+     *
+     * This API sends the slot name and value to the backend and retrieves
+     * the corresponding pre-filled data for the active Task Assist form.
+     *
+     * @param inputs - Key/value pair representing the slot to be resolved.
+     * Example: `{ accountNumber: "12345" }`
+     *
+     * @param contactId - Unique contact identifier associated with the active interaction.
+     *
+     * @param objectId - Task Assist session identifier (taskSessionUid).
+     *
+     * @returns Promise resolving to the pre-filled data returned by the backend.
+     *
+     * @example
+     * ```ts
+     * copilotService.getTaskAssistActiveFilledData(
+     *   { accountNumber: "12345" },
+     *   "contact-123",
+     *   "task-session-456"
+     * );
+     * ```
+     */
+    getTaskAssistActiveFilledData(inputs: Record<string, string>, contactId: string, objectId: string): Promise<string>;
+    /**
+     * Searches for workflow suggestions using semantic search.
+     * Called when no local workflow matches the agent's '/' query.
+     *
+     * @param agentQuery - The search query from agent (text after '/')
+     * @param contactId - The active contact ID
+     * @returns Promise with suggested workflows
+     * @example
+     * ```ts
+     * const suggestions = await copilotService.getWorkflowSuggestions('refund process', '12345');
+     * ```
+     */
+    getWorkflowSuggestions(agentQuery: string, contactId: string): Promise<WorkflowSuggestionResponse>;
+    /**
+     * Fetches custom adaptive card schema with caching support.
+     * Checks localStorage cache first, then fetches from Profile Hub API if needed.
+     * Automatically parses and caches the schema.
+     *
+     * @param elementUid - Unique identifier of the custom adaptive card element
+     * @returns Promise resolving to parsed schema object
+     *
+     * @example
+     * ```ts
+     * const schema = await copilotService.getCustomAdaptiveCardSchema("7065ea9f-737f-4411-a857-112fe0b62aec");
+     * ```
+     */
+    getCustomAdaptiveCardSchema(elementUid: string): Promise<object>;
+    /**
+     * Updates a checklist item's completion status.
+     *
+     * This is called when checklist item gets checked or unchecked.
+     *
+     * @param params - Object containing sessionId, contactId, checklistId, itemId, isCompleted, and completionType.
+     * @returns Promise resolving to the updated checklist data.
+     * @example
+     * ```ts
+     * await copilotService.updateChecklistItem({
+     *   sessionId: 'session-001',
+     *   contactId: '203444780887',
+     *   checklistId: 'checklist-uuid',
+     *   itemId: 'item-1',
+     *   isCompleted: true,
+     *   completionType: 'MANUAL'
+     * });
+     * ```
+     */
+    updateChecklistItem(params: {
+        sessionId: string;
+        contactId: string;
+        checklistId: string;
+        itemId: string;
+        isCompleted: boolean;
+        completionType: ChecklistCompletionType;
+    }): Promise<string>;
+    /**
+     * Completes and submits the checklist.
+     *
+     * This is called when the agent clicks the complete/submit button on the checklist.
+     *
+     * @param sessionId - Checklist session ID.
+     * @param contactId - Contact/Interaction ID.
+     * @param checklistId - Checklist definition ID.
+     * @returns Promise resolving to the completion confirmation.
+     * @example
+     * ```ts
+     * await copilotService.completeChecklist(
+     *   'session-001',
+     *   '203444780887',
+     *   'checklist-uuid'
+     * );
+     * ```
+     */
+    completeChecklist(sessionId: string, contactId: string, checklistId: string): Promise<string>;
+    /**
+     * Closes the checklist without submitting.
+     *
+     * This is called when the agent decides to close/cancel the checklist.
+     *
+     * @param sessionId - Checklist session ID.
+     * @param contactId - Contact/Interaction ID.
+     * @param checklistId - Checklist definition ID.
+     * @returns Promise resolving to the cancellation confirmation.
+     * @example
+     * ```ts
+     * await copilotService.closeChecklist(
+     *   'session-001',
+     *   '203444780887',
+     *   'checklist-uuid'
+     * );
+     * ```
+     */
+    closeChecklist(sessionId: string, contactId: string, checklistId: string): Promise<string>;
+}
+export {};

@@ -1,0 +1,8 @@
+/**
+ * Enum for crm
+ */
+export declare enum Crm {
+    SALESFORCE = "salesforce",
+    SERVICENOW = "servicenow",
+    MSD = "msd"
+}

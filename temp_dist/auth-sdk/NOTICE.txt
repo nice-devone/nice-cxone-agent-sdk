@@ -1,0 +1,75 @@
+# NICE - CXone SDK
+ 
+Copyright 2021-2023 NICE Ltd. licensed under the NICE LICENSE
+
+## CXone Auth SDK
+
+This product includes software from Daniel Meyer, broadcast-channel project
+    * Copyright (c) 2018 Daniel Meyer
+    * Licensed under the MIT License
+    * https://github.com/pubkey/broadcast-channel/blob/master/LICENSE
+
+This product includes software from Google, Inc., Netflix, Inc., Microsoft Corp. and contributors, rxjs project
+    * Copyright (c) 2015-2018 Google, Inc., Netflix, Inc., Microsoft Corp. and contributors
+    * Licensed under the Apache License, Version 2.0
+    * https://github.com/ReactiveX/rxjs/blob/master/LICENSE.txt
+
+This product includes software from Meta Platforms, Inc. and affiliates, react project
+    * Copyright (c) Meta Platforms, Inc. and affiliates.
+    * Licensed under the MIT License
+    * https://github.com/facebook/react/blob/main/LICENSE
+
+This product includes software from Mark Erikson, @reduxjs/toolkit project
+    * Copyright (c) 2018 Mark Erikson
+    * Licensed under the MIT License
+    * https://github.com/reduxjs/redux-toolkit/blob/master/LICENSE
+
+This product includes software from Fadi Khadra, react-toastify project
+    * Copyright (c) 2023 Fadi Khadra
+    * Licensed under the MIT License
+    * https://github.com/fkhadra/react-toastify/blob/main/LICENSE
+
+This product includes software from Meta Platforms, Inc. and affiliates, lexical project
+    * Copyright (c) Meta Platforms, Inc. and affiliates.
+    * Licensed under the MIT License
+    * https://github.com/facebook/lexical/blob/main/LICENSE
+
+This product includes software from the .NET Foundation and Contributors, @microsoft/signalr project
+    * Copyright (c) .NET Foundation and Contributors
+    * Licensed under the MIT License
+    * https://github.com/dotnet/aspnetcore/blob/main/LICENSE.txt
+
+This product includes software from Connor Peet, cockatiel project
+    * Copyright (c) 2019 Connor Peet
+    * Licensed under the MIT License
+    * https://github.com/connor4312/cockatiel/blob/master/LICENSE
+
+This product includes software from Datadog, Inc., @datadog/browser-rum project
+    * Copyright 2019-Present Datadog, Inc.
+    * Licensed under the Apache License, Version 2.0
+    * https://github.com/DataDog/browser-sdk/blob/main/LICENSE
+
+This product includes software from Datadog, Inc., @datadog/browser-logs project
+    * Copyright 2019-Present Datadog, Inc.
+    * Licensed under the Apache License, Version 2.0
+    * https://github.com/DataDog/browser-sdk/blob/main/LICENSE
+
+This product includes software from Node Fetch Team, node-fetch project
+    * Copyright (c) 2016-2020 Node Fetch Team
+    * Licensed under the MIT License
+    * https://github.com/node-fetch/node-fetch/blob/main/LICENSE.md
+
+This product includes software from Jake Archibald, idb project
+    * Copyright (c) 2016, Jake Archibald <jaffathecake@gmail.com>
+    * Licensed under the ISC License (ISC)
+    * https://github.com/jakearchibald/idb/blob/main/LICENSE
+
+This product includes software from Joyent, Inc. and other Node.js contributors, util project
+    * Copyright Joyent, Inc. and other Node.js contributors.
+    * Licensed under the MIT License
+    * https://github.com/browserify/node-util/blob/master/LICENSE
+
+This product includes software from Auth0, Inc., jsonwebtoken project
+    * Copyright (c) 2015 Auth0, Inc. <support@auth0.com> (http://auth0.com)
+    * Licensed under the MIT License (MIT)
+    * https://github.com/auth0/node-jsonwebtoken/blob/master/LICENSE
