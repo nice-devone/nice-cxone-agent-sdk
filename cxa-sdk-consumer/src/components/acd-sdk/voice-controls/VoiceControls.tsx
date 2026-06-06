@@ -4,7 +4,6 @@ import { Avatar, Box, Button, Chip, Divider, FormControl, IconButton, InputAdorn
 import { useState } from "react";
 import { CXoneAcdClient, CXoneVoiceContact } from "@nice-devone/acd-sdk";
 import { CXoneClient, VoiceControlService} from "@nice-devone/agent-sdk"
-import { CXoneSdkError } from "@nice-devone/common-sdk";
 import PauseIcon from "@mui/icons-material/Pause";
 import PlayArrowIcon from "@mui/icons-material/PlayArrow";
 import CallEndIcon from "@mui/icons-material/CallEnd";
@@ -183,15 +182,9 @@ const VoiceControls = ({voiceContact}:{voiceContact:CXoneVoiceContact}) => {
   }
 
   useEffect(() => {
-     CXoneClient.instance.notification
-       .startWemWebSocket({
-         locale: Intl.DateTimeFormat().resolvedOptions().locale || "",
-         timezone: Intl.DateTimeFormat().resolvedOptions().timeZone || "",
-       })
-       .catch((err: CXoneSdkError) => {
-         console.log("fetchAllNotifications", JSON.stringify(err));
-         return [];
-       });
+     // NOTE: startWemWebSocket() now runs ONCE in NavBar the first time the
+     // ACD route is visited, so it isn't reopened every time VoiceControls
+     // remounts (e.g. when the contact panel toggles).
 
      // Subscribe to the agent's skills so we can pick a VALID outbound skillId
      // for dialPhone(). Mirrors CMA: see acdSessionEventMiddleware.ts subscribing to

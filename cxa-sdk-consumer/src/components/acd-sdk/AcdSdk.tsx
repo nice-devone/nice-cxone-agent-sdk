@@ -43,8 +43,7 @@ import React, { useEffect, useRef, useState } from "react";
 import { CXoneAcdClient, CXoneVoiceContact } from "@nice-devone/acd-sdk";
 import { AgentSessionStatus, EndSessionRequest } from "@nice-devone/common-sdk";
 import { CXoneVoiceClient } from "@nice-devone/voice-sdk";
-import { CXoneClient } from "@nice-devone/agent-sdk";
-import { LocalStorageHelper, StorageKeys, AgentSettings } from "@nice-devone/core-sdk";
+import { CXoneClient } from "@nice-devone/agent-sdk";import { LocalStorageHelper, StorageKeys, AgentSettings } from "@nice-devone/core-sdk";
 import VoiceControls from "./voice-controls/VoiceControls";
 import Outbound from "./outbound/Outbound";
 import DirectoryAndAddressBook from "./directory-address-book/DirectoryAndAddressBook";
@@ -103,6 +102,19 @@ const AcdSdk = () => {
     CXoneAcdClient.instance.initAcdEngagement().finally(() => {
       logger.info("initAcdEngagement complete", '');
       setInitEngagement(true);
+      // WEM notification websocket can only be opened AFTER initAcdEngagement
+      // resolves, because that's when CXoneClient.instance.notification is
+      // fully wired up. Calling it earlier throws "startWemWebSocket is not a
+      // function".
+      CXoneClient.instance.notification
+        .startWemWebSocket({
+          locale: Intl.DateTimeFormat().resolvedOptions().locale || "",
+          timezone: Intl.DateTimeFormat().resolvedOptions().timeZone || "",
+        })
+        .catch((err) => {
+          logger.error("startWemWebSocket failed", '');
+          console.log("startWemWebSocket failed", err);
+        });
     });
     CXoneAcdClient.instance.setClickToDialCustomAgentUrl(
         "http://localhost:3000/"
