@@ -41,7 +41,7 @@ import {
 } from "@mui/material";
 import React, { useEffect, useRef, useState } from "react";
 import { CXoneAcdClient, CXoneVoiceContact } from "@nice-devone/acd-sdk";
-import { AgentSessionStatus, EndSessionRequest } from "@nice-devone/common-sdk";
+import { AgentSessionStatus, EndSessionRequest, VoiceContactStatus } from "@nice-devone/common-sdk";
 import { CXoneVoiceClient } from "@nice-devone/voice-sdk";
 import { CXoneClient } from "@nice-devone/agent-sdk";import { LocalStorageHelper, StorageKeys, AgentSettings } from "@nice-devone/core-sdk";
 import VoiceControls from "./voice-controls/VoiceControls";
@@ -556,8 +556,8 @@ const AcdSdk = () => {
   };
 
   const isInboundPendingCall =
-    voiceContact?.status === "Incoming" ||
-    voiceContact?.status === "Ringing";
+    voiceContact?.status === VoiceContactStatus.INCOMING ||
+    voiceContact?.status === VoiceContactStatus.RINGING;
 
   return (
     <Box sx={{ maxWidth: 900, mx: "auto", py: 2, width: "100%" }}>
@@ -794,8 +794,7 @@ const AcdSdk = () => {
 
           {voiceContact?.contactID &&
             !isInboundPendingCall &&
-            voiceContact?.status !== "Ended" &&
-            voiceContact?.status !== "Disconnected" && (
+            voiceContact?.status !== VoiceContactStatus.DISCONNECTED && (
               <Box sx={{ mt: 2 }}>
                 <Divider sx={{ mb: 2 }} />
                 <Typography variant="subtitle2" sx={{ mb: 1.5, color: "text.secondary" }}>
