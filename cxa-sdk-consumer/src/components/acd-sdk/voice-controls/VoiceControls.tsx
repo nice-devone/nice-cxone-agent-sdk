@@ -46,6 +46,13 @@ const VoiceControls = ({voiceContact}:{voiceContact:CXoneVoiceContact}) => {
   const [hangUpButtonIsEnabled, setHangUpButtonIsEnabled] = useState(true);
   // WEM compliance status (from notification API/WebSocket). Drives the "🔴 Recording" indicator only.
   const [isRecordButtonVisible, setIsRecordButtonVisible] = useState(false);
+  // Live status of THIS voice contact (e.g. 'Active', 'Holding', 'Disconnected', ...).
+  // Tracked locally so we can hide the entire control surface the moment the SDK
+  // emits the terminal 'Disconnected' event after Hang Up — independent of the parent
+  // gate (defense in depth in case the parent's gate is bypassed or comparisons drift).
+  const [contactStatusLower, setContactStatusLower] = useState<string>(
+    () => voiceContact?.status?.toLowerCase() || ''
+  );
   // SDK-authoritative call-control state for the Record button. The SDK flips
   // callControlButton.record.{isEnable, controlText} on every ACD contact event
   // (Active / Hold / Mask / Incoming / ACW / Record success / StopRecord success).
@@ -292,6 +299,14 @@ const VoiceControls = ({voiceContact}:{voiceContact:CXoneVoiceContact}) => {
          // cxone-voice-contact.ts updateCallControlButtonsOn* methods. Reading those
          // values here keeps the Start/Stop Record buttons in lock-step with the SDK.
          if (cxoneContact.contactID === voiceContact.contactID) {
+           // Track this contact's live status (normalized to lowercase) so the
+           // component can self-hide when the SDK reports the terminal 'Disconnected'
+           // state after Hang Up. cxoneContact.status is PascalCase (e.g. 'Disconnected')
+           // per CallContactEventStatus, while the rest of the consumer compares against
+           // lowercase tokens, so we normalize here.
+           const nextStatusLower = (cxoneContact.status as string | undefined)?.toLowerCase() || '';
+           setContactStatusLower((prev) => (prev !== nextStatusLower ? nextStatusLower : prev));
+
            const sdkRec = cxoneContact.callControlButton?.record;
            if (sdkRec) {
              setRecordControl((prev) => {
@@ -754,6 +769,15 @@ const VoiceControls = ({voiceContact}:{voiceContact:CXoneVoiceContact}) => {
         }
       }
     }
+
+  // Defense in depth: even if the parent forgets to gate this component,
+  // hide the whole control surface once the SDK reports the contact is gone.
+  // After Hang Up succeeds the SDK fires voiceContactUpdateEvent with
+  // status === 'Disconnected' (PascalCase), which we already normalized to
+  // lowercase in contactStatusLower above.
+  if (!voiceContact?.contactID || contactStatusLower === 'disconnected') {
+    return null;
+  }
 
   return (
     <Box>
