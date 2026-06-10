@@ -3,7 +3,7 @@ import React, { useEffect, useRef } from "react";
 import { Avatar, Box, Button, Chip, Divider, FormControl, IconButton, InputAdornment, InputLabel, List, ListItem, ListItemAvatar, ListItemSecondaryAction, ListItemText, MenuItem, Select, Stack, TextField, Tooltip, Typography } from "@mui/material";
 import { useState } from "react";
 import { CXoneAcdClient, CXoneVoiceContact } from "@nice-devone/acd-sdk";
-import { CXoneClient, VoiceControlService} from "@nice-devone/agent-sdk"
+import { CXoneClient, ControlButtonText, VoiceControlService } from "@nice-devone/agent-sdk"
 import PauseIcon from "@mui/icons-material/Pause";
 import PlayArrowIcon from "@mui/icons-material/PlayArrow";
 import CallEndIcon from "@mui/icons-material/CallEnd";
@@ -44,7 +44,17 @@ const DTMF_FREQUENCIES: Record<string, { low: number; high: number }> = {
 const VoiceControls = ({voiceContact}:{voiceContact:CXoneVoiceContact}) => {
   const [holdeResume, setHoldeResume] = useState('Hold');
   const [hangUpButtonIsEnabled, setHangUpButtonIsEnabled] = useState(true);
+  // WEM compliance status (from notification API/WebSocket). Drives the "🔴 Recording" indicator only.
   const [isRecordButtonVisible, setIsRecordButtonVisible] = useState(false);
+  // SDK-authoritative call-control state for the Record button. The SDK flips
+  // callControlButton.record.{isEnable, controlText} on every ACD contact event
+  // (Active / Hold / Mask / Incoming / ACW / Record success / StopRecord success).
+  // Mirrors how CMA's ccf-contact-controls reads voiceContact.callControlButton.record.
+  const [recordControl, setRecordControl] = useState(() => ({
+    isVisible: !!voiceContact.callControlButton?.record?.isVisible,
+    isEnable:  !!voiceContact.callControlButton?.record?.isEnable,
+    controlText: voiceContact.callControlButton?.record?.controlText || ControlButtonText.RECORD,
+  }));
   const [isMuted, setIsMuted] = useState(false);
   const [isMuteBusy, setIsMuteBusy] = useState(false);
   const [consultAgentId, setConsultAgentId] = useState('');
@@ -276,6 +286,29 @@ const VoiceControls = ({voiceContact}:{voiceContact:CXoneVoiceContact}) => {
            setIsMuted((prev) => (prev !== sdkMuted ? sdkMuted : prev));
          }
 
+         // Sync the Record button state from the SDK whenever the OWN contact updates.
+         // The SDK mutates voiceContact.callControlButton.record on every ACD event
+         // (Active / Hold / Mask / Incoming / ACW / record / stopRecord) — see
+         // cxone-voice-contact.ts updateCallControlButtonsOn* methods. Reading those
+         // values here keeps the Start/Stop Record buttons in lock-step with the SDK.
+         if (cxoneContact.contactID === voiceContact.contactID) {
+           const sdkRec = cxoneContact.callControlButton?.record;
+           if (sdkRec) {
+             setRecordControl((prev) => {
+               const next = {
+                 isVisible: !!sdkRec.isVisible,
+                 isEnable:  !!sdkRec.isEnable,
+                 controlText: sdkRec.controlText || ControlButtonText.RECORD,
+               };
+               return (
+                 prev.isVisible === next.isVisible &&
+                 prev.isEnable === next.isEnable &&
+                 prev.controlText === next.controlText
+               ) ? prev : next;
+             });
+           }
+         }
+
          // Maintain participants map: add/update on every non-terminal status, remove on disconnect.
          // This mirrors how CMA's slice rebuilds usersInConference from each voice event.
          setParticipants((prev) => {
@@ -474,16 +507,30 @@ const VoiceControls = ({voiceContact}:{voiceContact:CXoneVoiceContact}) => {
       }
     };
 
-    const startRecord=(e: React.MouseEvent<HTMLButtonElement>)=>{
+    // Start recording — use voiceContact.record() (SDK-validated). It internally
+    // checks callControlButton.record.{isVisible,isEnable,controlText===RECORD}
+    // before hitting the back end, and the SDK then flips controlText → RECORDING.
+    const startRecord = async (e: React.MouseEvent<HTMLButtonElement>) => {
       e.preventDefault();
-      const voiceControlService = new VoiceControlService();
-      voiceControlService.recordCall(voiceContact.contactID).then((res)=>{ console.log(res) }).catch((err)=>{ console.log(err) })
+      try {
+        const res = await voiceContact.record();
+        console.log('%c[RECORD] start ok', 'color: #00CC00; font-weight: bold;', res);
+      } catch (err) {
+        console.log('%c[RECORD] start failed', 'color: #CC0000; font-weight: bold;', err);
+      }
     }
 
-    const stopRecord=(e: React.MouseEvent<HTMLButtonElement>)=>{
+    // Stop recording — use voiceContact.stopRecord() (SDK-validated). It internally
+    // checks callControlButton.record.{isVisible,isEnable,controlText===RECORDING}
+    // before hitting the back end, and the SDK then flips controlText → RECORD.
+    const stopRecord = async (e: React.MouseEvent<HTMLButtonElement>) => {
       e.preventDefault();
-      const voiceControlService = new VoiceControlService();
-      voiceControlService.stopCallRecording(voiceContact.contactID).then((res)=>{ console.log(res) }).catch((err)=>{ console.log(err) })
+      try {
+        const res = await voiceContact.stopRecord();
+        console.log('%c[RECORD] stop ok', 'color: #00CC00; font-weight: bold;', res);
+      } catch (err) {
+        console.log('%c[RECORD] stop failed', 'color: #CC0000; font-weight: bold;', err);
+      }
     }
 
     const sendDtmfTone = async(sequence: string) => {
@@ -742,7 +789,10 @@ const VoiceControls = ({voiceContact}:{voiceContact:CXoneVoiceContact}) => {
           onClick={startRecord}
           variant="contained"
           color="secondary"
-          disabled={isRecordButtonVisible}
+          // SDK governs this: enabled only while the call leg is in a state where
+          // recording can be started (Active + has permission + controlText===RECORD).
+          // After record() succeeds the SDK flips controlText → RECORDING and we disable.
+          disabled={!recordControl.isEnable || recordControl.controlText === ControlButtonText.RECORDING}
           startIcon={<FiberManualRecordIcon />}
         >
           Start Record
@@ -751,7 +801,9 @@ const VoiceControls = ({voiceContact}:{voiceContact:CXoneVoiceContact}) => {
           onClick={stopRecord}
           variant="outlined"
           color="secondary"
-          // disabled={!isRecordButtonVisible}
+          // Symmetric to Start: enabled only while recording is active AND the SDK
+          // says the button is currently enabled (FT STOP_RECORD + STOP_RECORDING perm).
+          disabled={!recordControl.isEnable || recordControl.controlText !== ControlButtonText.RECORDING}
           startIcon={<StopIcon />}
         >
           Stop Record
