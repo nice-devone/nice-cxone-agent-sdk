@@ -1,9 +1,11 @@
 import React, { useEffect, useState } from "react";
 import { Button, Stack, TextField } from "@mui/material";
 import { CXoneAcdClient } from "@nice-devone/acd-sdk";
-import { StorageKeys } from "@nice-devone/core-sdk";
+import { StorageKeys, Logger } from "@nice-devone/core-sdk";
 import { tryCatchWrapper } from "../../../utils/tryCatchWrapper";
 import PhoneIcon from "@mui/icons-material/Phone";
+
+const logger = new Logger('SDK-CONSUMER', 'Outbound');
 
 
 const Outbound = () => {
@@ -77,14 +79,11 @@ const Outbound = () => {
 
     CXoneAcdClient.instance.contactManager.voiceService
       .dialPhone(contactDetails)
-      .then((res) => {
-        console.log(
-          "Dialled Given number and dial phone api successfully called",
-          res
-        );
+      .then(() => {
+        logger.info("dialPhone", '');
       })
-      .catch((e) => {
-        console.log("eerr", e);
+      .catch(() => {
+        logger.error("dialPhone", '');
       });
   };
 

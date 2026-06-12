@@ -44,12 +44,15 @@ import DigitalSdk from "../digital-sdk/DigitalSdk";
 import Auth from "../auth/Auth";
 import AuthCallBack from "../auth/AuthCallback";
 import { CXoneAcdClient } from "@nice-devone/acd-sdk";
+import { Logger } from '@nice-devone/core-sdk';
 import LockOpenIcon from "@mui/icons-material/LockOpen";
 import HeadsetMicIcon from "@mui/icons-material/HeadsetMic";
 import ChatIcon from "@mui/icons-material/Chat";
 import WidgetsIcon from "@mui/icons-material/Widgets";
 import LogoutIcon from "@mui/icons-material/Logout";
 import HubIcon from "@mui/icons-material/Hub";
+
+const logger = new Logger('SDK-CONSUMER', 'NavBar');
 
 
 
@@ -203,7 +206,7 @@ export default function NavBar() {
       endContacts: true,
       ignorePersonalQueue: true,
     }).catch((err: any) => {
-       console.log(err.message ?? "An error occured");
+       logger.error("endSession", '');
      });
      localStorage.clear();
      setDisableTab(true);

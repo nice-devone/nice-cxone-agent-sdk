@@ -20,6 +20,9 @@ import PhoneIcon from "@mui/icons-material/Phone";
 import SupportAgentIcon from "@mui/icons-material/SupportAgent";
 import MicIcon from "@mui/icons-material/Mic";
 import MicOffIcon from "@mui/icons-material/MicOff";
+import { Logger } from '@nice-devone/core-sdk';
+
+const logger = new Logger('SDK-CONSUMER', 'VoiceControls');
 
 const DTMF_FREQUENCIES: Record<string, { low: number; high: number }> = {
   '1': { low: 697, high: 1209 },
@@ -138,7 +141,7 @@ const VoiceControls = ({voiceContact}:{voiceContact:CXoneVoiceContact}) => {
     const audioContext = await getAudioContext();
 
     if (!audioContext) {
-      console.log('[DTMF] AudioContext not available for local tone playback');
+      logger.warn("playLocalDtmfTone", "AudioContext not available for local tone playback");
       return;
     }
 
@@ -212,28 +215,18 @@ const VoiceControls = ({voiceContact}:{voiceContact:CXoneVoiceContact}) => {
        const outbound = skills
          .filter((s: any) => s?.isOutbound && (s?.typeId === 4 /* PhoneCall */) && (s?.strategy === 'Manual' || s?.strategy === 'SmartReach'))
          .map((s: any) => ({ skillId: s.skillId, skillName: s.skillName }));
-       console.log('%c[OUTBOUND SKILLS] available outbound phone skills', 'color: #0088FF; font-weight: bold;', outbound);
        setOutboundSkills(outbound);
        setSelectedSkillId((prev) => prev || (outbound[0]?.skillId ? String(outbound[0].skillId) : ''));
      });
      // Trigger the fetch.
-     try { CXoneClient.instance.directory.getAgentSkills(); } catch (e) { console.log('getAgentSkills failed:', e); }
+     try { CXoneClient.instance.directory.getAgentSkills(); } catch (e) { logger.error("getAgentSkills", ''); }
      // Subscribe only once — re-subscribing on re-render would duplicate handlers.
      CXoneClient.instance.notification.onCXoneNotificationEvent.subscribe(
        (res) => {
-         console.log("Notification received in recording", res);
          // Skip SDK error events (e.g. getEmbeddedPages failure)
 
          const recData = res as any;
          if (recData?.recordingId && recData?.status) {
-           console.log('%c[RECORDING STATUS]', 'color: #FF6600; font-weight: bold;',
-             `status=${recData.status}`,
-             `reason=${recData.reason}`,
-             `contactId=${recData.contactId}`,
-             `recordingId=${recData.recordingId}`,
-             `isRecording=${recData.isRecording}`,
-             `timestamp=${recData.timestamp}`
-           );
            // Remember every STOPPED event so the next voice-contact transition can be classified.
            if (recData.status === 'STOPPED' && recData.contactId) {
              lastRecordingStopRef.current.set(recData.contactId, {
@@ -241,9 +234,9 @@ const VoiceControls = ({voiceContact}:{voiceContact:CXoneVoiceContact}) => {
                timestamp: Date.now(),
              });
              if (recData.reason === 'Hold') {
-               console.log('%c[RECORDING] ⏸ Recording STOPPED due to HOLD — awaiting next voice event to classify (Hold/Transfer/Conference)', 'color: #FFAA00; font-weight: bold;', `contactId=${recData.contactId}`);
+               logger.debug("recordingStopped", "reason=Hold, awaiting next voice event to classify");
              } else if (recData.reason === 'Policy') {
-               console.log('%c[RECORDING] ⏹ Recording STOPPED due to POLICY — expecting normal call end', 'color: #888888; font-weight: bold;', `contactId=${recData.contactId}`);
+               logger.debug("recordingStopped", "reason=Policy, expecting normal call end");
              }
            }
            setIsRecordButtonVisible(recData.isRecording);
@@ -274,15 +267,6 @@ const VoiceControls = ({voiceContact}:{voiceContact:CXoneVoiceContact}) => {
      // Subscribe only once — re-subscribing on re-render would duplicate handlers.
      CXoneAcdClient.instance.contactManager.voiceContactUpdateEvent.subscribe(
        (cxoneContact: CXoneVoiceContact) => {
-         console.log('%c[VOICE CONTACT]', 'color: #00AAFF; font-weight: bold;',
-           `status=${cxoneContact.status}`,
-           `contactID=${cxoneContact.contactID}`,
-           `masterID=${cxoneContact.masterID}`,
-           `interactionId=${cxoneContact.interactionId}`,
-           `callType=${cxoneContact.callType}`,
-           `finalState=${cxoneContact.finalState}`,
-           `disconnectCode=${cxoneContact.disconnectCode}`
-         );
 
          const contactStatus = cxoneContact.status?.toLowerCase();
          const tracker = holdingContactsTracker.current;
@@ -347,20 +331,20 @@ const VoiceControls = ({voiceContact}:{voiceContact:CXoneVoiceContact}) => {
 
          // Auto-transfer for cold transfer: when the NEW consult leg becomes Active, complete the transfer
          if (isNewConsultLeg && pendingColdTransfer.current) {
-           console.log('%c[COLD TRANSFER] Consult leg connected (Active). Auto-completing transfer now...', 'color: #FF4400; font-weight: bold; font-size: 13px;', `contactID=${cxoneContact.contactID}`);
+           logger.debug("coldTransfer", "Consult leg connected, auto-completing transfer");
            pendingColdTransfer.current = false;
            CXoneAcdClient.instance.contactManager.voiceService.transferContact()
-             .then(function() { console.log('%c[COLD TRANSFER] ✅ Transfer completed successfully', 'color: #00CC00; font-weight: bold; font-size: 13px;'); })
-             .catch(function(err: any) { console.log('[COLD TRANSFER] Transfer error after consult connected:', err); });
+             .then(function() { logger.info("coldTransfer", "Transfer completed successfully"); })
+             .catch(function(err: any) { logger.error("coldTransfer", ''); });
          }
 
          // Auto-conference: when the NEW consult leg becomes Active, merge all parties
          if (isNewConsultLeg && pendingConference.current) {
-           console.log('%c[AUTO CONFERENCE] Consult leg connected (Active). Auto-merging into conference now...', 'color: #AA00FF; font-weight: bold; font-size: 13px;', `contactID=${cxoneContact.contactID}`);
+           logger.debug("autoConference", "Consult leg connected, auto-merging into conference");
            pendingConference.current = false;
            CXoneAcdClient.instance.contactManager.voiceService.conferenceCall()
-             .then(function() { console.log('%c[AUTO CONFERENCE] ✅ Conference started successfully', 'color: #00CC00; font-weight: bold; font-size: 13px;'); })
-             .catch(function(err: any) { console.log('[AUTO CONFERENCE] Conference error after consult connected:', err); });
+             .then(function() { logger.info("autoConference", "Conference started successfully"); })
+             .catch(function(err: any) { logger.error("autoConference", ''); });
          }
 
          // Track when a contact goes to HOLDING
@@ -370,7 +354,7 @@ const VoiceControls = ({voiceContact}:{voiceContact:CXoneVoiceContact}) => {
              interactionId: cxoneContact.interactionId,
              timestamp: Date.now()
            });
-           console.log('%c⏸ [HOLDING] Contact put on hold — tracking to classify next state change...', 'color: #FFAA00; font-weight: bold; font-size: 13px;', `contactID=${cxoneContact.contactID}`, `masterID=${cxoneContact.masterID}`);
+           logger.debug("holdTracking", "Contact put on hold");
          }
 
          // Classify what happened after HOLDING / a STOPPED-Hold recording event.
@@ -387,9 +371,7 @@ const VoiceControls = ({voiceContact}:{voiceContact:CXoneVoiceContact}) => {
 
          if (contactStatus === 'active' && tracker.has(cxoneContact.contactID)) {
            // Same contactNo resumed → Genuine Hold
-           console.log('%c✅ [GENUINE HOLD] Contact was HOLDING → now ACTIVE. Agent resumed. This is a GENUINE HOLD.', 'color: #00CC00; font-weight: bold; font-size: 13px;',
-             `contactID=${cxoneContact.contactID}`, `masterID=${cxoneContact.masterID}`,
-             wasHoldStopped ? '(matched STOPPED reason=Hold)' : '');
+           logger.debug("holdTracking", "Genuine hold - contact resumed to Active");
            // Genuine hold → recording will resume; do NOT reset the record button.
            tracker.delete(cxoneContact.contactID);
            lastRecordingStopRef.current.delete(cxoneContact.contactID);
@@ -397,10 +379,7 @@ const VoiceControls = ({voiceContact}:{voiceContact:CXoneVoiceContact}) => {
            // Same contactNo disconnected — wait to see if a new leg with same master/interaction follows.
            // Until that happens we can't tell Transfer apart from "agent disconnected".
            // The decision is finalized in the `active && !tracker.has(...)` branch below.
-           console.log('%c🔄 [TRANSFER?] Held contact DISCONNECTED. Will confirm Transfer vs unrelated when next active leg arrives.', 'color: #FF8800; font-weight: bold; font-size: 13px;',
-             `contactID=${cxoneContact.contactID}`, `masterID=${cxoneContact.masterID}`,
-             `interactionId=${cxoneContact.interactionId}`,
-             wasHoldStopped ? '(matched STOPPED reason=Hold)' : '');
+           logger.debug("holdTracking", "Held contact disconnected, awaiting next active leg");
            // Recording on the disconnected leg is gone either way.
            setIsRecordButtonVisible(false);
            // Keep the tracker entry so the new-leg branch can classify Transfer.
@@ -410,11 +389,9 @@ const VoiceControls = ({voiceContact}:{voiceContact:CXoneVoiceContact}) => {
              cxoneContact.masterID === heldData.masterID &&
              cxoneContact.interactionId === heldData.interactionId;
            if (sameMasterAndInteraction) {
-             console.log('%c🎙️ [CONFERENCE] Contact was HOLDING → now JOINED with same master & interaction — CONFERENCE.', 'color: #AA00FF; font-weight: bold; font-size: 13px;',
-               `contactID=${cxoneContact.contactID}`, `masterID=${cxoneContact.masterID}`, `interactionId=${cxoneContact.interactionId}`,
-               wasHoldStopped ? '(matched STOPPED reason=Hold)' : '');
+             logger.debug("holdTracking", "Contact HOLDING → JOINED, same master & interaction — Conference");
            } else {
-             console.log('%c[JOINED] Contact JOINED but master/interaction differ — not a same-call conference.', 'color: #AA00FF; font-weight: bold;', `contactID=${cxoneContact.contactID}`);
+             logger.debug("holdTracking", "Contact JOINED but master/interaction differ");
            }
            tracker.delete(cxoneContact.contactID);
            lastRecordingStopRef.current.delete(cxoneContact.contactID);
@@ -429,10 +406,7 @@ const VoiceControls = ({voiceContact}:{voiceContact:CXoneVoiceContact}) => {
              const sameMaster = cxoneContact.masterID === heldData.masterID;
              const sameInteraction = cxoneContact.interactionId === heldData.interactionId;
              if (cxoneContact.contactID !== heldContactId && sameMaster && sameInteraction) {
-               console.log('%c🔄 [TRANSFER CONFIRMED] New contact ACTIVE with SAME master & interaction — TRANSFER from held contact.', 'color: #FF4400; font-weight: bold; font-size: 13px;',
-                 `newContactID=${cxoneContact.contactID}`, `masterID=${cxoneContact.masterID}`, `interactionId=${cxoneContact.interactionId}`,
-                 `originalHeldContactID=${heldContactId}`,
-                 wasHoldStopped ? '(matched STOPPED reason=Hold on held leg)' : '');
+               logger.debug("holdTracking", "Transfer confirmed - new contact Active with same master & interaction");
                // Recording belonged to the original held leg — reset for the new leg.
                setIsRecordButtonVisible(false);
                tracker.delete(heldContactId);
@@ -444,8 +418,7 @@ const VoiceControls = ({voiceContact}:{voiceContact:CXoneVoiceContact}) => {
            if (!matched && entries.length > 0) {
              // A held leg exists but the new ACTIVE contact has a different master/interaction.
              // → Agent disconnected + unrelated new call.
-             console.log('%c⚠️ [AGENT DISCONNECTED + NEW CALL] Held leg ended; new ACTIVE contact has DIFFERENT master/interaction — unrelated call.', 'color: #CC0000; font-weight: bold; font-size: 13px;',
-               `newContactID=${cxoneContact.contactID}`, `newMasterID=${cxoneContact.masterID}`, `newInteractionId=${cxoneContact.interactionId}`);
+             logger.debug("holdTracking", "Agent disconnected + new call - different master/interaction");
              // Clear stale held entries so the matrix doesn't keep matching against them.
              entries.forEach(([heldContactId]) => {
                tracker.delete(heldContactId);
@@ -455,8 +428,7 @@ const VoiceControls = ({voiceContact}:{voiceContact:CXoneVoiceContact}) => {
            }
          } else if (contactStatus === 'disconnected' && !tracker.has(cxoneContact.contactID) && wasPolicyStopped) {
            // STOPPED reason=Policy → DISCONNECTED, no held leg, no new contact → Normal call end.
-           console.log('%c📞 [NORMAL END] Recording STOPPED reason=Policy → contact DISCONNECTED. Call ended normally.', 'color: #888888; font-weight: bold; font-size: 13px;',
-             `contactID=${cxoneContact.contactID}`);
+           logger.debug("holdTracking", "Normal end - recording stopped reason=Policy, contact disconnected");
            setIsRecordButtonVisible(false);
            lastRecordingStopRef.current.delete(cxoneContact.contactID);
          }
@@ -501,22 +473,20 @@ const VoiceControls = ({voiceContact}:{voiceContact:CXoneVoiceContact}) => {
     const handleToggleMute = async (e: React.MouseEvent<HTMLButtonElement>) => {
       e.preventDefault();
       if (!voiceContact || !voiceContact.contactID) {
-        console.log('[mute] no active voice contact');
+        logger.warn("toggleMute", "No active voice contact");
         return;
       }
       setIsMuteBusy(true);
       try {
         if (isMuted) {
-          const res = await voiceContact.unmute();
-          console.log('[mute] unmute response', res);
+          await voiceContact.unmute();
           setIsMuted(false);
         } else {
-          const res = await voiceContact.mute();
-          console.log('[mute] mute response', res);
+          await voiceContact.mute();
           setIsMuted(true);
         }
       } catch (err) {
-        console.log('[mute] toggle failed', err);
+        logger.error("toggleMute", '');
       } finally {
         setIsMuteBusy(false);
       }
@@ -528,10 +498,10 @@ const VoiceControls = ({voiceContact}:{voiceContact:CXoneVoiceContact}) => {
     const startRecord = async (e: React.MouseEvent<HTMLButtonElement>) => {
       e.preventDefault();
       try {
-        const res = await voiceContact.record();
-        console.log('%c[RECORD] start ok', 'color: #00CC00; font-weight: bold;', res);
+        await voiceContact.record();
+        logger.info("startRecord", '');
       } catch (err) {
-        console.log('%c[RECORD] start failed', 'color: #CC0000; font-weight: bold;', err);
+        logger.error("startRecord", '');
       }
     }
 
@@ -541,10 +511,10 @@ const VoiceControls = ({voiceContact}:{voiceContact:CXoneVoiceContact}) => {
     const stopRecord = async (e: React.MouseEvent<HTMLButtonElement>) => {
       e.preventDefault();
       try {
-        const res = await voiceContact.stopRecord();
-        console.log('%c[RECORD] stop ok', 'color: #00CC00; font-weight: bold;', res);
+        await voiceContact.stopRecord();
+        logger.info("stopRecord", '');
       } catch (err) {
-        console.log('%c[RECORD] stop failed', 'color: #CC0000; font-weight: bold;', err);
+        logger.error("stopRecord", '');
       }
     }
 
@@ -561,10 +531,10 @@ const VoiceControls = ({voiceContact}:{voiceContact:CXoneVoiceContact}) => {
 
       try {
         setIsSendingDtmf(true);
-        const response = await CXoneAcdClient.instance.contactManager.voiceService.sendDtmf(dtmfPayload);
-        console.log('%c[DTMF] Sent successfully', 'color: #00AA44; font-weight: bold;', dtmfPayload, response);
+        await CXoneAcdClient.instance.contactManager.voiceService.sendDtmf(dtmfPayload);
+        logger.info("sendDtmfTone", '');
       } catch (error) {
-        console.log('%c[DTMF] Send failed', 'color: #CC0000; font-weight: bold;', dtmfPayload, error);
+        logger.error("sendDtmfTone", '');
       } finally {
         setIsSendingDtmf(false);
       }
@@ -590,13 +560,13 @@ const VoiceControls = ({voiceContact}:{voiceContact:CXoneVoiceContact}) => {
     const handleConsultAgent = async(e: React.MouseEvent<HTMLButtonElement>) => {
       e.preventDefault();
       if (!consultAgentId) {
-        console.log('Please enter an Agent ID or phone number');
+        logger.warn("consultAgent", "No agent ID or phone number provided");
         return;
       }
       try {
         // STEP 1: hold the customer leg first — same as CMA's holdCall thunk.
         if (voiceContact.status === 'Active') {
-          console.log('%c[CONSULT] Holding customer leg first...', 'color: #0088FF; font-weight: bold;');
+          logger.info("consultAgent", "Holding customer leg first");
           await voiceContact.hold();
           setHoldeResume('Resume');
         }
@@ -604,24 +574,24 @@ const VoiceControls = ({voiceContact}:{voiceContact:CXoneVoiceContact}) => {
         // STEP 2: initiate consult on the held call
         if (isPhoneNumber(consultAgentId)) {
           if (!selectedSkillId) {
-            console.log('%c[CONSULT] No outbound skill available — cannot dial phone.', 'color: #CC0000; font-weight: bold;');
+            logger.error("consultAgent", "No outbound skill available");
             return;
           }
           // Phone number — use dialPhone (like CMA outbound options)
-          console.log('%c[CONSULT] Dialing phone number for consult:', 'color: #0088FF; font-weight: bold;', consultAgentId, `skillId=${selectedSkillId}`);
+          logger.info("consultAgent", "Dialing phone for consult");
           await CXoneAcdClient.instance.contactManager.voiceService.dialPhone({
             skillId: Number(selectedSkillId),
             phoneNumber: consultAgentId,
           } as any);
         } else {
           // Agent ID — use consultAgent
-          console.log('%c[CONSULT] Initiating consult with agent (consultAgent):', 'color: #0088FF; font-weight: bold;', consultAgentId);
+          logger.info("consultAgent", "Initiating consult with agent");
           await CXoneAcdClient.instance.contactManager.voiceService.consultAgent(Number(consultAgentId));
         }
         setIsConsulting(true);
-        console.log('%c[CONSULT] Consult call initiated successfully — current call auto-held', 'color: #00CC00; font-weight: bold;');
+        logger.info("consultAgent", "Consult call initiated successfully");
       } catch (err) {
-        console.log('Consult error:', err);
+        logger.error("consultAgent", '');
       }
     }
 
@@ -630,13 +600,13 @@ const VoiceControls = ({voiceContact}:{voiceContact:CXoneVoiceContact}) => {
     const handleColdTransfer = async(e: React.MouseEvent<HTMLButtonElement>) => {
       e.preventDefault();
       if (!consultAgentId) {
-        console.log('Please enter an Agent ID or phone number');
+        logger.warn("coldTransfer", "No agent ID or phone number provided");
         return;
       }
       try {
         // STEP 1: hold the active customer leg first. The SDK requires this before dial/transfer.
         if (voiceContact.status === 'Active') {
-          console.log('%c[COLD TRANSFER] Holding customer leg first...', 'color: #FF8800; font-weight: bold;');
+          logger.info("coldTransfer", "Holding customer leg first");
           await voiceContact.hold();
           setHoldeResume('Resume');
         }
@@ -647,11 +617,11 @@ const VoiceControls = ({voiceContact}:{voiceContact:CXoneVoiceContact}) => {
         pendingColdTransfer.current = true;
 
         // STEP 2: dial the transfer target
-        console.log('%c[COLD TRANSFER] Dialing — will auto-transfer when connected...', 'color: #FF4400; font-weight: bold;', consultAgentId);
+        logger.info("coldTransfer", "Dialing target for auto-transfer");
         if (isPhoneNumber(consultAgentId)) {
           if (!selectedSkillId) {
             pendingColdTransfer.current = false;
-            console.log('%c[COLD TRANSFER] No outbound skill available — cannot dial phone.', 'color: #CC0000; font-weight: bold;');
+            logger.error("coldTransfer", "No outbound skill available");
             return;
           }
           await CXoneAcdClient.instance.contactManager.voiceService.dialPhone({
@@ -661,10 +631,10 @@ const VoiceControls = ({voiceContact}:{voiceContact:CXoneVoiceContact}) => {
         } else {
           await CXoneAcdClient.instance.contactManager.voiceService.dialAgent(consultAgentId, voiceContact.contactID);
         }
-        console.log('%c[COLD TRANSFER] Dial initiated. Waiting for consult leg to become Active...', 'color: #FF8800; font-weight: bold;');
+        logger.info("coldTransfer", "Dial initiated, waiting for consult leg");
       } catch (err) {
         pendingColdTransfer.current = false;
-        console.log('Cold transfer error:', err);
+        logger.error("coldTransfer", '');
       }
     }
 
@@ -673,22 +643,22 @@ const VoiceControls = ({voiceContact}:{voiceContact:CXoneVoiceContact}) => {
       e.preventDefault();
       if (isConsulting) {
         try {
-          console.log('%c[TRANSFER] Completing transfer (consult active)...', 'color: #FF4400; font-weight: bold;');
+          logger.info("transfer", "Completing transfer (consult active)");
           await CXoneAcdClient.instance.contactManager.voiceService.transferContact();
           setIsConsulting(false);
-          console.log('%c[TRANSFER] Transfer completed successfully', 'color: #00CC00; font-weight: bold;');
+          logger.info("transfer", "Transfer completed successfully");
         } catch (err) {
-          console.log('Transfer error:', err);
+          logger.error("transfer", '');
         }
       } else {
         if (!consultAgentId) {
-          console.log('Please enter an Agent ID or phone number');
+          logger.warn("blindTransfer", "No agent ID or phone number provided");
           return;
         }
         try {
           // Hold customer leg first (CMA flow) so the SDK accepts transferContact() later.
           if (voiceContact.status === 'Active') {
-            console.log('%c[BLIND TRANSFER] Holding customer leg first...', 'color: #FF8800; font-weight: bold;');
+            logger.info("blindTransfer", "Holding customer leg first");
             await voiceContact.hold();
             setHoldeResume('Resume');
           }
@@ -697,11 +667,11 @@ const VoiceControls = ({voiceContact}:{voiceContact:CXoneVoiceContact}) => {
           originalMasterIdRef.current = voiceContact.masterID;
           pendingColdTransfer.current = true;
 
-          console.log('%c[BLIND TRANSFER] Dialing — will auto-transfer when connected...', 'color: #FF4400; font-weight: bold;', consultAgentId);
+          logger.info("blindTransfer", "Dialing target for auto-transfer");
           if (isPhoneNumber(consultAgentId)) {
             if (!selectedSkillId) {
               pendingColdTransfer.current = false;
-              console.log('%c[BLIND TRANSFER] No outbound skill available — cannot dial phone.', 'color: #CC0000; font-weight: bold;');
+              logger.error("blindTransfer", "No outbound skill available");
               return;
             }
             await CXoneAcdClient.instance.contactManager.voiceService.dialPhone({
@@ -711,10 +681,10 @@ const VoiceControls = ({voiceContact}:{voiceContact:CXoneVoiceContact}) => {
           } else {
             await CXoneAcdClient.instance.contactManager.voiceService.dialAgent(consultAgentId, voiceContact.contactID);
           }
-          console.log('%c[BLIND TRANSFER] Dial initiated. Waiting for consult leg...', 'color: #FF8800; font-weight: bold;');
+          logger.info("blindTransfer", "Dial initiated, waiting for consult leg");
         } catch (err) {
           pendingColdTransfer.current = false;
-          console.log('Blind transfer error:', err);
+          logger.error("blindTransfer", '');
         }
       }
     }
@@ -724,22 +694,22 @@ const VoiceControls = ({voiceContact}:{voiceContact:CXoneVoiceContact}) => {
       e.preventDefault();
       if (isConsulting) {
         try {
-          console.log('%c[CONFERENCE] Merging calls into conference...', 'color: #AA00FF; font-weight: bold;');
+          logger.info("conference", "Merging calls into conference");
           await CXoneAcdClient.instance.contactManager.voiceService.conferenceCall();
           setIsConsulting(false);
-          console.log('%c[CONFERENCE] Conference started successfully', 'color: #00CC00; font-weight: bold;');
+          logger.info("conference", "Conference started successfully");
         } catch (err) {
-          console.log('Conference error:', err);
+          logger.error("conference", '');
         }
       } else {
         if (!consultAgentId) {
-          console.log('Please enter an Agent ID or phone number');
+          logger.warn("autoConference", "No agent ID or phone number provided");
           return;
         }
         try {
           // Hold customer leg first (CMA flow) so the SDK accepts conferenceCall() later.
           if (voiceContact.status === 'Active') {
-            console.log('%c[AUTO CONFERENCE] Holding customer leg first...', 'color: #AA00FF; font-weight: bold;');
+            logger.info("autoConference", "Holding customer leg first");
             await voiceContact.hold();
             setHoldeResume('Resume');
           }
@@ -748,11 +718,11 @@ const VoiceControls = ({voiceContact}:{voiceContact:CXoneVoiceContact}) => {
           originalMasterIdRef.current = voiceContact.masterID;
           pendingConference.current = true;
 
-          console.log('%c[AUTO CONFERENCE] Dialing — will auto-conference when connected...', 'color: #AA00FF; font-weight: bold;', consultAgentId);
+          logger.info("autoConference", "Dialing target for auto-conference");
           if (isPhoneNumber(consultAgentId)) {
             if (!selectedSkillId) {
               pendingConference.current = false;
-              console.log('%c[AUTO CONFERENCE] No outbound skill available — cannot dial phone.', 'color: #CC0000; font-weight: bold;');
+              logger.error("autoConference", "No outbound skill available");
               return;
             }
             await CXoneAcdClient.instance.contactManager.voiceService.dialPhone({
@@ -762,10 +732,10 @@ const VoiceControls = ({voiceContact}:{voiceContact:CXoneVoiceContact}) => {
           } else {
             await CXoneAcdClient.instance.contactManager.voiceService.dialAgent(consultAgentId, voiceContact.contactID);
           }
-          console.log('%c[AUTO CONFERENCE] Dial initiated. Waiting for consult leg...', 'color: #AA00FF; font-weight: bold;');
+          logger.info("autoConference", "Dial initiated, waiting for consult leg");
         } catch (err) {
           pendingConference.current = false;
-          console.log('Auto conference error:', err);
+          logger.error("autoConference", '');
         }
       }
     }
@@ -1007,7 +977,7 @@ const VoiceControls = ({voiceContact}:{voiceContact:CXoneVoiceContact}) => {
                     await p.resume();
                   }
                 } catch (err) {
-                  console.log('Participant hold/resume error:', err);
+                  logger.error("participantHold", '');
                 }
               };
 
@@ -1016,7 +986,7 @@ const VoiceControls = ({voiceContact}:{voiceContact:CXoneVoiceContact}) => {
                   // Per-leg hang up — same as CMA's endTheVoiceContact(user.contact) -> callContact.end()
                   await p.end();
                 } catch (err) {
-                  console.log('Participant hang-up error:', err);
+                  logger.error("participantHangUp", '');
                 }
               };
 

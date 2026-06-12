@@ -113,7 +113,6 @@ const AcdSdk = () => {
         })
         .catch((err) => {
           logger.error("startWemWebSocket failed", '');
-          console.log("startWemWebSocket failed", err);
         });
     });
     CXoneAcdClient.instance.setClickToDialCustomAgentUrl(
@@ -203,7 +202,6 @@ const AcdSdk = () => {
         (data: CXoneVoiceContact) => {
           logger.info("voiceContactUpdateEvent", '');
           setVoiceContact(data);
-          console.log("voice contact", data);
         }
       );
 
@@ -219,13 +217,11 @@ const AcdSdk = () => {
       // Subscribe only once — re-subscribing on re-render would duplicate handlers.
       CXoneClient.instance.skillActivityQueue.agentQueueSubject.subscribe(
         (queues: any) => {
-          console.log("queues", queues);
         }
       );
       // Subscribe only once — re-subscribing on re-render would duplicate handlers.
       CXoneClient.instance.skillActivityQueue.agentQueuesDetailSubject.subscribe(
         (queues: any) => {
-          console.log("queues details", queues);
         }
       );
 
@@ -236,13 +232,13 @@ const AcdSdk = () => {
           switch (agentSessionChange.status) {
             case AgentSessionStatus.JOIN_SESSION_SUCCESS:
             case AgentSessionStatus.SESSION_START: {
-              console.log("Session started successfully.....");
+              logger.info("onAgentSessionChange", "Session started successfully");
 
               initWebRTC();
               break;
             }
             case AgentSessionStatus.SESSION_END: {
-              console.log("Session ended successfully.....");
+              logger.info("onAgentSessionChange", "Session ended successfully");
             
               webRtcInitializedRef.current = false;
               setVoiceConnectionState(null);
@@ -251,7 +247,7 @@ const AcdSdk = () => {
               break;
             }
             case AgentSessionStatus.JOIN_SESSION_FAILURE:
-              console.log("Session join failed.....");
+              logger.error("onAgentSessionChange", "Session join failed");
               setStartSessionButton(false);
               break;
           }
@@ -260,7 +256,7 @@ const AcdSdk = () => {
       connectCopilot();
 
     } else {
-      console.log("Agent Id not found", agentId);
+      logger.error("initMethods", "Agent Id not found");
     }
     
   };
@@ -273,7 +269,6 @@ const AcdSdk = () => {
       // Subscribe only once — re-subscribing on re-render would duplicate handlers.
       CXoneClient.instance.copilotNotificationClient.onMessageNotification.subscribe(
         (msg: any) => {
-          console.log("Received message:", msg);
         }
       );
     }
@@ -306,13 +301,11 @@ const AcdSdk = () => {
 
       if (!settings) {
         logger.error("CXoneVoiceClient.connectServer aborted: agent settings unavailable", '');
-        console.log("Agent settings unavailable for WebRTC connection");
         return;
       }
 
       if (!audioElementRef.current) {
         logger.info("WebRTC init deferred: <audio> element not mounted yet", '');
-        console.log("Audio element not mounted, WebRTC init deferred");
         return;
       }
 
@@ -328,11 +321,9 @@ const AcdSdk = () => {
       );
       webRtcInitializedRef.current = true;
       logger.info("CXoneVoiceClient.connectServer success", '');
-      console.log("Connected to WebRTC");
     } catch (e) {
       webRtcInitializedRef.current = false;
       logger.error("CXoneVoiceClient.connectServer failed", '');
-      console.log("WebRTC connect failed", e);
     }
   };
 
@@ -345,7 +336,6 @@ const AcdSdk = () => {
       })
       .then((response: any) => {
         logger.info("startSession success", '');
-        console.log("Session start successfully");
         setStartSessionButton(true);
         LocalStorageHelper.setItem("startsessionButton", "true");
         setAgentLegButton(false);
@@ -357,7 +347,6 @@ const AcdSdk = () => {
         LocalStorageHelper.setItem("startsessionButton", "false");
         setAgentLegButton(true);
         setEndSessionButton(true);
-        console.log(err.message ?? "An error occured");
       });
   };
 
@@ -367,7 +356,6 @@ const AcdSdk = () => {
       .joinSession()
       .then((response: any) => {
         logger.info("joinSession success", '');
-        console.log("Joined Session successfully");
         setStartSessionButton(true);
         LocalStorageHelper.setItem("startsessionButton", "true");
         setAgentLegButton(false);
@@ -390,7 +378,7 @@ const AcdSdk = () => {
   useEffect(() => {
     if (initEngagement) {
       tryCatchWrapper(() => initMethodsRef.current(), (error) => {
-        console.log("error", error);
+        logger.error("initMethods", '');
       });
     }
   }, [location.pathname, initEngagement]);
@@ -433,7 +421,6 @@ const AcdSdk = () => {
       .endSession(endSessionRequest)
       .then((response: any) => {
         logger.info("endSession success", '');
-        console.log("Session ended successfully");
         setEndSessionButton(true);
         setStartSessionButton(false);
         LocalStorageHelper.setItem("startsessionButton", "false");
@@ -441,7 +428,6 @@ const AcdSdk = () => {
       })
       .catch((err: any) => {
         logger.error("endSession failed", '');
-        console.log(err.message ?? "An error occured");
       });
     CXoneAcdClient.instance.session.onAgentSessionChange.next({
       status: AgentSessionStatus.SESSION_END,
@@ -455,7 +441,6 @@ const AcdSdk = () => {
       logger.info("dialAgentLeg success", '');
     } catch (error) {
       logger.error("dialAgentLeg failed", '');
-      console.log("agent leg error", error);
     }
   };
 
@@ -471,7 +456,6 @@ const AcdSdk = () => {
       logger.info("acceptContact success", '');
     } catch (error) {
       logger.error("acceptContact failed", '');
-      console.log("accept inbound call error", error);
     } finally {
       setIsHandlingInboundCall(false);
     }
@@ -489,7 +473,6 @@ const AcdSdk = () => {
       logger.info("rejectContact success", '');
     } catch (error) {
       logger.error("rejectContact failed", '');
-      console.log("reject inbound call error", error);
     } finally {
       setIsHandlingInboundCall(false);
     }
@@ -506,7 +489,6 @@ const AcdSdk = () => {
       }
     } catch (error) {
       logger.error("getTeamUnavailableCodes failed", '');
-      console.log("getTeamUnavailableCodes error", error);
     }
   };
 
@@ -529,7 +511,6 @@ const AcdSdk = () => {
       logger.info("consultAgent success", '');
     } catch (error) {
       logger.error("consultAgent failed", '');
-      console.log("consultAgent error", error);
     } finally {
       setIsConsultingAgent(false);
     }
@@ -549,7 +530,6 @@ const AcdSdk = () => {
       logger.info("setAgentState success", '');
     } catch (error) {
       logger.error("setAgentState failed", '');
-      console.log("setAgentState error", error);
     } finally {
       setIsChangingAgentState(false);
     }

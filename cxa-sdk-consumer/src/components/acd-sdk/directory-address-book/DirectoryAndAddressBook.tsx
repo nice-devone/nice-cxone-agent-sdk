@@ -170,12 +170,7 @@ const DirectoryAndAddressBook: React.FC = () => {
             subscriptionIdRef.current = incomingSubId;
             setSubscriptionId(incomingSubId);
           }
-          logger.info('searchDirectoryResult', JSON.stringify({
-              subscriptionId: incomingSubId ?? subscriptionIdRef.current,
-              total: response?.totalRecords,
-              count: response?.directoryEntries?.length,
-              error: response?.error?.message,
-            }));
+          logger.info('searchDirectoryResult', '');
           setDirectoryEntries(response?.directoryEntries ?? []);
           setDirectoryTotal(response?.totalRecords ?? 0);
           setDirectoryLoading(false);
@@ -204,12 +199,7 @@ const DirectoryAndAddressBook: React.FC = () => {
           setAddressBookEntries(entries);
           setAddressBookLoading(false);
           setAddressBookError(response.addressBookList.errorMsg ?? '');
-          ((response.addressBookList.errorMsg ? 'error' : 'event') === 'error' ? logger.error.bind(logger) : logger.info.bind(logger))('directoryEvent: addressBookList', JSON.stringify({
-              addressBooks: books.length,
-              entries: entries.length,
-              totalRecords: response.addressBookList.totalRecords,
-              errorMsg: response.addressBookList.errorMsg,
-            }));
+          ((response.addressBookList.errorMsg ? 'error' : 'event') === 'error' ? logger.error.bind(logger) : logger.info.bind(logger))('directoryEvent: addressBookList', '');
         },
       );
     };
@@ -241,7 +231,7 @@ const DirectoryAndAddressBook: React.FC = () => {
       hasAutoFiredRef.current = true;
       setDirectoryLoading(true);
       setAddressBookLoading(true);
-      logger.info('auto-fire: searchDirectories + getDirectoryData(ADDRESS_BOOK_LIST)', JSON.stringify(diagnostics));
+      logger.info('auto-fire: searchDirectories + getDirectoryData(ADDRESS_BOOK_LIST)', '');
       try {
         const dyn: any = CXoneClient.instance?.directory?.dynamicDirectory;
         // First call: no subscriptionId yet, ask the backend to create one
@@ -257,7 +247,7 @@ const DirectoryAndAddressBook: React.FC = () => {
           filter: { partnerType: null, fieldType: null },
         } as any);
       } catch (error) {
-        logger.error('auto-fire searchDirectories threw', JSON.stringify(error instanceof Error ? error.message : String(error)));
+        logger.error('auto-fire searchDirectories threw', '');
       }
       try {
         getAllAddressBooks(undefined, false)
@@ -268,16 +258,16 @@ const DirectoryAndAddressBook: React.FC = () => {
             setAddressBookEntries(entries);
             setAddressBookLoading(false);
             setAddressBookError('');
-            logger.info('addressBookService.getAllAddressBooks: success', JSON.stringify({ addressBooks: books.length, entries: entries.length }));
+            logger.info('addressBookService.getAllAddressBooks: success', '');
           })
           .catch((error: unknown) => {
             const message = error instanceof Error ? error.message : String(error);
             setAddressBookLoading(false);
             setAddressBookError(message);
-            logger.error('addressBookService.getAllAddressBooks failed', JSON.stringify(message));
+            logger.error('addressBookService.getAllAddressBooks failed', '');
           });
       } catch (error) {
-        logger.error('auto-fire getAllAddressBooks threw', JSON.stringify(error instanceof Error ? error.message : String(error)));
+        logger.error('auto-fire getAllAddressBooks threw', '');
       }
     };
     autoFireId = window.setTimeout(tryAutoFire, 500);
@@ -303,19 +293,19 @@ const DirectoryAndAddressBook: React.FC = () => {
       setDirectoryError(
         'dynamicDirectory.searchDirectories is not available. Please complete authentication first.',
       );
-      logger.error('searchDirectories unavailable', JSON.stringify(diagnostics));
+      logger.error('searchDirectories unavailable', '');
       return;
     }
     if (!diagnostics.apiFacadeBaseUri) {
       setDirectoryError(
         'CXoneAuth.instance.getCXoneConfig().apiFacadeBaseUri is empty - the SDK cannot build the SearchDirectories URL. Log in via the User Hub flow first.',
       );
-      logger.error('searchDirectories blocked: missing apiFacadeBaseUri', JSON.stringify(diagnostics));
+      logger.error('searchDirectories blocked: missing apiFacadeBaseUri', '');
       return;
     }
     if (!diagnostics.hasAccessToken) {
       setDirectoryError('CXoneAuth has no access token. Complete authentication first.');
-      logger.error('searchDirectories blocked: missing access token', JSON.stringify(diagnostics));
+      logger.error('searchDirectories blocked: missing access token', '');
       return;
     }
     setDirectoryLoading(true);
@@ -331,14 +321,14 @@ const DirectoryAndAddressBook: React.FC = () => {
       directoryUUID: null,
       filter: { partnerType: null, fieldType: null },
     };
-    logger.info('dynamicDirectory.searchDirectories', JSON.stringify({ request, apiFacadeBaseUri: diagnostics.apiFacadeBaseUri }));
+    logger.info('dynamicDirectory.searchDirectories', '');
     try {
       dyn.searchDirectories(request as any);
     } catch (error) {
       const message = error instanceof Error ? error.message : String(error);
       setDirectoryLoading(false);
       setDirectoryError(message);
-      logger.error('searchDirectories threw', JSON.stringify(message));
+      logger.error('searchDirectories threw', '');
     }
   };
 
@@ -358,7 +348,7 @@ const DirectoryAndAddressBook: React.FC = () => {
     }
     setAddressBookLoading(true);
     setAddressBookError('');
-    logger.info('addressBookService.getAllAddressBooks', JSON.stringify({ includeEntries: false, searchText }));
+    logger.info('addressBookService.getAllAddressBooks', '');
     try {
       getAllAddressBooks(undefined, false)
         .then((response: AddressBooks[] | unknown) => {
@@ -368,19 +358,19 @@ const DirectoryAndAddressBook: React.FC = () => {
           setAddressBookEntries(entries);
           setAddressBookLoading(false);
           setAddressBookError('');
-          logger.info('addressBookService.getAllAddressBooks: success', JSON.stringify({ addressBooks: books.length, entries: entries.length }));
+          logger.info('addressBookService.getAllAddressBooks: success', '');
         })
         .catch((error: unknown) => {
           const message = error instanceof Error ? error.message : String(error);
           setAddressBookLoading(false);
           setAddressBookError(message);
-          logger.error('addressBookService.getAllAddressBooks failed', JSON.stringify(message));
+          logger.error('addressBookService.getAllAddressBooks failed', '');
         });
     } catch (error) {
       const message = error instanceof Error ? error.message : String(error);
       setAddressBookLoading(false);
       setAddressBookError(message);
-      logger.error('getAllAddressBooks threw', JSON.stringify(message));
+      logger.error('getAllAddressBooks threw', '');
     }
   };
 
