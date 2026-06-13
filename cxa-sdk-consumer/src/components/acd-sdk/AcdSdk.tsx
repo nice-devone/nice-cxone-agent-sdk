@@ -102,18 +102,85 @@ const AcdSdk = () => {
     CXoneAcdClient.instance.initAcdEngagement().finally(() => {
       logger.info("initAcdEngagement complete", '');
       setInitEngagement(true);
+
+      // Fetch agent permissions. The SDK uses these to populate
+      // voiceContact.callControlButton.record.{isVisible,isEnable,controlText}
+      // on every voiceContactUpdateEvent. Without this call, record.isEnable
+      // stays false for the lifetime of the session and BOTH "Start Record"
+      // and "Stop Record" buttons render disabled (even mid-call), because
+      // the gate `!recordControl.isEnable` is always true. Wrapped in try/catch
+      // + .catch so a permissions failure cannot break the rest of init.
+      try {
+        const permsPromise = CXoneClient.instance.agentPermission.getPermissions();
+        if (permsPromise && typeof permsPromise.then === 'function') {
+          permsPromise
+            .then(() => {
+              logger.info("getPermissions complete", '');
+            })
+            .catch((permsErr: any) => {
+              logger.error(
+                "getPermissions failed (record button will stay disabled)",
+                JSON.stringify(permsErr)
+              );
+            });
+        }
+      } catch (permsSyncErr) {
+        logger.error(
+          "getPermissions threw synchronously (non-fatal)",
+          JSON.stringify(permsSyncErr)
+        );
+      }
+
       // WEM notification websocket can only be opened AFTER initAcdEngagement
       // resolves, because that's when CXoneClient.instance.notification is
       // fully wired up. Calling it earlier throws "startWemWebSocket is not a
       // function".
-      CXoneClient.instance.notification
-        .startWemWebSocket({
+      //
+      // WEM is best-effort: if the websocket fails to connect (network, auth,
+      // CORS, missing entitlement, etc.) it must NOT cascade into voice/mute
+      // breakage. We isolate it three ways:
+      //   1. Sync try/catch in case the SDK throws before returning a promise.
+      //   2. .catch on the returned promise to swallow async rejection.
+      //   3. Subscribe to onCXoneNotificationEvent so any later transport-level
+      //      error surfaced by the SDK is logged instead of going silent.
+      try {
+        const wemPromise = CXoneClient.instance.notification.startWemWebSocket({
           locale: Intl.DateTimeFormat().resolvedOptions().locale || "",
           timezone: Intl.DateTimeFormat().resolvedOptions().timeZone || "",
-        })
-        .catch((err) => {
-          logger.error("startWemWebSocket failed", '');
         });
+
+        if (wemPromise && typeof wemPromise.catch === 'function') {
+          wemPromise
+            .then(() => {
+              logger.info("startWemWebSocket connected", '');
+            })
+            .catch((wemErr) => {
+              logger.error(
+                "startWemWebSocket failed (non-fatal — voice/mute remain available)",
+                JSON.stringify(wemErr)
+              );
+            });
+        }
+
+        // Defensive listener for SDK-emitted notification errors (e.g. WS drop,
+        // retry exhausted). Without this, a mid-session WEM transport failure
+        // would only show up as a console error inside the SDK.
+        CXoneClient.instance.notification.onCXoneNotificationEvent.subscribe(
+          (event: any) => {
+            if (event?.errorType) {
+              logger.error(
+                "WEM notification transport error (non-fatal)",
+                JSON.stringify(event)
+              );
+            }
+          }
+        );
+      } catch (wemSyncErr) {
+        logger.error(
+          "startWemWebSocket threw synchronously (non-fatal)",
+          JSON.stringify(wemSyncErr)
+        );
+      }
     });
     CXoneAcdClient.instance.setClickToDialCustomAgentUrl(
         "http://localhost:3000/"
