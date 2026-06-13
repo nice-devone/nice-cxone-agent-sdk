@@ -1,38 +1,450 @@
-import React, { useEffect } from "react";
-import { ccfAccessTokenFlowStyles } from "../../side-navbar/NavBar";
-import { useTheme } from "@mui/material/styles";
-import { Box, Button } from "@mui/material";
+import React, { useEffect, useRef } from "react";
+
+import { Avatar, Box, Button, Chip, Divider, FormControl, IconButton, InputAdornment, InputLabel, List, ListItem, ListItemAvatar, ListItemSecondaryAction, ListItemText, MenuItem, Select, Stack, TextField, Tooltip, Typography } from "@mui/material";
 import { useState } from "react";
-import {  CXoneVoiceContact } from "@nice-devone/acd-sdk";
-import { CXoneClient, VoiceControlService} from "@nice-devone/agent-sdk"
-import { CXoneSdkError } from "@nice-devone/common-sdk";
+import { CXoneAcdClient, CXoneVoiceContact } from "@nice-devone/acd-sdk";
+import { CXoneClient, ControlButtonText, VoiceControlService } from "@nice-devone/agent-sdk"
+import PauseIcon from "@mui/icons-material/Pause";
+import PlayArrowIcon from "@mui/icons-material/PlayArrow";
+import CallEndIcon from "@mui/icons-material/CallEnd";
+import FiberManualRecordIcon from "@mui/icons-material/FiberManualRecord";
+import StopIcon from "@mui/icons-material/Stop";
+import SwapHorizIcon from "@mui/icons-material/SwapHoriz";
+import CallMergeIcon from "@mui/icons-material/CallMerge";
+import PersonAddIcon from "@mui/icons-material/PersonAdd";
+import CallSplitIcon from "@mui/icons-material/CallSplit";
+import SearchIcon from "@mui/icons-material/Search";
+import PhoneForwardedIcon from "@mui/icons-material/PhoneForwarded";
+import PersonIcon from "@mui/icons-material/Person";
+import PhoneIcon from "@mui/icons-material/Phone";
+import SupportAgentIcon from "@mui/icons-material/SupportAgent";
+import MicIcon from "@mui/icons-material/Mic";
+import MicOffIcon from "@mui/icons-material/MicOff";
+import { Logger } from '@nice-devone/core-sdk';
+
+const logger = new Logger('SDK-CONSUMER', 'VoiceControls');
+
+const DTMF_FREQUENCIES: Record<string, { low: number; high: number }> = {
+  '1': { low: 697, high: 1209 },
+  '2': { low: 697, high: 1336 },
+  '3': { low: 697, high: 1477 },
+  'A': { low: 697, high: 1633 },
+  '4': { low: 770, high: 1209 },
+  '5': { low: 770, high: 1336 },
+  '6': { low: 770, high: 1477 },
+  'B': { low: 770, high: 1633 },
+  '7': { low: 852, high: 1209 },
+  '8': { low: 852, high: 1336 },
+  '9': { low: 852, high: 1477 },
+  'C': { low: 852, high: 1633 },
+  '*': { low: 941, high: 1209 },
+  '0': { low: 941, high: 1336 },
+  '#': { low: 941, high: 1477 },
+  'D': { low: 941, high: 1633 },
+};
 
 
 const VoiceControls = ({voiceContact}:{voiceContact:CXoneVoiceContact}) => {
-  const theme = useTheme();
-  const accessTokenFlowStyles = ccfAccessTokenFlowStyles(theme);
-  const [holdeResume, setHoldeResume] = useState('Hold');;
+  const [holdeResume, setHoldeResume] = useState('Hold');
   const [hangUpButtonIsEnabled, setHangUpButtonIsEnabled] = useState(true);
+  // WEM compliance status (from notification API/WebSocket). Drives the "🔴 Recording" indicator only.
   const [isRecordButtonVisible, setIsRecordButtonVisible] = useState(false);
+  // Live status of THIS voice contact (e.g. 'Active', 'Holding', 'Disconnected', ...).
+  // Tracked locally so we can hide the entire control surface the moment the SDK
+  // emits the terminal 'Disconnected' event after Hang Up — independent of the parent
+  // gate (defense in depth in case the parent's gate is bypassed or comparisons drift).
+  const [contactStatusLower, setContactStatusLower] = useState<string>(
+    () => voiceContact?.status?.toLowerCase() || ''
+  );
+  // SDK-authoritative call-control state for the Record button. The SDK flips
+  // callControlButton.record.{isEnable, controlText} on every ACD contact event
+  // (Active / Hold / Mask / Incoming / ACW / Record success / StopRecord success).
+  // Mirrors how CMA's ccf-contact-controls reads voiceContact.callControlButton.record.
+  const [recordControl, setRecordControl] = useState(() => ({
+    isVisible: !!voiceContact.callControlButton?.record?.isVisible,
+    isEnable:  !!voiceContact.callControlButton?.record?.isEnable,
+    controlText: voiceContact.callControlButton?.record?.controlText || ControlButtonText.RECORD,
+  }));
+  const [isMuted, setIsMuted] = useState(false);
+  const [isMuteBusy, setIsMuteBusy] = useState(false);
+  const [consultAgentId, setConsultAgentId] = useState('');
+  const [isConsulting, setIsConsulting] = useState(false);
+  const [dtmfSequence, setDtmfSequence] = useState('');
+  const [toneDurationMS, setToneDurationMS] = useState('340');
+  const [toneSpacingMS, setToneSpacingMS] = useState('0');
+  const [isSendingDtmf, setIsSendingDtmf] = useState(false);
 
-  
+  // Conference participants list (mirrors CMA's `usersInConference: Participant[]`).
+  // Built from voiceContactUpdateEvent so we always render every leg the agent has.
+  // Keyed by contactID. Each entry is the latest CXoneVoiceContact instance for that leg,
+  // which exposes .end() / .hold() / .resume() for per-leg control — same as CMA.
+  const [participants, setParticipants] = useState<Record<string, CXoneVoiceContact>>({});
+
+  // Outbound skills available to this agent. CMA reads these from
+  // `CXoneClient.instance.directory.onUpdateSkillsEvent` and filters
+  // isOutbound + typeId===PhoneCall + (strategy===Manual || SmartReach).
+  // We must use one of these as `skillId` when calling dialPhone(), otherwise
+  // the SDK rejects the request with `InvalidSkill`.
+  const [outboundSkills, setOutboundSkills] = useState<Array<{ skillId: number; skillName: string }>>([]);
+  const [selectedSkillId, setSelectedSkillId] = useState<string>('');
+
+  // Debug tracker: tracks contacts that went to HOLDING
+  const holdingContactsTracker = useRef<Map<string, { masterID: string; interactionId: string; timestamp: number }>>(new Map());
+
+  // Tracks the most recent RECORDING STOPPED event per contactId so we can correlate
+  // it with the next voice-contact transition (Hold vs Transfer vs Conference vs End).
+  // reason='Hold'   → expect a follow-up classifying event (resume / transfer / conference)
+  // reason='Policy' → normal call end; no follow-up classification needed.
+  const lastRecordingStopRef = useRef<Map<string, { reason: string; timestamp: number }>>(new Map());
+
+  // Flag: when true, auto-transfer as soon as consult leg becomes Active
+  const pendingColdTransfer = useRef(false);
+
+  // Flag: when true, auto-conference as soon as consult leg becomes Active
+  const pendingConference = useRef(false);
+
+  // Track the original (customer) leg so we only auto-complete on the NEW consult leg.
+  // Without this guard the SDK rejects transferContact() with InvalidState because
+  // the original leg's own "Active" event fires first.
+  const originalContactIdRef = useRef<string>('');
+  const originalMasterIdRef = useRef<string>('');
+  const audioContextRef = useRef<AudioContext | null>(null);
+  const dtmfKeypadTones = ['1', '2', '3', '4', '5', '6', '7', '8', '9', '*', '0', '#'];
+
+  const getAudioContext = async() => {
+    const audioWindow = window as Window & typeof globalThis & { webkitAudioContext?: typeof AudioContext };
+    const AudioContextConstructor = audioWindow.AudioContext || audioWindow.webkitAudioContext;
+
+    if (!AudioContextConstructor) {
+      return null;
+    }
+
+    if (!audioContextRef.current) {
+      audioContextRef.current = new AudioContextConstructor();
+    }
+
+    if (audioContextRef.current.state === 'suspended') {
+      await audioContextRef.current.resume();
+    }
+
+    return audioContextRef.current;
+  }
+
+  const playLocalDtmfTone = async(tone: string, durationMS: number) => {
+    const normalizedTone = tone.toUpperCase();
+    const frequencies = DTMF_FREQUENCIES[normalizedTone];
+
+    if (!frequencies) {
+      return;
+    }
+
+    const audioContext = await getAudioContext();
+
+    if (!audioContext) {
+      logger.warn("playLocalDtmfTone", "AudioContext not available for local tone playback");
+      return;
+    }
+
+    const gainNode = audioContext.createGain();
+    gainNode.gain.setValueAtTime(0.0001, audioContext.currentTime);
+    gainNode.gain.exponentialRampToValueAtTime(0.12, audioContext.currentTime + 0.01);
+    gainNode.connect(audioContext.destination);
+
+    const lowOscillator = audioContext.createOscillator();
+    lowOscillator.type = 'sine';
+    lowOscillator.frequency.setValueAtTime(frequencies.low, audioContext.currentTime);
+    lowOscillator.connect(gainNode);
+
+    const highOscillator = audioContext.createOscillator();
+    highOscillator.type = 'sine';
+    highOscillator.frequency.setValueAtTime(frequencies.high, audioContext.currentTime);
+    highOscillator.connect(gainNode);
+
+    lowOscillator.start();
+    highOscillator.start();
+
+    const safeDurationMS = Math.max(durationMS, 70);
+    const stopTime = audioContext.currentTime + safeDurationMS / 1000;
+    gainNode.gain.exponentialRampToValueAtTime(0.0001, stopTime);
+    lowOscillator.stop(stopTime);
+    highOscillator.stop(stopTime);
+
+    return new Promise<void>((resolve) => {
+      highOscillator.onended = () => {
+        lowOscillator.disconnect();
+        highOscillator.disconnect();
+        gainNode.disconnect();
+        resolve();
+      };
+    });
+  }
+
+  const playLocalDtmfSequence = async(sequence: string) => {
+    const safeDurationMS = Number(toneDurationMS) || 340;
+    const safeSpacingMS = Number(toneSpacingMS) || 0;
+
+    for (const tone of sequence.toUpperCase()) {
+      if (tone === ',') {
+        await new Promise((resolve) => window.setTimeout(resolve, 2000));
+        continue;
+      }
+
+      if (!DTMF_FREQUENCIES[tone]) {
+        continue;
+      }
+
+      await playLocalDtmfTone(tone, safeDurationMS);
+
+      if (safeSpacingMS > 0) {
+        await new Promise((resolve) => window.setTimeout(resolve, safeSpacingMS));
+      }
+    }
+  }
 
   useEffect(() => {
-     CXoneClient.instance.notification
-       .startWemWebSocket({
-         locale: Intl.DateTimeFormat().resolvedOptions().locale || "",
-         timezone: Intl.DateTimeFormat().resolvedOptions().timeZone || "",
-       })
-       .catch((err: CXoneSdkError) => {
-         console.log("fetchAllNotifications", JSON.stringify(err));
-         return [];
-       });
+     // NOTE: startWemWebSocket() now runs ONCE in NavBar the first time the
+     // ACD route is visited, so it isn't reopened every time VoiceControls
+     // remounts (e.g. when the contact panel toggles).
+
+     // Subscribe to the agent's skills so we can pick a VALID outbound skillId
+     // for dialPhone(). Mirrors CMA: see acdSessionEventMiddleware.ts subscribing to
+     // CXoneClient.instance.directory.onUpdateSkillsEvent and filtering outbound phone skills.
+     // Subscribe only once — re-subscribing on re-render would duplicate handlers.
+     CXoneClient.instance.directory.onUpdateSkillsEvent.subscribe((skills: any) => {
+       if (!Array.isArray(skills)) return;
+       const outbound = skills
+         .filter((s: any) => s?.isOutbound && (s?.typeId === 4 /* PhoneCall */) && (s?.strategy === 'Manual' || s?.strategy === 'SmartReach'))
+         .map((s: any) => ({ skillId: s.skillId, skillName: s.skillName }));
+       setOutboundSkills(outbound);
+       setSelectedSkillId((prev) => prev || (outbound[0]?.skillId ? String(outbound[0].skillId) : ''));
+     });
+     // Trigger the fetch.
+     try { CXoneClient.instance.directory.getAgentSkills(); } catch (e) { logger.error("getAgentSkills", ''); }
+     // Subscribe only once — re-subscribing on re-render would duplicate handlers.
      CXoneClient.instance.notification.onCXoneNotificationEvent.subscribe(
        (res) => {
-         console.log("Notification received in Outbound component", res);
-         setIsRecordButtonVisible((res as any)?.isRecording)
+         // Skip SDK error events (e.g. getEmbeddedPages failure)
+
+         const recData = res as any;
+         if (recData?.recordingId && recData?.status) {
+           // Remember every STOPPED event so the next voice-contact transition can be classified.
+           if (recData.status === 'STOPPED' && recData.contactId) {
+             lastRecordingStopRef.current.set(recData.contactId, {
+               reason: recData.reason,
+               timestamp: Date.now(),
+             });
+             if (recData.reason === 'Hold') {
+               logger.debug("recordingStopped", "reason=Hold, awaiting next voice event to classify");
+             } else if (recData.reason === 'Policy') {
+               logger.debug("recordingStopped", "reason=Policy, expecting normal call end");
+             }
+           }
+           setIsRecordButtonVisible(recData.isRecording);
+         } else {
+           setIsRecordButtonVisible((res as any)?.isRecording);
+         }
        },
      );
+
+     // Recording status polling fallback - polls recording status via REST API.
+     // NOTE: this hits /interaction-recording-management-service/.../get-recording-status which
+     // returns 403 when the agent's role/tenant lacks the Interaction Recording entitlement.
+     // Disable via REACT_APP_DISABLE_RECORDING_POLL=true if you don't have that permission in staging.
+     const recordingPollDisabled = process.env.REACT_APP_DISABLE_RECORDING_POLL === 'true';
+     // Subscribe only once — re-subscribing on re-render would duplicate handlers.
+     CXoneAcdClient.instance.contactManager.voiceCallRecordServicePollingEvent.subscribe(
+       (isVoiceContactActive: boolean) => {
+         if (recordingPollDisabled) return;
+         if (isVoiceContactActive) {
+           CXoneClient.instance.notification.voiceRecordingStatusProvider.startVoiceRecordingStatusPolling();
+         } else {
+           CXoneClient.instance.notification.voiceRecordingStatusProvider.stopVoiceRecordingStatusPolling();
+         }
+       }
+     );
+
+     // Subscribe to voice contact events for hold/transfer/conference classification
+     // Subscribe only once — re-subscribing on re-render would duplicate handlers.
+     CXoneAcdClient.instance.contactManager.voiceContactUpdateEvent.subscribe(
+       (cxoneContact: CXoneVoiceContact) => {
+
+         const contactStatus = cxoneContact.status?.toLowerCase();
+         const tracker = holdingContactsTracker.current;
+
+         // Sync mute state from SDK whenever an event carries agentMuted
+         if ('agentMuted' in (cxoneContact as any)) {
+           const sdkMuted = !!(cxoneContact as any).agentMuted;
+           setIsMuted((prev) => (prev !== sdkMuted ? sdkMuted : prev));
+         }
+
+         // Sync the Record button state from the SDK whenever the OWN contact updates.
+         // The SDK mutates voiceContact.callControlButton.record on every ACD event
+         // (Active / Hold / Mask / Incoming / ACW / record / stopRecord) — see
+         // cxone-voice-contact.ts updateCallControlButtonsOn* methods. Reading those
+         // values here keeps the Start/Stop Record buttons in lock-step with the SDK.
+         if (cxoneContact.contactID === voiceContact.contactID) {
+           // Track this contact's live status (normalized to lowercase) so the
+           // component can self-hide when the SDK reports the terminal 'Disconnected'
+           // state after Hang Up. cxoneContact.status is PascalCase (e.g. 'Disconnected')
+           // per CallContactEventStatus, while the rest of the consumer compares against
+           // lowercase tokens, so we normalize here.
+           const nextStatusLower = (cxoneContact.status as string | undefined)?.toLowerCase() || '';
+           setContactStatusLower((prev) => (prev !== nextStatusLower ? nextStatusLower : prev));
+
+           const sdkRec = cxoneContact.callControlButton?.record;
+           if (sdkRec) {
+             setRecordControl((prev) => {
+               const next = {
+                 isVisible: !!sdkRec.isVisible,
+                 isEnable:  !!sdkRec.isEnable,
+                 controlText: sdkRec.controlText || ControlButtonText.RECORD,
+               };
+               return (
+                 prev.isVisible === next.isVisible &&
+                 prev.isEnable === next.isEnable &&
+                 prev.controlText === next.controlText
+               ) ? prev : next;
+             });
+           }
+         }
+
+         // Maintain participants map: add/update on every non-terminal status, remove on disconnect.
+         // This mirrors how CMA's slice rebuilds usersInConference from each voice event.
+         setParticipants((prev) => {
+           const next = { ...prev };
+           if (contactStatus === 'disconnected') {
+             delete next[cxoneContact.contactID];
+           } else {
+             next[cxoneContact.contactID] = cxoneContact;
+           }
+           return next;
+         });
+
+         // Only the NEW consult leg qualifies for auto-completion (different contactID,
+         // same masterID as the original customer leg). This mirrors CMA's state guards
+         // and prevents the SDK from rejecting transferContact() with InvalidState.
+         const isNewConsultLeg =
+           contactStatus === 'active' &&
+           cxoneContact.contactID !== originalContactIdRef.current &&
+           !!originalMasterIdRef.current &&
+           cxoneContact.masterID === originalMasterIdRef.current;
+
+         // Auto-transfer for cold transfer: when the NEW consult leg becomes Active, complete the transfer
+         if (isNewConsultLeg && pendingColdTransfer.current) {
+           logger.debug("coldTransfer", "Consult leg connected, auto-completing transfer");
+           pendingColdTransfer.current = false;
+           CXoneAcdClient.instance.contactManager.voiceService.transferContact()
+             .then(function() { logger.info("coldTransfer", "Transfer completed successfully"); })
+             .catch(function(err: any) { logger.error("coldTransfer", ''); });
+         }
+
+         // Auto-conference: when the NEW consult leg becomes Active, merge all parties
+         if (isNewConsultLeg && pendingConference.current) {
+           logger.debug("autoConference", "Consult leg connected, auto-merging into conference");
+           pendingConference.current = false;
+           CXoneAcdClient.instance.contactManager.voiceService.conferenceCall()
+             .then(function() { logger.info("autoConference", "Conference started successfully"); })
+             .catch(function(err: any) { logger.error("autoConference", ''); });
+         }
+
+         // Track when a contact goes to HOLDING
+         if (contactStatus === 'holding') {
+           tracker.set(cxoneContact.contactID, {
+             masterID: cxoneContact.masterID,
+             interactionId: cxoneContact.interactionId,
+             timestamp: Date.now()
+           });
+           logger.debug("holdTracking", "Contact put on hold");
+         }
+
+         // Classify what happened after HOLDING / a STOPPED-Hold recording event.
+         // Decision matrix:
+         //   STOPPED reason=Hold + same contactNo → ACTIVE                          → Genuine Hold
+         //   STOPPED reason=Hold + same contactNo → DISCONNECTED + new contactNo
+         //                                  same master & interactionId             → Transfer
+         //   STOPPED reason=Hold + same contactNo → JOINED (same master/interaction) → Conference
+         //   STOPPED reason=Hold + DISCONNECTED + new contactNo, different master   → Agent disconnected + unrelated new call
+         //   STOPPED reason=Policy + DISCONNECTED, no new contact                   → Normal call end
+         const recordingStopForThis = lastRecordingStopRef.current.get(cxoneContact.contactID);
+         const wasHoldStopped = recordingStopForThis?.reason === 'Hold';
+         const wasPolicyStopped = recordingStopForThis?.reason === 'Policy';
+
+         if (contactStatus === 'active' && tracker.has(cxoneContact.contactID)) {
+           // Same contactNo resumed → Genuine Hold
+           logger.debug("holdTracking", "Genuine hold - contact resumed to Active");
+           // Genuine hold → recording will resume; do NOT reset the record button.
+           tracker.delete(cxoneContact.contactID);
+           lastRecordingStopRef.current.delete(cxoneContact.contactID);
+         } else if (contactStatus === 'disconnected' && tracker.has(cxoneContact.contactID)) {
+           // Same contactNo disconnected — wait to see if a new leg with same master/interaction follows.
+           // Until that happens we can't tell Transfer apart from "agent disconnected".
+           // The decision is finalized in the `active && !tracker.has(...)` branch below.
+           logger.debug("holdTracking", "Held contact disconnected, awaiting next active leg");
+           // Recording on the disconnected leg is gone either way.
+           setIsRecordButtonVisible(false);
+           // Keep the tracker entry so the new-leg branch can classify Transfer.
+         } else if (contactStatus === 'joined' && tracker.has(cxoneContact.contactID)) {
+           const heldData = tracker.get(cxoneContact.contactID)!;
+           const sameMasterAndInteraction =
+             cxoneContact.masterID === heldData.masterID &&
+             cxoneContact.interactionId === heldData.interactionId;
+           if (sameMasterAndInteraction) {
+             logger.debug("holdTracking", "Contact HOLDING → JOINED, same master & interaction — Conference");
+           } else {
+             logger.debug("holdTracking", "Contact JOINED but master/interaction differ");
+           }
+           tracker.delete(cxoneContact.contactID);
+           lastRecordingStopRef.current.delete(cxoneContact.contactID);
+         } else if (contactStatus === 'active' && !tracker.has(cxoneContact.contactID)) {
+           // A new ACTIVE leg arrived. Compare to any previously-held leg to classify
+           // Transfer vs Agent-disconnected-+-unrelated-new-call.
+           const entries = Array.from(tracker.entries());
+           let matched = false;
+           for (let i = 0; i < entries.length; i++) {
+             const heldContactId = entries[i][0];
+             const heldData = entries[i][1];
+             const sameMaster = cxoneContact.masterID === heldData.masterID;
+             const sameInteraction = cxoneContact.interactionId === heldData.interactionId;
+             if (cxoneContact.contactID !== heldContactId && sameMaster && sameInteraction) {
+               logger.debug("holdTracking", "Transfer confirmed - new contact Active with same master & interaction");
+               // Recording belonged to the original held leg — reset for the new leg.
+               setIsRecordButtonVisible(false);
+               tracker.delete(heldContactId);
+               lastRecordingStopRef.current.delete(heldContactId);
+               matched = true;
+               break;
+             }
+           }
+           if (!matched && entries.length > 0) {
+             // A held leg exists but the new ACTIVE contact has a different master/interaction.
+             // → Agent disconnected + unrelated new call.
+             logger.debug("holdTracking", "Agent disconnected + new call - different master/interaction");
+             // Clear stale held entries so the matrix doesn't keep matching against them.
+             entries.forEach(([heldContactId]) => {
+               tracker.delete(heldContactId);
+               lastRecordingStopRef.current.delete(heldContactId);
+             });
+             setIsRecordButtonVisible(false);
+           }
+         } else if (contactStatus === 'disconnected' && !tracker.has(cxoneContact.contactID) && wasPolicyStopped) {
+           // STOPPED reason=Policy → DISCONNECTED, no held leg, no new contact → Normal call end.
+           logger.debug("holdTracking", "Normal end - recording stopped reason=Policy, contact disconnected");
+           setIsRecordButtonVisible(false);
+           lastRecordingStopRef.current.delete(cxoneContact.contactID);
+         }
+       }
+     );
+  },[])
+
+  useEffect(() => {
+    return () => {
+      if (audioContextRef.current) {
+        audioContextRef.current.close().catch(() => undefined);
+      }
+    };
+  }, []);
+
+  useEffect(() => {
     if(holdeResume==='Hold'){
       setHangUpButtonIsEnabled(true)
     }else{
@@ -40,8 +452,6 @@ const VoiceControls = ({voiceContact}:{voiceContact:CXoneVoiceContact}) => {
     }
   },[holdeResume, hangUpButtonIsEnabled])
 
-
- 
 
     const handleHold = async(e:React.MouseEvent<HTMLButtonElement>) => {
       e.preventDefault()
@@ -52,74 +462,571 @@ const VoiceControls = ({voiceContact}:{voiceContact:CXoneVoiceContact}) => {
         if(voiceContact.status==='Holding'){
           await voiceContact.resume()
           setHoldeResume('Hold')
-          
         }
-      
     }
 
     const handleHangUp = async(e:React.MouseEvent<HTMLButtonElement>) => {
       e.preventDefault()
       await voiceContact.end()
-
     }
 
-        const startRecord=(e: React.MouseEvent<HTMLButtonElement>)=>{
-        e.preventDefault();
-            
-        const voiceControlService = new VoiceControlService();
-        voiceControlService.recordCall(voiceContact.contactID).then((res)=>{ console.log(res)   }).catch((err)=>{ console.log(err) })
+    const handleToggleMute = async (e: React.MouseEvent<HTMLButtonElement>) => {
+      e.preventDefault();
+      if (!voiceContact || !voiceContact.contactID) {
+        logger.warn("toggleMute", "No active voice contact");
+        return;
       }
-     const stopRecord=(e: React.MouseEvent<HTMLButtonElement>)=>{
-        e.preventDefault();
-       const voiceControlService = new VoiceControlService();
-        voiceControlService.stopCallRecording(voiceContact.contactID).then((res)=>{ console.log(res)   }).catch((err)=>{ console.log(err) })
+      setIsMuteBusy(true);
+      try {
+        if (isMuted) {
+          await voiceContact.unmute();
+          setIsMuted(false);
+        } else {
+          await voiceContact.mute();
+          setIsMuted(true);
+        }
+      } catch (err) {
+        logger.error("toggleMute", '');
+      } finally {
+        setIsMuteBusy(false);
+      }
+    };
+
+    // Start recording — use voiceContact.record() (SDK-validated). It internally
+    // checks callControlButton.record.{isVisible,isEnable,controlText===RECORD}
+    // before hitting the back end, and the SDK then flips controlText → RECORDING.
+    const startRecord = async (e: React.MouseEvent<HTMLButtonElement>) => {
+      e.preventDefault();
+      try {
+        await voiceContact.record();
+        logger.info("startRecord", '');
+      } catch (err) {
+        logger.error("startRecord", '');
+      }
+    }
+
+    // Stop recording — use voiceContact.stopRecord() (SDK-validated). It internally
+    // checks callControlButton.record.{isVisible,isEnable,controlText===RECORDING}
+    // before hitting the back end, and the SDK then flips controlText → RECORD.
+    const stopRecord = async (e: React.MouseEvent<HTMLButtonElement>) => {
+      e.preventDefault();
+      try {
+        await voiceContact.stopRecord();
+        logger.info("stopRecord", '');
+      } catch (err) {
+        logger.error("stopRecord", '');
+      }
+    }
+
+    const sendDtmfTone = async(sequence: string) => {
+      if (!sequence) {
+        return;
       }
 
+      const dtmfPayload = {
+        dtmfSequence: sequence,
+        toneDurationMS: Number(toneDurationMS) || 340,
+        toneSpacingMS: Number(toneSpacingMS) || 0,
+      };
+
+      try {
+        setIsSendingDtmf(true);
+        await CXoneAcdClient.instance.contactManager.voiceService.sendDtmf(dtmfPayload);
+        logger.info("sendDtmfTone", '');
+      } catch (error) {
+        logger.error("sendDtmfTone", '');
+      } finally {
+        setIsSendingDtmf(false);
+      }
+    }
+
+    const handleSendDtmfSequence = async(e: React.MouseEvent<HTMLButtonElement>) => {
+      e.preventDefault();
+      void playLocalDtmfSequence(dtmfSequence);
+      await sendDtmfTone(dtmfSequence);
+    }
+
+    const handleSendSingleTone = async(tone: string) => {
+      void playLocalDtmfTone(tone, Number(toneDurationMS) || 340);
+      await sendDtmfTone(tone);
+    }
+
+    // Helper: detect if input is a phone number (10+ digits) vs agent ID (shorter number)
+    const isPhoneNumber = (value: string) => value.replace(/\D/g, '').length >= 10;
+
+    // Consult with another agent — mirrors CMA's holdAndAddAgentToConsult:
+    // 1) hold the customer leg first (if active)
+    // 2) call consultAgent() / dialPhone() on the now-held call
+    const handleConsultAgent = async(e: React.MouseEvent<HTMLButtonElement>) => {
+      e.preventDefault();
+      if (!consultAgentId) {
+        logger.warn("consultAgent", "No agent ID or phone number provided");
+        return;
+      }
+      try {
+        // STEP 1: hold the customer leg first — same as CMA's holdCall thunk.
+        if (voiceContact.status === 'Active') {
+          logger.info("consultAgent", "Holding customer leg first");
+          await voiceContact.hold();
+          setHoldeResume('Resume');
+        }
+
+        // STEP 2: initiate consult on the held call
+        if (isPhoneNumber(consultAgentId)) {
+          if (!selectedSkillId) {
+            logger.error("consultAgent", "No outbound skill available");
+            return;
+          }
+          // Phone number — use dialPhone (like CMA outbound options)
+          logger.info("consultAgent", "Dialing phone for consult");
+          await CXoneAcdClient.instance.contactManager.voiceService.dialPhone({
+            skillId: Number(selectedSkillId),
+            phoneNumber: consultAgentId,
+          } as any);
+        } else {
+          // Agent ID — use consultAgent
+          logger.info("consultAgent", "Initiating consult with agent");
+          await CXoneAcdClient.instance.contactManager.voiceService.consultAgent(Number(consultAgentId));
+        }
+        setIsConsulting(true);
+        logger.info("consultAgent", "Consult call initiated successfully");
+      } catch (err) {
+        logger.error("consultAgent", '');
+      }
+    }
+
+    // Cold transfer — mirrors CMA: hold the customer leg first, then dial the target,
+    // then auto-complete with transferContact() when the NEW consult leg becomes Active.
+    const handleColdTransfer = async(e: React.MouseEvent<HTMLButtonElement>) => {
+      e.preventDefault();
+      if (!consultAgentId) {
+        logger.warn("coldTransfer", "No agent ID or phone number provided");
+        return;
+      }
+      try {
+        // STEP 1: hold the active customer leg first. The SDK requires this before dial/transfer.
+        if (voiceContact.status === 'Active') {
+          logger.info("coldTransfer", "Holding customer leg first");
+          await voiceContact.hold();
+          setHoldeResume('Resume');
+        }
+
+        // Remember the original leg so the auto-complete listener only fires on the NEW leg.
+        originalContactIdRef.current = voiceContact.contactID;
+        originalMasterIdRef.current = voiceContact.masterID;
+        pendingColdTransfer.current = true;
+
+        // STEP 2: dial the transfer target
+        logger.info("coldTransfer", "Dialing target for auto-transfer");
+        if (isPhoneNumber(consultAgentId)) {
+          if (!selectedSkillId) {
+            pendingColdTransfer.current = false;
+            logger.error("coldTransfer", "No outbound skill available");
+            return;
+          }
+          await CXoneAcdClient.instance.contactManager.voiceService.dialPhone({
+            skillId: Number(selectedSkillId),
+            phoneNumber: consultAgentId,
+          } as any);
+        } else {
+          await CXoneAcdClient.instance.contactManager.voiceService.dialAgent(consultAgentId, voiceContact.contactID);
+        }
+        logger.info("coldTransfer", "Dial initiated, waiting for consult leg");
+      } catch (err) {
+        pendingColdTransfer.current = false;
+        logger.error("coldTransfer", '');
+      }
+    }
+
+    // Transfer — if consulting, complete; if not, blind transfer (dial + auto-transfer)
+    const handleTransfer = async(e: React.MouseEvent<HTMLButtonElement>) => {
+      e.preventDefault();
+      if (isConsulting) {
+        try {
+          logger.info("transfer", "Completing transfer (consult active)");
+          await CXoneAcdClient.instance.contactManager.voiceService.transferContact();
+          setIsConsulting(false);
+          logger.info("transfer", "Transfer completed successfully");
+        } catch (err) {
+          logger.error("transfer", '');
+        }
+      } else {
+        if (!consultAgentId) {
+          logger.warn("blindTransfer", "No agent ID or phone number provided");
+          return;
+        }
+        try {
+          // Hold customer leg first (CMA flow) so the SDK accepts transferContact() later.
+          if (voiceContact.status === 'Active') {
+            logger.info("blindTransfer", "Holding customer leg first");
+            await voiceContact.hold();
+            setHoldeResume('Resume');
+          }
+
+          originalContactIdRef.current = voiceContact.contactID;
+          originalMasterIdRef.current = voiceContact.masterID;
+          pendingColdTransfer.current = true;
+
+          logger.info("blindTransfer", "Dialing target for auto-transfer");
+          if (isPhoneNumber(consultAgentId)) {
+            if (!selectedSkillId) {
+              pendingColdTransfer.current = false;
+              logger.error("blindTransfer", "No outbound skill available");
+              return;
+            }
+            await CXoneAcdClient.instance.contactManager.voiceService.dialPhone({
+              skillId: Number(selectedSkillId),
+              phoneNumber: consultAgentId,
+            } as any);
+          } else {
+            await CXoneAcdClient.instance.contactManager.voiceService.dialAgent(consultAgentId, voiceContact.contactID);
+          }
+          logger.info("blindTransfer", "Dial initiated, waiting for consult leg");
+        } catch (err) {
+          pendingColdTransfer.current = false;
+          logger.error("blindTransfer", '');
+        }
+      }
+    }
+
+    // Conference — if consulting, merge; if not, dial + auto-conference
+    const handleConference = async(e: React.MouseEvent<HTMLButtonElement>) => {
+      e.preventDefault();
+      if (isConsulting) {
+        try {
+          logger.info("conference", "Merging calls into conference");
+          await CXoneAcdClient.instance.contactManager.voiceService.conferenceCall();
+          setIsConsulting(false);
+          logger.info("conference", "Conference started successfully");
+        } catch (err) {
+          logger.error("conference", '');
+        }
+      } else {
+        if (!consultAgentId) {
+          logger.warn("autoConference", "No agent ID or phone number provided");
+          return;
+        }
+        try {
+          // Hold customer leg first (CMA flow) so the SDK accepts conferenceCall() later.
+          if (voiceContact.status === 'Active') {
+            logger.info("autoConference", "Holding customer leg first");
+            await voiceContact.hold();
+            setHoldeResume('Resume');
+          }
+
+          originalContactIdRef.current = voiceContact.contactID;
+          originalMasterIdRef.current = voiceContact.masterID;
+          pendingConference.current = true;
+
+          logger.info("autoConference", "Dialing target for auto-conference");
+          if (isPhoneNumber(consultAgentId)) {
+            if (!selectedSkillId) {
+              pendingConference.current = false;
+              logger.error("autoConference", "No outbound skill available");
+              return;
+            }
+            await CXoneAcdClient.instance.contactManager.voiceService.dialPhone({
+              skillId: Number(selectedSkillId),
+              phoneNumber: consultAgentId,
+            } as any);
+          } else {
+            await CXoneAcdClient.instance.contactManager.voiceService.dialAgent(consultAgentId, voiceContact.contactID);
+          }
+          logger.info("autoConference", "Dial initiated, waiting for consult leg");
+        } catch (err) {
+          pendingConference.current = false;
+          logger.error("autoConference", '');
+        }
+      }
+    }
+
+  // Defense in depth: even if the parent forgets to gate this component,
+  // hide the whole control surface once the SDK reports the contact is gone.
+  // After Hang Up succeeds the SDK fires voiceContactUpdateEvent with
+  // status === 'Disconnected' (PascalCase), which we already normalized to
+  // lowercase in contactStatusLower above.
+  if (!voiceContact?.contactID || contactStatusLower === 'disconnected') {
+    return null;
+  }
+
   return (
-    <div>
-      <Box sx={accessTokenFlowStyles.inputs_alignment}>
-      
+    <Box>
+      {/* Basic Voice Controls */}
+      <Stack direction="row" spacing={1.5} flexWrap="wrap" useFlexGap>
         <Button
-          color="primary"
-          variant="contained"
-          size="large"
-          sx={accessTokenFlowStyles.margin}
+          variant={holdeResume === 'Hold' ? "outlined" : "contained"}
+          color="warning"
+          startIcon={holdeResume === 'Hold' ? <PauseIcon /> : <PlayArrowIcon />}
           onClick={(e)=>handleHold(e)}
         >
           {holdeResume}
         </Button>
         <Button
-          color="primary"
           variant="contained"
-          size="large"
-          sx={accessTokenFlowStyles.margin}
+          color="error"
+          startIcon={<CallEndIcon />}
           disabled={!hangUpButtonIsEnabled}
           onClick={(e)=>handleHangUp(e)}
         >
           Hang Up
         </Button>
-         <Button
-        onClick={startRecord}
-        color="secondary"
-         disabled={isRecordButtonVisible}
-        variant="contained"
-        size="large"
-        sx={accessTokenFlowStyles.margin}
-      >
-        Start Record
-      </Button>
         <Button
-        onClick={stopRecord}
-        color="secondary"
-        disabled={!isRecordButtonVisible}
-        variant="contained"
-        size="large"
-        sx={accessTokenFlowStyles.margin}
-      >
-        Stop Record
-      </Button>
-      </Box>
-    </div>
+          variant={isMuted ? "contained" : "outlined"}
+          color={isMuted ? "error" : "primary"}
+          startIcon={isMuted ? <MicOffIcon /> : <MicIcon />}
+          disabled={isMuteBusy}
+          onClick={(e) => handleToggleMute(e)}
+        >
+          {isMuted ? 'Unmute' : 'Mute'}
+        </Button>
+        <Button
+          onClick={startRecord}
+          variant="contained"
+          color="secondary"
+          // SDK governs this: enabled only while the call leg is in a state where
+          // recording can be started (Active + has permission + controlText===RECORD).
+          // After record() succeeds the SDK flips controlText → RECORDING and we disable.
+          disabled={!recordControl.isEnable || recordControl.controlText === ControlButtonText.RECORDING}
+          startIcon={<FiberManualRecordIcon />}
+        >
+          Start Record
+        </Button>
+        <Button
+          onClick={stopRecord}
+          variant="outlined"
+          color="secondary"
+          // Symmetric to Start: enabled only while recording is active AND the SDK
+          // says the button is currently enabled (FT STOP_RECORD + STOP_RECORDING perm).
+          disabled={!recordControl.isEnable || recordControl.controlText !== ControlButtonText.RECORDING}
+          startIcon={<StopIcon />}
+        >
+          Stop Record
+        </Button>
+      </Stack>
+
+      <Divider sx={{ my: 2 }} />
+      <Typography variant="subtitle2" sx={{ mb: 1, fontWeight: 600 }}>
+        DTMF
+      </Typography>
+      <Stack direction={{ xs: 'column', md: 'row' }} spacing={1.5} sx={{ mb: 1.5 }}>
+        <TextField
+          size="small"
+          label="DTMF sequence"
+          value={dtmfSequence}
+          onChange={(e) => setDtmfSequence(e.target.value)}
+          placeholder="123#"
+          fullWidth
+        />
+        <TextField
+          size="small"
+          label="Tone duration (ms)"
+          value={toneDurationMS}
+          onChange={(e) => setToneDurationMS(e.target.value)}
+          sx={{ minWidth: 170 }}
+        />
+        <TextField
+          size="small"
+          label="Tone spacing (ms)"
+          value={toneSpacingMS}
+          onChange={(e) => setToneSpacingMS(e.target.value)}
+          sx={{ minWidth: 170 }}
+        />
+        <Button
+          variant="contained"
+          onClick={handleSendDtmfSequence}
+          disabled={!dtmfSequence || isSendingDtmf}
+        >
+          Send Sequence
+        </Button>
+      </Stack>
+      <Stack direction="row" spacing={1} flexWrap="wrap" useFlexGap>
+        {dtmfKeypadTones.map((tone) => (
+          <Button
+            key={tone}
+            variant="outlined"
+            size="small"
+            disabled={isSendingDtmf}
+            onClick={() => handleSendSingleTone(tone)}
+            sx={{ minWidth: 48 }}
+          >
+            {tone}
+          </Button>
+        ))}
+      </Stack>
+
+      {/* Transfer & Conference — CMA Directory Style */}
+      <Divider sx={{ my: 2 }} />
+      <Typography variant="subtitle2" sx={{ mb: 1, fontWeight: 600 }}>
+        Directory
+      </Typography>
+
+      {/* Outbound skill picker — required when dialing a phone number.
+          Mirrors CMA: phoneCallOBSkillsAssigned (Manual / SmartReach) skills only. */}
+      <FormControl size="small" fullWidth sx={{ mb: 1.5 }} disabled={outboundSkills.length === 0}>
+        <InputLabel id="outbound-skill-label">Outbound skill</InputLabel>
+        <Select
+          labelId="outbound-skill-label"
+          label="Outbound skill"
+          value={selectedSkillId}
+          onChange={(e) => setSelectedSkillId(String(e.target.value))}
+        >
+          {outboundSkills.length === 0 && (
+            <MenuItem value=""><em>No outbound skill assigned</em></MenuItem>
+          )}
+          {outboundSkills.map((s) => (
+            <MenuItem key={s.skillId} value={String(s.skillId)}>
+              {s.skillName} ({s.skillId})
+            </MenuItem>
+          ))}
+        </Select>
+      </FormControl>
+
+      {/* Search-style input like CMA directory search */}
+      <TextField
+        size="small"
+        placeholder="Search agent ID or phone number..."
+        value={consultAgentId}
+        onChange={(e) => setConsultAgentId(e.target.value)}
+        fullWidth
+        sx={{ mb: 1.5 }}
+        InputProps={{
+          startAdornment: (
+            <InputAdornment position="start">
+              <SearchIcon fontSize="small" sx={{ color: 'text.secondary' }} />
+            </InputAdornment>
+          ),
+        }}
+      />
+
+      {/* Outbound row — like CMA's CcfOutboundOptions: shows typed number with action icons.
+          Initially only Consult + Cold Transfer are shown. Transfer-complete and Conference (merge)
+          become available only AFTER a consult has been established (mirrors CMA's call-conference panel). */}
+      {consultAgentId && (
+        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, p: 1, mb: 1, bgcolor: 'action.hover', borderRadius: 1 }}>
+          <PhoneForwardedIcon fontSize="small" sx={{ color: 'text.secondary' }} />
+          <Typography variant="body2" sx={{ flex: 1, fontWeight: 500 }}>
+            Outbound: {consultAgentId}
+          </Typography>
+
+          {/* Initial state — not yet consulting */}
+          {!isConsulting && (
+            <>
+              <Tooltip title="Consult (warm transfer)">
+                <IconButton size="small" color="info" onClick={handleConsultAgent}>
+                  <PersonAddIcon fontSize="small" />
+                </IconButton>
+              </Tooltip>
+              <Tooltip title="Cold Transfer">
+                <IconButton size="small" color="error" onClick={handleColdTransfer}>
+                  <CallSplitIcon fontSize="small" />
+                </IconButton>
+              </Tooltip>
+            </>
+          )}
+
+          {/* After Consult is active — Complete Transfer + Conference (Merge) become available */}
+          {isConsulting && (
+            <>
+              <Tooltip title="Complete Transfer">
+                <IconButton size="small" color="warning" onClick={handleTransfer}>
+                  <SwapHorizIcon fontSize="small" />
+                </IconButton>
+              </Tooltip>
+              <Tooltip title="Conference (Merge)">
+                <IconButton size="small" color="secondary" onClick={handleConference}>
+                  <CallMergeIcon fontSize="small" />
+                </IconButton>
+              </Tooltip>
+            </>
+          )}
+        </Box>
+      )}
+
+      {/* Status indicator when consult is active */}
+      {isConsulting && (
+        <Typography variant="caption" sx={{ color: 'success.main', fontWeight: 600 }}>
+          Consulting... Click Transfer or Conference to complete.
+        </Typography>
+      )}
+
+      {/* Conference / Consult Participants — mirrors CMA's UsersInConference */}
+      {Object.keys(participants).length > 0 && (
+        <>
+          <Divider sx={{ my: 2 }} />
+          <Typography variant="subtitle2" sx={{ mb: 1, fontWeight: 600 }}>
+            Participants ({Object.keys(participants).length})
+          </Typography>
+          <List dense disablePadding sx={{ bgcolor: 'background.paper', borderRadius: 1, border: 1, borderColor: 'divider' }}>
+            {Object.values(participants).map((p) => {
+              const status = (p.status || '').toString();
+              const isHolding = status.toLowerCase() === 'holding';
+              const isActive = status.toLowerCase() === 'active' || status.toLowerCase() === 'joined';
+              const isDialing = status.toLowerCase() === 'dialing';
+              const isAgent = (p as any).callType === 'inbound' ? false : !!(p as any).agentId || (p as any).skill === '0';
+              const isInbound = !!(p as any).isInbound;
+              const label = (p as any).ani || (p as any).dnis || p.contactID;
+              const subtitle = `${status} · ${(p as any).callType || ''} · contactID=${p.contactID}`;
+              const chipColor: 'success' | 'warning' | 'info' | 'default' =
+                isActive ? 'success' : isHolding ? 'warning' : isDialing ? 'info' : 'default';
+
+              const handleParticipantHold = async () => {
+                try {
+                  if (isActive) {
+                    await p.hold();
+                  } else if (isHolding) {
+                    await p.resume();
+                  }
+                } catch (err) {
+                  logger.error("participantHold", '');
+                }
+              };
+
+              const handleParticipantHangUp = async () => {
+                try {
+                  // Per-leg hang up — same as CMA's endTheVoiceContact(user.contact) -> callContact.end()
+                  await p.end();
+                } catch (err) {
+                  logger.error("participantHangUp", '');
+                }
+              };
+
+              return (
+                <ListItem key={p.contactID} divider>
+                  <ListItemAvatar>
+                    <Avatar sx={{ bgcolor: isAgent ? 'primary.main' : isInbound ? 'success.main' : 'secondary.main', width: 32, height: 32 }}>
+                      {isAgent ? <SupportAgentIcon fontSize="small" /> : isInbound ? <PhoneIcon fontSize="small" /> : <PersonIcon fontSize="small" />}
+                    </Avatar>
+                  </ListItemAvatar>
+                  <ListItemText
+                    primary={
+                      <Stack direction="row" spacing={1} alignItems="center">
+                        <Typography variant="body2" sx={{ fontWeight: 600 }}>{label}</Typography>
+                        <Chip size="small" label={status} color={chipColor} variant="outlined" />
+                      </Stack>
+                    }
+                    secondary={<Typography variant="caption" sx={{ color: 'text.secondary' }}>{subtitle}</Typography>}
+                  />
+                  <ListItemSecondaryAction>
+                    <Tooltip title={isHolding ? 'Resume' : 'Hold'}>
+                      <span>
+                        <IconButton size="small" color="warning" onClick={handleParticipantHold} disabled={!isActive && !isHolding}>
+                          {isHolding ? <PlayArrowIcon fontSize="small" /> : <PauseIcon fontSize="small" />}
+                        </IconButton>
+                      </span>
+                    </Tooltip>
+                    <Tooltip title="Hang up this participant">
+                      <IconButton size="small" color="error" onClick={handleParticipantHangUp}>
+                        <CallEndIcon fontSize="small" />
+                      </IconButton>
+                    </Tooltip>
+                  </ListItemSecondaryAction>
+                </ListItem>
+              );
+            })}
+          </List>
+        </>
+      )}
+    </Box>
   );
 };
 export default VoiceControls;
