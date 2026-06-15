@@ -1,0 +1,698 @@
+// Auto-generated from faqs.json — sets a global so the page works on file:// without fetch.
+window.__FAQ_DATA__ = {
+  "meta": {
+    "title": "NICE CXone Agent SDK — FAQ",
+    "subtitle": "Answers to common questions about the nice-cxone-agent-sdk packages and the cxa-sdk-consumer reference app.",
+    "lastUpdated": "2026-06-13",
+    "version": "25.4"
+  },
+  "categories": [
+    {
+      "id": "acd-sdk",
+      "name": "ACD SDK",
+      "icon": "phone",
+      "color": "#635bff",
+      "description": "Automatic Call Distribution — voice contacts, agent sessions, and call control.",
+      "faqs": [
+        {
+          "q": "What is the ACD SDK and what does it handle?",
+          "a": "A TypeScript library that lets developers interact with Automatic Call Distribution (ACD) functionality on the NICE CXone platform — managing voice contacts, agent sessions, and call control. It is one of nine packages in the nice-cxone-agent-sdk monorepo, published under the @nice-devone scope. It covers ACD engagement (start/end sessions, change agent state), contact management (routing, mute, hold, transfer, audio prompts, metadata), skill management, ACD notifications, and agent details. It works with inbound and outbound voice communications."
+        },
+        {
+          "q": "How do I manage agent sessions?",
+          "a": "Through the session property of CXoneAcdClient. Key methods: startSession(options) to begin a session, joinSession() to join an existing one, and endSession(request) to end the current session."
+        },
+        {
+          "q": "How do I track session state changes?",
+          "a": "Subscribe to the onAgentSessionChange event. Session states include SESSION_START, JOIN_SESSION_SUCCESS, JOIN_SESSION_FAILURE, and SESSION_END."
+        },
+        {
+          "q": "How is agent state managed?",
+          "a": "Via the agentStateService, which exposes the current agent state (e.g. available/unavailable) and the reason for it. State changes are emitted through the agentStateSubject observable."
+        },
+        {
+          "q": "How do I handle inbound calls?",
+          "a": "Inbound calls arrive through the contact manager's voiceContactUpdateEvent, which provides updates on call state (new calls, state changes, termination). You then use the Voice SDK to control the call."
+        },
+        {
+          "q": "How do I make outbound calls?",
+          "a": "Through the Outbound component/flow, which lets agents dial phone numbers. Outbound dialing is supported via the ACD SDK's contact and agent-leg services."
+        },
+        {
+          "q": "What is agent leg management?",
+          "a": "The agentLegService manages the connection between the agent and the voice system. dialAgentLeg() initiates an agent-leg connection, and the SDK auto-connects legs in the 'Dialing' state, handling connecting/dialing events via the Voice SDK."
+        },
+        {
+          "q": "What call control operations are supported?",
+          "a": "Call-level operations including mute, hold, transfer, ending calls, playing audio prompts, and updating contact metadata. The VoiceControls component surfaces these for active calls."
+        },
+        {
+          "q": "How does skill management work?",
+          "a": "The SDK retrieves agent skill information (via integration with the Agent SDK), used to determine which agents are qualified to handle specific types of contacts."
+        },
+        {
+          "q": "How does it relate to the other SDKs?",
+          "a": "ACD depends on Core SDK (foundation + local-storage helpers), Common SDK (models like AgentSessionStatus), Voice SDK (WebRTC/voice), and Agent SDK (agent-specific functionality and skill queues). WebRTC enables the voice media."
+        },
+        {
+          "q": "How does it relate to the Voice SDK specifically?",
+          "a": "ACD works closely with the Voice SDK: ACD manages sessions, contacts, and agent legs, while the Voice SDK handles the WebRTC connection and low-level voice control. You typically initialize WebRTC after starting a session."
+        },
+        {
+          "q": "What is the typical usage flow of the ACD SDK?",
+          "a": "1) Initialize the ACD SDK; 2) subscribe to session, agent-state, and contact events; 3) start an agent session; 4) initialize WebRTC for voice; 5) handle inbound/outbound calls; 6) end the session when done."
+        },
+        {
+          "q": "What are the peer dependencies?",
+          "a": "It relies on peer packages such as @nice-devone/agent-sdk and @nice-devone/common-sdk (plus core-sdk and voice-sdk). Ensure these are installed and configured for proper functionality."
+        },
+        {
+          "q": "How do notifications work?",
+          "a": "ACD notifications are received based on a dependency on @nice-devone/agent-sdk, and agent details are retrieved through the agent-details service when present."
+        },
+        {
+          "q": "What must I do before using ACD features?",
+          "a": "Authenticate first using @nice-devone/auth-sdk (OAuth 2.0 with PKCE). The resulting session/tokens are required before starting an ACD session and emitting get-next-event polling."
+        },
+        {
+          "q": "Any special setup for local development?",
+          "a": "Local development requires Chrome with web security disabled to avoid CORS errors (e.g. --disable-web-security with a separate user-data-dir). After authenticating in the sample app, the Acd section lets you start a session and observe get-next-event polling."
+        },
+        {
+          "q": "What are the prerequisites / tech requirements?",
+          "a": "A TypeScript project with a custom bundler (webpack, create-react-app, etc.). The consumer reference app uses Node.js 22.x.x (LTS) and Node.js polyfills for browser execution; voice features require WebRTC support."
+        }
+      ]
+    },
+    {
+      "id": "agent-sdk",
+      "name": "Agent SDK",
+      "icon": "users",
+      "color": "#0a2540",
+      "description": "High-level orchestration over ACD operations: agent state, copilot, notifications, observables.",
+      "faqs": [
+        {
+          "q": "What is the Agent SDK and what does it handle?",
+          "a": "A TypeScript library that lets developers integrate CXone Agent functionality into custom applications on the NICE CXone platform. It provides a higher-level abstraction over ACD operations and is one of nine packages in the nice-cxone-agent-sdk monorepo, published under the @nice-devone scope. It covers ACD (incoming calls, queues, agent states), call control, CXone client interaction, notifications, Agent Copilot, agent state management, observables, feature toggles, reporting, dynamic directory lookup, and presence synchronization."
+        },
+        {
+          "q": "Where does the auth token come from?",
+          "a": "From @nice-devone/auth-sdk, which performs the OAuth 2.0 (PKCE) flow. You authenticate first, then pass the resulting access token to cxoneClient.init()."
+        },
+        {
+          "q": "What are the key services/exports?",
+          "a": "Examples include CXoneClient, ContactService, VoiceService, VoiceControlService, AgentLegService, SkillService, DispositionService, PersonalConnectionService, FeatureToggleService, CXoneNotificationManager, CXoneContact, and CXoneTenant."
+        },
+        {
+          "q": "How is call control handled?",
+          "a": "Through services like VoiceService and VoiceControlService, supporting initiate, answer, hold, transfer, and other call actions. The Agent SDK abstracts these ACD/call operations into a simpler layer."
+        },
+        {
+          "q": "How does agent state management work?",
+          "a": "The SDK lets you set and manage agent states (available, unavailable, etc.) and exposes state via observables, so applications can react to asynchronous changes."
+        },
+        {
+          "q": "What is Agent Copilot?",
+          "a": "An AI-assist capability exposed through the SDK. The exact features depend on specific integrations and tenant configuration."
+        },
+        {
+          "q": "How do notifications work?",
+          "a": "Via CXoneNotificationManager, which receives and manages agent-relevant notifications such as call alerts and work-item updates."
+        },
+        {
+          "q": "What are observables used for?",
+          "a": "The SDK uses observables (RxJS-style, e.g. ObservableValue) to handle asynchronous data streams — agent state, contact events, skill queues, and similar real-time updates."
+        },
+        {
+          "q": "What are feature toggles?",
+          "a": "FeatureToggleService lets you enable or disable functionality based on configuration, so behavior can vary by tenant or rollout state."
+        },
+        {
+          "q": "What is the dynamic directory feature?",
+          "a": "It interacts with the CXone directory service for contact lookup, letting agents search for and reach other contacts/entities."
+        },
+        {
+          "q": "What is presence synchronization?",
+          "a": "It synchronizes agent presence information across applications, so an agent's status stays consistent wherever it is displayed."
+        },
+        {
+          "q": "How does dispositions / ACW work?",
+          "a": "DispositionService (with AcwType for after-contact work) handles wrap-up classification of contacts after an interaction ends."
+        },
+        {
+          "q": "How does it relate to the other SDKs?",
+          "a": "Agent SDK sits above the foundation packages: common-sdk provides shared types, core-sdk provides utilities and communication patterns, auth-sdk handles login, and acd-sdk / voice-sdk handle session and WebRTC details. The Agent SDK streamlines ACD operations on top of these."
+        }
+      ]
+    },
+    {
+      "id": "auth-sdk",
+      "name": "Auth SDK",
+      "icon": "lock",
+      "color": "#00d924",
+      "description": "Authentication: OAuth 2.0 with PKCE, token management, OIDC discovery, session restore.",
+      "faqs": [
+        {
+          "q": "What is the Auth SDK and what does it handle?",
+          "a": "A TypeScript library for managing user authentication on the NICE CXone platform. It simplifies interacting with the CXone authorization server, obtaining tokens, and handling user information. It is one of nine packages in the nice-cxone-agent-sdk monorepo, published under the @nice-devone scope. It covers OAuth 2.0 Authorization Code Grant flow, token management (retrieval, refresh, expiry checks), OpenID Connect (OIDC) configuration discovery, access to user information, and secure code-verifier / token-storage practices."
+        },
+        {
+          "q": "What OAuth flow does it use?",
+          "a": "OAuth 2.0 Authorization Code flow with PKCE (Proof Key for Code Exchange). The SDK handles PKCE code-challenge generation internally when S256 (SHA-256) is specified."
+        },
+        {
+          "q": "What are the key components/types and how do I initialize it?",
+          "a": "CXoneAuth (class), AuthSettings (config interface), AuthStatus (enum), AuthWithCodeReq and AuthWithTokenReq (request interfaces), and AuthToken (token interface, from @nice-devone/common-sdk). To initialize: create an AuthSettings object, then call CXoneAuth.instance.init(authSettings). Store the settings in local storage for later session restoration."
+        },
+        {
+          "q": "What settings does AuthSettings require?",
+          "a": "Required: cxoneHostname (CXone platform hostname), clientId (OAuth client ID), and redirectUri (callback URI matching client registration). Optional: originatingServiceIdentifier for tracking."
+        },
+        {
+          "q": "How do I start the login flow?",
+          "a": "Call getAuthorizeUrl(authMode, codeChallenge) to generate the authorization URL, then redirect the user (page mode) or open a popup (popup mode). authMode is 'page' or 'popup'; codeChallenge is 'S256'."
+        },
+        {
+          "q": "What authentication modes are supported?",
+          "a": "Page redirect mode (full-page redirect; universal, better for mobile, simpler) and popup window mode (preserves app state, better desktop UX, but requires popup permissions and postMessage handling)."
+        },
+        {
+          "q": "How do I exchange the code for a token?",
+          "a": "After the OAuth server redirects back with an authorization code, call getAccessTokenByCode(authObject). The SDK exchanges the code using the PKCE verifier, stores access/refresh tokens, and emits an AUTHENTICATED status."
+        },
+        {
+          "q": "Can I authenticate with an existing token?",
+          "a": "Yes. Use getAccessTokenByToken() when an access token is already available from another authentication system."
+        },
+        {
+          "q": "How do I monitor authentication status?",
+          "a": "Subscribe to the onAuthStatusChange observable. It emits four states: AUTHENTICATING, AUTHENTICATED, NOT_AUTHENTICATED, and AUTHENTICATION_FAILED."
+        },
+        {
+          "q": "How are tokens refreshed?",
+          "a": "The SDK handles access-token retrieval, refresh, and expiry checks, and leverages a background worker for token-refresh monitoring (implementation details may vary by version)."
+        },
+        {
+          "q": "How do I restore a session after reload?",
+          "a": "Call restoreData() on component mount. It reads persisted settings from local storage, restores access/refresh tokens if available, and re-emits authentication status if tokens are valid."
+        },
+        {
+          "q": "How is state persisted?",
+          "a": "The consumer app uses LocalStorageHelper from @nice-devone/core-sdk to persist auth settings and display mode. Clear local storage on logout or authentication failure to reset state."
+        },
+        {
+          "q": "How does it relate to the other SDKs?",
+          "a": "Auth is the entry point: you authenticate first, then pass the resulting session/tokens to acd-sdk, voice-sdk, digital-sdk, etc. common-sdk provides the shared AuthToken type and core-sdk provides storage helpers."
+        }
+      ]
+    },
+    {
+      "id": "digital-sdk",
+      "name": "Digital SDK",
+      "icon": "chat",
+      "color": "#ff6b35",
+      "description": "Real-time digital channels: email, chat, social. WebSocket case delivery and message handling.",
+      "faqs": [
+        {
+          "q": "What is the Digital SDK and what does it handle?",
+          "a": "A TypeScript library that provides real-time digital channel support on the NICE CXone platform, letting agents handle customer interactions from email, chat, and social media. It is one of nine packages in the nice-cxone-agent-sdk monorepo, published under the @nice-devone scope. It covers digital client interaction, digital channel/service details, inbound and outbound channel invocation, digital contact parsing, user-slot events, event-hub workers for case delivery, and managing the digital WebSocket connection and messages."
+        },
+        {
+          "q": "What are the key components of the Digital SDK?",
+          "a": "Digital Service (channel info, inbound/outbound channels), Digital Contact Helper (parsing logic for digital contacts), User Slot Provider (digital status, restart worker, terminate polling, refresh token), Event Hub Provider (start/terminate event-hub polling), Contact Manager (WebSocket connection + message handling), and Browser Utils."
+        },
+        {
+          "q": "How does case delivery work?",
+          "a": "Once the WebSocket is connected, the SDK receives push notifications of case assignments. It exposes a subscription mechanism for assignment events, a way to retrieve currently assigned cases, and state management for case lifecycle."
+        },
+        {
+          "q": "What are the WebSocket connection states?",
+          "a": "DISCONNECTED (connect), CONNECTING (show loading), CONNECTED (ready to receive cases), RECONNECTING (show reconnection status), and ERROR (display error and retry)."
+        },
+        {
+          "q": "Does it reconnect automatically?",
+          "a": "Yes. The SDK typically implements automatic reconnection logic with exponential backoff to handle network interruptions gracefully."
+        },
+        {
+          "q": "What is the Contact Manager?",
+          "a": "It initializes the digital WebSocket connection, manages user-slot details, and handles incoming/outgoing messages over the digital WebSocket."
+        },
+        {
+          "q": "What does the User Slot Provider do?",
+          "a": "It handles user-slot events such as digital status changes, restarting the worker, terminating polling, and refreshing the token."
+        },
+        {
+          "q": "What does the Event Hub Provider do?",
+          "a": "It initiates the event-hub worker for digital contacts and terminates the polling of the event-hub API when no longer needed."
+        },
+        {
+          "q": "What must I do before using it?",
+          "a": "Authenticate first via @nice-devone/auth-sdk. The digital SDK manages its own connection lifecycle but typically requires an authenticated agent session, using the auth token for the WebSocket connection."
+        },
+        {
+          "q": "What are the required dependencies?",
+          "a": "@nice-devone/auth-sdk (tokens), @nice-devone/core-sdk (LocalStorageHelper for config/state), @nice-devone/common-sdk (shared digital case types), and @nice-devone/agent-sdk (agent profile, skills, permissions). Also commonly @nice-devone/i18n and @nice-devone/shared-apps-lib."
+        },
+        {
+          "q": "How does it relate to the Voice and ACD SDKs?",
+          "a": "They run independently but simultaneously for an omnichannel experience: digital-sdk handles asynchronous digital cases over WebSocket, voice-sdk handles voice over WebRTC/SIP, and acd-sdk manages agent session/state via HTTP polling."
+        },
+        {
+          "q": "How do I integrate it (typical flow)?",
+          "a": "1) Authenticate via auth-sdk; 2) initialize CXoneDigitalClient; 3) establish the digital WebSocket connection; 4) subscribe to case-assignment events; 5) display/handle assigned cases; 6) terminate workers/polling on teardown."
+        },
+        {
+          "q": "What channels does it support?",
+          "a": "Digital channels including email, chat, and social media (e.g. SMS, WhatsApp via CXone), covering both inbound and outbound digital interactions."
+        }
+      ]
+    },
+    {
+      "id": "voice-sdk",
+      "name": "Voice SDK",
+      "icon": "microphone",
+      "color": "#ff5630",
+      "description": "WebRTC voice connectivity, agent leg management, softphone, and SIP signaling.",
+      "faqs": [
+        {
+          "q": "What is the Voice SDK and what does it handle?",
+          "a": "A TypeScript library that lets developers add voice/softphone capabilities to applications built on the NICE CXone platform. It is one of nine packages in the nice-cxone-agent-sdk monorepo, published under the @nice-devone npm scope. It covers WebRTC voice connectivity, agent leg management, and call controls (hold, resume, hangup), plus connection-status tracking and sending/receiving voice messages."
+        },
+        {
+          "q": "What technology powers the voice calls?",
+          "a": "WebRTC / JsSIP for real-time voice communications using SIP signaling. The README notes it performs softphone tasks using AudioCodes."
+        },
+        {
+          "q": "What protocol does it use to talk to CXone?",
+          "a": "The Voice SDK uses WebSocket with SIP signaling for real-time voice communications."
+        },
+        {
+          "q": "What call actions are supported?",
+          "a": "Initiate, answer, hold, resume, transfer, mute, hang up, and other standard call operations, via the connection options."
+        },
+        {
+          "q": "Does it depend on other SDKs in the suite?",
+          "a": "Domain SDKs are independently consumable but share foundation packages: common-sdk provides shared types and core-sdk provides utility functions. Authentication is typically handled by auth-sdk."
+        },
+        {
+          "q": "How is authentication handled?",
+          "a": "Not by the Voice SDK itself. auth-sdk uses HTTPS for an OAuth 2.0 authorization-code flow (with PKCE). You authenticate first, then connect the voice client with the resulting agent session."
+        },
+        {
+          "q": "Does it run in the browser?",
+          "a": "Yes, but the consumer reference app uses react-app-rewired with config-overrides.js to inject Node.js polyfills (buffer, crypto, stream, etc.) required for browser execution."
+        },
+        {
+          "q": "Is there a sample / reference implementation?",
+          "a": "Yes. The cxa-sdk-consumer React app in the repo serves as a reference implementation showing best practices and as a testing harness for voice controls and other features."
+        },
+        {
+          "q": "What Node.js version is recommended?",
+          "a": "The consumer app specifies Node.js version 22.x.x (LTS)."
+        },
+        {
+          "q": "How is it published / released?",
+          "a": "Via manual GitHub Actions workflows: a workflow_dispatch (manual) trigger, running on Ubuntu with Node LTS, publishing pre-built artifacts from dist/ directories to the public npm registry."
+        }
+      ]
+    },
+    {
+      "id": "shared-apps-lib",
+      "name": "Shared Apps Library",
+      "icon": "puzzle",
+      "color": "#7d4ed8",
+      "description": "Integration utilities: screen-pop, CRM bridges, transformers, dynamic component loaders.",
+      "faqs": [
+        {
+          "q": "What is the Shared Apps Library and what is its main purpose?",
+          "a": "A TypeScript library (@nice-devone/shared-apps-lib) that lets developers integrate components, utilities, and interfaces into applications built on the NICE CXone Agent SDK. It acts as a bridge between core SDKs (like ACD and Digital) and custom apps that interact with external systems or integrations. It serves as a utility and integration layer — providing a standardized way to load external components, handle screen-pop events, transform data between systems, and implement consistent interfaces for cross-system communication, while abstracting the complexity of inter-system communication."
+        },
+        {
+          "q": "What are the key components?",
+          "a": "1) Integration Component Loader (dynamically loads integration components by app type); 2) Integration Interfaces (standardized data structures); 3) Utility Functions (validation, remote module loading, data transformation); 4) Integration Event Handlers; and 5) React Hooks for dynamic resource loading and integration."
+        },
+        {
+          "q": "What does the Integration Component Loader do?",
+          "a": "It acts as a middleman that dynamically loads integration components based on the application type, enabling modular and extensible integration with various external systems."
+        },
+        {
+          "q": "What integration interfaces does it provide?",
+          "a": "Standardized interfaces for communicating with external systems, particularly CRM systems — notably the CXone Integration Entity and the Screen Pop Entity — which define the shape of data exchanged between CXone components and external systems."
+        },
+        {
+          "q": "What is screen pop?",
+          "a": "A pattern where customer/contact details automatically surface (pop) in a CRM or external system when a contact arrives. The library provides Screen Pop entities/handlers for both voice and digital contacts."
+        },
+        {
+          "q": "How does it integrate with the ACD SDK?",
+          "a": "It lets ACD-based apps integrate with CRM systems for voice contacts — supporting screen pop on voice contact, attaching voice contacts to CRM records, and syncing agent state with external systems."
+        },
+        {
+          "q": "How does it integrate with the Digital SDK?",
+          "a": "For Digital SDK apps it facilitates digital contact association with CRM records, screen pop on digital contacts, and custom event handling for digital channels."
+        },
+        {
+          "q": "What is Watch RTC?",
+          "a": "An integration with Watch RTC for monitoring voice quality. It enables observing the voice-quality monitoring service using parameters such as BU Id, Agent Id, and Agent Leg Id."
+        },
+        {
+          "q": "What is the useScript hook?",
+          "a": "A React hook that dynamically loads custom scripts by specifying a URL in the script src parameter, enabling on-demand loading of external resources."
+        },
+        {
+          "q": "What are Integration Transformers?",
+          "a": "Utilities that convert data between CXone SDK formats and integration-specific schemas, ensuring proper data mapping between CXone and external systems."
+        },
+        {
+          "q": "What do the utility functions cover?",
+          "a": "Helpers for validation, remote module loading, and data transformation — used to standardize and simplify integration logic across systems."
+        },
+        {
+          "q": "What do the integration event handlers do?",
+          "a": "They manage communication between the CXone Agent application and external systems, coordinating events that flow across integration points."
+        },
+        {
+          "q": "How does it relate to the other SDKs?",
+          "a": "It is the integration/utility layer above the specialized SDKs. common-sdk and core-sdk reference it for shared-app integration, and it bridges ACD/Digital SDKs to external systems such as CRMs."
+        },
+        {
+          "q": "What external systems can it integrate with?",
+          "a": "Primarily CRM systems and other custom external tools, via its standardized integration interfaces, transformers, and screen-pop handling."
+        }
+      ]
+    },
+    {
+      "id": "common-sdk",
+      "name": "Common SDK",
+      "icon": "cube",
+      "color": "#0073e6",
+      "description": "Shared models, types, and utilities used by every other SDK in the suite.",
+      "faqs": [
+        {
+          "q": "What is the Common SDK and what is its main purpose?",
+          "a": "A TypeScript library (@nice-devone/common-sdk) that provides shared models, utilities, and components used across all other SDKs in the NICE CXone Agent SDK ecosystem. It is one of the two foundational packages (with core-sdk) on which the specialized SDKs build."
+        },
+        {
+          "q": "What kinds of models does it provide?",
+          "a": "Shared type definitions and models used across packages — for example the AuthToken interface used by auth-sdk and AgentSessionStatus models used by acd-sdk, along with digital case structures and other cross-cutting types."
+        },
+        {
+          "q": "What are its key dependencies?",
+          "a": "broadcast-channel (cross-tab communication), rxjs (reactive event handling), uuid (unique IDs), shared-apps-lib (shared app integration), React (UI components), @reduxjs/toolkit (state management), react-toastify (notifications), i18n (internationalization), watchrtc-sdk (WebRTC monitoring), and lexical (rich-text editor framework)."
+        },
+        {
+          "q": "What is broadcast-channel used for?",
+          "a": "Cross-tab communication — allowing different browser tabs/instances of the agent application to share messages and stay synchronized."
+        },
+        {
+          "q": "What is rxjs used for?",
+          "a": "Reactive programming / event handling. Observables built on RxJS are used throughout the ecosystem to publish asynchronous state changes (agent state, contacts, connection status, etc.)."
+        },
+        {
+          "q": "What is lexical used for?",
+          "a": "It provides a rich-text editor framework, supporting message composition and formatted text in digital/agent interfaces."
+        },
+        {
+          "q": "What is watchrtc-sdk used for?",
+          "a": "WebRTC monitoring — observing and reporting on real-time voice/media quality used by the voice experience."
+        },
+        {
+          "q": "Does it handle data persistence?",
+          "a": "Yes, in part. The Common SDK contributes to client-side persistence with a focus on IndexedDB — for example its IndexDB model was updated to manage contact-history data."
+        },
+        {
+          "q": "What were the recent updates (25.1.1)?",
+          "a": "Updated the IndexDB model to manage contact-history data, added clickable hyperlink support for case custom fields, and added automatic scrolling to the newest message on initial view."
+        },
+        {
+          "q": "Does it provide UI components?",
+          "a": "Yes. Because it depends on React, @reduxjs/toolkit, and react-toastify, it can supply shared UI components and notification patterns reused across the specialized SDKs."
+        },
+        {
+          "q": "How does it relate to the Core SDK?",
+          "a": "The Core SDK builds directly on top of the Common SDK, adding infrastructure such as real-time communication (SignalR), resilience (cockatiel), logging/monitoring (Datadog), and IndexedDB wrappers (idb)."
+        },
+        {
+          "q": "How does it relate to the specialized SDKs?",
+          "a": "auth-sdk, acd-sdk, voice-sdk, digital-sdk, and agent-sdk all depend on the Common SDK for shared models and utilities, ensuring consistent types and behavior across channels."
+        },
+        {
+          "q": "Do I use it directly?",
+          "a": "Often indirectly. You typically install it because a specialized SDK depends on it, but you may import shared types/models (like AuthToken) from it directly when wiring SDKs together."
+        },
+        {
+          "q": "Is it specific to one channel?",
+          "a": "No. It is channel-agnostic — it provides cross-cutting models and utilities rather than voice-, digital-, or ACD-specific logic."
+        },
+        {
+          "q": "What is internationalization (i18n) doing here?",
+          "a": "The i18n dependency provides localization support so shared components and messages can be translated, keeping language handling consistent across the suite."
+        }
+      ]
+    },
+    {
+      "id": "integration",
+      "name": "Integration & Platform",
+      "icon": "link",
+      "color": "#f97316",
+      "description": "Integrating with CustomerVue, CRM systems, events, latency, and platform behavior.",
+      "faqs": [
+        {
+          "q": "How should we handle authentication between CustomerVue and CXone?",
+          "a": "CXone supports both SSO and username/password credentials. It's part of the Auth SDK."
+        },
+        {
+          "q": "Can we reuse CXone authentication (SSO) or do we need separate login flows?",
+          "a": "Yes, you can reuse CXone authentication (SSO). It's part of the Auth SDK."
+        },
+        {
+          "q": "Are there latency considerations when triggering actions?",
+          "a": "Sometimes, as the Agent application depends on CXone platform services. Specific latency behavior depends on the customer scenario — share details and we can advise."
+        },
+        {
+          "q": "What real-time data can we reliably access during an active call?",
+          "a": "Agent details and call-contact related details, along with the current agent status."
+        },
+        {
+          "q": "How often do events fire (event frequency / throttling)?",
+          "a": "From the CMA agent application — the get-next event frequency is ≤ 60 seconds. CXone platform services handle the throttling."
+        },
+        {
+          "q": "Is there a definitive \"call completed\" event?",
+          "a": "Yes — a definite call-completed event is available as part of the get-next event stream."
+        },
+        {
+          "q": "Are there post-call events (wrap-up, disposition, AI Summary)?",
+          "a": "Yes. Wrap-up (also called disposition) is set at the agent skill level and appears post-call based on configuration. AI Summary is also available as part of disposition notes post-call (confirm SDK availability for your version)."
+        },
+        {
+          "q": "Is there a delay before post-call data becomes available?",
+          "a": "No — it's available on demand based on the action."
+        },
+        {
+          "q": "What are the biggest limitations of the SDK?",
+          "a": "No major limitations in the CXone Agent application itself, but customer-specific use cases can be addressed on a need basis."
+        },
+        {
+          "q": "What commonly breaks in custom integrations?",
+          "a": "Missing or incorrect configurations for agent / BU-level permissions. CXone Agent is built in ReactJS, so custom agent applications using a different JavaScript framework may need adhoc adjustments."
+        },
+        {
+          "q": "Do you provide sandbox environments?",
+          "a": "No dedicated sandbox environments. Instead we provide a sample consumer app with minimal features for quick hands-on, demonstrating how to use the SDK functions effectively, along with detailed documentation."
+        },
+        {
+          "q": "Is this SDK actively evolving?",
+          "a": "Yes. NICE CXone operates on a release cadence — each release publishes the latest SDK packages on NPM, and customers can download them for integration."
+        },
+        {
+          "q": "Can we simulate inbound calls and events?",
+          "a": "Yes — both inbound and outbound calls and events between a patron and an agent can be simulated."
+        },
+        {
+          "q": "What call control actions are fully supported via the SDK?",
+          "a": "Readily supported: start call, answer, hold/resume, mute/unmute, mask/unmask, start/stop recording, transfer, conference, consult, and end call."
+        },
+        {
+          "q": "What other voice features are supported?",
+          "a": "Auto accept, manual accept/reject call, and disposition handling."
+        },
+        {
+          "q": "Are these SDKs paid or free to license?",
+          "a": "Currently these SDKs are free."
+        },
+        {
+          "q": "Where do customers download SDK packages?",
+          "a": "From the NPM portal — the latest SDK packages are published there for each release."
+        }
+      ]
+    },
+    {
+      "id": "consumer-app",
+      "name": "cxa-sdk-consumer (Reference App)",
+      "icon": "code",
+      "color": "#16a34a",
+      "description": "Setup, configuration, init order, and troubleshooting for the sample React app shipped in the repo.",
+      "faqs": [
+        {
+          "q": "What is cxa-sdk-consumer and what is its purpose?",
+          "a": "A demo React application in the nice-cxone-agent-sdk repository that serves as a reference implementation and testing harness for the NICE CXone Agent SDK packages. It demonstrates best-practice integration of the Auth, ACD, Voice, and Digital SDKs. It is not a published npm package — you run it from source. Its purpose is to show how to wire the specialized SDKs together in a working app and to act as a sandbox for testing authentication, ACD sessions, voice, and digital case delivery locally."
+        },
+        {
+          "q": "What are the software prerequisites?",
+          "a": "VS Code (recommended IDE), Node.js v22.x.x (runtime), Git (version control), npm (bundled with Node), and optionally nvm for managing Node versions."
+        },
+        {
+          "q": "What CXone configuration is required first?",
+          "a": "You must obtain a CXone Agent Client ID from the NICE CXone platform: get access to the NICE CXone Developer Portal, create an OAuth application, and configure the Redirect URI for OAuth callbacks (typically http://localhost:3000/ for local dev)."
+        },
+        {
+          "q": "What is the absolute minimum to get cxa-sdk-consumer running locally?",
+          "a": "Five steps: (1) install Node.js 22.x; (2) `git clone` the repo and `cd cxa-sdk-consumer`; (3) `npm install` (use `--legacy-peer-deps` if it fails); (4) edit `src/components/auth/authDefaults.ts` and put your CXone hostname, clientId, and redirectUri there; (5) `npm start`. The app opens at http://localhost:3000/. For local dev you'll also need to launch Chrome with `--disable-web-security --user-data-dir=...` to avoid CORS."
+        },
+        {
+          "q": "Where exactly do I set my CXone Client ID, hostname, and redirect URI?",
+          "a": "One file only: `src/components/auth/authDefaults.ts`. It exports a single object: `{ hostName, clientId, redirectUri }`. Both `Auth.tsx` and `AuthCallback.tsx` import this and use it as the `defaultValue` for their TextFields, so editing `authDefaults.ts` is enough — you do NOT need to touch Auth.tsx or AuthCallback.tsx separately."
+        },
+        {
+          "q": "How does authDefaults.ts flow into the actual auth call?",
+          "a": "`Auth.tsx` reads the form values from `hostName.current.value`, `clientId.current.value`, and `redirectUri.current.value` (which default from `authDefaults`) into an `AuthSettings` object, persists it to LocalStorage under the key `auth_consumer`, then calls `CXoneAuth.instance.init(authSetting)`. After the OAuth redirect, `AuthCallback.tsx` reads `auth_consumer` back, calls `cxoneAuth.init(...)` again, and then `getAccessTokenByCode({ clientId, code })` to exchange the code for tokens."
+        },
+        {
+          "q": "What is the correct init sequence at app startup?",
+          "a": "1) `ReactDOM.createRoot().render(<BrowserRouter><ThemeProvider><App/></ThemeProvider></BrowserRouter>)` in `index.tsx`. 2) `App.tsx` renders `<ErrorBoundary><Navbar/></ErrorBoundary>`. 3) On the Auth route, `Auth.tsx` does `cxoneAuth.restoreData()` and subscribes to `onAuthStatusChange` BEFORE the user clicks Authenticate. 4) After successful auth, on the ACD tab, `AcdSdk.tsx` calls `CXoneAcdClient.instance.initAcdEngagement()`, then in `.finally()` fires `getPermissions()` and `startWemWebSocket()`. 5) Only after those succeed do you start a session or initialize WebRTC."
+        },
+        {
+          "q": "Which SDK method must I call first, before anything else?",
+          "a": "`CXoneAuth.instance.init(authSetting)` — followed by `CXoneAuth.instance.restoreData()` on mount (to rehydrate any existing tokens from LocalStorage). You CANNOT call ACD, Voice, or Digital SDK methods before the auth token is in place; they'll either no-op or throw."
+        },
+        {
+          "q": "When and where should I call initAcdEngagement()?",
+          "a": "Inside the ACD page component, in a `useEffect(() => { ... }, [])` that runs once on mount — exactly as `AcdSdk.tsx` does: `CXoneAcdClient.instance.initAcdEngagement().finally(() => { /* now safe to call getPermissions and startWemWebSocket */ })`. Calling it before authentication completes will silently fail; calling it twice is wasteful but harmless."
+        },
+        {
+          "q": "Why does startWemWebSocket() throw \"is not a function\" if called too early?",
+          "a": "Because `CXoneClient.instance.notification` is only fully wired up AFTER `initAcdEngagement()` resolves. If you call `startWemWebSocket` before that promise settles, the `notification` namespace doesn't yet expose the method and JavaScript reports `startWemWebSocket is not a function`. Always put it inside the `.finally()` (or `.then()`) of `initAcdEngagement()`."
+        },
+        {
+          "q": "When should I call getPermissions(), and what breaks if I forget?",
+          "a": "Call `CXoneClient.instance.agentPermission.getPermissions()` right after `initAcdEngagement()` resolves. The SDK uses the result to populate `voiceContact.callControlButton.record.{isVisible, isEnable, controlText}` on every `voiceContactUpdateEvent`. If you skip it, `record.isEnable` stays `false` for the whole session and BOTH the Start Record and Stop Record buttons render disabled, even mid-call (the gate `!recordControl.isEnable` is always true). Wrap it in try/catch + `.catch()` so a permissions failure doesn't break the rest of init."
+        },
+        {
+          "q": "When is it safe to subscribe to voiceContactUpdateEvent or onConnectionStatusChanged?",
+          "a": "As soon as the component mounts — these are RxJS Subjects, so subscribing early just means you'll receive events as soon as they're emitted. Subscribe in a separate `useEffect(() => { ... }, [])` (not inside the init effect) so re-renders don't duplicate handlers. Use a `useRef` flag like `subscriptionsInitializedRef` if you want to guard against double-subscribe in StrictMode."
+        },
+        {
+          "q": "How does authentication flow work in the app?",
+          "a": "OAuth 2.0 + PKCE via the auth-sdk. User clicks Authenticate → `cxoneAuth.init(authSetting)` → `getAuthorizeUrl(mode, codeChallenge)` → CXone login page → on success, redirects to `redirectUri` (the AuthCallback route) with `?code=...` → `AuthCallback.tsx` exchanges the code via `getAccessTokenByCode({ clientId, code })` → tokens are persisted and `onAuthStatusChange` fires AUTHENTICATED → ACD, Voice, and Digital tabs become usable."
+        },
+        {
+          "q": "What does cxoneAuth.restoreData() actually do, and when should I call it?",
+          "a": "It reads the persisted `auth_consumer` settings + access/refresh tokens from LocalStorage and re-emits the current `AuthStatus` (AUTHENTICATED, NOT_AUTHENTICATED, etc.) via `onAuthStatusChange`. Call it once, inside the `useEffect(() => { subscribeToAuth(); cxoneAuth.restoreData(); }, [])` of your Auth component. Without it, the user has to re-authenticate every page reload."
+        },
+        {
+          "q": "What's the difference between Page mode and Popup mode for auth?",
+          "a": "Page mode: `window.location.href = authUrl` — full-page redirect to CXone, then back to your `redirectUri`. Universal, mobile-friendly, simpler. Popup mode: `window.open(authUrl, 'authWindow', popupOptions)` — opens the CXone login in a popup; the callback page `postMessage`s the code back to the opener via `window.opener.postMessage(...)`. Better for desktop UX (preserves app state) but requires popup permissions. The selected mode is persisted to LocalStorage under `display_mode` so `AuthCallback.tsx` knows how to handle the response."
+        },
+        {
+          "q": "Where does the OAuth callback land, and what happens there?",
+          "a": "It lands at the `redirectUri` you configured — typically `http://localhost:3000/auth-callback`, which is the `AuthCallback.tsx` route. That component: (1) reads `?code=...` from the URL, (2) reads `display_mode` from LocalStorage, (3) if popup → `window.opener.postMessage({ messageType: 'Authenticated', code })`, (4) if page → reads `auth_consumer` settings, calls `cxoneAuth.init(...)` again, then `cxoneAuth.getAccessTokenByCode({ clientId, code })`. Tokens are stored by the SDK and `onAuthStatusChange` fires AUTHENTICATED."
+        },
+        {
+          "q": "What LocalStorage keys does the consumer app rely on?",
+          "a": "Three keys you should know about: `auth_consumer` (the JSON-stringified `AuthSettings` — hostname, clientId, redirectUri, originatingServiceIdentifier), `display_mode` (`'page'` or `'popup'`), and `selectedIndex` (which side-nav tab was last active). The auth-sdk itself adds several token-related keys via `LocalStorageHelper` — to fully reset state, call `LocalStorageHelper.clearStorage()` (which the app does on NOT_AUTHENTICATED and AUTHENTICATION_FAILED)."
+        },
+        {
+          "q": "What should I see after authenticating?",
+          "a": "Three sections become usable: Auth (status/config visible), Digital (assigned cards displayed and a WebSocket connection established for real-time case delivery), and Acd (session start available, get-next-event polling begins automatically, and ACD events stream in)."
+        },
+        {
+          "q": "npm install fails with peer-dependency conflicts — how do I fix it?",
+          "a": "Retry with `npm install --legacy-peer-deps`. The consumer app bundles many `@nice-devone/*` packages alongside React 18 / MUI 5, and older transitive deps occasionally declare incompatible peer ranges. `--legacy-peer-deps` tells npm to use the legacy resolution algorithm (npm 6 behavior) and skip the strict peer check. If even that fails, double-check you're on Node 22.x — older Node versions can fail on optional native modules."
+        },
+        {
+          "q": "I'm getting \"process is not defined\" or \"Buffer is not defined\" — what's wrong?",
+          "a": "Some SDK code expects Node.js globals that don't exist in the browser. The fix is in `config-overrides.js`: a `webpack.ProvidePlugin` injects `process` and `Buffer` globally, and `config.resolve.fallback` polyfills `crypto`, `stream`, `http`, `https`, `os`, `url`, `vm`, `buffer`, `assert`. If you see this error, you're likely running `react-scripts start` directly instead of `react-app-rewired start` (the `start` script in package.json must use `react-app-rewired`)."
+        },
+        {
+          "q": "I keep hitting CORS errors during local development — how do I work around it?",
+          "a": "Launch Chrome with web security disabled, using a separate user-data-dir so you don't compromise your normal profile: Windows: `chrome.exe --user-data-dir=\"C://Chrome dev session\" --disable-web-security`. macOS: `open -na \"Google Chrome\" --args --user-data-dir=\"/tmp/chrome_dev\" --disable-web-security`. Use that browser window for local dev only — never browse the public web with web security off."
+        },
+        {
+          "q": "Port 3000 is already in use — how do I change it?",
+          "a": "Either kill the process that's holding port 3000, or run with a different port via the `PORT` env var: Windows (cmd): `set PORT=3001 && npm start`. PowerShell: `$env:PORT=3001; npm start`. macOS/Linux: `PORT=3001 npm start`. Remember: if you change the port, you also need to update the `redirectUri` in `authDefaults.ts` AND the CXone client-ID configuration in the Developer Portal, otherwise OAuth will reject the callback."
+        },
+        {
+          "q": "After login I'm bounced back to the login screen — what should I check first?",
+          "a": "In order: (1) `clientId` in `authDefaults.ts` matches the Client ID in the CXone Developer Portal exactly. (2) `redirectUri` matches the Redirect URI configured for that client (scheme, host, port, and path all must match). (3) `hostName` points at the right CXone environment (e.g. staging vs production). (4) Open DevTools → Application → Local Storage and confirm `auth_consumer` is present. (5) Watch the Network tab for the `/token` request — a 4xx response tells you whether it's `invalid_client`, `invalid_redirect_uri`, or `invalid_grant`. (6) If all looks right, call `LocalStorageHelper.clearStorage()` and try again."
+        },
+        {
+          "q": "WebRTC won't connect / I see no audio — what are the common causes?",
+          "a": "(1) Browser microphone permission was denied — re-grant it in site settings. (2) You're on http:// for a non-localhost origin; WebRTC requires https or localhost. (3) `initAcdEngagement()` hasn't resolved yet, so the agent session isn't ready. (4) Corporate firewall is blocking UDP / TURN traffic to the CXone media plane. (5) Wrong agent-leg / no agent leg connected — check `onConnectionStatusChanged` and `voiceConnectionState` in the AcdSdk component."
+        },
+        {
+          "q": "The record button stays disabled mid-call — why?",
+          "a": "Because `CXoneClient.instance.agentPermission.getPermissions()` wasn't called (or failed silently). The SDK populates `voiceContact.callControlButton.record.isEnable` from the agent permissions response on every `voiceContactUpdateEvent`. If permissions never load, `isEnable` is permanently `false` and the gate `!recordControl.isEnable` always evaluates true — both Start Record and Stop Record stay disabled. Fix: ensure `getPermissions()` runs inside the `.finally()` of `initAcdEngagement()`, wrapped in try/catch and a `.catch()` for safety."
+        },
+        {
+          "q": "I see \"startWemWebSocket failed\" in the console — is the app broken?",
+          "a": "No — WEM is best-effort and intentionally isolated. The consumer app wraps `startWemWebSocket` three ways: a synchronous try/catch around the call itself, a `.catch()` on the returned promise, and a `CXoneClient.instance.notification.onCXoneNotificationEvent.subscribe(...)` that logs any later transport-level errors. Voice, mute, hold, and the rest of the call controls continue to work even if WEM never connects. The error usually means the agent lacks WEM entitlement, the WS endpoint is blocked, or auth expired — investigate, but don't panic."
+        },
+        {
+          "q": "Which NICE CXone SDKs does it use?",
+          "a": "@nice-devone/acd-sdk (ACD session & contact management), @nice-devone/digital-sdk (digital channels), and @nice-devone/voice-sdk (voice/WebRTC) — along with the auth/agent/common/core foundations they depend on. Versions are declared in the consumer app's `package.json`."
+        },
+        {
+          "q": "What UI framework does it use?",
+          "a": "React 18.2 with react-dom, react-router-dom 7.x for client-side routing, and @mui/material 5.x (Material Design components)."
+        },
+        {
+          "q": "What real-time / communication libraries are used?",
+          "a": "@microsoft/signalr (SignalR WebSocket client), rxjs (reactive programming), and broadcast-channel (cross-tab communication)."
+        },
+        {
+          "q": "What observability tooling is included?",
+          "a": "@datadog/browser-logs for logging and @datadog/browser-rum for real-user monitoring."
+        },
+        {
+          "q": "What build tooling does it use?",
+          "a": "react-app-rewired instead of standard react-scripts, which applies custom Webpack configuration via config-overrides.js before running Create React App. Scripts: start, build, test, and eject (all via react-app-rewired)."
+        },
+        {
+          "q": "What does config-overrides.js actually do, and when is it required?",
+          "a": "It's read by `react-app-rewired` to patch Create React App's webpack config without ejecting. The consumer app uses it for two things: (1) `config.resolve.fallback` — polyfills Node built-ins (`crypto`, `stream`, `http`, `https`, `os`, `url`, `vm`, `buffer`, `assert`) so SDK code that imports them runs in the browser; (2) `webpack.ProvidePlugin` — makes `process` and `Buffer` available as globals. Without this file, you'll see \"Module not found: crypto\" or \"process is not defined\" errors during build / runtime."
+        },
+        {
+          "q": "What environment variables does it use?",
+          "a": "A minimal .env with GENERATE_SOURCEMAP = false, which disables source-map generation to reduce build artifact size and speed up builds."
+        },
+        {
+          "q": "How do I produce a production build?",
+          "a": "`npm run build` — which runs `react-app-rewired build` and outputs a static bundle to `build/`. Source maps are disabled via the `.env` file (`GENERATE_SOURCEMAP = false`) for smaller, faster builds. Serve the `build/` folder behind any static host (nginx, S3 + CloudFront, GitHub Pages, etc.). Note: the production build still needs CORS handled at the server level — `--disable-web-security` only works for local dev."
+        },
+        {
+          "q": "What browsers does it target?",
+          "a": "Per its browserslist config: browsers with >0.2% market share, that are not dead (still receiving security updates), and excluding Opera Mini (limited JavaScript support)."
+        },
+        {
+          "q": "How does ErrorBoundary work, and what does it NOT catch?",
+          "a": "`ErrorBoundary` is a class component that wraps `<Navbar/>` in `App.tsx`. React calls `getDerivedStateFromError` and `componentDidCatch` when a descendant component throws during render, lifecycle, or constructor — it then renders a fallback \"Something went wrong\" card. It does NOT catch: errors inside event handlers (use try/catch there), errors in async code (Promises, setTimeout — handle with `.catch()` or `tryCatchWrapper`), errors during SSR, or errors thrown in the boundary itself. SDK errors raised inside subscriptions or promise chains will NOT trigger it."
+        },
+        {
+          "q": "What does the tryCatchWrapper utility do, and when should I use it?",
+          "a": "`tryCatchWrapper<T>(asyncFunction, errorHandler)` (in `src/utils/tryCatchWrapper.ts`) awaits an async function, returns its result on success, and on failure calls your `errorHandler(error)` and returns `null`. Use it any time you're calling an SDK method that returns a Promise inside a React handler or effect — it gives you typed null-or-T semantics without sprinkling try/catch everywhere. Example: `const result = await tryCatchWrapper(() => digitalContactManager.getContactDetails(id, true), (err) => logger.error('getContactDetails failed', JSON.stringify(err)));`"
+        },
+        {
+          "q": "How do I add a new route / tab to the side navbar?",
+          "a": "In `src/components/side-navbar/NavBar.tsx`: (1) add a new icon to the `tabIcons` array, (2) add a new `<ListItem>` rendering its label, (3) add a branch to `handleListItemClick` (e.g. `if (index === 4) navigate('/my-route')`), (4) add a matching `<Route path='/my-route' element={<MyComponent/>}/>` inside the `<Routes>` block, (5) update the `useEffect` that maps `location.pathname` → `selectedIndex` so highlighting works. Don't forget to gate the new tab behind `disableTab` if it needs auth first."
+        },
+        {
+          "q": "How is the Logger used throughout the consumer app?",
+          "a": "Each component instantiates its own labeled logger: `const logger = new Logger('SDK-CONSUMER', 'AcdSdk')` (or 'Auth', 'DigitalSdk', 'NavBar' etc.). Use `logger.info`, `logger.warn`, `logger.error` for milestones and failures, always stringifying object payloads: `logger.info('initAcdEngagement complete', '')` or `logger.error('getPermissions failed', JSON.stringify(err))`. Logs flow through the core-sdk Logger into the configured sinks — by default the browser console, but if Datadog (`@datadog/browser-logs`) is initialized they also go there."
+        }
+      ]
+    }
+  ]
+}
+;
+
