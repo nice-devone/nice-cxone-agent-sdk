@@ -30,8 +30,6 @@ FAQ/
 ├── data/
 │   ├── faqs.json           Source of truth (edit here)
 │   └── faqs-data.js        Auto-generated mirror loaded by the page
-├── assets/
-│   └── favicon.svg
 └── README.md
 ```
 
