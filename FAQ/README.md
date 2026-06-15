@@ -53,5 +53,5 @@ Pushed changes under `FAQ/**` (or `storybooks/**`) deploy via [.github/workflows
 
 The resulting site layout:
 
-- `/` — this FAQ
-- `/storybooks/` — Storybook bundle
+- `/` — Storybook (default)
+- `/faq/` — this FAQ

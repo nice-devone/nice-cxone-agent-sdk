@@ -8,14 +8,13 @@ name: Deploy GitHub Pages (FAQ + Storybooks)
 # wipe whichever artifact was uploaded second-to-last.
 #
 # Layout of the deployed site:
-#   /              -> FAQ static site (FAQ/)
-#   /storybooks/   -> Storybook bundle (storybooks/)
+#   /       -> Storybook bundle (storybooks/)
+#   /faq/   -> FAQ static site (FAQ/)
 
 on:
   push:
     branches:
       - main
-      - faq-section
     paths:
       - 'FAQ/**'
       - 'storybooks/**'
@@ -40,24 +39,24 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      - name: Assemble _site folder (FAQ at root, storybooks under /storybooks)
+      - name: Assemble _site folder (Storybook at root, FAQ under /faq)
         run: |
           set -euo pipefail
           mkdir -p _site
 
-          if [ -d "FAQ" ]; then
-            echo "Copying FAQ/ -> _site/"
-            cp -R FAQ/. _site/
-          else
-            echo "::warning::FAQ folder not found - skipping FAQ copy."
-          fi
-
           if [ -d "storybooks" ]; then
-            echo "Copying storybooks/ -> _site/storybooks/"
-            mkdir -p _site/storybooks
-            cp -R storybooks/. _site/storybooks/
+            echo "Copying storybooks/ -> _site/"
+            cp -R storybooks/. _site/
           else
             echo "::warning::storybooks folder not found - skipping storybooks copy."
+          fi
+
+          if [ -d "FAQ" ]; then
+            echo "Copying FAQ/ -> _site/faq/"
+            mkdir -p _site/faq
+            cp -R FAQ/. _site/faq/
+          else
+            echo "::warning::FAQ folder not found - skipping FAQ copy."
           fi
 
           # Tell GitHub Pages not to run Jekyll processing.
