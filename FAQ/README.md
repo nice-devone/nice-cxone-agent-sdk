@@ -1,4 +1,4 @@
-# NICE CXone Agent SDK — FAQ
+# NICE CMA SDK — FAQ
 
 A simple, fast, fully-static FAQ site for the [nice-cxone-agent-sdk](https://www.npmjs.com/org/nice-devone) packages and the `cxa-sdk-consumer` reference app.
 

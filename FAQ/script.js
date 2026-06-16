@@ -1,5 +1,5 @@
 /* ---------------------------------------------------------
-   NICE CXone Agent SDK — FAQ
+   NICE CMA SDK — FAQ
    Simple in-place search + accordion. No fetch, no card jumps.
 --------------------------------------------------------- */
 

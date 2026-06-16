@@ -1,7 +1,6 @@
-// Auto-generated from faqs.json — sets a global so the page works on file:// without fetch.
 window.__FAQ_DATA__ = {
   "meta": {
-    "title": "NICE CXone Agent SDK — FAQ",
+    "title": "NICE CMA SDK — FAQ",
     "subtitle": "Answers to common questions about the nice-cxone-agent-sdk packages and the cxa-sdk-consumer reference app.",
     "lastUpdated": "2026-06-13",
     "version": "25.4"
@@ -325,7 +324,7 @@ window.__FAQ_DATA__ = {
       "faqs": [
         {
           "q": "What is the Shared Apps Library and what is its main purpose?",
-          "a": "A TypeScript library (@nice-devone/shared-apps-lib) that lets developers integrate components, utilities, and interfaces into applications built on the NICE CXone Agent SDK. It acts as a bridge between core SDKs (like ACD and Digital) and custom apps that interact with external systems or integrations. It serves as a utility and integration layer — providing a standardized way to load external components, handle screen-pop events, transform data between systems, and implement consistent interfaces for cross-system communication, while abstracting the complexity of inter-system communication."
+          "a": "A TypeScript library (@nice-devone/shared-apps-lib) that lets developers integrate components, utilities, and interfaces into applications built on the NICE CMA SDK. It acts as a bridge between core SDKs (like ACD and Digital) and custom apps that interact with external systems or integrations. It serves as a utility and integration layer — providing a standardized way to load external components, handle screen-pop events, transform data between systems, and implement consistent interfaces for cross-system communication, while abstracting the complexity of inter-system communication."
         },
         {
           "q": "What are the key components?",
@@ -390,7 +389,7 @@ window.__FAQ_DATA__ = {
       "faqs": [
         {
           "q": "What is the Common SDK and what is its main purpose?",
-          "a": "A TypeScript library (@nice-devone/common-sdk) that provides shared models, utilities, and components used across all other SDKs in the NICE CXone Agent SDK ecosystem. It is one of the two foundational packages (with core-sdk) on which the specialized SDKs build."
+          "a": "A TypeScript library (@nice-devone/common-sdk) that provides shared models, utilities, and components used across all other SDKs in the NICE CMA SDK ecosystem. It is one of the two foundational packages (with core-sdk) on which the specialized SDKs build."
         },
         {
           "q": "What kinds of models does it provide?",
@@ -536,7 +535,7 @@ window.__FAQ_DATA__ = {
       "faqs": [
         {
           "q": "What is cxa-sdk-consumer and what is its purpose?",
-          "a": "A demo React application in the nice-cxone-agent-sdk repository that serves as a reference implementation and testing harness for the NICE CXone Agent SDK packages. It demonstrates best-practice integration of the Auth, ACD, Voice, and Digital SDKs. It is not a published npm package — you run it from source. Its purpose is to show how to wire the specialized SDKs together in a working app and to act as a sandbox for testing authentication, ACD sessions, voice, and digital case delivery locally."
+          "a": "A demo React application in the nice-cxone-agent-sdk repository that serves as a reference implementation and testing harness for the NICE CMA SDK packages. It demonstrates best-practice integration of the Auth, ACD, Voice, and Digital SDKs. It is not a published npm package — you run it from source. Its purpose is to show how to wire the specialized SDKs together in a working app and to act as a sandbox for testing authentication, ACD sessions, voice, and digital case delivery locally."
         },
         {
           "q": "What are the software prerequisites?",
@@ -695,4 +694,3 @@ window.__FAQ_DATA__ = {
   ]
 }
 ;
-
