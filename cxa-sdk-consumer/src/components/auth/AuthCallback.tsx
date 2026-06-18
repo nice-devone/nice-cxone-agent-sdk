@@ -30,6 +30,7 @@ import {
   import { AuthStatus, AuthWithCodeReq, CXoneAuth } from "@nice-devone/auth-sdk";
   import { useNavigate } from "react-router-dom";
   import { LocalStorageHelper } from "@nice-devone/core-sdk";
+  import { authDefaults } from "./authDefaults";
   
   
   const AuthCallBack = () => {
@@ -98,6 +99,7 @@ import {
     }
   },[authToken]);
     function subscribeToAuth() {
+      // Subscribe only once — re-subscribing on re-render would duplicate handlers.
       cxoneAuth.onAuthStatusChange.subscribe((data) => {
         switch (data.status) {
           case AuthStatus.AUTHENTICATING:
@@ -135,7 +137,7 @@ import {
                   variant="outlined"
                   InputLabelProps={{ shrink: true }}
                   inputRef={hostName}
-                  defaultValue={"https://cxone.niceincontact.com"}
+                  defaultValue={authDefaults.hostName}
                   required
                 />
                 <TextField
@@ -144,7 +146,7 @@ import {
                   variant="outlined"
                   InputLabelProps={{ shrink: true }}
                   inputRef={clientId}
-                  defaultValue=""
+                  defaultValue={authDefaults.clientId}
                   required
                 />
                 <TextField
@@ -153,7 +155,7 @@ import {
                   variant="outlined"
                   InputLabelProps={{ shrink: true }}
                   inputRef={redirectUri}
-                  defaultValue="http://localhost:3000/"
+                  defaultValue={authDefaults.redirectUri}
                   required
                 />
                 <FormControl
