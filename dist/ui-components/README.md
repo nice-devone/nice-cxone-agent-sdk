@@ -2,6 +2,7 @@
 
 * [Official SDK Documentation](https://help.nice-incontact.com/content/agent/agentapplicationadministration/cxoneagent/cxasdk.htm?tocpath=Agent%20Application%20Administration%7CAgent%20Application%20Administration%7CCXone%20Agent%7C_____8)
 * [NPM package](https://www.npmjs.com/package/@nice-devone/ui-components)
+* [Live Storybook Preview](https://nice-devone.github.io/nice-cxone-agent-sdk/) — Interactive showcase of how the UI components look and behave when consumed in a custom app.
 
 ### Requirements
 
@@ -171,6 +172,14 @@ const App = () => {
 
 For detailed documentation and developer-related queries, please visit:
 * [Official SDK Documentation](https://help.nice-incontact.com/content/agent/agentapplicationadministration/cxoneagent/cxasdk.htm?tocpath=Agent%20Application%20Administration%7CAgent%20Application%20Administration%7CCXone%20Agent%7C_____8)
+
+### Storybook Preview
+
+Explore the components live before integrating them into your application:
+
+* **Live Storybook:** [https://nice-devone.github.io/nice-cxone-agent-sdk/](https://nice-devone.github.io/nice-cxone-agent-sdk/)
+
+The Storybook demonstrates how each UI component renders, its supported props, theming, and the look-and-feel you can expect when these components are consumed inside a custom agent application.
 
 ### Compatibility
 
