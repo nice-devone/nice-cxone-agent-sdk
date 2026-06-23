@@ -15,13 +15,14 @@
  */
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import {
-  Box,
   Button,
   Card,
   CardContent,
+  Checkbox,
   Chip,
   CircularProgress,
   Divider,
+  FormControlLabel,
   Stack,
   Table,
   TableBody,
@@ -37,21 +38,39 @@ import SearchIcon from '@mui/icons-material/Search';
 import RefreshIcon from '@mui/icons-material/Refresh';
 import GroupIcon from '@mui/icons-material/Group';
 import ContactPhoneIcon from '@mui/icons-material/ContactPhone';
+import PersonSearchIcon from '@mui/icons-material/PersonSearch';
 import { CXoneClient } from '@nice-devone/agent-sdk';
-import { CXoneAuth } from '@nice-devone/auth-sdk';
+import { CXoneAuth, CXoneUser } from '@nice-devone/auth-sdk';
 import {
   AddressBooks,
   AddressBooksEntries,
+  AgentStateResponse,
+  DirectoryEntities,
   DirectoryEntry,
   DirectoryResponse,
+  SearchDirectoriesRequest,
   SearchDirectoriesResponse,
 } from '@nice-devone/common-sdk';
-import { Logger } from '@nice-devone/core-sdk';
+import { ACDSessionManager, Logger } from '@nice-devone/core-sdk';
 
 
 // SDK Logger
 const logger = new Logger('SDK-CONSUMER', 'DirectoryAndAddressBook');
 const DEFAULT_PAGE_SIZE = 50;
+// Agent directory fetches the full matched set so every matching agent appears in
+// one list (the SDK slices by offset/limit; a high limit returns everything).
+const AGENT_FETCH_LIMIT = 1000;
+// Agent-directory polling runs through a Web Worker. A long interval makes it an
+// effectively one-shot poll, and we call terminateDirectoryPolling() once the
+// filtered result arrives so a later poll tick cannot overwrite the
+// getFilteredAgentList output rendered in the table.
+const AGENT_POLL_INTERVAL_MS = 600000;
+
+// The published common-sdk AgentStateResponse type may not yet declare `email`
+// (added alongside the v34 agent-state endpoint). The runtime object still carries
+// it, so read it through this widened type to render the column without coupling to
+// a specific SDK build.
+type AgentWithEmail = AgentStateResponse & { email?: string | null };
 
 /**
  * Snapshot of the dynamic-directory readiness state. The SDK silently drops
@@ -80,13 +99,61 @@ const getDirectoryDiagnostics = () => {
   } catch {
     /* auth not initialised */
   }
+  // The agent-state poll inside the SDK reads its base URI + token from
+  // ACDSessionManager (NOT CXoneAuth). Surface that instance's state so a missing
+  // ACD session - the usual reason the agent poll silently fires nothing - is visible.
+  let acdBaseUri = '';
+  let acdHasToken = false;
+  try {
+    const session: any = ACDSessionManager.instance;
+    acdBaseUri = session?.cxOneConfig?.acdApiBaseUri || session?.cxOneConfig?.apiFacadeBaseUri || '';
+    acdHasToken = !!session?.accessToken;
+  } catch {
+    /* ACD session not initialised */
+  }
   return {
     hasDynamicDirectory,
     hasSearchFn,
     hasResultSubject,
     apiFacadeBaseUri,
     hasAccessToken,
+    acdBaseUri,
+    acdHasToken,
   };
+};
+
+/**
+ * The agent-directory poll inside the SDK (CXoneDirectoryProvider.requestDirectoryData)
+ * reads its base URL + token from ACDSessionManager (NOT CXoneAuth) and is gated by
+ * `if (this.baseUri && authToken)`, so it silently fires nothing when those are empty.
+ * ACDSessionManager is only populated when a full ACD session starts
+ * (CXoneSession.initialize). The address book / dynamic directory work because they
+ * read from CXoneAuth, which is ready right after login. For this verification harness
+ * we seed ACDSessionManager the same way CXoneSession does - from CXoneAuth/CXoneUser -
+ * so getDirectoryData(AGENT_LIST) can reach the agent-state API without first starting
+ * a session. Returns true when ACDSessionManager has a usable base URI + access token.
+ */
+const ensureAcdSessionInitialized = (): boolean => {
+  try {
+    const session: any = ACDSessionManager.instance;
+    const isReady = () =>
+      !!(session?.cxOneConfig?.acdApiBaseUri || session?.cxOneConfig?.apiFacadeBaseUri) &&
+      !!session?.accessToken;
+    if (isReady()) return true;
+    const config: any = CXoneAuth.instance?.getCXoneConfig?.() ?? {};
+    const accessToken = CXoneAuth.instance?.getAuthToken?.()?.accessToken ?? '';
+    const baseUri = config?.apiFacadeBaseUri || config?.acdApiBaseUri;
+    if (baseUri && accessToken) {
+      const userInfo = CXoneUser.instance?.getUserInfo?.() ?? {};
+      // Mirrors CXoneSession's `acdSessionManager.initialize(accessToken, config, userInfo)`.
+      session.initialize(accessToken, config, userInfo);
+      logger.info('seeded ACDSessionManager for agent directory poll', '');
+    }
+    return isReady();
+  } catch (error) {
+    logger.error('ensureAcdSessionInitialized failed', '');
+    return false;
+  }
 };
 
 /**
@@ -125,23 +192,86 @@ const DirectoryAndAddressBook: React.FC = () => {
   const [addressBookEntries, setAddressBookEntries] = useState<AddressBooksEntries[]>([]);
   const [addressBookSearch, setAddressBookSearch] = useState('');
 
+  // Agent directory state - exercises the public getDirectoryData path that runs
+  // searchDirectoryData -> getFilteredAgentList inside the SDK.
+  const [agentLoading, setAgentLoading] = useState(false);
+  const [agentError, setAgentError] = useState<string>('');
+  const [agentEntries, setAgentEntries] = useState<AgentStateResponse[]>([]);
+  const [agentTotal, setAgentTotal] = useState<number>(0);
+  const [agentSearch, setAgentSearch] = useState('');
+  const [shouldFetchAllAgents, setShouldFetchAllAgents] = useState(false);
+
   const directorySubRef = useRef<{ unsubscribe: () => void } | undefined>();
   const addressBookSubRef = useRef<{ unsubscribe: () => void } | undefined>();
   const hasAutoFiredRef = useRef(false);
   const hasDirectorySubscriptionRef = useRef(false);
   const hasAddressBookSubscriptionRef = useRef(false);
-  // The dynamic-directory backend keys real-time updates by a subscriptionId
-  // that comes back on the FIRST searchDirectoryResult event. We cache it and
-  // reuse it on every subsequent searchDirectories() call (pagination, refine).
-  const subscriptionIdRef = useRef<string | null>(null);
-  const [subscriptionId, setSubscriptionId] = useState<string | null>(null);
+  // Agent-directory orchestration. getFilteredAgentList only runs on a SEARCH
+  // request AFTER AGENT_LIST has been polled, so each fetch polls first (step 1)
+  // then fires the search (step 2). These refs drive that two-step chain and a
+  // watchdog that recovers if the worker never responds.
+  const agentActiveRef = useRef(false);
+  const agentPolledRef = useRef(false);
+  const pendingAgentSearchRef = useRef<{ term: string; all: boolean } | null>(null);
+  const agentWatchdogRef = useRef<number | undefined>();
+  // CMA keeps the external-directory subscriptionId in state starting empty, then
+  // reuses whatever the searchDirectoryResult response returns on follow-up calls.
+  const subscriptionIdRef = useRef<string>('');
+  // ACD-session diagnostics for the Agent Directory section's status chips.
   const [diag, setDiag] = useState(getDirectoryDiagnostics);
 
-  // Refresh diagnostics every second so the chips reflect current SDK state.
+  // Keep ACDSessionManager seeded from CXoneAuth so the agent-state poll can fire
+  // (initAcdEngagement seeds it once at mount, but may run before auth resolves).
   useEffect(() => {
-    const id = window.setInterval(() => setDiag(getDirectoryDiagnostics()), 1000);
+    const id = window.setInterval(() => {
+      ensureAcdSessionInitialized();
+      setDiag(getDirectoryDiagnostics());
+    }, 1000);
     return () => window.clearInterval(id);
   }, []);
+
+  /**
+   * Issue a directory.getDirectoryData() request scoped to AGENT_LIST. An empty
+   * searchText performs the poll (step 1); a non-empty one performs the search
+   * (step 2) that the SDK routes through searchDirectoryData -> getFilteredAgentList.
+   */
+  const issueAgentDirectoryRequest = (searchText: string, all: boolean) => {
+    const directory: any = CXoneClient.instance?.directory;
+    // The published SDK's CXoneDirectory wrapper takes a SINGLE DirectoryRequest
+    // object (it reads .entity / .searchText / .pollingOptions off it). Passing
+    // positional args makes the array become the request object, so searchText is
+    // dropped and the SDK returns every agent instead of the filtered subset.
+    //
+    // isPolling MUST be false: the directory worker schedules a polling request
+    // with setInterval(fn, pollingInterval), which waits a full interval before
+    // the FIRST fetch. With isPolling:false it does an immediate one-shot fetch,
+    // so the result arrives well within the watchdog window.
+    directory?.getDirectoryData?.({
+      entity: [DirectoryEntities.AGENT_LIST],
+      pollingOptions: { isPolling: false, pollingInterval: AGENT_POLL_INTERVAL_MS },
+      offset: 1,
+      limit: AGENT_FETCH_LIMIT,
+      searchText,
+      shouldFetchAllAgents: all,
+    });
+  };
+
+  /**
+   * Tear down a finished agent-directory operation: stop the worker poll, clear
+   * the watchdog and reset the chain refs/loading flag.
+   */
+  const finishAgentOp = () => {
+    agentActiveRef.current = false;
+    agentPolledRef.current = false;
+    pendingAgentSearchRef.current = null;
+    if (agentWatchdogRef.current !== undefined) {
+      window.clearTimeout(agentWatchdogRef.current);
+      agentWatchdogRef.current = undefined;
+    }
+    setAgentLoading(false);
+    const directory: any = CXoneClient.instance?.directory;
+    directory?.terminateDirectoryPolling?.();
+  };
 
   /**
    * Subscribe to the dynamic-directory result Subject as soon as it becomes
@@ -161,22 +291,22 @@ const DirectoryAndAddressBook: React.FC = () => {
       }
       hasDirectorySubscriptionRef.current = true;
       // Subscribe only once — re-subscribing on re-render would duplicate handlers.
+      // Mirrors CMA's externalDirectorySearchMiddleware: read directoryEntries,
+      // subscriptionId and totalRecords straight off each result and reuse the
+      // subscriptionId on the next searchDirectories() call.
       directorySubRef.current = dyn.searchDirectoryResult.subscribe(
-        (response: SearchDirectoriesResponse & { subscriptionId?: string }) => {
-          // Capture subscriptionId from the first response so follow-up calls
-          // can reuse the same server-side subscription.
-          const incomingSubId = (response as any)?.subscriptionId;
-          if (incomingSubId && subscriptionIdRef.current !== incomingSubId) {
-            subscriptionIdRef.current = incomingSubId;
-            setSubscriptionId(incomingSubId);
-          }
+        (response: SearchDirectoriesResponse) => {
           logger.info('searchDirectoryResult', '');
           setDirectoryEntries(response?.directoryEntries ?? []);
           setDirectoryTotal(response?.totalRecords ?? 0);
+          subscriptionIdRef.current = response?.subscriptionId ?? subscriptionIdRef.current;
           setDirectoryLoading(false);
           setDirectoryError(response?.error?.message ?? '');
         },
       );
+      // CMA loads the external directory when its tab opens; do the same once the
+      // result Subject exists (auth + apiFacadeBaseUri are ready by then).
+      searchExternalDirectory('');
     };
 
     const trySubscribeAddressBook = () => {
@@ -188,18 +318,65 @@ const DirectoryAndAddressBook: React.FC = () => {
       }
       hasAddressBookSubscriptionRef.current = true;
       // Subscribe only once — re-subscribing on re-render would duplicate handlers.
+      // This single directoryEvent stream carries every getDirectoryData entity
+      // (addressBookList AND agentList), so we update each table independently and
+      // guard against an empty list from one entity clobbering another's results.
       addressBookSubRef.current = directory.directoryEvent.subscribe(
         (response: DirectoryResponse) => {
-          if (!response?.addressBookList) return;
-          const books = response.addressBookList.data ?? [];
-          const entries =
-            response.addressBookList.allAddressBookEntries ??
-            books.flatMap((book) => book.addressBooksEntries ?? []);
-          setAddressBooks(books);
-          setAddressBookEntries(entries);
-          setAddressBookLoading(false);
-          setAddressBookError(response.addressBookList.errorMsg ?? '');
-          ((response.addressBookList.errorMsg ? 'error' : 'event') === 'error' ? logger.error.bind(logger) : logger.info.bind(logger))('directoryEvent: addressBookList', '');
+          // Address book — only update when this response actually carries address
+          // book data/error (dormant unless a getDirectoryData ADDRESS_BOOK poll runs).
+          const abData = response?.addressBookList?.data;
+          const abError = response?.addressBookList?.errorMsg;
+          if ((abData && abData.length) || abError) {
+            const books = abData ?? [];
+            const entries =
+              response.addressBookList.allAddressBookEntries ??
+              books.flatMap((book) => book.addressBooksEntries ?? []);
+            setAddressBooks(books);
+            setAddressBookEntries(entries);
+            setAddressBookLoading(false);
+            setAddressBookError(abError ?? '');
+            (abError ? logger.error.bind(logger) : logger.info.bind(logger))(
+              'directoryEvent: addressBookList',
+              '',
+            );
+          }
+
+          // Agent list — getDirectoryData -> searchDirectoryData -> getFilteredAgentList.
+          if (agentActiveRef.current && response?.agentList) {
+            const agentData = response.agentList.data ?? [];
+            setAgentEntries(agentData);
+            setAgentTotal(
+              response.agentList.totalSearchMatchRecords ??
+                response.agentList.allAgentCount ??
+                agentData.length,
+            );
+            setAgentError(response.agentList.errorMsg ?? '');
+
+            const pending = pendingAgentSearchRef.current;
+            if (!agentPolledRef.current) {
+              // Step 1 (poll) just completed.
+              agentPolledRef.current = true;
+              if (pending?.term) {
+                // Defer to the next macrotask so the provider's entityPollingFlag
+                // (set after requestDirectoryData resolves) is in place before the
+                // search is evaluated — otherwise it would poll again instead of
+                // routing through getFilteredAgentList.
+                window.setTimeout(() => {
+                  logger.info('agent search (step 2) -> getFilteredAgentList', '');
+                  issueAgentDirectoryRequest(pending.term, pending.all);
+                }, 150);
+              } else {
+                // No search term — nothing to filter; keep the polled list.
+                logger.info('agent poll only (no search term)', '');
+                finishAgentOp();
+              }
+            } else {
+              // Step 2 (search) result — this IS the getFilteredAgentList output.
+              logger.info('agent search result received', '');
+              finishAgentOp();
+            }
+          }
         },
       );
     };
@@ -229,26 +406,8 @@ const DirectoryAndAddressBook: React.FC = () => {
         return;
       }
       hasAutoFiredRef.current = true;
-      setDirectoryLoading(true);
       setAddressBookLoading(true);
-      logger.info('auto-fire: searchDirectories + getDirectoryData(ADDRESS_BOOK_LIST)', '');
-      try {
-        const dyn: any = CXoneClient.instance?.directory?.dynamicDirectory;
-        // First call: no subscriptionId yet, ask the backend to create one
-        // and stream real-time updates. The id arrives on the result Subject
-        // and is cached in subscriptionIdRef for subsequent calls.
-        dyn?.searchDirectories?.({
-          subscriptionId: subscriptionIdRef.current,
-          searchString: '',
-          realTimeUpdates: true,
-          skip: 0,
-          top: DEFAULT_PAGE_SIZE,
-          directoryUUID: null,
-          filter: { partnerType: null, fieldType: null },
-        } as any);
-      } catch (error) {
-        logger.error('auto-fire searchDirectories threw', '');
-      }
+      logger.info('auto-fire: getDirectoryData(ADDRESS_BOOK_LIST)', '');
       try {
         getAllAddressBooks(undefined, false)
           .then((response: AddressBooks[] | unknown) => {
@@ -269,6 +428,8 @@ const DirectoryAndAddressBook: React.FC = () => {
       } catch (error) {
         logger.error('auto-fire getAllAddressBooks threw', '');
       }
+      // Populate the agent directory on first load too (empty term = full list).
+      fetchAgentDirectory('');
     };
     autoFireId = window.setTimeout(tryAutoFire, 500);
 
@@ -278,6 +439,7 @@ const DirectoryAndAddressBook: React.FC = () => {
       hasAddressBookSubscriptionRef.current = false;
       if (retryId !== undefined) window.clearTimeout(retryId);
       if (autoFireId !== undefined) window.clearTimeout(autoFireId);
+      if (agentWatchdogRef.current !== undefined) window.clearTimeout(agentWatchdogRef.current);
       directorySubRef.current?.unsubscribe();
       addressBookSubRef.current?.unsubscribe();
     };
@@ -287,49 +449,21 @@ const DirectoryAndAddressBook: React.FC = () => {
    * Fetch external directories via dynamicDirectory.searchDirectories.
    */
   const searchExternalDirectory = (searchString?: string) => {
-    const dyn: any = CXoneClient.instance?.directory?.dynamicDirectory;
-    const diagnostics = getDirectoryDiagnostics();
-    if (typeof dyn?.searchDirectories !== 'function') {
-      setDirectoryError(
-        'dynamicDirectory.searchDirectories is not available. Please complete authentication first.',
-      );
-      logger.error('searchDirectories unavailable', '');
-      return;
-    }
-    if (!diagnostics.apiFacadeBaseUri) {
-      setDirectoryError(
-        'CXoneAuth.instance.getCXoneConfig().apiFacadeBaseUri is empty - the SDK cannot build the SearchDirectories URL. Log in via the User Hub flow first.',
-      );
-      logger.error('searchDirectories blocked: missing apiFacadeBaseUri', '');
-      return;
-    }
-    if (!diagnostics.hasAccessToken) {
-      setDirectoryError('CXoneAuth has no access token. Complete authentication first.');
-      logger.error('searchDirectories blocked: missing access token', '');
-      return;
-    }
     setDirectoryLoading(true);
     setDirectoryError('');
-    // Reuse cached subscriptionId on follow-up calls; pass null on the first
-    // call so the backend allocates one and returns it on the result Subject.
-    const request = {
+    // Exactly CMA's ccf-directory slice request: subscriptionId (empty on the
+    // first call, reused thereafter), searchString, realTimeUpdates, skip, top,
+    // directoryUUID. Results arrive on the searchDirectoryResult subscription.
+    const searchReq: SearchDirectoriesRequest = {
       subscriptionId: subscriptionIdRef.current,
       searchString: searchString ?? '',
       realTimeUpdates: true,
       skip: 0,
       top: DEFAULT_PAGE_SIZE,
-      directoryUUID: null,
-      filter: { partnerType: null, fieldType: null },
+      directoryUUID: '',
     };
     logger.info('dynamicDirectory.searchDirectories', '');
-    try {
-      dyn.searchDirectories(request as any);
-    } catch (error) {
-      const message = error instanceof Error ? error.message : String(error);
-      setDirectoryLoading(false);
-      setDirectoryError(message);
-      logger.error('searchDirectories threw', '');
-    }
+    CXoneClient.instance.directory.dynamicDirectory.searchDirectories(searchReq);
   };
 
   /**
@@ -374,6 +508,66 @@ const DirectoryAndAddressBook: React.FC = () => {
     }
   };
 
+  /**
+   * Verify getFilteredAgentList by driving the public getDirectoryData path:
+   * step 1 polls AGENT_LIST (so the SDK caches it and marks it polled), then the
+   * directoryEvent handler fires step 2 (the search) which the SDK routes through
+   * searchDirectoryData -> getFilteredAgentList. Results arrive on directoryEvent.
+   */
+  const fetchAgentDirectory = (term: string) => {
+    const directory: any = CXoneClient.instance?.directory;
+    const diagnostics = getDirectoryDiagnostics();
+    if (typeof directory?.getDirectoryData !== 'function') {
+      setAgentError(
+        'directory.getDirectoryData is not available. Please complete authentication first.',
+      );
+      logger.error('getDirectoryData unavailable', '');
+      return;
+    }
+    if (!diagnostics.hasAccessToken) {
+      setAgentError('CXoneAuth has no access token. Complete authentication first.');
+      logger.error('agent fetch blocked: missing access token', '');
+      return;
+    }
+    // The agent-state poll reads baseUri/token from ACDSessionManager, which is only
+    // populated by a full ACD session. Seed it from CXoneAuth so the API can fire here;
+    // if it still can't be initialised, surface that instead of a silent no-op.
+    if (!ensureAcdSessionInitialized()) {
+      setAgentError(
+        'Agent directory polling needs an active ACD session: ACDSessionManager has no ' +
+          'acdApiBaseUri/accessToken and could not be seeded from CXoneAuth. Start the ACD ' +
+          'session first (or finish logging in), then try again.',
+      );
+      logger.error('agent fetch blocked: ACD session not initialised', '');
+      return;
+    }
+    setAgentLoading(true);
+    setAgentError('');
+    setAgentEntries([]);
+    setAgentTotal(0);
+    agentActiveRef.current = true;
+    agentPolledRef.current = false;
+    pendingAgentSearchRef.current = { term: term.trim(), all: shouldFetchAllAgents };
+    // Watchdog: if the polling worker never responds (e.g. auth/base-uri missing),
+    // surface an error instead of spinning forever.
+    if (agentWatchdogRef.current !== undefined) {
+      window.clearTimeout(agentWatchdogRef.current);
+    }
+    agentWatchdogRef.current = window.setTimeout(() => {
+      if (agentActiveRef.current) {
+        const d = getDirectoryDiagnostics();
+        setAgentError(
+          `No agent directory response after 15s. ACDSessionManager baseUri=${d.acdBaseUri || 'missing'}, ` +
+            `token=${d.acdHasToken ? 'set' : 'missing'}. If both are set, the agent-state poll fired but ` +
+            `returned no data; if either is missing, start the ACD session (or finish login) first.`,
+        );
+        finishAgentOp();
+      }
+    }, 15000);
+    logger.info('agent poll (step 1) -> getDirectoryData(AGENT_LIST)', '');
+    issueAgentDirectoryRequest('', shouldFetchAllAgents);
+  };
+
   const filteredAddressBookEntries = useMemo(() => {
     const term = addressBookSearch.trim().toLowerCase();
     if (!term) return addressBookEntries;
@@ -416,40 +610,6 @@ const DirectoryAndAddressBook: React.FC = () => {
         <Typography variant="subtitle2" sx={{ mb: 1.5, color: 'text.secondary' }}>
           External Directory (dynamicDirectory.searchDirectories)
         </Typography>
-        <Stack direction="row" spacing={1} flexWrap="wrap" useFlexGap sx={{ mb: 1.5 }}>
-          <Chip
-            size="small"
-            label={`dynamicDirectory: ${diag.hasDynamicDirectory ? 'init' : 'empty'}`}
-            color={diag.hasDynamicDirectory ? 'success' : 'default'}
-          />
-          <Chip
-            size="small"
-            label={`searchDirectories fn: ${diag.hasSearchFn ? 'yes' : 'no'}`}
-            color={diag.hasSearchFn ? 'success' : 'default'}
-          />
-          <Chip
-            size="small"
-            label={`result Subject: ${diag.hasResultSubject ? 'yes' : 'no'}`}
-            color={diag.hasResultSubject ? 'success' : 'default'}
-          />
-          <Chip
-            size="small"
-            label={`auth token: ${diag.hasAccessToken ? 'set' : 'missing'}`}
-            color={diag.hasAccessToken ? 'success' : 'warning'}
-          />
-          <Chip
-            size="small"
-            label={`apiFacadeBaseUri: ${diag.apiFacadeBaseUri || 'missing'}`}
-            color={diag.apiFacadeBaseUri ? 'success' : 'warning'}
-            sx={{ maxWidth: 420, '.MuiChip-label': { overflow: 'hidden', textOverflow: 'ellipsis' } }}
-          />
-          <Chip
-            size="small"
-            label={`subscriptionId: ${subscriptionId ?? 'pending'}`}
-            color={subscriptionId ? 'success' : 'default'}
-            sx={{ maxWidth: 420, '.MuiChip-label': { overflow: 'hidden', textOverflow: 'ellipsis' } }}
-          />
-        </Stack>
         <Stack
           direction={{ xs: 'column', sm: 'row' }}
           spacing={1.5}
@@ -615,6 +775,116 @@ const DirectoryAndAddressBook: React.FC = () => {
                   <TableCell>{book.addressBookType ?? '—'}</TableCell>
                   <TableCell>{book.addressBookId ?? '—'}</TableCell>
                   <TableCell>{book.addressBooksEntries?.length ?? 0}</TableCell>
+                </TableRow>
+              ))}
+            </TableBody>
+          </Table>
+        </TableContainer>
+
+        <Divider sx={{ mb: 2 }} />
+
+        {/* Agent Directory — exercises getDirectoryData -> getFilteredAgentList */}
+        <Stack direction="row" alignItems="center" spacing={1.5} sx={{ mb: 1.5 }}>
+          <PersonSearchIcon color="primary" />
+          <Typography variant="subtitle2" sx={{ color: 'text.secondary' }}>
+            Agent Directory (getDirectoryData → getFilteredAgentList)
+          </Typography>
+        </Stack>
+        <Typography variant="caption" sx={{ display: 'block', mb: 1.5, color: 'text.secondary' }}>
+          Search agents by name or email. The SDK first polls AGENT_LIST, then runs the
+          search through getFilteredAgentList (which matches first/last name and email).
+          Enable "All agents" to include the logged-in user (the shouldFetchAllAgents flag).
+        </Typography>
+        <Stack direction="row" spacing={1} flexWrap="wrap" useFlexGap sx={{ mb: 1.5 }}>
+          <Chip
+            size="small"
+            label={`ACD session token: ${diag.acdHasToken ? 'set' : 'missing'}`}
+            color={diag.acdHasToken ? 'success' : 'warning'}
+          />
+          <Chip
+            size="small"
+            label={`ACD session baseUri: ${diag.acdBaseUri || 'missing'}`}
+            color={diag.acdBaseUri ? 'success' : 'warning'}
+            sx={{ maxWidth: 420, '.MuiChip-label': { overflow: 'hidden', textOverflow: 'ellipsis' } }}
+          />
+        </Stack>
+        <Stack
+          direction={{ xs: 'column', sm: 'row' }}
+          spacing={1.5}
+          alignItems={{ sm: 'center' }}
+          sx={{ mb: 2 }}
+        >
+          <TextField
+            size="small"
+            label="Search agents"
+            placeholder="Name or email"
+            value={agentSearch}
+            onChange={(event) => setAgentSearch(event.target.value)}
+            onKeyDown={(event) => {
+              if (event.key === 'Enter') fetchAgentDirectory(agentSearch);
+            }}
+            sx={{ minWidth: { xs: '100%', sm: 320 } }}
+          />
+          <FormControlLabel
+            control={
+              <Checkbox
+                size="small"
+                checked={shouldFetchAllAgents}
+                onChange={(event) => setShouldFetchAllAgents(event.target.checked)}
+              />
+            }
+            label="All agents"
+          />
+          <Button
+            variant="contained"
+            startIcon={
+              agentLoading ? <CircularProgress size={16} color="inherit" /> : <SearchIcon />
+            }
+            disabled={agentLoading}
+            onClick={() => fetchAgentDirectory(agentSearch)}
+          >
+            Search Agents
+          </Button>
+          <Chip
+            size="small"
+            label={`Results: ${agentEntries.length}${agentTotal ? ` / ${agentTotal}` : ''}`}
+            variant="outlined"
+            color="primary"
+          />
+        </Stack>
+
+        {agentError && (
+          <Typography variant="body2" color="error" sx={{ mb: 1 }}>
+            {agentError}
+          </Typography>
+        )}
+
+        <TableContainer component={Paper} variant="outlined">
+          <Table size="small">
+            <TableHead>
+              <TableRow>
+                <TableCell sx={{ fontWeight: 600 }}>Name</TableCell>
+                <TableCell sx={{ fontWeight: 600 }}>Email</TableCell>
+                <TableCell sx={{ fontWeight: 600 }}>Skills</TableCell>
+              </TableRow>
+            </TableHead>
+            <TableBody>
+              {agentEntries.length === 0 && (
+                <TableRow>
+                  <TableCell colSpan={3} align="center">
+                    <Typography variant="body2" color="text.secondary">
+                      No agents loaded. Enter a search term and click "Search Agents".
+                    </Typography>
+                  </TableCell>
+                </TableRow>
+              )}
+              {agentEntries.map((agent) => (
+                <TableRow key={agent.agentId} hover>
+                  <TableCell>
+                    {`${agent.firstName ?? ''} ${agent.lastName ?? ''}`.trim() || '—'}
+                  </TableCell>
+                  <TableCell>{(agent as AgentWithEmail).email ?? '—'}</TableCell>
+                  <TableCell>{agent.skillName ?? '—'}</TableCell>
                 </TableRow>
               ))}
             </TableBody>
