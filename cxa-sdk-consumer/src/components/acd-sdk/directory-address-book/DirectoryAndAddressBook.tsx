@@ -29,6 +29,7 @@ import {
   TableCell,
   TableContainer,
   TableHead,
+  TablePagination,
   TableRow,
   TextField,
   Typography,
@@ -65,12 +66,6 @@ const AGENT_FETCH_LIMIT = 1000;
 // filtered result arrives so a later poll tick cannot overwrite the
 // getFilteredAgentList output rendered in the table.
 const AGENT_POLL_INTERVAL_MS = 600000;
-
-// The published common-sdk AgentStateResponse type may not yet declare `email`
-// (added alongside the v34 agent-state endpoint). The runtime object still carries
-// it, so read it through this widened type to render the column without coupling to
-// a specific SDK build.
-type AgentWithEmail = AgentStateResponse & { email?: string | null };
 
 /**
  * Snapshot of the dynamic-directory readiness state. The SDK silently drops
@@ -200,6 +195,8 @@ const DirectoryAndAddressBook: React.FC = () => {
   const [agentTotal, setAgentTotal] = useState<number>(0);
   const [agentSearch, setAgentSearch] = useState('');
   const [shouldFetchAllAgents, setShouldFetchAllAgents] = useState(false);
+  const [agentPage, setAgentPage] = useState(0);
+  const [agentRowsPerPage, setAgentRowsPerPage] = useState(10);
 
   const directorySubRef = useRef<{ unsubscribe: () => void } | undefined>();
   const addressBookSubRef = useRef<{ unsubscribe: () => void } | undefined>();
@@ -545,6 +542,7 @@ const DirectoryAndAddressBook: React.FC = () => {
     setAgentError('');
     setAgentEntries([]);
     setAgentTotal(0);
+    setAgentPage(0);
     agentActiveRef.current = true;
     agentPolledRef.current = false;
     pendingAgentSearchRef.current = { term: term.trim(), all: shouldFetchAllAgents };
@@ -864,32 +862,49 @@ const DirectoryAndAddressBook: React.FC = () => {
             <TableHead>
               <TableRow>
                 <TableCell sx={{ fontWeight: 600 }}>Name</TableCell>
-                <TableCell sx={{ fontWeight: 600 }}>Email</TableCell>
                 <TableCell sx={{ fontWeight: 600 }}>Skills</TableCell>
               </TableRow>
             </TableHead>
             <TableBody>
               {agentEntries.length === 0 && (
                 <TableRow>
-                  <TableCell colSpan={3} align="center">
+                  <TableCell colSpan={2} align="center">
                     <Typography variant="body2" color="text.secondary">
                       No agents loaded. Enter a search term and click "Search Agents".
                     </Typography>
                   </TableCell>
                 </TableRow>
               )}
-              {agentEntries.map((agent) => (
-                <TableRow key={agent.agentId} hover>
-                  <TableCell>
-                    {`${agent.firstName ?? ''} ${agent.lastName ?? ''}`.trim() || '—'}
-                  </TableCell>
-                  <TableCell>{(agent as AgentWithEmail).email ?? '—'}</TableCell>
-                  <TableCell>{agent.skillName ?? '—'}</TableCell>
-                </TableRow>
-              ))}
+              {agentEntries
+                .slice(
+                  agentPage * agentRowsPerPage,
+                  agentPage * agentRowsPerPage + agentRowsPerPage,
+                )
+                .map((agent) => (
+                  <TableRow key={agent.agentId} hover>
+                    <TableCell>
+                      {`${agent.firstName ?? ''} ${agent.lastName ?? ''}`.trim() || '—'}
+                    </TableCell>
+                    <TableCell>{agent.skillName ?? '—'}</TableCell>
+                  </TableRow>
+                ))}
             </TableBody>
           </Table>
         </TableContainer>
+        {agentEntries.length > 0 && (
+          <TablePagination
+            component="div"
+            count={agentEntries.length}
+            page={agentPage}
+            onPageChange={(_event, newPage) => setAgentPage(newPage)}
+            rowsPerPage={agentRowsPerPage}
+            onRowsPerPageChange={(event) => {
+              setAgentRowsPerPage(parseInt(event.target.value, 10));
+              setAgentPage(0);
+            }}
+            rowsPerPageOptions={[10, 25, 50, 100]}
+          />
+        )}
       </CardContent>
     </Card>
   );
