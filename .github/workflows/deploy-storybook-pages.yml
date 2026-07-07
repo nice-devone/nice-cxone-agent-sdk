@@ -1,11 +1,16 @@
-name: Deploy SDK-UI-Components Storybook to GitHub Pages
+name: (DEPRECATED) Deploy SDK-UI-Components Storybook to GitHub Pages
+
+# ──────────────────────────────────────────────────────────────────
+# This workflow has been superseded by `deploy-faq-pages.yml`, which
+# publishes BOTH the FAQ site (root) and the storybooks (/storybooks/)
+# in a single unified GitHub Pages deployment.
+#
+# Only one Pages deployment can be active per repo, so this workflow
+# is now manual-only (workflow_dispatch) and will not run on pushes.
+# Delete this file once you're confident the new workflow is working.
+# ──────────────────────────────────────────────────────────────────
 
 on:
-  push:
-    branches:
-      - main
-    paths:
-      - 'storybooks/**'
   workflow_dispatch:
 
 permissions:
