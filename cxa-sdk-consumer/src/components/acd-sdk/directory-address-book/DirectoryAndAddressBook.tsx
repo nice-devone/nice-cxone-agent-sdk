@@ -13,7 +13,7 @@
  *    Results arrive on:
  *    `CXoneClient.instance.directory.directoryEvent` (Subject<DirectoryResponse>).
  */
-import React, { useEffect, useMemo, useRef, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import {
   Button,
   Card,
@@ -36,13 +36,13 @@ import {
   Paper,
 } from '@mui/material';
 import SearchIcon from '@mui/icons-material/Search';
-import RefreshIcon from '@mui/icons-material/Refresh';
 import GroupIcon from '@mui/icons-material/Group';
 import ContactPhoneIcon from '@mui/icons-material/ContactPhone';
 import PersonSearchIcon from '@mui/icons-material/PersonSearch';
 import { CXoneClient } from '@nice-devone/agent-sdk';
 import { CXoneAuth, CXoneUser } from '@nice-devone/auth-sdk';
 import {
+  AddressBookEntriesResponse,
   AddressBooks,
   AddressBooksEntries,
   AgentStateResponse,
@@ -406,7 +406,7 @@ const DirectoryAndAddressBook: React.FC = () => {
       setAddressBookLoading(true);
       logger.info('auto-fire: getDirectoryData(ADDRESS_BOOK_LIST)', '');
       try {
-        getAllAddressBooks(undefined, false)
+        getAllAddressBooks(undefined, true)
           .then((response: AddressBooks[] | unknown) => {
             const books = Array.isArray(response) ? (response as AddressBooks[]) : [];
             const entries = books.flatMap((book) => book.addressBooksEntries ?? []);
@@ -464,7 +464,9 @@ const DirectoryAndAddressBook: React.FC = () => {
   };
 
   /**
-   * Fetch the address book entries via the classic directory polling API.
+   * Fetch the address book. The search text (name / email / phone) is passed to the
+   * backend so filtering happens server-side, NOT on the frontend:
+   * getFilteredStandardBookEntries -> getStandardEntries -> `searchString` query param.
    */
   const fetchAddressBook = (searchText?: string) => {
     const directory: any = CXoneClient.instance?.directory;
@@ -477,31 +479,62 @@ const DirectoryAndAddressBook: React.FC = () => {
       );
       return;
     }
+    const term = (searchText ?? '').trim();
     setAddressBookLoading(true);
     setAddressBookError('');
     logger.info('addressBookService.getAllAddressBooks', '');
     try {
-      getAllAddressBooks(undefined, false)
+      getAllAddressBooks(undefined, true)
         .then((response: AddressBooks[] | unknown) => {
           const books = Array.isArray(response) ? (response as AddressBooks[]) : [];
-          const entries = books.flatMap((book) => book.addressBooksEntries ?? []);
           setAddressBooks(books);
-          setAddressBookEntries(entries);
-          setAddressBookLoading(false);
-          setAddressBookError('');
-          logger.info('addressBookService.getAllAddressBooks: success', '');
+          // No search term: show the entries embedded in the fetched books.
+          if (!term) {
+            setAddressBookEntries(books.flatMap((book) => book.addressBooksEntries ?? []));
+            setAddressBookLoading(false);
+            setAddressBookError('');
+            logger.info('addressBookService.getAllAddressBooks: success', '');
+            return undefined;
+          }
+          // Search term present (e.g. an email): hand it to the backend so it returns
+          // only the matching entries. The SDK matches server-side on name/email/phone.
+          const getFilteredStandardBookEntries = directory?.getFilteredStandardBookEntries;
+          if (typeof getFilteredStandardBookEntries !== 'function' || books.length === 0) {
+            setAddressBookEntries([]);
+            setAddressBookLoading(false);
+            setAddressBookError(
+              'directory.getFilteredStandardBookEntries is not available for backend search.',
+            );
+            return undefined;
+          }
+          logger.info('directory.getFilteredStandardBookEntries', '');
+          return getFilteredStandardBookEntries({
+            addressBooks: books,
+            skip: 0,
+            top: DEFAULT_PAGE_SIZE,
+            searchText: term,
+          }).then((responses: AddressBookEntriesResponse[] | unknown) => {
+            const list = Array.isArray(responses)
+              ? (responses as AddressBookEntriesResponse[])
+              : [];
+            const entries = list.flatMap((item) => item.addressBooksEntries ?? []);
+            setAddressBookEntries(entries);
+            setAddressBookLoading(false);
+            setAddressBookError('');
+            logger.info('directory.getFilteredStandardBookEntries: success', '');
+          });
         })
         .catch((error: unknown) => {
           const message = error instanceof Error ? error.message : String(error);
           setAddressBookLoading(false);
           setAddressBookError(message);
-          logger.error('addressBookService.getAllAddressBooks failed', '');
+          logger.error('fetchAddressBook failed', '');
         });
     } catch (error) {
       const message = error instanceof Error ? error.message : String(error);
       setAddressBookLoading(false);
       setAddressBookError(message);
-      logger.error('getAllAddressBooks threw', '');
+      logger.error('fetchAddressBook threw', '');
     }
   };
 
@@ -565,34 +598,6 @@ const DirectoryAndAddressBook: React.FC = () => {
     logger.info('agent poll (step 1) -> getDirectoryData(AGENT_LIST)', '');
     issueAgentDirectoryRequest('', shouldFetchAllAgents);
   };
-
-  const filteredAddressBookEntries = useMemo(() => {
-    const term = addressBookSearch.trim().toLowerCase();
-    if (!term) return addressBookEntries;
-    return addressBookEntries.filter((entry) => {
-      const haystack = [entry.firstName, entry.lastName, entry.email, entry.phone, entry.mobile]
-        .filter(Boolean)
-        .join(' ')
-        .toLowerCase();
-      return haystack.includes(term);
-    });
-  }, [addressBookEntries, addressBookSearch]);
-
-  const filteredAddressBooks = useMemo(() => {
-    const term = addressBookSearch.trim().toLowerCase();
-    if (!term) return addressBooks;
-    return addressBooks.filter((book) => {
-      const haystack = [
-        book.addressBookName,
-        book.addressBookType,
-        String(book.addressBookId ?? ''),
-      ]
-        .filter(Boolean)
-        .join(' ')
-        .toLowerCase();
-      return haystack.includes(term);
-    });
-  }, [addressBooks, addressBookSearch]);
 
   return (
     <Card sx={{ mt: 3 }}>
@@ -708,21 +713,24 @@ const DirectoryAndAddressBook: React.FC = () => {
         >
           <TextField
             size="small"
-            label="Filter address book"
-            placeholder="Name, email, phone"
+            label="Search address book"
+            placeholder="Name, email, or phone"
             value={addressBookSearch}
             onChange={(event) => setAddressBookSearch(event.target.value)}
+            onKeyDown={(event) => {
+              if (event.key === 'Enter') fetchAddressBook(addressBookSearch);
+            }}
             sx={{ minWidth: { xs: '100%', sm: 320 } }}
           />
           <Button
             variant="contained"
             startIcon={
-              addressBookLoading ? <CircularProgress size={16} color="inherit" /> : <RefreshIcon />
+              addressBookLoading ? <CircularProgress size={16} color="inherit" /> : <SearchIcon />
             }
             disabled={addressBookLoading}
-            onClick={() => fetchAddressBook()}
+            onClick={() => fetchAddressBook(addressBookSearch)}
           >
-            Fetch Address Book
+            Search Address Book
           </Button>
           <Chip
             size="small"
@@ -732,7 +740,7 @@ const DirectoryAndAddressBook: React.FC = () => {
           />
           <Chip
             size="small"
-            label={`Entries: ${filteredAddressBookEntries.length} / ${addressBookEntries.length}`}
+            label={`Entries: ${addressBookEntries.length}`}
             variant="outlined"
             color="primary"
           />
@@ -758,16 +766,16 @@ const DirectoryAndAddressBook: React.FC = () => {
               </TableRow>
             </TableHead>
             <TableBody>
-              {filteredAddressBooks.length === 0 && (
+              {addressBooks.length === 0 && (
                 <TableRow>
                   <TableCell colSpan={4} align="center">
                     <Typography variant="body2" color="text.secondary">
-                      No address books received yet. Click "Fetch Address Book" to load.
+                      No address books received yet. Click "Search Address Book" to load.
                     </Typography>
                   </TableCell>
                 </TableRow>
               )}
-              {filteredAddressBooks.map((book) => (
+              {addressBooks.map((book) => (
                 <TableRow key={String(book.addressBookId)} hover>
                   <TableCell>{book.addressBookName ?? '—'}</TableCell>
                   <TableCell>{book.addressBookType ?? '—'}</TableCell>
