@@ -5,7 +5,7 @@ import { StorageKeys, Logger } from "@nice-devone/core-sdk";
 import { tryCatchWrapper } from "../../../utils/tryCatchWrapper";
 import PhoneIcon from "@mui/icons-material/Phone";
 
-const logger = new Logger('SDK-CONSUMER', 'Outbound');
+const logger = new Logger('Agent Workspace SDK', 'Outbound');
 
 
 const Outbound = () => {

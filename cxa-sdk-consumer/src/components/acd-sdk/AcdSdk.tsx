@@ -60,8 +60,8 @@ import CallEndIcon from "@mui/icons-material/CallEnd";
 import PersonAddIcon from "@mui/icons-material/PersonAdd";
 import { Logger } from '@nice-devone/core-sdk';
 
-// SDK Logger
-const logger = new Logger('SDK-CONSUMER', 'AcdSdk');
+// Agent Workspace SDK Logger
+const logger = new Logger('Agent Workspace SDK-CONSUMER', 'AcdSdk');
 
 
 
@@ -103,7 +103,7 @@ const AcdSdk = () => {
       logger.info("initAcdEngagement complete", '');
       setInitEngagement(true);
 
-      // Fetch agent permissions. The SDK uses these to populate
+      // Fetch agent permissions. The Agent Workspace SDK uses these to populate
       // voiceContact.callControlButton.record.{isVisible,isEnable,controlText}
       // on every voiceContactUpdateEvent. Without this call, record.isEnable
       // stays false for the lifetime of the session and BOTH "Start Record"
@@ -139,10 +139,10 @@ const AcdSdk = () => {
       // WEM is best-effort: if the websocket fails to connect (network, auth,
       // CORS, missing entitlement, etc.) it must NOT cascade into voice/mute
       // breakage. We isolate it three ways:
-      //   1. Sync try/catch in case the SDK throws before returning a promise.
+      //   1. Sync try/catch in case the Agent Workspace SDK throws before returning a promise.
       //   2. .catch on the returned promise to swallow async rejection.
       //   3. Subscribe to onCXoneNotificationEvent so any later transport-level
-      //      error surfaced by the SDK is logged instead of going silent.
+      //      error surfaced by the Agent Workspace SDK is logged instead of going silent.
       try {
         const wemPromise = CXoneClient.instance.notification.startWemWebSocket({
           locale: Intl.DateTimeFormat().resolvedOptions().locale || "",
@@ -164,7 +164,7 @@ const AcdSdk = () => {
 
         // Defensive listener for SDK-emitted notification errors (e.g. WS drop,
         // retry exhausted). Without this, a mid-session WEM transport failure
-        // would only show up as a console error inside the SDK.
+        // would only show up as a console error inside the Agent Workspace SDK.
         CXoneClient.instance.notification.onCXoneNotificationEvent.subscribe(
           (event: any) => {
             if (event?.errorType) {
@@ -376,7 +376,7 @@ const AcdSdk = () => {
         return;
       }
 
-      const app = "Nice CXone SDK Consumer";
+      const app = "Nice Agent Workspace SDK Consumer";
       const appName = `${(app || 'cxa').toUpperCase()}: ${settings.agentSettings.cxaClientVersion}`;
 
       logger.info("CXoneVoiceClient.connectServer", '');
@@ -471,7 +471,7 @@ const AcdSdk = () => {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [startSessionButton]);
 
-  // Sync the selected dropdown value with the current agent state coming from SDK
+  // Sync the selected dropdown value with the current agent state coming from Agent Workspace SDK
   useEffect(() => {
     const currentState = agentStatus?.currentState?.state?.toLowerCase?.();
     const currentReason = agentStatus?.currentState?.reason;
