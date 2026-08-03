@@ -135,7 +135,7 @@ import {
                   variant="outlined"
                   InputLabelProps={{ shrink: true }}
                   inputRef={hostName}
-                  defaultValue={"https://cxone.niceincontact.com"}
+                  defaultValue={"https://cxone.staging.niceincontact.com"}
                   required
                 />
                 <TextField
@@ -144,7 +144,7 @@ import {
                   variant="outlined"
                   InputLabelProps={{ shrink: true }}
                   inputRef={clientId}
-                  defaultValue=""
+                  defaultValue="Salesforce Agent Console@inContact Inc."
                   required
                 />
                 <TextField

@@ -1,0 +1,32 @@
+{
+  "name": "sdk-automation-framework",
+  "version": "1.0.0",
+  "description": "Enterprise-grade SDK Automation Framework using Playwright & TypeScript",
+  "scripts": {
+    "test": "playwright test",
+    "test:smoke": "playwright test --grep @smoke",
+    "test:api": "playwright test tests/api/",
+    "test:e2e": "playwright test tests/e2e/",
+    "test:headed": "playwright test --headed",
+    "test:debug": "playwright test --debug",
+    "test:report": "playwright show-report",
+    "test:ci": "playwright test --reporter=github,html",
+    "codegen": "playwright codegen",
+    "lint": "eslint src tests --ext .ts",
+    "typecheck": "tsc --noEmit",
+    "clean": "rm -rf test-results playwright-report"
+  },
+  "devDependencies": {
+    "@playwright/test": "^1.42.0",
+    "@types/node": "^20.11.0",
+    "typescript": "^5.3.3",
+    "eslint": "^8.56.0",
+    "@typescript-eslint/eslint-plugin": "^6.19.0",
+    "@typescript-eslint/parser": "^6.19.0",
+    "dotenv": "^16.4.1"
+  },
+  "dependencies": {
+    "winston": "^3.11.0",
+    "allure-playwright": "^2.10.0"
+  }
+}

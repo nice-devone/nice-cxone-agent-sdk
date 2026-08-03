@@ -76,9 +76,9 @@ const AcdSdk = () => {
     CXoneAcdClient.instance.initAcdEngagement().finally(() => {
       setInitEngagement(true);
     })
-    CXoneAcdClient.instance.setClickToDialCustomAgentUrl(
-        "http://localhost:3000/"
-      ); 
+   // CXoneAcdClient.instance.setClickToDialCustomAgentUrl(
+    //    "http://localhost:3000/"
+     // ); 
       window.addEventListener('message', extensionClickToDialHandler);
    
   },[])
