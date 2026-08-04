@@ -63,6 +63,19 @@ export default defineConfig({
     ignoreHTTPSErrors: process.env.NODE_ENV === 'test',
   },
 
+  // Start local app before tests
+  webServer: {
+    command: 'npm run start',
+    url: process.env.BASE_URL || 'http://localhost:3000',
+    cwd: path.resolve(__dirname, '..'),
+    reuseExistingServer: !process.env.CI,
+    timeout: 120_000,
+    env: {
+      ...process.env,
+      BROWSER: 'none',
+    },
+  },
+
   // Projects for multi-environment testing (Chrome only)
   projects: [
     // API Test project
