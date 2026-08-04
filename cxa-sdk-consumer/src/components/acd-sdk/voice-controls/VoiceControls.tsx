@@ -22,7 +22,7 @@ import MicIcon from "@mui/icons-material/Mic";
 import MicOffIcon from "@mui/icons-material/MicOff";
 import { Logger } from '@nice-devone/core-sdk';
 
-const logger = new Logger('SDK-CONSUMER', 'VoiceControls');
+const logger = new Logger('Agent Workspace SDK', 'VoiceControls');
 
 const DTMF_FREQUENCIES: Record<string, { low: number; high: number }> = {
   '1': { low: 697, high: 1209 },
@@ -84,7 +84,7 @@ const VoiceControls = ({voiceContact}:{voiceContact:CXoneVoiceContact}) => {
   // `CXoneClient.instance.directory.onUpdateSkillsEvent` and filters
   // isOutbound + typeId===PhoneCall + (strategy===Manual || SmartReach).
   // We must use one of these as `skillId` when calling dialPhone(), otherwise
-  // the SDK rejects the request with `InvalidSkill`.
+  // the Agent Workspace SDK rejects the request with `InvalidSkill`.
   const [outboundSkills, setOutboundSkills] = useState<Array<{ skillId: number; skillName: string }>>([]);
   const [selectedSkillId, setSelectedSkillId] = useState<string>('');
 
@@ -223,7 +223,7 @@ const VoiceControls = ({voiceContact}:{voiceContact:CXoneVoiceContact}) => {
      // Subscribe only once — re-subscribing on re-render would duplicate handlers.
      CXoneClient.instance.notification.onCXoneNotificationEvent.subscribe(
        (res) => {
-         // Skip SDK error events (e.g. getEmbeddedPages failure)
+         // Skip Agent Workspace SDK error events (e.g. getEmbeddedPages failure)
 
          const recData = res as any;
          if (recData?.recordingId && recData?.status) {
@@ -271,20 +271,20 @@ const VoiceControls = ({voiceContact}:{voiceContact:CXoneVoiceContact}) => {
          const contactStatus = cxoneContact.status?.toLowerCase();
          const tracker = holdingContactsTracker.current;
 
-         // Sync mute state from SDK whenever an event carries agentMuted
+         // Sync mute state from Agent Workspace SDK whenever an event carries agentMuted
          if ('agentMuted' in (cxoneContact as any)) {
            const sdkMuted = !!(cxoneContact as any).agentMuted;
            setIsMuted((prev) => (prev !== sdkMuted ? sdkMuted : prev));
          }
 
-         // Sync the Record button state from the SDK whenever the OWN contact updates.
-         // The SDK mutates voiceContact.callControlButton.record on every ACD event
+         // Sync the Record button state from the Agent Workspace SDK whenever the OWN contact updates.
+         // The Agent Workspace Agent Workspace SDK mutates voiceContact.callControlButton.record on every ACD event
          // (Active / Hold / Mask / Incoming / ACW / record / stopRecord) — see
          // cxone-voice-contact.ts updateCallControlButtonsOn* methods. Reading those
          // values here keeps the Start/Stop Record buttons in lock-step with the SDK.
          if (cxoneContact.contactID === voiceContact.contactID) {
            // Track this contact's live status (normalized to lowercase) so the
-           // component can self-hide when the SDK reports the terminal 'Disconnected'
+           // component can self-hide when the Agent Workspace SDK reports the terminal 'Disconnected'
            // state after Hang Up. cxoneContact.status is PascalCase (e.g. 'Disconnected')
            // per CallContactEventStatus, while the rest of the consumer compares against
            // lowercase tokens, so we normalize here.
@@ -322,7 +322,7 @@ const VoiceControls = ({voiceContact}:{voiceContact:CXoneVoiceContact}) => {
 
          // Only the NEW consult leg qualifies for auto-completion (different contactID,
          // same masterID as the original customer leg). This mirrors CMA's state guards
-         // and prevents the SDK from rejecting transferContact() with InvalidState.
+         // and prevents the Agent Workspace SDK from rejecting transferContact() with InvalidState.
          const isNewConsultLeg =
            contactStatus === 'active' &&
            cxoneContact.contactID !== originalContactIdRef.current &&
@@ -783,9 +783,9 @@ const VoiceControls = ({voiceContact}:{voiceContact:CXoneVoiceContact}) => {
           onClick={startRecord}
           variant="contained"
           color="secondary"
-          // SDK governs this: enabled only while the call leg is in a state where
+          // Agent Workspace SDK governs this: enabled only while the call leg is in a state where
           // recording can be started (Active + has permission + controlText===RECORD).
-          // After record() succeeds the SDK flips controlText → RECORDING and we disable.
+          // After record() succeeds the Agent Workspace SDK flips controlText → RECORDING and we disable.
           disabled={!recordControl.isEnable || recordControl.controlText === ControlButtonText.RECORDING}
           startIcon={<FiberManualRecordIcon />}
         >
@@ -795,7 +795,7 @@ const VoiceControls = ({voiceContact}:{voiceContact:CXoneVoiceContact}) => {
           onClick={stopRecord}
           variant="outlined"
           color="secondary"
-          // Symmetric to Start: enabled only while recording is active AND the SDK
+          // Symmetric to Start: enabled only while recording is active AND the Agent Workspace SDK
           // says the button is currently enabled (FT STOP_RECORD + STOP_RECORDING perm).
           disabled={!recordControl.isEnable || recordControl.controlText !== ControlButtonText.RECORDING}
           startIcon={<StopIcon />}

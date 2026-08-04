@@ -1,4 +1,4 @@
-# CXone Agent SDK Consumer App
+# Agent Workspace SDK Consumer App
 
 ## Software Prerequisites
 

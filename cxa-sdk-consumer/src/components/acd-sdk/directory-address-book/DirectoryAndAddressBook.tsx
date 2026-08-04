@@ -49,12 +49,12 @@ import {
 import { Logger } from '@nice-devone/core-sdk';
 
 
-// SDK Logger
-const logger = new Logger('SDK-CONSUMER', 'DirectoryAndAddressBook');
+// Agent Workspace SDK Logger
+const logger = new Logger('Agent Workspace SDK', 'DirectoryAndAddressBook');
 const DEFAULT_PAGE_SIZE = 50;
 
 /**
- * Snapshot of the dynamic-directory readiness state. The SDK silently drops
+ * Snapshot of the dynamic-directory readiness state. The Agent Workspace SDK silently drops
  * `searchDirectories()` calls if `CXoneAuth.instance.getCXoneConfig()` has no
  * `apiFacadeBaseUri` or no access token, so we surface those values here.
  */
@@ -137,7 +137,7 @@ const DirectoryAndAddressBook: React.FC = () => {
   const [subscriptionId, setSubscriptionId] = useState<string | null>(null);
   const [diag, setDiag] = useState(getDirectoryDiagnostics);
 
-  // Refresh diagnostics every second so the chips reflect current SDK state.
+  // Refresh diagnostics every second so the chips reflect current Agent Workspace SDK state.
   useEffect(() => {
     const id = window.setInterval(() => setDiag(getDirectoryDiagnostics()), 1000);
     return () => window.clearInterval(id);
@@ -207,7 +207,7 @@ const DirectoryAndAddressBook: React.FC = () => {
     trySubscribeDirectory();
     trySubscribeAddressBook();
 
-    // Auto-fire both fetches once the SDK is fully ready. Calls go directly
+    // Auto-fire both fetches once the Agent Workspace SDK is fully ready. Calls go directly
     // through the SDK so the tables populate without a manual click.
     let autoFireId: number | undefined;
     const tryAutoFire = () => {
@@ -298,7 +298,7 @@ const DirectoryAndAddressBook: React.FC = () => {
     }
     if (!diagnostics.apiFacadeBaseUri) {
       setDirectoryError(
-        'CXoneAuth.instance.getCXoneConfig().apiFacadeBaseUri is empty - the SDK cannot build the SearchDirectories URL. Log in via the User Hub flow first.',
+        'CXoneAuth.instance.getCXoneConfig().apiFacadeBaseUri is empty - the Agent Workspace SDK cannot build the SearchDirectories URL. Log in via the User Hub flow first.',
       );
       logger.error('searchDirectories blocked: missing apiFacadeBaseUri', '');
       return;
