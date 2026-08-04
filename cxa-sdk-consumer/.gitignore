@@ -5,6 +5,7 @@
 /tmp
 /out-tsc
 /storybook-static
+/sdk-automation-framework/node_modules
 
 # dependencies
 /node_modules

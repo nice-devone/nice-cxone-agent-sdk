@@ -1,0 +1,1191 @@
+{
+  "config": {
+    "configFile": "C:\\git repo\\nice-cxone-agent-sdk\\cxa-sdk-consumer\\sdk-automation-framework\\playwright.config.ts",
+    "rootDir": "C:/git repo/nice-cxone-agent-sdk/cxa-sdk-consumer/sdk-automation-framework/tests",
+    "forbidOnly": false,
+    "fullyParallel": true,
+    "globalSetup": null,
+    "globalTeardown": null,
+    "globalTimeout": 0,
+    "grep": {},
+    "grepInvert": null,
+    "maxFailures": 0,
+    "metadata": {
+      "actualWorkers": 1
+    },
+    "preserveOutput": "always",
+    "projects": [
+      {
+        "outputDir": "C:/git repo/nice-cxone-agent-sdk/cxa-sdk-consumer/sdk-automation-framework/test-results",
+        "repeatEach": 1,
+        "retries": 0,
+        "metadata": {
+          "actualWorkers": 1
+        },
+        "id": "api-chromium",
+        "name": "api-chromium",
+        "testDir": "C:/git repo/nice-cxone-agent-sdk/cxa-sdk-consumer/sdk-automation-framework/tests/api",
+        "testIgnore": [],
+        "testMatch": [
+          "**/*.@(spec|test).?(c|m)[jt]s?(x)"
+        ],
+        "timeout": 60000
+      },
+      {
+        "outputDir": "C:/git repo/nice-cxone-agent-sdk/cxa-sdk-consumer/sdk-automation-framework/test-results",
+        "repeatEach": 1,
+        "retries": 0,
+        "metadata": {
+          "actualWorkers": 1
+        },
+        "id": "e2e-chromium",
+        "name": "e2e-chromium",
+        "testDir": "C:/git repo/nice-cxone-agent-sdk/cxa-sdk-consumer/sdk-automation-framework/tests/e2e",
+        "testIgnore": [],
+        "testMatch": [
+          "**/*.@(spec|test).?(c|m)[jt]s?(x)"
+        ],
+        "timeout": 60000
+      },
+      {
+        "outputDir": "C:/git repo/nice-cxone-agent-sdk/cxa-sdk-consumer/sdk-automation-framework/test-results",
+        "repeatEach": 1,
+        "retries": 0,
+        "metadata": {
+          "actualWorkers": 1
+        },
+        "id": "smoke",
+        "name": "smoke",
+        "testDir": "C:/git repo/nice-cxone-agent-sdk/cxa-sdk-consumer/sdk-automation-framework/tests/smoke",
+        "testIgnore": [],
+        "testMatch": [
+          "**/*.@(spec|test).?(c|m)[jt]s?(x)"
+        ],
+        "timeout": 60000
+      }
+    ],
+    "quiet": false,
+    "reporter": [
+      [
+        "html",
+        {
+          "outputFolder": "playwright-report",
+          "open": "never"
+        }
+      ],
+      [
+        "list",
+        null
+      ],
+      [
+        "json",
+        {
+          "outputFile": "test-results/results.json"
+        }
+      ]
+    ],
+    "reportSlowTests": {
+      "max": 5,
+      "threshold": 300000
+    },
+    "runAgents": "none",
+    "shard": null,
+    "tags": [],
+    "updateSnapshots": "missing",
+    "updateSourceMethod": "patch",
+    "version": "1.58.2",
+    "workers": 1,
+    "webServer": null
+  },
+  "suites": [
+    {
+      "title": "e2e\\sdk-auth-cxone-agent.spec.ts",
+      "file": "e2e/sdk-auth-cxone-agent.spec.ts",
+      "column": 0,
+      "line": 0,
+      "specs": [],
+      "suites": [
+        {
+          "title": "SDK Authentication ↔ CXone Agent",
+          "file": "e2e/sdk-auth-cxone-agent.spec.ts",
+          "line": 20,
+          "column": 6,
+          "specs": [],
+          "suites": [
+            {
+              "title": "Valid SDK authentication auto-logs in to CXone Agent",
+              "file": "e2e/sdk-auth-cxone-agent.spec.ts",
+              "line": 65,
+              "column": 8,
+              "specs": [
+                {
+                  "title": "should redirect to CXone OIDC login on Authenticate click",
+                  "ok": true,
+                  "tags": [],
+                  "tests": [
+                    {
+                      "timeout": 60000,
+                      "annotations": [],
+                      "expectedStatus": "passed",
+                      "projectId": "e2e-chromium",
+                      "projectName": "e2e-chromium",
+                      "results": [
+                        {
+                          "workerIndex": 0,
+                          "parallelIndex": 0,
+                          "status": "passed",
+                          "duration": 18138,
+                          "errors": [],
+                          "stdout": [
+                            {
+                              "text": "[2026-03-24T05:50:03.566Z] [INFO ] Navigating to: /\n"
+                            },
+                            {
+                              "text": "[2026-03-24T05:50:04.040Z] [INFO ] Filling auth form fields\n"
+                            },
+                            {
+                              "text": "[2026-03-24T05:50:04.177Z] [INFO ] Clicking Authenticate button\n"
+                            }
+                          ],
+                          "stderr": [],
+                          "retry": 0,
+                          "startTime": "2026-03-24T05:50:00.174Z",
+                          "annotations": [],
+                          "attachments": [
+                            {
+                              "name": "console-errors",
+                              "contentType": "text/plain",
+                              "body": "QWNjZXNzIHRvIGZldGNoIGF0ICdodHRwczovL2N4b25lLnN0YWdpbmcubmljZWluY29udGFjdC5jb20vLndlbGwta25vd24vb3BlbmlkLWNvbmZpZ3VyYXRpb24nIGZyb20gb3JpZ2luICdodHRwOi8vbG9jYWxob3N0OjMwMDAnIGhhcyBiZWVuIGJsb2NrZWQgYnkgQ09SUyBwb2xpY3k6IFJlcXVlc3QgaGVhZGVyIGZpZWxkIHgtZnJhbWV3b3JrLXZlcnNpb24gaXMgbm90IGFsbG93ZWQgYnkgQWNjZXNzLUNvbnRyb2wtQWxsb3ctSGVhZGVycyBpbiBwcmVmbGlnaHQgcmVzcG9uc2UuCkZhaWxlZCB0byBsb2FkIHJlc291cmNlOiBuZXQ6OkVSUl9GQUlMRUQ="
+                            }
+                          ]
+                        }
+                      ],
+                      "status": "expected"
+                    }
+                  ],
+                  "id": "e5b1753da4f9b1e087c5-a782e1cdc53d02ffbeaf",
+                  "file": "e2e/sdk-auth-cxone-agent.spec.ts",
+                  "line": 67,
+                  "column": 9
+                },
+                {
+                  "title": "should enable navigation tabs after auth_token is set in localStorage",
+                  "ok": true,
+                  "tags": [],
+                  "tests": [
+                    {
+                      "timeout": 60000,
+                      "annotations": [],
+                      "expectedStatus": "passed",
+                      "projectId": "e2e-chromium",
+                      "projectName": "e2e-chromium",
+                      "results": [
+                        {
+                          "workerIndex": 0,
+                          "parallelIndex": 0,
+                          "status": "passed",
+                          "duration": 2840,
+                          "errors": [],
+                          "stdout": [],
+                          "stderr": [],
+                          "retry": 0,
+                          "startTime": "2026-03-24T05:50:19.376Z",
+                          "annotations": [],
+                          "attachments": []
+                        }
+                      ],
+                      "status": "expected"
+                    }
+                  ],
+                  "id": "e5b1753da4f9b1e087c5-b113e49e2cad80987b3c",
+                  "file": "e2e/sdk-auth-cxone-agent.spec.ts",
+                  "line": 87,
+                  "column": 9
+                },
+                {
+                  "title": "should display AUTHENTICATED status and token after successful auth",
+                  "ok": true,
+                  "tags": [],
+                  "tests": [
+                    {
+                      "timeout": 60000,
+                      "annotations": [],
+                      "expectedStatus": "passed",
+                      "projectId": "e2e-chromium",
+                      "projectName": "e2e-chromium",
+                      "results": [
+                        {
+                          "workerIndex": 0,
+                          "parallelIndex": 0,
+                          "status": "passed",
+                          "duration": 2770,
+                          "errors": [],
+                          "stdout": [],
+                          "stderr": [],
+                          "retry": 0,
+                          "startTime": "2026-03-24T05:50:22.241Z",
+                          "annotations": [],
+                          "attachments": []
+                        }
+                      ],
+                      "status": "expected"
+                    }
+                  ],
+                  "id": "e5b1753da4f9b1e087c5-35912cd208d95c216908",
+                  "file": "e2e/sdk-auth-cxone-agent.spec.ts",
+                  "line": 104,
+                  "column": 9
+                },
+                {
+                  "title": "should load CXone Agent iframe on CXA Placeholder page after auth",
+                  "ok": true,
+                  "tags": [],
+                  "tests": [
+                    {
+                      "timeout": 60000,
+                      "annotations": [],
+                      "expectedStatus": "passed",
+                      "projectId": "e2e-chromium",
+                      "projectName": "e2e-chromium",
+                      "results": [
+                        {
+                          "workerIndex": 0,
+                          "parallelIndex": 0,
+                          "status": "passed",
+                          "duration": 4829,
+                          "errors": [],
+                          "stdout": [
+                            {
+                              "text": "[2026-03-24T05:50:27.669Z] [INFO ] NavBar: clicking \"Custom\" tab\n"
+                            }
+                          ],
+                          "stderr": [],
+                          "retry": 0,
+                          "startTime": "2026-03-24T05:50:25.032Z",
+                          "annotations": [],
+                          "attachments": []
+                        }
+                      ],
+                      "status": "expected"
+                    }
+                  ],
+                  "id": "e5b1753da4f9b1e087c5-5c3fdc09ee0bde85af54",
+                  "file": "e2e/sdk-auth-cxone-agent.spec.ts",
+                  "line": 122,
+                  "column": 9
+                },
+                {
+                  "title": "should post auth token to CXone Agent iframe via postMessage",
+                  "ok": true,
+                  "tags": [],
+                  "tests": [
+                    {
+                      "timeout": 60000,
+                      "annotations": [],
+                      "expectedStatus": "passed",
+                      "projectId": "e2e-chromium",
+                      "projectName": "e2e-chromium",
+                      "results": [
+                        {
+                          "workerIndex": 0,
+                          "parallelIndex": 0,
+                          "status": "passed",
+                          "duration": 4975,
+                          "errors": [],
+                          "stdout": [],
+                          "stderr": [],
+                          "retry": 0,
+                          "startTime": "2026-03-24T05:50:29.892Z",
+                          "annotations": [],
+                          "attachments": []
+                        }
+                      ],
+                      "status": "expected"
+                    }
+                  ],
+                  "id": "e5b1753da4f9b1e087c5-ed1645e67e8d44f7f803",
+                  "file": "e2e/sdk-auth-cxone-agent.spec.ts",
+                  "line": 146,
+                  "column": 9
+                }
+              ]
+            },
+            {
+              "title": "Invalid SDK authentication",
+              "file": "e2e/sdk-auth-cxone-agent.spec.ts",
+              "line": 174,
+              "column": 8,
+              "specs": [
+                {
+                  "title": "should not authenticate with empty hostname",
+                  "ok": true,
+                  "tags": [],
+                  "tests": [
+                    {
+                      "timeout": 60000,
+                      "annotations": [],
+                      "expectedStatus": "passed",
+                      "projectId": "e2e-chromium",
+                      "projectName": "e2e-chromium",
+                      "results": [
+                        {
+                          "workerIndex": 0,
+                          "parallelIndex": 0,
+                          "status": "passed",
+                          "duration": 2832,
+                          "errors": [],
+                          "stdout": [
+                            {
+                              "text": "[2026-03-24T05:50:36.579Z] [INFO ] Navigating to: /\n"
+                            },
+                            {
+                              "text": "[2026-03-24T05:50:36.825Z] [INFO ] Filling auth form fields\n"
+                            },
+                            {
+                              "text": "[2026-03-24T05:50:37.010Z] [INFO ] Clicking Authenticate button\n"
+                            }
+                          ],
+                          "stderr": [],
+                          "retry": 0,
+                          "startTime": "2026-03-24T05:50:34.902Z",
+                          "annotations": [],
+                          "attachments": []
+                        }
+                      ],
+                      "status": "expected"
+                    }
+                  ],
+                  "id": "e5b1753da4f9b1e087c5-df1924fe5cd28f57ca75",
+                  "file": "e2e/sdk-auth-cxone-agent.spec.ts",
+                  "line": 176,
+                  "column": 9
+                },
+                {
+                  "title": "should not authenticate with empty clientId",
+                  "ok": true,
+                  "tags": [],
+                  "tests": [
+                    {
+                      "timeout": 60000,
+                      "annotations": [],
+                      "expectedStatus": "passed",
+                      "projectId": "e2e-chromium",
+                      "projectName": "e2e-chromium",
+                      "results": [
+                        {
+                          "workerIndex": 0,
+                          "parallelIndex": 0,
+                          "status": "passed",
+                          "duration": 3395,
+                          "errors": [],
+                          "stdout": [
+                            {
+                              "text": "[2026-03-24T05:50:40.073Z] [INFO ] Navigating to: /\n"
+                            },
+                            {
+                              "text": "[2026-03-24T05:50:40.256Z] [INFO ] Filling auth form fields\n"
+                            },
+                            {
+                              "text": "[2026-03-24T05:50:40.390Z] [INFO ] Clicking Authenticate button\n"
+                            }
+                          ],
+                          "stderr": [],
+                          "retry": 0,
+                          "startTime": "2026-03-24T05:50:37.770Z",
+                          "annotations": [],
+                          "attachments": [
+                            {
+                              "name": "console-errors",
+                              "contentType": "text/plain",
+                              "body": "RmFpbGVkIHRvIGxvYWQgcmVzb3VyY2U6IHRoZSBzZXJ2ZXIgcmVzcG9uZGVkIHdpdGggYSBzdGF0dXMgb2YgNDA0IChOb3QgRm91bmQp"
+                            }
+                          ]
+                        }
+                      ],
+                      "status": "expected"
+                    }
+                  ],
+                  "id": "e5b1753da4f9b1e087c5-7fdf9b2afe38d0f12b33",
+                  "file": "e2e/sdk-auth-cxone-agent.spec.ts",
+                  "line": 192,
+                  "column": 9
+                },
+                {
+                  "title": "should not authenticate with empty redirectUri",
+                  "ok": true,
+                  "tags": [],
+                  "tests": [
+                    {
+                      "timeout": 60000,
+                      "annotations": [],
+                      "expectedStatus": "passed",
+                      "projectId": "e2e-chromium",
+                      "projectName": "e2e-chromium",
+                      "results": [
+                        {
+                          "workerIndex": 0,
+                          "parallelIndex": 0,
+                          "status": "passed",
+                          "duration": 3459,
+                          "errors": [],
+                          "stdout": [
+                            {
+                              "text": "[2026-03-24T05:50:43.572Z] [INFO ] Navigating to: /\n"
+                            },
+                            {
+                              "text": "[2026-03-24T05:50:43.761Z] [INFO ] Filling auth form fields\n"
+                            },
+                            {
+                              "text": "[2026-03-24T05:50:43.878Z] [INFO ] Clicking Authenticate button\n"
+                            }
+                          ],
+                          "stderr": [],
+                          "retry": 0,
+                          "startTime": "2026-03-24T05:50:41.218Z",
+                          "annotations": [],
+                          "attachments": [
+                            {
+                              "name": "console-errors",
+                              "contentType": "text/plain",
+                              "body": "RmFpbGVkIHRvIGxvYWQgcmVzb3VyY2U6IHRoZSBzZXJ2ZXIgcmVzcG9uZGVkIHdpdGggYSBzdGF0dXMgb2YgNDA0IChOb3QgRm91bmQp"
+                            }
+                          ]
+                        }
+                      ],
+                      "status": "expected"
+                    }
+                  ],
+                  "id": "e5b1753da4f9b1e087c5-c045ab7c2b76a04b4d27",
+                  "file": "e2e/sdk-auth-cxone-agent.spec.ts",
+                  "line": 207,
+                  "column": 9
+                },
+                {
+                  "title": "should not authenticate with all fields empty",
+                  "ok": true,
+                  "tags": [],
+                  "tests": [
+                    {
+                      "timeout": 60000,
+                      "annotations": [],
+                      "expectedStatus": "passed",
+                      "projectId": "e2e-chromium",
+                      "projectName": "e2e-chromium",
+                      "results": [
+                        {
+                          "workerIndex": 0,
+                          "parallelIndex": 0,
+                          "status": "passed",
+                          "duration": 3423,
+                          "errors": [],
+                          "stdout": [
+                            {
+                              "text": "[2026-03-24T05:50:47.038Z] [INFO ] Navigating to: /\n"
+                            },
+                            {
+                              "text": "[2026-03-24T05:50:47.223Z] [INFO ] Filling auth form fields\n"
+                            },
+                            {
+                              "text": "[2026-03-24T05:50:47.320Z] [INFO ] Clicking Authenticate button\n"
+                            }
+                          ],
+                          "stderr": [],
+                          "retry": 0,
+                          "startTime": "2026-03-24T05:50:44.724Z",
+                          "annotations": [],
+                          "attachments": [
+                            {
+                              "name": "console-errors",
+                              "contentType": "text/plain",
+                              "body": "RmFpbGVkIHRvIGxvYWQgcmVzb3VyY2U6IHRoZSBzZXJ2ZXIgcmVzcG9uZGVkIHdpdGggYSBzdGF0dXMgb2YgNDA0IChOb3QgRm91bmQp"
+                            }
+                          ]
+                        }
+                      ],
+                      "status": "expected"
+                    }
+                  ],
+                  "id": "e5b1753da4f9b1e087c5-c539f98a21c732d9aa62",
+                  "file": "e2e/sdk-auth-cxone-agent.spec.ts",
+                  "line": 222,
+                  "column": 9
+                },
+                {
+                  "title": "should keep tabs disabled when authentication fails",
+                  "ok": true,
+                  "tags": [],
+                  "tests": [
+                    {
+                      "timeout": 60000,
+                      "annotations": [],
+                      "expectedStatus": "passed",
+                      "projectId": "e2e-chromium",
+                      "projectName": "e2e-chromium",
+                      "results": [
+                        {
+                          "workerIndex": 0,
+                          "parallelIndex": 0,
+                          "status": "passed",
+                          "duration": 3045,
+                          "errors": [],
+                          "stdout": [],
+                          "stderr": [],
+                          "retry": 0,
+                          "startTime": "2026-03-24T05:50:48.179Z",
+                          "annotations": [],
+                          "attachments": []
+                        }
+                      ],
+                      "status": "expected"
+                    }
+                  ],
+                  "id": "e5b1753da4f9b1e087c5-108cb959f69bf071cb42",
+                  "file": "e2e/sdk-auth-cxone-agent.spec.ts",
+                  "line": 238,
+                  "column": 9
+                },
+                {
+                  "title": "OIDC token endpoint should reject invalid authorization code",
+                  "ok": true,
+                  "tags": [],
+                  "tests": [
+                    {
+                      "timeout": 60000,
+                      "annotations": [],
+                      "expectedStatus": "passed",
+                      "projectId": "e2e-chromium",
+                      "projectName": "e2e-chromium",
+                      "results": [
+                        {
+                          "workerIndex": 0,
+                          "parallelIndex": 0,
+                          "status": "passed",
+                          "duration": 3181,
+                          "errors": [],
+                          "stdout": [],
+                          "stderr": [],
+                          "retry": 0,
+                          "startTime": "2026-03-24T05:50:51.273Z",
+                          "annotations": [],
+                          "attachments": []
+                        }
+                      ],
+                      "status": "expected"
+                    }
+                  ],
+                  "id": "e5b1753da4f9b1e087c5-ae8f7cdf7e8816c468e9",
+                  "file": "e2e/sdk-auth-cxone-agent.spec.ts",
+                  "line": 252,
+                  "column": 9
+                },
+                {
+                  "title": "should show AUTHENTICATION_FAILED or NOT_AUTHENTICATED status on failure",
+                  "ok": true,
+                  "tags": [],
+                  "tests": [
+                    {
+                      "timeout": 60000,
+                      "annotations": [],
+                      "expectedStatus": "passed",
+                      "projectId": "e2e-chromium",
+                      "projectName": "e2e-chromium",
+                      "results": [
+                        {
+                          "workerIndex": 0,
+                          "parallelIndex": 0,
+                          "status": "passed",
+                          "duration": 2689,
+                          "errors": [],
+                          "stdout": [],
+                          "stderr": [],
+                          "retry": 0,
+                          "startTime": "2026-03-24T05:50:54.493Z",
+                          "annotations": [],
+                          "attachments": []
+                        }
+                      ],
+                      "status": "expected"
+                    }
+                  ],
+                  "id": "e5b1753da4f9b1e087c5-2905d034ec28f0a5bda6",
+                  "file": "e2e/sdk-auth-cxone-agent.spec.ts",
+                  "line": 274,
+                  "column": 9
+                }
+              ]
+            },
+            {
+              "title": "Logout from SDK logs out from CXone Agent",
+              "file": "e2e/sdk-auth-cxone-agent.spec.ts",
+              "line": 301,
+              "column": 8,
+              "specs": [
+                {
+                  "title": "should clear localStorage when logout action executes",
+                  "ok": true,
+                  "tags": [],
+                  "tests": [
+                    {
+                      "timeout": 60000,
+                      "annotations": [],
+                      "expectedStatus": "passed",
+                      "projectId": "e2e-chromium",
+                      "projectName": "e2e-chromium",
+                      "results": [
+                        {
+                          "workerIndex": 0,
+                          "parallelIndex": 0,
+                          "status": "passed",
+                          "duration": 3324,
+                          "errors": [],
+                          "stdout": [],
+                          "stderr": [],
+                          "retry": 0,
+                          "startTime": "2026-03-24T05:50:57.220Z",
+                          "annotations": [],
+                          "attachments": []
+                        }
+                      ],
+                      "status": "expected"
+                    }
+                  ],
+                  "id": "e5b1753da4f9b1e087c5-dc5d72f9a46dbb39014a",
+                  "file": "e2e/sdk-auth-cxone-agent.spec.ts",
+                  "line": 311,
+                  "column": 9
+                },
+                {
+                  "title": "should redirect to home (/) after logout",
+                  "ok": true,
+                  "tags": [],
+                  "tests": [
+                    {
+                      "timeout": 60000,
+                      "annotations": [],
+                      "expectedStatus": "passed",
+                      "projectId": "e2e-chromium",
+                      "projectName": "e2e-chromium",
+                      "results": [
+                        {
+                          "workerIndex": 0,
+                          "parallelIndex": 0,
+                          "status": "passed",
+                          "duration": 3457,
+                          "errors": [],
+                          "stdout": [
+                            {
+                              "text": "[2026-03-24T05:51:03.572Z] [INFO ] NavBar: clicking \"ACD\" tab\n"
+                            }
+                          ],
+                          "stderr": [],
+                          "retry": 0,
+                          "startTime": "2026-03-24T05:51:00.577Z",
+                          "annotations": [],
+                          "attachments": [
+                            {
+                              "name": "console-errors",
+                              "contentType": "text/plain",
+                              "body": "V2FybmluZzogdmFsaWRhdGVET01OZXN0aW5nKC4uLik6ICVzIGNhbm5vdCBhcHBlYXIgYXMgYSBkZXNjZW5kYW50IG9mIDwlcz4uJXMgPGZvcm0+IGZvcm0gCiAgICBhdCBmb3JtCiAgICBhdCBkaXYKICAgIGF0IGh0dHA6Ly9sb2NhbGhvc3Q6MzAwMC9zdGF0aWMvanMvYnVuZGxlLmpzOjM4MDY6NjYKICAgIGF0IENhcmRDb250ZW50IChodHRwOi8vbG9jYWxob3N0OjMwMDAvc3RhdGljL2pzL2J1bmRsZS5qczo3NDIzOjg3KQogICAgYXQgZGl2CiAgICBhdCBodHRwOi8vbG9jYWxob3N0OjMwMDAvc3RhdGljL2pzL2J1bmRsZS5qczozODA2OjY2CiAgICBhdCBQYXBlciAoaHR0cDovL2xvY2FsaG9zdDozMDAwL3N0YXRpYy9qcy9idW5kbGUuanM6MTY3MDU6ODgpCiAgICBhdCBodHRwOi8vbG9jYWxob3N0OjMwMDAvc3RhdGljL2pzL2J1bmRsZS5qczozODA2OjY2CiAgICBhdCBDYXJkIChodHRwOi8vbG9jYWxob3N0OjMwMDAvc3RhdGljL2pzL2J1bmRsZS5qczo3ODA0Ojg3KQogICAgYXQgZGl2CiAgICBhdCBodHRwOi8vbG9jYWxob3N0OjMwMDAvc3RhdGljL2pzL2J1bmRsZS5qczozODA2OjY2CiAgICBhdCBCb3ggKGh0dHA6Ly9sb2NhbGhvc3Q6MzAwMC9zdGF0aWMvanMvYnVuZGxlLmpzOjIzMzI1OjcyKQogICAgYXQgZm9ybQogICAgYXQgZGl2CiAgICBhdCBodHRwOi8vbG9jYWxob3N0OjMwMDAvc3RhdGljL2pzL2J1bmRsZS5qczozODA2OjY2CiAgICBhdCBDYXJkQ29udGVudCAoaHR0cDovL2xvY2FsaG9zdDozMDAwL3N0YXRpYy9qcy9idW5kbGUuanM6NzQyMzo4NykKICAgIGF0IGRpdgogICAgYXQgaHR0cDovL2xvY2FsaG9zdDozMDAwL3N0YXRpYy9qcy9idW5kbGUuanM6MzgwNjo2NgogICAgYXQgUGFwZXIgKGh0dHA6Ly9sb2NhbGhvc3Q6MzAwMC9zdGF0aWMvanMvYnVuZGxlLmpzOjE2NzA1Ojg4KQogICAgYXQgaHR0cDovL2xvY2FsaG9zdDozMDAwL3N0YXRpYy9qcy9idW5kbGUuanM6MzgwNjo2NgogICAgYXQgQ2FyZCAoaHR0cDovL2xvY2FsaG9zdDozMDAwL3N0YXRpYy9qcy9idW5kbGUuanM6NzgwNDo4NykKICAgIGF0IGRpdgogICAgYXQgaHR0cDovL2xvY2FsaG9zdDozMDAwL3N0YXRpYy9qcy9idW5kbGUuanM6MzgwNjo2NgogICAgYXQgQm94IChodHRwOi8vbG9jYWxob3N0OjMwMDAvc3RhdGljL2pzL2J1bmRsZS5qczoyMzMyNTo3MikKICAgIGF0IEFjZFNkayAoaHR0cDovL2xvY2FsaG9zdDozMDAwL3N0YXRpYy9qcy9idW5kbGUuanM6MTY2Ojc0KQogICAgYXQgUmVuZGVyZWRSb3V0ZSAoaHR0cDovL2xvY2FsaG9zdDozMDAwL3N0YXRpYy9qcy9idW5kbGUuanM6MjE5OTAwOjUpCiAgICBhdCBSb3V0ZXMgKGh0dHA6Ly9sb2NhbGhvc3Q6MzAwMC9zdGF0aWMvanMvYnVuZGxlLmpzOjIyMDY2Mjo1KQogICAgYXQgbWFpbgogICAgYXQgaHR0cDovL2xvY2FsaG9zdDozMDAwL3N0YXRpYy9qcy9idW5kbGUuanM6MzgwNjo2NgogICAgYXQgZGl2CiAgICBhdCBodHRwOi8vbG9jYWxob3N0OjMwMDAvc3RhdGljL2pzL2J1bmRsZS5qczozODA2OjY2CiAgICBhdCBCb3ggKGh0dHA6Ly9sb2NhbGhvc3Q6MzAwMC9zdGF0aWMvanMvYnVuZGxlLmpzOjIzMzI1OjcyKQogICAgYXQgTmF2QmFyIChodHRwOi8vbG9jYWxob3N0OjMwMDAvc3RhdGljL2pzL2J1bmRsZS5qczoyNTg1OjgxKQogICAgYXQgRXJyb3JCb3VuZGFyeSAoaHR0cDovL2xvY2FsaG9zdDozMDAwL3N0YXRpYy9qcy9idW5kbGUuanM6MjMwMDo1KQogICAgYXQgZGl2CiAgICBhdCBBcHAKICAgIGF0IFJvdXRlciAoaHR0cDovL2xvY2FsaG9zdDozMDAwL3N0YXRpYy9qcy9idW5kbGUuanM6MjIwNjA2OjE1KQogICAgYXQgQnJvd3NlclJvdXRlciAoaHR0cDovL2xvY2FsaG9zdDozMDAwL3N0YXRpYy9qcy9idW5kbGUuanM6MjIzNzQwOjUpCkZhaWxlZCB0byBsb2FkIHJlc291cmNlOiB0aGUgc2VydmVyIHJlc3BvbmRlZCB3aXRoIGEgc3RhdHVzIG9mIDQwNCAoTm90IEZvdW5kKQpGYWlsZWQgdG8gbG9hZCByZXNvdXJjZTogdGhlIHNlcnZlciByZXNwb25kZWQgd2l0aCBhIHN0YXR1cyBvZiA0MDQgKE5vdCBGb3VuZCkKRmFpbGVkIHRvIGxvYWQgcmVzb3VyY2U6IHRoZSBzZXJ2ZXIgcmVzcG9uZGVkIHdpdGggYSBzdGF0dXMgb2YgNDA0IChOb3QgRm91bmQpCkZhaWxlZCB0byBsb2FkIHJlc291cmNlOiB0aGUgc2VydmVyIHJlc3BvbmRlZCB3aXRoIGEgc3RhdHVzIG9mIDQwNCAoTm90IEZvdW5kKQ=="
+                            }
+                          ]
+                        }
+                      ],
+                      "status": "expected"
+                    }
+                  ],
+                  "id": "e5b1753da4f9b1e087c5-2a3908ecc3350e7803f2",
+                  "file": "e2e/sdk-auth-cxone-agent.spec.ts",
+                  "line": 342,
+                  "column": 9
+                },
+                {
+                  "title": "should disable navigation tabs after logout",
+                  "ok": true,
+                  "tags": [],
+                  "tests": [
+                    {
+                      "timeout": 60000,
+                      "annotations": [],
+                      "expectedStatus": "passed",
+                      "projectId": "e2e-chromium",
+                      "projectName": "e2e-chromium",
+                      "results": [
+                        {
+                          "workerIndex": 0,
+                          "parallelIndex": 0,
+                          "status": "passed",
+                          "duration": 3823,
+                          "errors": [],
+                          "stdout": [],
+                          "stderr": [],
+                          "retry": 0,
+                          "startTime": "2026-03-24T05:51:04.066Z",
+                          "annotations": [],
+                          "attachments": []
+                        }
+                      ],
+                      "status": "expected"
+                    }
+                  ],
+                  "id": "e5b1753da4f9b1e087c5-02b59620a10b2bbda660",
+                  "file": "e2e/sdk-auth-cxone-agent.spec.ts",
+                  "line": 362,
+                  "column": 9
+                },
+                {
+                  "title": "NavBar Logout handler should call endSession in source code",
+                  "ok": true,
+                  "tags": [],
+                  "tests": [
+                    {
+                      "timeout": 60000,
+                      "annotations": [],
+                      "expectedStatus": "passed",
+                      "projectId": "e2e-chromium",
+                      "projectName": "e2e-chromium",
+                      "results": [
+                        {
+                          "workerIndex": 0,
+                          "parallelIndex": 0,
+                          "status": "passed",
+                          "duration": 2015,
+                          "errors": [],
+                          "stdout": [],
+                          "stderr": [],
+                          "retry": 0,
+                          "startTime": "2026-03-24T05:51:07.922Z",
+                          "annotations": [],
+                          "attachments": []
+                        }
+                      ],
+                      "status": "expected"
+                    }
+                  ],
+                  "id": "e5b1753da4f9b1e087c5-53497fe054eb2d2b909e",
+                  "file": "e2e/sdk-auth-cxone-agent.spec.ts",
+                  "line": 384,
+                  "column": 9
+                },
+                {
+                  "title": "CXone Agent iframe should not persist after logout navigation",
+                  "ok": true,
+                  "tags": [],
+                  "tests": [
+                    {
+                      "timeout": 60000,
+                      "annotations": [],
+                      "expectedStatus": "passed",
+                      "projectId": "e2e-chromium",
+                      "projectName": "e2e-chromium",
+                      "results": [
+                        {
+                          "workerIndex": 0,
+                          "parallelIndex": 0,
+                          "status": "passed",
+                          "duration": 4229,
+                          "errors": [],
+                          "stdout": [
+                            {
+                              "text": "[2026-03-24T05:51:12.380Z] [INFO ] NavBar: clicking \"Custom\" tab\n"
+                            }
+                          ],
+                          "stderr": [],
+                          "retry": 0,
+                          "startTime": "2026-03-24T05:51:09.976Z",
+                          "annotations": [],
+                          "attachments": []
+                        }
+                      ],
+                      "status": "expected"
+                    }
+                  ],
+                  "id": "e5b1753da4f9b1e087c5-2710b281704a1c139973",
+                  "file": "e2e/sdk-auth-cxone-agent.spec.ts",
+                  "line": 404,
+                  "column": 9
+                }
+              ]
+            },
+            {
+              "title": "Direct logout from CXone Agent",
+              "file": "e2e/sdk-auth-cxone-agent.spec.ts",
+              "line": 437,
+              "column": 8,
+              "specs": [
+                {
+                  "title": "should detect auth_token removal from localStorage (external logout)",
+                  "ok": true,
+                  "tags": [],
+                  "tests": [
+                    {
+                      "timeout": 60000,
+                      "annotations": [],
+                      "expectedStatus": "passed",
+                      "projectId": "e2e-chromium",
+                      "projectName": "e2e-chromium",
+                      "results": [
+                        {
+                          "workerIndex": 0,
+                          "parallelIndex": 0,
+                          "status": "passed",
+                          "duration": 4341,
+                          "errors": [],
+                          "stdout": [],
+                          "stderr": [],
+                          "retry": 0,
+                          "startTime": "2026-03-24T05:51:14.234Z",
+                          "annotations": [],
+                          "attachments": []
+                        }
+                      ],
+                      "status": "expected"
+                    }
+                  ],
+                  "id": "e5b1753da4f9b1e087c5-b56e5397f4d0e3cacbcd",
+                  "file": "e2e/sdk-auth-cxone-agent.spec.ts",
+                  "line": 439,
+                  "column": 9
+                },
+                {
+                  "title": "should handle NOT_AUTHENTICATED status from SDK auth subscription",
+                  "ok": true,
+                  "tags": [],
+                  "tests": [
+                    {
+                      "timeout": 60000,
+                      "annotations": [],
+                      "expectedStatus": "passed",
+                      "projectId": "e2e-chromium",
+                      "projectName": "e2e-chromium",
+                      "results": [
+                        {
+                          "workerIndex": 0,
+                          "parallelIndex": 0,
+                          "status": "passed",
+                          "duration": 2448,
+                          "errors": [],
+                          "stdout": [],
+                          "stderr": [],
+                          "retry": 0,
+                          "startTime": "2026-03-24T05:51:18.609Z",
+                          "annotations": [],
+                          "attachments": []
+                        }
+                      ],
+                      "status": "expected"
+                    }
+                  ],
+                  "id": "e5b1753da4f9b1e087c5-9d1eb51ea96d22fe8b80",
+                  "file": "e2e/sdk-auth-cxone-agent.spec.ts",
+                  "line": 465,
+                  "column": 9
+                },
+                {
+                  "title": "should not allow navigation to SDK features after external logout",
+                  "ok": true,
+                  "tags": [],
+                  "tests": [
+                    {
+                      "timeout": 60000,
+                      "annotations": [],
+                      "expectedStatus": "passed",
+                      "projectId": "e2e-chromium",
+                      "projectName": "e2e-chromium",
+                      "results": [
+                        {
+                          "workerIndex": 0,
+                          "parallelIndex": 0,
+                          "status": "passed",
+                          "duration": 3669,
+                          "errors": [],
+                          "stdout": [],
+                          "stderr": [],
+                          "retry": 0,
+                          "startTime": "2026-03-24T05:51:21.089Z",
+                          "annotations": [],
+                          "attachments": [
+                            {
+                              "name": "console-errors",
+                              "contentType": "text/plain",
+                              "body": "V2FybmluZzogdmFsaWRhdGVET01OZXN0aW5nKC4uLik6ICVzIGNhbm5vdCBhcHBlYXIgYXMgYSBkZXNjZW5kYW50IG9mIDwlcz4uJXMgPGZvcm0+IGZvcm0gCiAgICBhdCBmb3JtCiAgICBhdCBkaXYKICAgIGF0IGh0dHA6Ly9sb2NhbGhvc3Q6MzAwMC9zdGF0aWMvanMvYnVuZGxlLmpzOjM4MDY6NjYKICAgIGF0IENhcmRDb250ZW50IChodHRwOi8vbG9jYWxob3N0OjMwMDAvc3RhdGljL2pzL2J1bmRsZS5qczo3NDIzOjg3KQogICAgYXQgZGl2CiAgICBhdCBodHRwOi8vbG9jYWxob3N0OjMwMDAvc3RhdGljL2pzL2J1bmRsZS5qczozODA2OjY2CiAgICBhdCBQYXBlciAoaHR0cDovL2xvY2FsaG9zdDozMDAwL3N0YXRpYy9qcy9idW5kbGUuanM6MTY3MDU6ODgpCiAgICBhdCBodHRwOi8vbG9jYWxob3N0OjMwMDAvc3RhdGljL2pzL2J1bmRsZS5qczozODA2OjY2CiAgICBhdCBDYXJkIChodHRwOi8vbG9jYWxob3N0OjMwMDAvc3RhdGljL2pzL2J1bmRsZS5qczo3ODA0Ojg3KQogICAgYXQgZGl2CiAgICBhdCBodHRwOi8vbG9jYWxob3N0OjMwMDAvc3RhdGljL2pzL2J1bmRsZS5qczozODA2OjY2CiAgICBhdCBCb3ggKGh0dHA6Ly9sb2NhbGhvc3Q6MzAwMC9zdGF0aWMvanMvYnVuZGxlLmpzOjIzMzI1OjcyKQogICAgYXQgZm9ybQogICAgYXQgZGl2CiAgICBhdCBodHRwOi8vbG9jYWxob3N0OjMwMDAvc3RhdGljL2pzL2J1bmRsZS5qczozODA2OjY2CiAgICBhdCBDYXJkQ29udGVudCAoaHR0cDovL2xvY2FsaG9zdDozMDAwL3N0YXRpYy9qcy9idW5kbGUuanM6NzQyMzo4NykKICAgIGF0IGRpdgogICAgYXQgaHR0cDovL2xvY2FsaG9zdDozMDAwL3N0YXRpYy9qcy9idW5kbGUuanM6MzgwNjo2NgogICAgYXQgUGFwZXIgKGh0dHA6Ly9sb2NhbGhvc3Q6MzAwMC9zdGF0aWMvanMvYnVuZGxlLmpzOjE2NzA1Ojg4KQogICAgYXQgaHR0cDovL2xvY2FsaG9zdDozMDAwL3N0YXRpYy9qcy9idW5kbGUuanM6MzgwNjo2NgogICAgYXQgQ2FyZCAoaHR0cDovL2xvY2FsaG9zdDozMDAwL3N0YXRpYy9qcy9idW5kbGUuanM6NzgwNDo4NykKICAgIGF0IGRpdgogICAgYXQgaHR0cDovL2xvY2FsaG9zdDozMDAwL3N0YXRpYy9qcy9idW5kbGUuanM6MzgwNjo2NgogICAgYXQgQm94IChodHRwOi8vbG9jYWxob3N0OjMwMDAvc3RhdGljL2pzL2J1bmRsZS5qczoyMzMyNTo3MikKICAgIGF0IEFjZFNkayAoaHR0cDovL2xvY2FsaG9zdDozMDAwL3N0YXRpYy9qcy9idW5kbGUuanM6MTY2Ojc0KQogICAgYXQgUmVuZGVyZWRSb3V0ZSAoaHR0cDovL2xvY2FsaG9zdDozMDAwL3N0YXRpYy9qcy9idW5kbGUuanM6MjE5OTAwOjUpCiAgICBhdCBSb3V0ZXMgKGh0dHA6Ly9sb2NhbGhvc3Q6MzAwMC9zdGF0aWMvanMvYnVuZGxlLmpzOjIyMDY2Mjo1KQogICAgYXQgbWFpbgogICAgYXQgaHR0cDovL2xvY2FsaG9zdDozMDAwL3N0YXRpYy9qcy9idW5kbGUuanM6MzgwNjo2NgogICAgYXQgZGl2CiAgICBhdCBodHRwOi8vbG9jYWxob3N0OjMwMDAvc3RhdGljL2pzL2J1bmRsZS5qczozODA2OjY2CiAgICBhdCBCb3ggKGh0dHA6Ly9sb2NhbGhvc3Q6MzAwMC9zdGF0aWMvanMvYnVuZGxlLmpzOjIzMzI1OjcyKQogICAgYXQgTmF2QmFyIChodHRwOi8vbG9jYWxob3N0OjMwMDAvc3RhdGljL2pzL2J1bmRsZS5qczoyNTg1OjgxKQogICAgYXQgRXJyb3JCb3VuZGFyeSAoaHR0cDovL2xvY2FsaG9zdDozMDAwL3N0YXRpYy9qcy9idW5kbGUuanM6MjMwMDo1KQogICAgYXQgZGl2CiAgICBhdCBBcHAKICAgIGF0IFJvdXRlciAoaHR0cDovL2xvY2FsaG9zdDozMDAwL3N0YXRpYy9qcy9idW5kbGUuanM6MjIwNjA2OjE1KQogICAgYXQgQnJvd3NlclJvdXRlciAoaHR0cDovL2xvY2FsaG9zdDozMDAwL3N0YXRpYy9qcy9idW5kbGUuanM6MjIzNzQwOjUpCkZhaWxlZCB0byBsb2FkIHJlc291cmNlOiB0aGUgc2VydmVyIHJlc3BvbmRlZCB3aXRoIGEgc3RhdHVzIG9mIDQwNCAoTm90IEZvdW5kKQpGYWlsZWQgdG8gbG9hZCByZXNvdXJjZTogdGhlIHNlcnZlciByZXNwb25kZWQgd2l0aCBhIHN0YXR1cyBvZiA0MDQgKE5vdCBGb3VuZCkKRmFpbGVkIHRvIGxvYWQgcmVzb3VyY2U6IHRoZSBzZXJ2ZXIgcmVzcG9uZGVkIHdpdGggYSBzdGF0dXMgb2YgNDA0IChOb3QgRm91bmQp"
+                            }
+                          ]
+                        }
+                      ],
+                      "status": "expected"
+                    }
+                  ],
+                  "id": "e5b1753da4f9b1e087c5-a87da25b38e7537ce110",
+                  "file": "e2e/sdk-auth-cxone-agent.spec.ts",
+                  "line": 486,
+                  "column": 9
+                },
+                {
+                  "title": "CXone Agent iframe should stop receiving tokens after external logout",
+                  "ok": true,
+                  "tags": [],
+                  "tests": [
+                    {
+                      "timeout": 60000,
+                      "annotations": [],
+                      "expectedStatus": "passed",
+                      "projectId": "e2e-chromium",
+                      "projectName": "e2e-chromium",
+                      "results": [
+                        {
+                          "workerIndex": 0,
+                          "parallelIndex": 0,
+                          "status": "passed",
+                          "duration": 4818,
+                          "errors": [],
+                          "stdout": [],
+                          "stderr": [],
+                          "retry": 0,
+                          "startTime": "2026-03-24T05:51:24.794Z",
+                          "annotations": [],
+                          "attachments": []
+                        }
+                      ],
+                      "status": "expected"
+                    }
+                  ],
+                  "id": "e5b1753da4f9b1e087c5-5d1f5c981b15747b49df",
+                  "file": "e2e/sdk-auth-cxone-agent.spec.ts",
+                  "line": 509,
+                  "column": 9
+                }
+              ]
+            },
+            {
+              "title": "SDK token refresh",
+              "file": "e2e/sdk-auth-cxone-agent.spec.ts",
+              "line": 538,
+              "column": 8,
+              "specs": [
+                {
+                  "title": "OIDC token endpoint should accept refresh_token grant type",
+                  "ok": true,
+                  "tags": [],
+                  "tests": [
+                    {
+                      "timeout": 60000,
+                      "annotations": [],
+                      "expectedStatus": "passed",
+                      "projectId": "e2e-chromium",
+                      "projectName": "e2e-chromium",
+                      "results": [
+                        {
+                          "workerIndex": 0,
+                          "parallelIndex": 0,
+                          "status": "passed",
+                          "duration": 2985,
+                          "errors": [],
+                          "stdout": [],
+                          "stderr": [],
+                          "retry": 0,
+                          "startTime": "2026-03-24T05:51:29.650Z",
+                          "annotations": [],
+                          "attachments": []
+                        }
+                      ],
+                      "status": "expected"
+                    }
+                  ],
+                  "id": "e5b1753da4f9b1e087c5-8320cde017a790541a50",
+                  "file": "e2e/sdk-auth-cxone-agent.spec.ts",
+                  "line": 540,
+                  "column": 9
+                },
+                {
+                  "title": "OIDC discovery should expose token_endpoint for refresh flow",
+                  "ok": true,
+                  "tags": [],
+                  "tests": [
+                    {
+                      "timeout": 60000,
+                      "annotations": [],
+                      "expectedStatus": "passed",
+                      "projectId": "e2e-chromium",
+                      "projectName": "e2e-chromium",
+                      "results": [
+                        {
+                          "workerIndex": 0,
+                          "parallelIndex": 0,
+                          "status": "passed",
+                          "duration": 2290,
+                          "errors": [],
+                          "stdout": [],
+                          "stderr": [],
+                          "retry": 0,
+                          "startTime": "2026-03-24T05:51:32.670Z",
+                          "annotations": [],
+                          "attachments": []
+                        }
+                      ],
+                      "status": "expected"
+                    }
+                  ],
+                  "id": "e5b1753da4f9b1e087c5-2e8a01d76d0c28ab48ca",
+                  "file": "e2e/sdk-auth-cxone-agent.spec.ts",
+                  "line": 563,
+                  "column": 9
+                },
+                {
+                  "title": "should have OIDC config stored in localStorage after auth for refresh use",
+                  "ok": true,
+                  "tags": [],
+                  "tests": [
+                    {
+                      "timeout": 60000,
+                      "annotations": [],
+                      "expectedStatus": "passed",
+                      "projectId": "e2e-chromium",
+                      "projectName": "e2e-chromium",
+                      "results": [
+                        {
+                          "workerIndex": 0,
+                          "parallelIndex": 0,
+                          "status": "passed",
+                          "duration": 2052,
+                          "errors": [],
+                          "stdout": [],
+                          "stderr": [],
+                          "retry": 0,
+                          "startTime": "2026-03-24T05:51:34.994Z",
+                          "annotations": [],
+                          "attachments": []
+                        }
+                      ],
+                      "status": "expected"
+                    }
+                  ],
+                  "id": "e5b1753da4f9b1e087c5-80351461cae329dd484a",
+                  "file": "e2e/sdk-auth-cxone-agent.spec.ts",
+                  "line": 574,
+                  "column": 9
+                },
+                {
+                  "title": "SDK should dispatch REFRESH_TOKEN_SUCCESS event on successful refresh",
+                  "ok": true,
+                  "tags": [],
+                  "tests": [
+                    {
+                      "timeout": 60000,
+                      "annotations": [],
+                      "expectedStatus": "passed",
+                      "projectId": "e2e-chromium",
+                      "projectName": "e2e-chromium",
+                      "results": [
+                        {
+                          "workerIndex": 0,
+                          "parallelIndex": 0,
+                          "status": "passed",
+                          "duration": 2276,
+                          "errors": [],
+                          "stdout": [],
+                          "stderr": [],
+                          "retry": 0,
+                          "startTime": "2026-03-24T05:51:37.081Z",
+                          "annotations": [],
+                          "attachments": []
+                        }
+                      ],
+                      "status": "expected"
+                    }
+                  ],
+                  "id": "e5b1753da4f9b1e087c5-50b3dd8037feda0c744d",
+                  "file": "e2e/sdk-auth-cxone-agent.spec.ts",
+                  "line": 599,
+                  "column": 9
+                },
+                {
+                  "title": "should maintain auth state across page reload when tokens exist",
+                  "ok": true,
+                  "tags": [],
+                  "tests": [
+                    {
+                      "timeout": 60000,
+                      "annotations": [],
+                      "expectedStatus": "passed",
+                      "projectId": "e2e-chromium",
+                      "projectName": "e2e-chromium",
+                      "results": [
+                        {
+                          "workerIndex": 0,
+                          "parallelIndex": 0,
+                          "status": "passed",
+                          "duration": 4321,
+                          "errors": [],
+                          "stdout": [],
+                          "stderr": [],
+                          "retry": 0,
+                          "startTime": "2026-03-24T05:51:39.393Z",
+                          "annotations": [],
+                          "attachments": [
+                            {
+                              "name": "console-errors",
+                              "contentType": "text/plain",
+                              "body": "RmFpbGVkIHRvIGxvYWQgcmVzb3VyY2U6IHRoZSBzZXJ2ZXIgcmVzcG9uZGVkIHdpdGggYSBzdGF0dXMgb2YgNDA0IChOb3QgRm91bmQp"
+                            }
+                          ]
+                        }
+                      ],
+                      "status": "expected"
+                    }
+                  ],
+                  "id": "e5b1753da4f9b1e087c5-8b96d81a6f2c3de00baf",
+                  "file": "e2e/sdk-auth-cxone-agent.spec.ts",
+                  "line": 619,
+                  "column": 9
+                },
+                {
+                  "title": "should lose auth state after reload when tokens are cleared",
+                  "ok": true,
+                  "tags": [],
+                  "tests": [
+                    {
+                      "timeout": 60000,
+                      "annotations": [],
+                      "expectedStatus": "passed",
+                      "projectId": "e2e-chromium",
+                      "projectName": "e2e-chromium",
+                      "results": [
+                        {
+                          "workerIndex": 0,
+                          "parallelIndex": 0,
+                          "status": "passed",
+                          "duration": 3839,
+                          "errors": [],
+                          "stdout": [],
+                          "stderr": [],
+                          "retry": 0,
+                          "startTime": "2026-03-24T05:51:43.749Z",
+                          "annotations": [],
+                          "attachments": []
+                        }
+                      ],
+                      "status": "expected"
+                    }
+                  ],
+                  "id": "e5b1753da4f9b1e087c5-2be311fe173aea79474d",
+                  "file": "e2e/sdk-auth-cxone-agent.spec.ts",
+                  "line": 638,
+                  "column": 9
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "errors": [],
+  "stats": {
+    "startTime": "2026-03-24T05:49:58.857Z",
+    "duration": 109209.301,
+    "expected": 27,
+    "skipped": 0,
+    "unexpected": 0,
+    "flaky": 0
+  }
+}
