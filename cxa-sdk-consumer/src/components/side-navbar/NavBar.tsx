@@ -50,7 +50,6 @@ import HeadsetMicIcon from "@mui/icons-material/HeadsetMic";
 import ChatIcon from "@mui/icons-material/Chat";
 import WidgetsIcon from "@mui/icons-material/Widgets";
 import LogoutIcon from "@mui/icons-material/Logout";
-import HubIcon from "@mui/icons-material/Hub";
 
 const logger = new Logger('Agent Workspace SDK', 'NavBar');
 
@@ -159,7 +158,7 @@ const Main = styled("main")(({ theme }) => ({
   flexGrow: 1,
   padding: theme.spacing(2),
   minHeight: "100vh",
-  backgroundColor: "#f0f2f5",
+  backgroundColor: "#f8f8f8",
   width: "100%",
   [theme.breakpoints.up("md")]: {
     padding: theme.spacing(3),
@@ -248,15 +247,12 @@ export default function NavBar() {
   const drawerContent = (
     <>
         <Box sx={{ p: 2.5, display: "flex", alignItems: "center", gap: 1.5 }}>
-          <Avatar
-            sx={{
-              bgcolor: "rgba(255,255,255,0.15)",
-              width: 40,
-              height: 40,
-            }}
-          >
-            <HubIcon sx={{ color: "#64b5f6" }} />
-          </Avatar>
+          <Box
+            component="img"
+            src="/nicewhite.svg"
+            alt="NiCE"
+            sx={{ height: 28, width: "auto", flexShrink: 0 }}
+          />
           <Box>
             <Typography variant="subtitle1" sx={{ fontWeight: 700, color: "#fff", lineHeight: 1.2 }}>
               Agent Workspace SDK
@@ -286,7 +282,7 @@ export default function NavBar() {
                     },
                     color: "#ffffff",
                     "& .MuiListItemIcon-root": {
-                      color: "#64b5f6",
+                      color: "#93C3FA",
                     },
                   },
                   "&:hover": {
@@ -335,7 +331,7 @@ export default function NavBar() {
   const drawerPaperSx = {
     width: drawerWidth,
     boxSizing: "border-box" as const,
-    background: "linear-gradient(180deg, #1a237e 0%, #0d1b60 100%)",
+    background: "#3694FC",
     color: "#ffffff",
     borderRight: "none",
   };
@@ -351,7 +347,7 @@ export default function NavBar() {
         position="fixed"
         sx={{
           display: { xs: "flex", md: "none" },
-          background: "linear-gradient(135deg, #1a237e 0%, #283593 100%)",
+          background: "#3694FC",
           boxShadow: "0 2px 8px rgba(0,0,0,0.15)",
         }}
       >
@@ -365,7 +361,12 @@ export default function NavBar() {
           >
             <MenuIcon />
           </IconButton>
-          <HubIcon sx={{ color: "#64b5f6", mr: 1 }} />
+          <Box
+            component="img"
+            src="/nicewhite.svg"
+            alt="NiCE"
+            sx={{ height: 22, width: "auto", mr: 1.5, flexShrink: 0 }}
+          />
           <Typography variant="subtitle1" sx={{ fontWeight: 700, flexGrow: 1 }}>
             Agent Workspace SDK 
           </Typography>
