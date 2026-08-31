@@ -8,7 +8,7 @@
  * @remarks
  * - From here routes got handled
  * - Authentication component call first.
- * - Side allow us navigate between features in SDK.
+ * - Side allow us navigate between features in Agent Workspace SDK.
  * - The selected tab index is stored in localStorage and retrieved on component mount.
  * - The component listens for changes to the `auth_token` in localStorage to enable/disable tabs.
  * 
@@ -52,7 +52,7 @@ import WidgetsIcon from "@mui/icons-material/Widgets";
 import LogoutIcon from "@mui/icons-material/Logout";
 import HubIcon from "@mui/icons-material/Hub";
 
-const logger = new Logger('SDK-CONSUMER', 'NavBar');
+const logger = new Logger('Agent Workspace SDK', 'NavBar');
 
 
 
@@ -259,7 +259,7 @@ export default function NavBar() {
           </Avatar>
           <Box>
             <Typography variant="subtitle1" sx={{ fontWeight: 700, color: "#fff", lineHeight: 1.2 }}>
-              CXone SDK
+              Agent Workspace SDK
             </Typography>
             <Typography variant="caption" sx={{ color: "rgba(255,255,255,0.6)" }}>
               Consumer App
@@ -340,7 +340,7 @@ export default function NavBar() {
     borderRight: "none",
   };
 
-  const currentTabLabel = tabNamesArray[selectedIndex ?? 0] ?? "CXone SDK";
+  const currentTabLabel = tabNamesArray[selectedIndex ?? 0] ?? "Agent Workspace SDK";
 
   return (
     <Box sx={{ display: "flex", minHeight: "100vh" }}>
@@ -367,7 +367,7 @@ export default function NavBar() {
           </IconButton>
           <HubIcon sx={{ color: "#64b5f6", mr: 1 }} />
           <Typography variant="subtitle1" sx={{ fontWeight: 700, flexGrow: 1 }}>
-            CXone SDK
+            Agent Workspace SDK 
           </Typography>
           <Typography variant="caption" sx={{ opacity: 0.8 }}>
             {currentTabLabel}

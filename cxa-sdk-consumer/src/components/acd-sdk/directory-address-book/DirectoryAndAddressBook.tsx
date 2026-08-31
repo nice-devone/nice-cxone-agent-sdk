@@ -55,8 +55,8 @@ import {
 import { ACDSessionManager, Logger } from '@nice-devone/core-sdk';
 
 
-// SDK Logger
-const logger = new Logger('SDK-CONSUMER', 'DirectoryAndAddressBook');
+// Agent Workspace SDK Logger
+const logger = new Logger('Agent Workspace SDK', 'DirectoryAndAddressBook');
 const DEFAULT_PAGE_SIZE = 50;
 // Agent directory fetches the full matched set so every matching agent appears in
 // one list (the SDK slices by offset/limit; a high limit returns everything).
@@ -68,7 +68,7 @@ const AGENT_FETCH_LIMIT = 1000;
 const AGENT_POLL_INTERVAL_MS = 600000;
 
 /**
- * Snapshot of the dynamic-directory readiness state. The SDK silently drops
+ * Snapshot of the dynamic-directory readiness state. The Agent Workspace SDK silently drops
  * `searchDirectories()` calls if `CXoneAuth.instance.getCXoneConfig()` has no
  * `apiFacadeBaseUri` or no access token, so we surface those values here.
  */
@@ -217,8 +217,7 @@ const DirectoryAndAddressBook: React.FC = () => {
   // ACD-session diagnostics for the Agent Directory section's status chips.
   const [diag, setDiag] = useState(getDirectoryDiagnostics);
 
-  // Keep ACDSessionManager seeded from CXoneAuth so the agent-state poll can fire
-  // (initAcdEngagement seeds it once at mount, but may run before auth resolves).
+  // Refresh diagnostics every second so the chips reflect current Agent Workspace SDK state.
   useEffect(() => {
     const id = window.setInterval(() => {
       ensureAcdSessionInitialized();
@@ -381,7 +380,7 @@ const DirectoryAndAddressBook: React.FC = () => {
     trySubscribeDirectory();
     trySubscribeAddressBook();
 
-    // Auto-fire both fetches once the SDK is fully ready. Calls go directly
+    // Auto-fire both fetches once the Agent Workspace SDK is fully ready. Calls go directly
     // through the SDK so the tables populate without a manual click.
     let autoFireId: number | undefined;
     const tryAutoFire = () => {
@@ -446,6 +445,27 @@ const DirectoryAndAddressBook: React.FC = () => {
    * Fetch external directories via dynamicDirectory.searchDirectories.
    */
   const searchExternalDirectory = (searchString?: string) => {
+    const dyn: any = CXoneClient.instance?.directory?.dynamicDirectory;
+    const diagnostics = getDirectoryDiagnostics();
+    if (typeof dyn?.searchDirectories !== 'function') {
+      setDirectoryError(
+        'dynamicDirectory.searchDirectories is not available. Please complete authentication first.',
+      );
+      logger.error('searchDirectories unavailable', '');
+      return;
+    }
+    if (!diagnostics.apiFacadeBaseUri) {
+      setDirectoryError(
+        'CXoneAuth.instance.getCXoneConfig().apiFacadeBaseUri is empty - the Agent Workspace SDK cannot build the SearchDirectories URL. Log in via the User Hub flow first.',
+      );
+      logger.error('searchDirectories blocked: missing apiFacadeBaseUri', '');
+      return;
+    }
+    if (!diagnostics.hasAccessToken) {
+      setDirectoryError('CXoneAuth has no access token. Complete authentication first.');
+      logger.error('searchDirectories blocked: missing access token', '');
+      return;
+    }
     setDirectoryLoading(true);
     setDirectoryError('');
     // Exactly CMA's ccf-directory slice request: subscriptionId (empty on the

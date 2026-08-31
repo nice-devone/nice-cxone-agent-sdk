@@ -62,8 +62,8 @@ type FetchInteractionsOptions = {
 const PAGE_SIZE = 25;
 const STATUS_OPTIONS = ['ALL', 'NEW', 'OPEN', 'PENDING', 'ESCALATED', 'RESOLVED', 'CLOSED'];
 
-// SDK Logger
-const logger = new Logger('SDK-CONSUMER', 'DigitalSdk');
+// Agent Workspace SDK
+const logger = new Logger('Agent Workspace SDK', 'DigitalSdk');
 
 
 

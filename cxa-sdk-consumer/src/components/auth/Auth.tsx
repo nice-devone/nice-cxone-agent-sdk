@@ -41,8 +41,8 @@ import CheckCircleIcon from "@mui/icons-material/CheckCircle";
 import ErrorIcon from "@mui/icons-material/Error";
 import HourglassEmptyIcon from "@mui/icons-material/HourglassEmpty";
 
-// SDK Logger
-const logger = new Logger('SDK-CONSUMER', 'Auth');
+// Agent Workspace SDK Logger
+const logger = new Logger('Agent Workspace SDK', 'Auth');
 
 
 
