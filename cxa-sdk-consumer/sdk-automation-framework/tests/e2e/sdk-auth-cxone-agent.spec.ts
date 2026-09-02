@@ -19,7 +19,7 @@ import { test, expect } from '../../src/fixtures/base.fixture';
  */
 test.describe('SDK Authentication ↔ CXone Agent', () => {
   const CXONE_HOSTNAME = process.env.CXONE_HOSTNAME ?? 'https://cxone.staging.niceincontact.com';
-  const CXONE_CLIENT_ID = process.env.CXONE_CLIENT_ID ?? 'Salesforce Agent Console@inContact Inc.';
+  const CXONE_CLIENT_ID = process.env.CXONE_CLIENT_ID ?? 'test-client-id';
   const CXONE_REDIRECT_URI = process.env.CXONE_REDIRECT_URI ?? 'http://localhost:3000/auth-callback';
 
   /** Collected console errors per test — attached to failures for debugging */
@@ -93,7 +93,7 @@ test.describe('SDK Authentication ↔ CXone Agent', () => {
       // Simulate successful SDK authentication by setting auth_token
       // (the real flow sets this after OIDC callback + getAccessTokenByCode)
       await page.evaluate(() => {
-        localStorage.setItem('auth_token', 'eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9.simulated-token');
+        localStorage.setItem('auth_token', 'navigation.simulated-token');
       });
       await page.waitForTimeout(500);
 
