@@ -258,7 +258,7 @@ export default function NavBar() {
               Agent Workspace SDK
             </Typography>
             <Typography variant="caption" sx={{fontWeight:700, color: "#fff" }}>
-              Consumer Sample App
+              Sample Consumer App
             </Typography>
           </Box>
         </Box>
