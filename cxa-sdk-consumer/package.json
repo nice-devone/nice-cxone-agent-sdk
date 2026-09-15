@@ -71,5 +71,22 @@
     "stream-browserify": "^3.0.0",
     "stream-http": "^3.2.0",
     "url": "^0.11.4"
+  },
+  "overrides": {
+    "@nice-devone/acd-sdk": {
+      "jsrsasign": "11.1.1"
+    },
+    "@nice-devone/agent-sdk": {
+      "jsrsasign": "11.1.1"
+    },
+    "@nice-devone/auth-sdk": {
+      "jsrsasign": "11.1.1"
+    },
+    "@nice-devone/digital-sdk": {
+      "jsrsasign": "11.1.1"
+    },
+    "jsrsasign": {
+      "jsrsasign": "11.1.1"
+    }
   }
 }
