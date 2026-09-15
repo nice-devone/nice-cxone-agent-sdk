@@ -873,7 +873,7 @@ const DigitalSdk = () => {
                             py: 1,
                             maxWidth: "70%",
                             borderRadius: 2,
-                            backgroundColor: isInbound ? "#e3f2fd" : "#1a237e",
+                            backgroundColor: isInbound ? "#e3f2fd" : "#3694FC",
                             color: isInbound ? "text.primary" : "#fff",
                           }}
                         >

@@ -36,7 +36,7 @@ class ErrorBoundary extends Component<{ children: React.ReactNode }, { hasError:
           }}>
             <div style={{ fontSize: '3rem', marginBottom: '1rem' }}>&#9888;</div>
             <h2 style={{
-              color: '#1a237e',
+              color: '#3694FC',
               margin: '0 0 0.5rem 0',
               fontFamily: "'Inter', sans-serif",
             }}>

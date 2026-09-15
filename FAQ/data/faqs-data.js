@@ -10,7 +10,7 @@ window.__FAQ_DATA__ = {
       "id": "acd-sdk",
       "name": "ACD SDK",
       "icon": "phone",
-      "color": "#635bff",
+      "color": "#3694FC",
       "description": "Automatic Call Distribution — voice contacts, agent sessions, and call control.",
       "faqs": [
         {
@@ -87,7 +87,7 @@ window.__FAQ_DATA__ = {
       "id": "agent-sdk",
       "name": "Agent SDK",
       "icon": "users",
-      "color": "#0a2540",
+      "color": "#3694FC",
       "description": "High-level orchestration over ACD operations: agent state, copilot, notifications, observables.",
       "faqs": [
         {
@@ -148,7 +148,7 @@ window.__FAQ_DATA__ = {
       "id": "auth-sdk",
       "name": "Auth SDK",
       "icon": "lock",
-      "color": "#00d924",
+      "color": "#3694FC",
       "description": "Authentication: OAuth 2.0 with PKCE, token management, OIDC discovery, session restore.",
       "faqs": [
         {
@@ -209,7 +209,7 @@ window.__FAQ_DATA__ = {
       "id": "digital-sdk",
       "name": "Digital SDK",
       "icon": "chat",
-      "color": "#ff6b35",
+      "color": "#3694FC",
       "description": "Real-time digital channels: email, chat, social. WebSocket case delivery and message handling.",
       "faqs": [
         {
@@ -270,7 +270,7 @@ window.__FAQ_DATA__ = {
       "id": "voice-sdk",
       "name": "Voice SDK",
       "icon": "microphone",
-      "color": "#ff5630",
+      "color": "#3694FC",
       "description": "WebRTC voice connectivity, agent leg management, softphone, and SIP signaling.",
       "faqs": [
         {
@@ -319,7 +319,7 @@ window.__FAQ_DATA__ = {
       "id": "shared-apps-lib",
       "name": "Shared Apps Library",
       "icon": "puzzle",
-      "color": "#7d4ed8",
+      "color": "#3694FC",
       "description": "Integration utilities: screen-pop, CRM bridges, transformers, dynamic component loaders.",
       "faqs": [
         {
@@ -384,7 +384,7 @@ window.__FAQ_DATA__ = {
       "id": "common-sdk",
       "name": "Common SDK",
       "icon": "cube",
-      "color": "#0073e6",
+      "color": "#3694FC",
       "description": "Shared models, types, and utilities used by every other SDK in the suite.",
       "faqs": [
         {
@@ -453,7 +453,7 @@ window.__FAQ_DATA__ = {
       "id": "integration",
       "name": "Integration & Platform",
       "icon": "link",
-      "color": "#f97316",
+      "color": "#3694FC",
       "description": "Integrating with CustomerVue, CRM systems, events, latency, and platform behavior.",
       "faqs": [
         {
@@ -530,7 +530,7 @@ window.__FAQ_DATA__ = {
       "id": "consumer-app",
       "name": "cxa-sdk-consumer (Reference App)",
       "icon": "code",
-      "color": "#16a34a",
+      "color": "#3694FC",
       "description": "Setup, configuration, init order, and troubleshooting for the sample React app shipped in the repo.",
       "faqs": [
         {

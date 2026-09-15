@@ -1,21 +1,26 @@
 import { createTheme } from "@mui/material/styles";
 
 const theme = createTheme({
+  // Palette matches help.nicecxone.com's own mainstyles.css (.themeBlue,
+  // body/heading color, and the a:visited/:focus light-blue tint) — see
+  // FAQ/styles.css for the same mapping applied to the FAQ site.
+  // success/error/warning are left as-is: they carry real status meaning
+  // (agent state, connection state, form errors), not brand color.
   palette: {
     primary: {
-      main: "#1a237e",
-      light: "#534bae",
-      dark: "#000051",
+      main: "#3694FC",
+      light: "#93C3FA",
+      dark: "#21212b",
       contrastText: "#ffffff",
     },
     secondary: {
-      main: "#0091ea",
-      light: "#64c1ff",
-      dark: "#0064b7",
-      contrastText: "#ffffff",
+      main: "#93C3FA",
+      light: "#93C3FA",
+      dark: "#3694FC",
+      contrastText: "#21212b",
     },
     background: {
-      default: "#f0f2f5",
+      default: "#f8f8f8",
       paper: "#ffffff",
     },
     success: {
@@ -62,9 +67,10 @@ const theme = createTheme({
           padding: "8px 24px",
         },
         containedPrimary: {
-          background: "linear-gradient(135deg, #1a237e 0%, #283593 100%)",
+          background: "#3694FC",
           "&:hover": {
-            background: "linear-gradient(135deg, #0d1b60 0%, #1a237e 100%)",
+            background: "#3694FC",
+            boxShadow: "0 4px 14px rgba(54, 148, 252, 0.4)",
           },
         },
       },
