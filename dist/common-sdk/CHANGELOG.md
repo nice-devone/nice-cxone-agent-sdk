@@ -35,3 +35,10 @@
 - `[Added]`: Added & Modified schemas and HTTP client to support delay and abort of API invocations during digital contact switch
 - `[Added]`: Modified schemas to include delta event models for WebSocket event delta publishing for digital contacts
 
+## 26.3.0 - 2026-09-29 ##
+
+- `[Updated]`: Updated storage keys enum to add a key for persisting the Digital channel response area splitter position
+- `[Added]`: Added draft contact model and updated reply request schema to support outbound draft contact creation
+- `[Updated]`: Updated CXoneMessage schema to include authorRecipients field for configurable email reply-to address
+- `[Added]`: Added delta event schemas for MESSAGE_PREVIEW and SENDER_TYPING_START/END WebSocket events
+- `[Updated]`: Updated cxone-client-data model to include app sequence field for server-side Quick Bar ordering persistence
