@@ -30,7 +30,7 @@
 - `[Updated]`: Updated existing API consumers for Delay / Abort API invocation for Digital contact switch
 - `[Added]`: Created new internal digital event factory methods for Digital contacts webSocket events delta publishing
 
-## 26.3.0 - 2026-09-29 ##
+## 26.3.0 - 2026-10-14 ##
 
 - `[Updated]`: Updated digital contact switch to delay and abort redundant API calls, reducing invocation count and improving UI responsiveness
 - `[Added]`: Added outbound draft contact support: draft initiation immediately creates contacts/interactions and updates agent state
