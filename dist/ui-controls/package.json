@@ -1,20 +1,19 @@
 {
   "name": "@nice-devone/ui-controls",
-  "version": "26.2.0",
+  "version": "26.3.0",
   "sideEffects": false,
   "main": "./src/index.js",
   "types": "./src/index.d.ts",
-  "dependencies": {},
-  "peerDependencies": {
+  "dependencies": {
     "@mui/material": "5.10.16",
-    "@nice-devone/shared-apps-lib": "26.2.0",
+    "@nice-devone/shared-apps-lib": "26.3.0",
     "react": "17.0.2",
     "@reduxjs/toolkit": "1.9.1",
     "react-toastify": "9.1.1",
-    "@nice-devone/i18n": "26.2.0",
+    "@nice-devone/i18n": "26.3.0",
     "@testrtc/watchrtc-sdk": "1.38.3",
     "@mui/icons-material": "5.16.7",
-    "@nice-devone/common-sdk": "26.2.0",
+    "@nice-devone/common-sdk": "26.3.0",
     "broadcast-channel": "7.1.0",
     "rxjs": "7.8.1",
     "uuid": "8.3.2",
@@ -27,8 +26,8 @@
     "dayjs": "1.11.7",
     "@mui/x-date-pickers": "6.20.2",
     "react-redux": "7.2.9",
-    "@nice-devone/agent-sdk": "26.2.0",
-    "@nice-devone/core-sdk": "26.2.0",
+    "@nice-devone/agent-sdk": "26.3.0",
+    "@nice-devone/core-sdk": "26.3.0",
     "@microsoft/signalr": "9.0.6",
     "cockatiel": "2.0.2",
     "@datadog/browser-logs": "4.39.0",
@@ -38,7 +37,7 @@
     "idb": "7.1.1",
     "util": "0.11.1",
     "linkifyjs": "4.3.2",
-    "@nice-devone/auth-sdk": "26.2.0",
+    "@nice-devone/auth-sdk": "26.3.0",
     "jsrsasign": "11.1.0",
     "jwk-to-pem": "2.0.5",
     "assert": "1.5.0",
@@ -52,9 +51,10 @@
     "@fullcalendar/daygrid": "5.11.3",
     "@fullcalendar/timegrid": "5.11.3",
     "@fullcalendar/interaction": "5.11.3",
-    "@nice-devone/digital-sdk": "26.2.0",
+    "@nice-devone/digital-sdk": "26.3.0",
     "@mui/system": "5.16.7",
     "react-timer-hook": "3.0.6",
     "tslib": "2.4.1"
-  }
+  },
+  "peerDependencies": {}
 }
