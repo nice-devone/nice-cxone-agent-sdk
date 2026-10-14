@@ -29,3 +29,10 @@
 - `[Updated]`: Updated digital contact manager and services to support API-based integration pattern for CaseStatusChanged (Digital WS to API - Part 3)
 - `[Updated]`: Updated existing API consumers for Delay / Abort API invocation for Digital contact switch
 - `[Added]`: Created new internal digital event factory methods for Digital contacts webSocket events delta publishing
+
+## 26.3.0 - 2026-10-14 ##
+
+- `[Updated]`: Updated digital contact switch to delay and abort redundant API calls, reducing invocation count and improving UI responsiveness
+- `[Added]`: Added outbound draft contact support: draft initiation immediately creates contacts/interactions and updates agent state
+- `[Updated]`: Updated email reply to use FROM or REPLY-TO address based on channel-level configuration
+- `[Updated]`: Extended delta publishing to cover MESSAGE_PREVIEW and SENDER_TYPING events, reducing WebSocket payload size

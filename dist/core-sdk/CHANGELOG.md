@@ -28,3 +28,7 @@
 - `[Added]`: Added new Queue and Queue details microservices urls
 - `[Added]`: Added ping/pong based heartbeat mechanism to detect and reconnect UIQ WebSocket on server disconnect. 
 - `[Updated]`: Updated UIQ WebSocket connection to pass `isAutoLogout` flag, enabling automatic cleanup of inactive agent sessions
+
+## 26.3.0 - 2026-10-14 ##
+
+- `[Updated]`: Integrated Desktop Profile API for per-team agent versioning control in Business Unit settings

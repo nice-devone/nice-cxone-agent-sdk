@@ -12,3 +12,7 @@
 ## 26.2.0 - 2026-04-29 ##
 
 - `[Updated]`: Updated contact manager to support termination codes (dispositions) for SmartReach (ACD voice call only)
+
+## 26.3.0 - 2026-10-14 ##
+
+- `[Fixed]`: CFB fix for Record button no longer appears when recording is not enabled under Roles and Permissions.
