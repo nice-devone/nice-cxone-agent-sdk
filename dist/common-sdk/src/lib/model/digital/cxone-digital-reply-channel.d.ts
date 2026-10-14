@@ -61,6 +61,7 @@ export declare const CXoneDigitalReplyChannelSchema: import("yup").ObjectSchema<
     canAgentInviteCustomersToContact: import("yup").BooleanSchema<boolean, import("yup/lib/types").AnyObject, boolean>;
     canReplyToAnyMessage: import("yup").BooleanSchema<boolean, import("yup/lib/types").AnyObject, boolean>;
     isTrackingMessageDeliveryStatus: import("yup").BooleanSchema<boolean, import("yup/lib/types").AnyObject, boolean>;
+    canPredictThreadIdOnExternalPlatform: import("yup").BooleanSchema<boolean, import("yup/lib/types").AnyObject, boolean>;
 }>, import("yup/lib/object").AnyObject, import("yup/lib/object").TypeOfShape<import("yup/lib/object").Assign<import("yup/lib/object").ObjectShape, {
     /**
      * @remarks - This value represents root originating thread Id.
@@ -123,6 +124,7 @@ export declare const CXoneDigitalReplyChannelSchema: import("yup").ObjectSchema<
     canAgentInviteCustomersToContact: import("yup").BooleanSchema<boolean, import("yup/lib/types").AnyObject, boolean>;
     canReplyToAnyMessage: import("yup").BooleanSchema<boolean, import("yup/lib/types").AnyObject, boolean>;
     isTrackingMessageDeliveryStatus: import("yup").BooleanSchema<boolean, import("yup/lib/types").AnyObject, boolean>;
+    canPredictThreadIdOnExternalPlatform: import("yup").BooleanSchema<boolean, import("yup/lib/types").AnyObject, boolean>;
 }>>, import("yup/lib/object").AssertsShape<import("yup/lib/object").Assign<import("yup/lib/object").ObjectShape, {
     /**
      * @remarks - This value represents root originating thread Id.
@@ -185,5 +187,6 @@ export declare const CXoneDigitalReplyChannelSchema: import("yup").ObjectSchema<
     canAgentInviteCustomersToContact: import("yup").BooleanSchema<boolean, import("yup/lib/types").AnyObject, boolean>;
     canReplyToAnyMessage: import("yup").BooleanSchema<boolean, import("yup/lib/types").AnyObject, boolean>;
     isTrackingMessageDeliveryStatus: import("yup").BooleanSchema<boolean, import("yup/lib/types").AnyObject, boolean>;
+    canPredictThreadIdOnExternalPlatform: import("yup").BooleanSchema<boolean, import("yup/lib/types").AnyObject, boolean>;
 }>>>;
 export declare type CXoneDigitalReplyChannel = InferType<typeof CXoneDigitalReplyChannelSchema>;

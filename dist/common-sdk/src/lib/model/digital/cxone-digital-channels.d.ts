@@ -229,6 +229,12 @@ export declare const CXoneDigitalChannelSchema: import("yup/lib/object").Optiona
      * @remarks - flag for tracking message delivery status
      */
     isTrackingMessageDeliveryStatus: import("yup").BooleanSchema<boolean, import("yup/lib/types").AnyObject, boolean>;
+    /**
+     * @remarks - Flag indicating whether the thread ID on external platform can be predicted
+     * before the contact is created. When true, recipients validation API should be called
+     * to perform per-recipient validation and duplicate-contact detection.
+     */
+    canPredictThreadIdOnExternalPlatform: import("yup").BooleanSchema<boolean, import("yup/lib/types").AnyObject, boolean>;
 }, import("yup/lib/object").AnyObject, import("yup/lib/object").TypeOfShape<{
     /**
      * @remarks - A string value which represents digital channel Id.
@@ -451,6 +457,12 @@ export declare const CXoneDigitalChannelSchema: import("yup/lib/object").Optiona
      * @remarks - flag for tracking message delivery status
      */
     isTrackingMessageDeliveryStatus: import("yup").BooleanSchema<boolean, import("yup/lib/types").AnyObject, boolean>;
+    /**
+     * @remarks - Flag indicating whether the thread ID on external platform can be predicted
+     * before the contact is created. When true, recipients validation API should be called
+     * to perform per-recipient validation and duplicate-contact detection.
+     */
+    canPredictThreadIdOnExternalPlatform: import("yup").BooleanSchema<boolean, import("yup/lib/types").AnyObject, boolean>;
 }>>;
 export declare type CXoneDigitalChannel = InferType<typeof CXoneDigitalChannelSchema>;
 export declare const CXoneDigitalChannelArray: import("yup").ArraySchema<import("yup").ObjectSchema<import("yup/lib/object").Assign<import("yup/lib/object").ObjectShape, {
@@ -675,6 +687,12 @@ export declare const CXoneDigitalChannelArray: import("yup").ArraySchema<import(
      * @remarks - flag for tracking message delivery status
      */
     isTrackingMessageDeliveryStatus: import("yup").BooleanSchema<boolean, import("yup/lib/types").AnyObject, boolean>;
+    /**
+     * @remarks - Flag indicating whether the thread ID on external platform can be predicted
+     * before the contact is created. When true, recipients validation API should be called
+     * to perform per-recipient validation and duplicate-contact detection.
+     */
+    canPredictThreadIdOnExternalPlatform: import("yup").BooleanSchema<boolean, import("yup/lib/types").AnyObject, boolean>;
 }>, import("yup/lib/object").AnyObject, import("yup/lib/object").TypeOfShape<import("yup/lib/object").Assign<import("yup/lib/object").ObjectShape, {
     /**
      * @remarks - A string value which represents digital channel Id.
@@ -897,6 +915,12 @@ export declare const CXoneDigitalChannelArray: import("yup").ArraySchema<import(
      * @remarks - flag for tracking message delivery status
      */
     isTrackingMessageDeliveryStatus: import("yup").BooleanSchema<boolean, import("yup/lib/types").AnyObject, boolean>;
+    /**
+     * @remarks - Flag indicating whether the thread ID on external platform can be predicted
+     * before the contact is created. When true, recipients validation API should be called
+     * to perform per-recipient validation and duplicate-contact detection.
+     */
+    canPredictThreadIdOnExternalPlatform: import("yup").BooleanSchema<boolean, import("yup/lib/types").AnyObject, boolean>;
 }>>, import("yup/lib/object").AssertsShape<import("yup/lib/object").Assign<import("yup/lib/object").ObjectShape, {
     /**
      * @remarks - A string value which represents digital channel Id.
@@ -1119,6 +1143,12 @@ export declare const CXoneDigitalChannelArray: import("yup").ArraySchema<import(
      * @remarks - flag for tracking message delivery status
      */
     isTrackingMessageDeliveryStatus: import("yup").BooleanSchema<boolean, import("yup/lib/types").AnyObject, boolean>;
+    /**
+     * @remarks - Flag indicating whether the thread ID on external platform can be predicted
+     * before the contact is created. When true, recipients validation API should be called
+     * to perform per-recipient validation and duplicate-contact detection.
+     */
+    canPredictThreadIdOnExternalPlatform: import("yup").BooleanSchema<boolean, import("yup/lib/types").AnyObject, boolean>;
 }>>>, import("yup/lib/types").AnyObject, import("yup/lib/object").TypeOfShape<import("yup/lib/object").Assign<import("yup/lib/object").ObjectShape, {
     /**
      * @remarks - A string value which represents digital channel Id.
@@ -1341,6 +1371,12 @@ export declare const CXoneDigitalChannelArray: import("yup").ArraySchema<import(
      * @remarks - flag for tracking message delivery status
      */
     isTrackingMessageDeliveryStatus: import("yup").BooleanSchema<boolean, import("yup/lib/types").AnyObject, boolean>;
+    /**
+     * @remarks - Flag indicating whether the thread ID on external platform can be predicted
+     * before the contact is created. When true, recipients validation API should be called
+     * to perform per-recipient validation and duplicate-contact detection.
+     */
+    canPredictThreadIdOnExternalPlatform: import("yup").BooleanSchema<boolean, import("yup/lib/types").AnyObject, boolean>;
 }>>[], import("yup/lib/object").AssertsShape<import("yup/lib/object").Assign<import("yup/lib/object").ObjectShape, {
     /**
      * @remarks - A string value which represents digital channel Id.
@@ -1563,6 +1599,12 @@ export declare const CXoneDigitalChannelArray: import("yup").ArraySchema<import(
      * @remarks - flag for tracking message delivery status
      */
     isTrackingMessageDeliveryStatus: import("yup").BooleanSchema<boolean, import("yup/lib/types").AnyObject, boolean>;
+    /**
+     * @remarks - Flag indicating whether the thread ID on external platform can be predicted
+     * before the contact is created. When true, recipients validation API should be called
+     * to perform per-recipient validation and duplicate-contact detection.
+     */
+    canPredictThreadIdOnExternalPlatform: import("yup").BooleanSchema<boolean, import("yup/lib/types").AnyObject, boolean>;
 }>>[]>;
 /**
  * Interface used for parsing all digital channel response for contact search

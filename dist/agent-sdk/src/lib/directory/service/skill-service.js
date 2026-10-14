@@ -27,7 +27,7 @@ export class SkillService {
         this.GET_SKILLS_URI = '/InContactAPI/services/v27.0/skills';
         this.GET_SKILLS_URI_TS = '/acd-skills/v1/skills';
         this.requestManager = RequestManager.getInstance();
-        this.isAbortDelayDigitialApiEnabled = FeatureToggleService.instance.getFeatureToggleSync("release-cx-agent-abort-delay-API-on-contact-switch-AW-48514" /* FeatureToggles.ABORT_DELAY_DIGITAL_API_TOGGLE */) || false;
+        this.isAbortDelayDigitalApiEnabled = FeatureToggleService.instance.getFeatureToggleSync("release-cx-agent-abort-delay-API-on-contact-switch-AW-48514" /* FeatureToggles.ABORT_DELAY_DIGITAL_API_TOGGLE */) || false;
         this.auth = CXoneAuth.instance;
         SkillService.cachedAgentSkills = [];
     }
@@ -133,7 +133,7 @@ export class SkillService {
                         const baseUri = isTenantSegmentationEnabled ? cxOneConfig.apiFacadeBaseUri : cxOneConfig.acdApiBaseUri;
                         const apiUri = isTenantSegmentationEnabled ? ApiUriConstants.GET_SKILL_WITH_ID_URI_TS : ApiUriConstants.GET_SKILL_WITH_ID_URI;
                         const url = baseUri + apiUri.replace('{skillId}', skillId);
-                        if (this.isAbortDelayDigitialApiEnabled && contactId) {
+                        if (this.isAbortDelayDigitalApiEnabled && contactId) {
                             /* CONTROLLED GET LOGIC */
                             const uniqueKey = contactId;
                             const debugLabel = 'DigitalContactSkillDetails API';
@@ -284,6 +284,41 @@ export class SkillService {
                 resolve(skillCPAManagementParameters);
             }, (error) => {
                 reject(error);
+            });
+        });
+    }
+    /**
+     * Fetches agents assigned to a given skill from the CMA v16.0 skills/agents endpoint.
+     * @param request - SkillAgentRequest containing skillId and optional pagination/filter params
+     * @returns Parsed SkillAgentsApiResponse
+     * @example
+     * ```
+     * skillService.getAgentsForSkill({ skillId: 1234, startIndex: 0, recordsToLoad: 25 });
+     * ```
+     */
+    getAgentsForSkill(request) {
+        return __awaiter(this, void 0, void 0, function* () {
+            const { skillId, startIndex, recordsToLoad, searchString = '', updatedSince = new Date(0).toISOString() } = request;
+            const requiredAttributes = [
+                'agentId', 'agentName', 'isActive', 'lastUpdateTime',
+                'mediaType', 'mediaTypeName', 'skillId', 'skillName'
+            ];
+            const fields = requiredAttributes.join(',');
+            const token = this.auth.getAuthToken();
+            const reqInit = this.utilService.initHeader(token.accessToken, 'application/json');
+            const cxOneConfig = this.auth.getCXoneConfig();
+            const baseUrl = cxOneConfig.apiFacadeBaseUri + ApiUriConstants.GET_SKILL_AGENTS_URI;
+            const queryParams = Object.assign(Object.assign(Object.assign({ skills: JSON.stringify([{ skillId }]) }, ((startIndex !== undefined && recordsToLoad !== undefined) && { skip: startIndex, top: recordsToLoad })), (searchString && { searchString })), { updatedSince,
+                fields, orderby: 'agentName' });
+            const url = this.urlUtilsService.appendQueryString(baseUrl, queryParams);
+            return new Promise((resolve, reject) => {
+                HttpClient.get(url, reqInit).then((response) => {
+                    this.logger.info('getAgentsForSkill', 'Get agents for skill success');
+                    resolve(this.apiParser.parseSkillAgentsResponse(response));
+                }, (error) => {
+                    this.logger.error('getAgentsForSkill', 'Get agents for skill failed: ' + error.toString());
+                    reject(error);
+                });
             });
         });
     }

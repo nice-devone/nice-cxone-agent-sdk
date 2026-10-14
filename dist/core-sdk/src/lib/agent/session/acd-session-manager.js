@@ -62,6 +62,7 @@ export class ACDSessionManager {
         this._onCommitmentEvent = new Subject();
         this._onCommitmentStatusEvent = new Subject();
         this._onSmartReachValidationEvent = new Subject();
+        this._onConsultContextEvent = new Subject();
         this._agentAssistSummarySubject = new Subject;
         this._agentAssistWSSubject = new ReplaySubject(1);
         this._agentAssistOmiliaGetNextSubject = new Subject();
@@ -895,6 +896,15 @@ export class ACDSessionManager {
      */
     get onSmartReachValidationEvent() {
         return this._onSmartReachValidationEvent;
+    }
+    /**
+     * @example -
+     * ```
+     * const onConsultContextEvent = agentSession.onConsultContextEvent
+     * ```
+     */
+    get onConsultContextEvent() {
+        return this._onConsultContextEvent;
     }
     /**
     * @example -const agentAssistWebSocketUnsubscribeSubject  = acdSession.agentAssistWebSocketUnsubsribeSubject

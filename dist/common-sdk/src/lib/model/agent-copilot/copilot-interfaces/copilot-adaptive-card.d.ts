@@ -140,4 +140,36 @@ export interface CopilotAutoSummaryCardData {
     showCopyIcon: boolean;
     showExpandIcon: boolean;
 }
+/**
+ * Represents a single email topic item returned in the EMAIL_RESPONSE_CARD WS payload.
+ * @example
+ * ```
+ * const item: EmailTopicItem = { topicId: 't1', content: 'Refund policy', status: 'Ok' };
+ * ```
+ */
+export interface EmailTopicItem {
+    topicId: string;
+    content: string;
+    status: 'Ok' | 'NotCovered' | 'Missing' | string;
+}
+/**
+ * Content model for the EMAIL_RESPONSE_CARD adaptive card.
+ * `coveredTopics` and `uncoveredTopics` are not present in the raw WS payload —
+ * they are derived by the middleware from `emailTopics` before the card is dispatched.
+ * @example
+ * ```
+ * const data: CopilotEmailResponseCardData = { emailTopics: [], coveredTopics: [], uncoveredTopics: [] };
+ * ```
+ */
+export interface CopilotEmailResponseCardData {
+    icon?: string;
+    title?: string;
+    description?: string;
+    subtitle?: string;
+    emailTopics?: EmailTopicItem[];
+    /** Populated by middleware — derived from `emailTopics` before adaptive card dispatch. Not present in raw WS payload. */
+    coveredTopics?: EmailTopicItem[];
+    /** Populated by middleware — derived from `emailTopics` before adaptive card dispatch. Not present in raw WS payload. */
+    uncoveredTopics?: EmailTopicItem[];
+}
 export {};

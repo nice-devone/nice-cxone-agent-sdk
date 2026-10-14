@@ -105,6 +105,7 @@ export declare const CXoneCaseSchema: import("yup/lib/object").OptionalObjectSch
     skillName: import("yup").StringSchema<string, import("yup/lib/types").AnyObject, string>;
     endUserRecipients: any;
     threadId: import("yup/lib/string").RequiredStringSchema<string, import("yup/lib/types").AnyObject>;
+    isDraft: import("yup").BooleanSchema<boolean, import("yup/lib/types").AnyObject, boolean>;
 }, import("yup/lib/object").AnyObject, import("yup/lib/object").TypeOfShape<{
     id: import("yup/lib/string").RequiredStringSchema<string, import("yup/lib/types").AnyObject>;
     contactId: import("yup").StringSchema<string, import("yup/lib/types").AnyObject, string>;
@@ -211,6 +212,7 @@ export declare const CXoneCaseSchema: import("yup/lib/object").OptionalObjectSch
     skillName: import("yup").StringSchema<string, import("yup/lib/types").AnyObject, string>;
     endUserRecipients: any;
     threadId: import("yup/lib/string").RequiredStringSchema<string, import("yup/lib/types").AnyObject>;
+    isDraft: import("yup").BooleanSchema<boolean, import("yup/lib/types").AnyObject, boolean>;
 }>>;
 export declare type CXoneCase = InferType<typeof CXoneCaseSchema>;
 export declare const CXoneCaseArray: import("yup").ArraySchema<import("yup").ObjectSchema<import("yup/lib/object").Assign<import("yup/lib/object").ObjectShape, {
@@ -319,6 +321,7 @@ export declare const CXoneCaseArray: import("yup").ArraySchema<import("yup").Obj
     skillName: import("yup").StringSchema<string, import("yup/lib/types").AnyObject, string>;
     endUserRecipients: any;
     threadId: import("yup/lib/string").RequiredStringSchema<string, import("yup/lib/types").AnyObject>;
+    isDraft: import("yup").BooleanSchema<boolean, import("yup/lib/types").AnyObject, boolean>;
 }>, import("yup/lib/object").AnyObject, import("yup/lib/object").TypeOfShape<import("yup/lib/object").Assign<import("yup/lib/object").ObjectShape, {
     id: import("yup/lib/string").RequiredStringSchema<string, import("yup/lib/types").AnyObject>;
     contactId: import("yup").StringSchema<string, import("yup/lib/types").AnyObject, string>;
@@ -425,6 +428,7 @@ export declare const CXoneCaseArray: import("yup").ArraySchema<import("yup").Obj
     skillName: import("yup").StringSchema<string, import("yup/lib/types").AnyObject, string>;
     endUserRecipients: any;
     threadId: import("yup/lib/string").RequiredStringSchema<string, import("yup/lib/types").AnyObject>;
+    isDraft: import("yup").BooleanSchema<boolean, import("yup/lib/types").AnyObject, boolean>;
 }>>, import("yup/lib/object").AssertsShape<import("yup/lib/object").Assign<import("yup/lib/object").ObjectShape, {
     id: import("yup/lib/string").RequiredStringSchema<string, import("yup/lib/types").AnyObject>;
     contactId: import("yup").StringSchema<string, import("yup/lib/types").AnyObject, string>;
@@ -531,6 +535,7 @@ export declare const CXoneCaseArray: import("yup").ArraySchema<import("yup").Obj
     skillName: import("yup").StringSchema<string, import("yup/lib/types").AnyObject, string>;
     endUserRecipients: any;
     threadId: import("yup/lib/string").RequiredStringSchema<string, import("yup/lib/types").AnyObject>;
+    isDraft: import("yup").BooleanSchema<boolean, import("yup/lib/types").AnyObject, boolean>;
 }>>>, import("yup/lib/types").AnyObject, import("yup/lib/object").TypeOfShape<import("yup/lib/object").Assign<import("yup/lib/object").ObjectShape, {
     id: import("yup/lib/string").RequiredStringSchema<string, import("yup/lib/types").AnyObject>;
     contactId: import("yup").StringSchema<string, import("yup/lib/types").AnyObject, string>;
@@ -637,6 +642,7 @@ export declare const CXoneCaseArray: import("yup").ArraySchema<import("yup").Obj
     skillName: import("yup").StringSchema<string, import("yup/lib/types").AnyObject, string>;
     endUserRecipients: any;
     threadId: import("yup/lib/string").RequiredStringSchema<string, import("yup/lib/types").AnyObject>;
+    isDraft: import("yup").BooleanSchema<boolean, import("yup/lib/types").AnyObject, boolean>;
 }>>[], import("yup/lib/object").AssertsShape<import("yup/lib/object").Assign<import("yup/lib/object").ObjectShape, {
     id: import("yup/lib/string").RequiredStringSchema<string, import("yup/lib/types").AnyObject>;
     contactId: import("yup").StringSchema<string, import("yup/lib/types").AnyObject, string>;
@@ -743,5 +749,6 @@ export declare const CXoneCaseArray: import("yup").ArraySchema<import("yup").Obj
     skillName: import("yup").StringSchema<string, import("yup/lib/types").AnyObject, string>;
     endUserRecipients: any;
     threadId: import("yup/lib/string").RequiredStringSchema<string, import("yup/lib/types").AnyObject>;
+    isDraft: import("yup").BooleanSchema<boolean, import("yup/lib/types").AnyObject, boolean>;
 }>>[]>;
 export declare type CXoneCaseArrayObject = InferType<typeof CXoneCaseArray>;

@@ -133,6 +133,7 @@ export class CXoneAcdClient {
      * ```
      */
     initAcdEngagement() {
+        var _a;
         return __awaiter(this, void 0, void 0, function* () {
             if (!CXoneClient.instance.hasInitModuleInitiated)
                 yield CXoneClient.instance.initAuthDependentModules();
@@ -140,6 +141,9 @@ export class CXoneAcdClient {
             this.agentLegService = new AgentLegService();
             this.indicator = new CXoneIndicatorManager();
             this.screenPop = new CXoneScreenPop();
+            if ((_a = this.contactManager) === null || _a === void 0 ? void 0 : _a.dispose) {
+                this.contactManager.dispose();
+            }
             this.contactManager = new ContactManager();
             this.notification = new CXoneNotificationManager(CXoneClient.instance.cxoneTenant);
             this.agentDetailService = new AgentDetailService();

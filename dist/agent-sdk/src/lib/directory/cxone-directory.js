@@ -4,6 +4,7 @@ import { DirectoryEntities, CXoneSdkError } from '@nice-devone/common-sdk';
 import { AddressBookService } from './service/address-book-service';
 import { SkillService } from './service/skill-service';
 import { CXoneDirectoryProvider } from './provider/cxone-directory-provider';
+import { CXoneSkillAgentsProvider } from './provider/cxone-skill-agents-provider';
 import { TeamService } from './service/team-service';
 import { ACDSessionManager, StorageKeys } from '@nice-devone/core-sdk';
 import { CXoneDynamicDirectory } from './../dynamic-directory/cxone-dynamic-directory';
@@ -19,6 +20,8 @@ export class CXoneDirectory {
     constructor() {
         this.directoryEvent = new Subject();
         this.directoryProvider = new CXoneDirectoryProvider();
+        /** Provider for polling agents assigned to a specific skill during drill-down. */
+        this.skillAgentsProvider = new CXoneSkillAgentsProvider();
         this.acdSession = {};
         this.onUpdateSkillsEvent = new Subject();
         this.dynamicDirectory = {};

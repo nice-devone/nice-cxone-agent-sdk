@@ -51,12 +51,12 @@ export class FeatureToggleService {
      * ```
      */
     loadFeatures() {
-        if (this.features) {
+        if (this.features && this.features.length > 0) {
             return Promise.resolve(this.features);
         }
         else {
             const toggledFeaturesFromStorage = this.loadFeaturesFromStorage();
-            if (toggledFeaturesFromStorage) {
+            if (toggledFeaturesFromStorage && toggledFeaturesFromStorage.length > 0) {
                 this.features = toggledFeaturesFromStorage;
                 return Promise.resolve(toggledFeaturesFromStorage);
             }
@@ -86,9 +86,10 @@ export class FeatureToggleService {
      * ```
      */
     getFeatureToggle(featureName) {
+        var _a;
         return __awaiter(this, void 0, void 0, function* () {
             try {
-                if (!this.features) {
+                if (!this.features || ((_a = this.features) === null || _a === void 0 ? void 0 : _a.length) === 0) {
                     try {
                         if (!this.featuresRequest) {
                             this.featuresRequest = this.loadFeatures();
@@ -97,6 +98,7 @@ export class FeatureToggleService {
                         return features !== undefined && (features === null || features === void 0 ? void 0 : features.indexOf(featureName)) !== -1;
                     }
                     catch (err) {
+                        this.featuresRequest = null;
                         this.logger.error('getFeatureToggle', 'Error while getting feature toggle data' + err);
                     }
                 }
@@ -119,11 +121,11 @@ export class FeatureToggleService {
      * ```
      */
     getFeatureToggleSync(featureName) {
-        var _a;
-        if (!this.features) {
+        var _a, _b;
+        if (!this.features || ((_a = this.features) === null || _a === void 0 ? void 0 : _a.length) === 0) {
             this.features = this.loadFeaturesFromStorage() || [];
         }
-        return Array.isArray(this.features) && ((_a = this.features) === null || _a === void 0 ? void 0 : _a.includes(featureName));
+        return Array.isArray(this.features) && ((_b = this.features) === null || _b === void 0 ? void 0 : _b.includes(featureName));
     }
     /**
      * Method to get feature toggle by API call

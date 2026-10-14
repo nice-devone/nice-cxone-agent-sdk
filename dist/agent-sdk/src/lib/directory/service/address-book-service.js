@@ -1,6 +1,7 @@
 import { HttpUtilService, Logger, HttpClient, UrlUtilsService, ApiUriConstants, ValidationUtils, } from '@nice-devone/core-sdk';
 import { CXoneSdkError, CXoneSdkErrorType } from '@nice-devone/common-sdk';
 import { AddressBookApiParser } from '../util/address-book-api-parser';
+import { normalizeDirectorySearchText } from '../util/utility';
 import { CXoneAuth, CXoneUser } from '@nice-devone/auth-sdk';
 /**
  * This class to expose address book services
@@ -158,7 +159,8 @@ export class AddressBookService {
             updatedSince: new Date(0).toISOString(),
             skip: startIndex,
             top: recordsToLoad,
-            searchString: searchText,
+            // normalize commas to spaces so comma separated searches (e.g. "lastName, firstName") work
+            searchString: normalizeDirectorySearchText(searchText),
             orderBy: 'firstName',
         };
         const cxOneConfig = this.auth.getCXoneConfig();

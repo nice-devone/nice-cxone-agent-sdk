@@ -7,14 +7,28 @@ const wsWorkerAgenticCode = `self.importScripts(
     let wsSubject;
     let reconnectTimer;
     let heartbeatSubscription = null;
-    const HEARTBEAT_INTERVAL = 30000;
+    // Latest access token forwarded from the main thread. The agentic
+    // gateway expects every command frame (HEARTBEAT, SUBSCRIBE, etc.) to
+    // carry the token as headers.sessionToken. Updated on every 'connect'
+    // and on dedicated 'updateToken' messages so token rotations are
+    // reflected in subsequent frames without dropping the socket.
+    let sessionToken = '';
+    const HEARTBEAT_INTERVAL = 20000;
     const DEFAULT_RETRY_INTERVAL = 2000;
     const DEFAULT_MAX_RETRY_ATTEMPTS = 10;
 
     self.onmessage = function (input) {
       switch (input.data.type) {
         case 'connect':
+          if (typeof input.data.sessionToken === 'string') {
+            sessionToken = input.data.sessionToken;
+          }
           connect(input.data);
+          break;
+        case 'updateToken':
+          if (typeof input.data.sessionToken === 'string') {
+            sessionToken = input.data.sessionToken;
+          }
           break;
         case 'attemptReconnect':
           attemptReconnect(input.data);
@@ -85,7 +99,11 @@ const wsWorkerAgenticCode = `self.importScripts(
     function startHeartbeat() {
       heartbeatSubscription = self.rxjs.interval(HEARTBEAT_INTERVAL).subscribe(() => {
         if (wsSubject) {
-          wsSubject.next({ command: 'HEARTBEAT', headers: {}, body: {} });
+          // The agentic gateway requires every command frame to carry the
+          // current access token as headers.sessionToken — including the
+          // periodic HEARTBEAT — so the gateway can re-authorize the
+          // connection on each tick rather than only at handshake time.
+          wsSubject.next({ command: 'HEARTBEAT', headers: { sessionToken: sessionToken }, body: {} });
         }
       });
     }
@@ -122,6 +140,14 @@ const wsWorkerAgenticCode = `self.importScripts(
       wsSubject?.complete();
       wsSubject = null;
       isConnectionOpen = false;
+      // Reset the attempt counter so a subsequent attemptReconnect cycle
+      // starts from a clean state and applies the full exponential backoff
+      // schedule from scratch.
+      wsReconnectAttempt = 0;
+      if (reconnectTimer) {
+        clearTimeout(reconnectTimer);
+        reconnectTimer = null;
+      }
       stopHeartbeat();
     }
 

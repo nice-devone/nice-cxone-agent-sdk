@@ -33,6 +33,7 @@ var MessageType;
     MessageType["WEM_NOTIFICATION_ACK"] = "WemNotificationAck";
     MessageType["RESTART_DIRECTORY_POLLING"] = "RestartDirectoryPolling";
     MessageType["RESTART_SKILL_ACTIVITY_POLLING"] = "RestartSkillActivityPolling";
+    MessageType["RESTART_SKILL_AGENT_POLLING"] = "RestartSkillAgentPolling";
     MessageType["ACD_NOTIFICATION_ACK"] = "ACDNotificationAck";
     MessageType["AUTO_SUMMARY_RESPONSE"] = "AutoSummaryResponse";
     MessageType["AUTO_SUMMARY_NOTIFICATION_RESPONSE"] = "AutoSummaryNotificationResponse";

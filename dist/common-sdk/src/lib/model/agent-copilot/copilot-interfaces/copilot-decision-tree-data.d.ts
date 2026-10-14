@@ -43,6 +43,17 @@ export interface CapturedQuestion extends DecisionTreeQuestion {
      * Enriched at render time from the element's field config.
      */
     placeholderText?: string;
+    /**
+     * Optional custom error message to display when validation fails.
+     * Enriched at render time from the element's field config.
+     */
+    errorMessage?: string;
+    /**
+     * Optional description providing extra context for the question.
+     * Rendered as an info-icon tooltip next to the field label.
+     * Enriched at render time from the element's field config.
+     */
+    description?: string;
 }
 export interface BaseSection {
     /**
@@ -245,6 +256,14 @@ export interface DecisionTreeField {
     }>;
     /** Optional placeholder text shown inside the input when empty. */
     placeholderText?: string;
+    /** Optional custom error message to display when validation fails. */
+    errorMessage?: string;
+    /** Optional description shown as an info-icon tooltip next to the field label. */
+    description?: string;
+    /**
+     * Pre-condition controlling field-level visibility.
+     */
+    preCondition?: SectionPreCondition;
 }
 /**
  * Supported comparison operators.

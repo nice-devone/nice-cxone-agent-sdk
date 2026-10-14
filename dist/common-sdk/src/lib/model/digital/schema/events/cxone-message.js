@@ -1,6 +1,6 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.CXoneMessageSchema = exports.CXoneDeviceFingerprintSchema = exports.CXoneMessageReplyToMessageSchema = exports.CXoneMessageSeenStatusSchema = exports.CXoneMessageDeliveryStatusSchema = exports.CXoneMessageContentSchema = exports.MessageSendStatusType = void 0;
+exports.CXoneMessageSchema = exports.CXoneDeviceFingerprintSchema = exports.CXoneMessageReplyToMessageSchema = exports.CXoneAuthorRecipientsSchema = exports.CXoneMessageSeenStatusSchema = exports.CXoneMessageDeliveryStatusSchema = exports.CXoneMessageContentSchema = exports.MessageSendStatusType = void 0;
 const digital_message_content_types_1 = require("./../../../../../enum/digital-message-content-types");
 const yup_1 = require("yup");
 const cxone_recipient_1 = require("./cxone-recipient");
@@ -45,6 +45,13 @@ exports.CXoneMessageDeliveryStatusSchema = (0, yup_1.object)({
  */
 exports.CXoneMessageSeenStatusSchema = (0, yup_1.object)({
     seenAt: (0, yup_1.string)().nullable(),
+});
+/**
+ * Schema for the message author recipients
+ */
+exports.CXoneAuthorRecipientsSchema = (0, yup_1.object)({
+    idOnExternalPlatform: (0, yup_1.string)(),
+    name: (0, yup_1.string)(),
 });
 exports.CXoneMessageReplyToMessageSchema = (0, yup_1.object)({
     id: (0, yup_1.string)(),
@@ -107,6 +114,7 @@ exports.CXoneMessageSchema = (0, yup_1.object)({
     authorNameRemoved: (0, yup_1.object)().shape({ reason: (0, yup_1.string)(), removedAt: (0, yup_1.string)() }).nullable(),
     delivered: (0, yup_1.array)().of((0, yup_1.object)().shape(exports.CXoneMessageDeliveryStatusSchema.fields)),
     customerStatistics: (0, yup_1.object)().shape(exports.CXoneMessageSeenStatusSchema.fields).nullable(),
+    authorRecipients: (0, yup_1.array)().of((0, yup_1.object)().shape(exports.CXoneAuthorRecipientsSchema.fields)).nullable(),
 });
 const CXoneMessageArraySchema = (0, yup_1.array)().of((0, yup_1.object)().shape(exports.CXoneMessageSchema.fields));
 //# sourceMappingURL=cxone-message.js.map

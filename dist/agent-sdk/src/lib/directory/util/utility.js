@@ -154,4 +154,32 @@ export function handleDirectoryItemDeletion(options) {
         return { currFavListInLS: filteredClientData, clientDataApiFailed };
     });
 }
+/**
+ * Normalizes search text for directory searches.
+ *
+ * @example
+ * - "John, Doe" =\> "Doe John"
+ * - " John Doe " =\> "John Doe"
+ * - "John, Doe, Test" =\> "John, Doe, Test" (unchanged)
+ *
+ * @param searchText - The text to normalize.
+ * @returns The normalized search text.
+ * @public
+ */
+export const normalizeDirectorySearchText = (searchText) => {
+    searchText = searchText === null || searchText === void 0 ? void 0 : searchText.trim();
+    if (!searchText) {
+        return '';
+    }
+    if (searchText.includes(',')) {
+        const parts = searchText
+            .split(',')
+            .map(part => part.trim())
+            .filter(Boolean);
+        if (parts.length === 2) {
+            return `${parts[1]} ${parts[0]}`;
+        }
+    }
+    return searchText;
+};
 //# sourceMappingURL=utility.js.map

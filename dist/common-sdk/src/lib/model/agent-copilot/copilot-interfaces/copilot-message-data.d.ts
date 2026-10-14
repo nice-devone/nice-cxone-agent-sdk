@@ -1,6 +1,6 @@
 import { DecisionTreeData } from './copilot-decision-tree-data';
 import { OverallContactFeedbackData } from './copilot-feedback-data';
-import { CopilotElement, CopilotFilterDetails, ContactHistoryData, CopilotTaskAssistCardData, CopilotChecklistData } from './index';
+import { CopilotElement, CopilotFilterDetails, ContactHistoryData, CopilotTaskAssistCardData, CopilotChecklistData, WorkflowSpaceState } from './index';
 /**
  * model interface for agent assist payload data
  */
@@ -106,6 +106,12 @@ export interface CopilotMessageData {
      */
     decisionTreeData: DecisionTreeData;
     /**
+     * The objectId from the WebSocket element that opened the decision tree.
+     * Used to route subsequent messages to the correct container when a workflow
+     * and a decision tree are both active simultaneously.
+     */
+    decisionTreeObjectId?: string;
+    /**
      * Flag for checking if finalSummary fire-forget API is called already
      */
     isFinalSummaryAPICalled: boolean;
@@ -117,4 +123,10 @@ export interface CopilotMessageData {
      * field for storing checklist data
      */
     checklistData: CopilotChecklistData;
+    /**
+     * Field for persisting the Copilot workflow-space slice for this contact (alongside
+     * copilotTaskAssistCardData) so triggered workflows + their state survive a page reload.
+     * Stored within the contactId under the existing Copilot IndexedDB key and rehydrated on app load.
+     */
+    workflowSpace?: WorkflowSpaceState;
 }

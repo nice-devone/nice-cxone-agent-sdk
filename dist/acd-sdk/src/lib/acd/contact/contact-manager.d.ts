@@ -50,6 +50,7 @@ export declare class ContactManager {
         contactId: string;
     }>;
     private renewStateSubscription;
+    private isDisposed;
     /**
      * @example
      * ```
@@ -57,6 +58,15 @@ export declare class ContactManager {
      * ```
      */
     constructor();
+    /**
+     * Disposes of subscriptions to prevent memory leaks when this instance is replaced.
+     * Must be called before creating a new ContactManager instance.
+     * @example
+     * ```
+     * contactManager.dispose();
+     * ```
+     */
+    dispose(): void;
     /**
      * Method to create instance for voice and contact service and update agent permissions and call contact event
      */

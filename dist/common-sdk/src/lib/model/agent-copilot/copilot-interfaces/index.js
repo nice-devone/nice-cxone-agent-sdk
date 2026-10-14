@@ -14,4 +14,6 @@ tslib_1.__exportStar(require("./copilot-decision-tree-data"), exports);
 tslib_1.__exportStar(require("./copilot-custom-adaptive-card"), exports);
 tslib_1.__exportStar(require("./copilot-checklist-data"), exports);
 tslib_1.__exportStar(require("./copilot-workflow-space"), exports);
+tslib_1.__exportStar(require("./copilot-cognigy-feed"), exports);
+tslib_1.__exportStar(require("./copilot-ai-agent-config"), exports);
 //# sourceMappingURL=index.js.map

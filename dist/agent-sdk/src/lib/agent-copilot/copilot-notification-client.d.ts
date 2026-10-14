@@ -2,8 +2,12 @@ import { Subject } from 'rxjs';
 import { AgentAssistErrorResponse, AgentAssistBaseResponse, VoiceTranscriptionResponse } from '@nice-devone/common-sdk';
 import { AgentAssistInput, AgentAssistNotificationService } from '../agent-assist/agent-assist-notification-service';
 export declare const HEARTBEAT_INTERVAL = 20000;
-export declare const AGENTIC_HEARTBEAT_INTERVAL = 30000;
+export declare const AGENTIC_HEARTBEAT_INTERVAL = 20000;
 export declare const HEARTBEAT_MISS_THRESHOLD = 3;
+export declare const AGENTIC_RECONNECT_INTERVAL_MS = 2000;
+export declare const AGENTIC_MAX_RECONNECT_ATTEMPTS = 10;
+export declare const AGENTIC_URL_CACHE_TTL_MS: number;
+declare type MessageSource = 'primary' | 'agentic';
 /**
  *  web socket class for agent copilot
  */
@@ -15,6 +19,9 @@ export declare class CopilotNotificationClient extends AgentAssistNotificationSe
     private heartbeatState;
     private agenticHeartbeatState;
     private agenticWssWorker;
+    private cachedAgenticUrl?;
+    private cachedAgenticUrlExpiresAt;
+    private agenticReconnectInFlight;
     onMessageNotification: Subject<AgentAssistBaseResponse>;
     onVoiceTranscriptionMessage: Subject<VoiceTranscriptionResponse>;
     onVoiceTranscriptionError: Subject<AgentAssistErrorResponse>;
@@ -49,11 +56,16 @@ export declare class CopilotNotificationClient extends AgentAssistNotificationSe
      */
     onClosed(): boolean;
     /**
-     *
-     * @param message - message
+     * Handles a decoded WS frame. `source` identifies which socket the frame
+     * arrived on so heartbeat state mutations stay scoped to that socket.
+     * @param message - raw decoded message
+     * @param source - 'primary' (default) or 'agentic'
+     * ```
      * @example
+     * onMessage(message, 'primary');
+     * ```
      */
-    protected onMessage(message: any): void;
+    protected onMessage(message: unknown, source?: MessageSource): void;
     /**
      * method to parse the response
      * ```
@@ -69,23 +81,58 @@ export declare class CopilotNotificationClient extends AgentAssistNotificationSe
      */
     broadcastCopilotNotifications(message: any): void;
     /**
-     * Initialises the agentic WebSocket worker when the AGENTIC_WEBSOCKET toggle is ON.
-     * Reuses an existing worker instance if already created (preserves reconnect state).
-     * @example - initAgenticWorker('12345')
+     * Resolves the agentic WebSocket base URL using a two-tier cache:
+     * 1. In-memory (fastest; no I/O)
+     * 2. localStorage with TTL envelope
+     * 3. REST round-trip (last resort)
+     * Returns `null` if the REST call fails — caller must handle gracefully.
+     */
+    private getAgenticWebSocketUrl;
+    /**
+     * Initialises or re-connects the agentic WebSocket worker.
+     * Spawns the underlying Web Worker exactly once; subsequent calls reuse it
+     * and only post a fresh `connect` frame with a freshly-read access token.
+     * @example - initAgenticWorker()
      */
     private initAgenticWorker;
     /**
+     * Routes messages posted by the agentic worker to the appropriate handler.
+     * Reads `this.agentId` dynamically so an agent change without page reload
+     * does not leave the worker subscribing to stale topics.
+     */
+    private onAgenticWorkerMessage;
+    /**
+     * Schedules a reconnect through the worker's exponential-backoff path.
+     * Guards against overlapping schedules. Caller should have already
+     * stopped (or be prepared to stop) the heartbeat monitor.
+     */
+    private scheduleAgenticReconnect;
+    /**
      * Sends SUBSCRIBE frames for the two agentic copilot topics to the agentic worker.
-     * Called on the worker's 'open' event.
+     * Called on the worker's 'open' event. Each frame carries the current
+     * access token as `headers.sessionToken` — the agentic gateway requires it
+     * for re-authorisation on every command, not just the initial handshake.
+     * Also pushes the fresh token into the worker so subsequent HEARTBEAT
+     * frames generated inside the worker pick up the latest credential.
      * @param agentId - the agent's identifier used to build the topic names
      * @example - subscribeAgenticTopics('12345')
      */
     private subscribeAgenticTopics;
     /**
-     * Terminates both the primary wssWorker and the agenticWssWorker.
+     * Tears down the primary WSS worker only. The agentic worker has an
+     * independent lifecycle and is intentionally kept alive across transient
+     * primary-socket errors. Call `terminateAgenticWorker()` explicitly on
+     * logout, agent change, or toggle-off to release agentic resources.
      * @example - terminateWebSocketWorker()
      */
     terminateWebSocketWorker(): void;
+    /**
+     * Tears down the agentic worker, heartbeat monitor, and URL cache.
+     * Intended for end-of-session flows (logout, agent change). Not invoked
+     * by transient error paths.
+     * @example - terminateAgenticWorker()
+     */
+    terminateAgenticWorker(): void;
     /**
      * Starts a heartbeat monitor for the given state object.
      * After HEARTBEAT_MISS_THRESHOLD consecutive missed acknowledgments, stops the monitor
@@ -132,3 +179,4 @@ export declare class CopilotNotificationClient extends AgentAssistNotificationSe
      */
     protected onReconnect(): void;
 }
+export {};

@@ -35,12 +35,14 @@ export declare class CopilotService {
     private AGENT_COPILOT_GET_ALL_ADAPTIVE_CARDS_SCHEMAS;
     private AGENT_COPILOT_GET_TASK_ASSIST_FORM_PREFILLED_DATA;
     private TASK_ASSIST_FORM_ADAPTIVE_CARD_SCHEMAS_URL;
+    private readonly DEFAULT_BOT_NAME;
     private REFRESH_TOKENS;
     private DECISION_TREE_BASE;
     private AGENT_COPILOT_DECISION_TREE_APIS;
     private AGENT_COPILOT_GET_TASK_ASSIST_ACTIVE_FILL_DATA;
     private readonly CHECKLIST_BASE;
     private readonly AGENT_COPILOT_CHECKLIST_APIS;
+    private readonly CANCEL_WORKFLOW;
     /**
      * Create instance of CXoneAuth
      * ```
@@ -224,6 +226,18 @@ export declare class CopilotService {
      * ```
      */
     resolveAgentAssistConfig: (contactId: string) => Promise<CopilotProfileConfig | undefined>;
+    /**
+     * Fetches the Cognigy AI Copilot access token secret from the backend.
+     * Used by both standalone and context-based Copilot grid connections.
+     * @returns Promise resolving to an object containing the accessTokenSecret
+     * @example
+     * ```ts
+     * const { accessTokenSecret } = await copilotService.getCognigyConfig();
+     * ```
+     */
+    getCognigyConfig: () => Promise<{
+        accessTokenSecret: string;
+    }>;
     /**
      * Used to get the last generated list of topics for the contact id
      * @param contactId - contact Id
@@ -637,5 +651,17 @@ export declare class CopilotService {
      * ```
      */
     closeChecklist(sessionId: string, contactId: string, checklistId: string): Promise<string>;
+    /**
+     * Cancels an active workflow session.
+     *
+     * @param contactId - The contact/case ID associated with the active interaction.
+     * @param taskSessionUid - The task session UID of the workflow being cancelled.
+     * @returns Promise that resolves when the cancellation is acknowledged.
+     * @example
+     * ```ts
+     * await copilotService.cancelWorkflow('contact-123', 'task-session-456');
+     * ```
+     */
+    cancelWorkflow(contactId: string, taskSessionUid: string): Promise<void>;
 }
 export {};

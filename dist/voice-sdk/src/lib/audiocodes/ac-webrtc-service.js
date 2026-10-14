@@ -1,6 +1,7 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.ACWebRtcService = void 0;
+const tslib_1 = require("tslib");
 const core_sdk_1 = require("@nice-devone/core-sdk");
 const rxjs_1 = require("rxjs");
 const cxone_voice_call_status_1 = require("../enums/cxone-voice-call-status");
@@ -717,6 +718,94 @@ class ACWebRtcService {
         this.connectedSBC = '';
         core_sdk_1.LocalStorageHelper.removeItem(core_sdk_1.StorageKeys.CONNECTED_AC_SERVER);
         this.logger.debug('removeConnectedSBC', 'CX: removed ConnectedAudioCodeServer value from localstorage');
+    }
+    /**
+     * Replaces the active audio input track on the live RTP sender with a new track during mid-call audio device failover.
+     * @param newTrack - the new MediaStreamTrack to use for the microphone input
+     * @example
+     * ```
+     * webRtcService.replaceTrack(newTrack);
+     * ```
+     */
+    replaceTrack(newTrack) {
+        var _a, _b, _c;
+        return tslib_1.__awaiter(this, void 0, void 0, function* () {
+            if (!this.audioCodeCall) {
+                this.logger.error('replaceTrack', 'CX: No active call — cannot replace track');
+                throw new Error('No active call — cannot replace track');
+            }
+            try {
+                const peerConnection = (_c = (_b = (_a = this.audioCodeCall) === null || _a === void 0 ? void 0 : _a.getRTCPeerConnection) === null || _b === void 0 ? void 0 : _b.call(_a)) !== null && _c !== void 0 ? _c : null;
+                if (!peerConnection) {
+                    this.logger.error('replaceTrack', 'CX: No RTCPeerConnection available');
+                    throw new Error('No RTCPeerConnection available');
+                }
+                const sender = peerConnection.getSenders().find((s) => s.track && s.track.kind === 'audio');
+                if (!sender) {
+                    this.logger.error('replaceTrack', 'CX: No audio RTCRtpSender found');
+                    throw new Error('No audio RTCRtpSender found');
+                }
+                const oldTrack = sender.track;
+                yield sender.replaceTrack(newTrack);
+                oldTrack === null || oldTrack === void 0 ? void 0 : oldTrack.stop();
+                this.logger.info('replaceTrack', 'CX: Audio track replaced successfully');
+            }
+            catch (error) {
+                this.logger.error('replaceTrack', `CX: Error replacing audio track: ${error instanceof Error ? error.message : String(error)}`);
+                throw error;
+            }
+        });
+    }
+    /**
+     * Sets the audio output device on the audio element via `setSinkId` during mid-call audio device failover.
+     * Throws if `setSinkId` is not supported in the current browser context or if the switch fails, allowing callers to detect failure and avoid persisting an unapplied device ID.
+     * @param deviceId - the deviceId of the target audio output device
+     * @example
+     * ```
+     * webRtcService.setSinkId('device-id');
+     * ```
+     */
+    setSinkId(deviceId) {
+        return tslib_1.__awaiter(this, void 0, void 0, function* () {
+            const audioEl = this.audioElement;
+            if (typeof (audioEl === null || audioEl === void 0 ? void 0 : audioEl.setSinkId) !== 'function') {
+                this.logger.warn('setSinkId', 'CX: setSinkId is not supported in this browser context — skipping');
+                throw new Error('setSinkId is not supported in this browser context');
+            }
+            try {
+                yield audioEl.setSinkId(deviceId);
+                this.logger.info('setSinkId', `CX: Audio output switched to deviceId: ${deviceId}`);
+            }
+            catch (error) {
+                this.logger.error('setSinkId', `CX: Error setting sink id: ${error instanceof Error ? error.message : String(error)}`);
+                throw error;
+            }
+        });
+    }
+    /**
+     * Returns the active audio input track label from the current RTCPeerConnection sender to seed the known active device on call connect.
+     * @returns the track label string, or null if no active call or audio sender is found
+     * @example
+     * ```
+     * webRtcService.getActiveAudioTrackLabel();
+     * ```
+     */
+    getActiveAudioTrackLabel() {
+        var _a, _b, _c, _d, _e;
+        if (!this.audioCodeCall) {
+            return null;
+        }
+        try {
+            const peerConnection = (_c = (_b = (_a = this.audioCodeCall) === null || _a === void 0 ? void 0 : _a.getRTCPeerConnection) === null || _b === void 0 ? void 0 : _b.call(_a)) !== null && _c !== void 0 ? _c : null;
+            if (!peerConnection) {
+                return null;
+            }
+            const sender = peerConnection.getSenders().find((s) => s.track && s.track.kind === 'audio');
+            return (_e = (_d = sender === null || sender === void 0 ? void 0 : sender.track) === null || _d === void 0 ? void 0 : _d.label) !== null && _e !== void 0 ? _e : null;
+        }
+        catch (_f) {
+            return null;
+        }
     }
 }
 exports.ACWebRtcService = ACWebRtcService;

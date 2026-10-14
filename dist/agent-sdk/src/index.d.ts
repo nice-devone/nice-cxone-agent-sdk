@@ -28,6 +28,8 @@ export * from './lib/enum/agent-assist-provider';
 export * from '../../agent-sdk/src/lib/acd/mock-responses/mock-tenant-data-response';
 export * from './lib/directory/cxone-directory';
 export * from './lib/directory/provider/cxone-directory-provider';
+export * from './lib/directory/interface/skill-agent-assignment';
+export * from './lib/directory/util/skill-api-parser';
 export * from './lib/acd/cxone-agent-setting/cxone-agent-setting';
 export * from './lib/commitment/commitment-service';
 export * from './lib/agent-state/enum/unified-agent-state';

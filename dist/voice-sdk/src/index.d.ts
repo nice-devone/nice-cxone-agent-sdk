@@ -1,4 +1,5 @@
 export * from './lib/cxone-voice-client';
+export * from './lib/model/audio-device-change-event';
 export * from './lib/model/cxone-voice-connection-options';
 export * from './lib/model/cxone-voice-connection';
 export * from './lib/enums/cxone-voice-connection-status';

@@ -123,7 +123,9 @@ export declare const CXoneDigitalContactSearchSchema: import("yup").ObjectSchema
     preview: import("yup").StringSchema<string, import("yup/lib/types").AnyObject, string>;
     id: import("yup/lib/string").RequiredStringSchema<string, import("yup/lib/types").AnyObject>;
     interactionId: import("yup").StringSchema<string, import("yup/lib/types").AnyObject, string>;
-    status: import("yup/lib/string").RequiredStringSchema<string, import("yup/lib/types").AnyObject>;
+    status: import("yup/lib/string").RequiredStringSchema<string, import("yup/lib/types").AnyObject>; /**
+     *  skill name from contact response
+     */
     customFields: import("yup").ArraySchema<import("yup").ObjectSchema<import("yup/lib/object").Assign<import("yup/lib/object").ObjectShape, {
         ident: import("yup").StringSchema<string, import("yup/lib/types").AnyObject, string>;
         value: import("yup").StringSchema<string, import("yup/lib/types").AnyObject, string>;
@@ -186,9 +188,7 @@ export declare const CXoneDigitalContactSearchSchema: import("yup").ObjectSchema
     authorEndUserIdentity: any;
     direction: import("yup/lib/string").RequiredStringSchema<string, import("yup/lib/types").AnyObject>;
     createdAt: import("yup/lib/string").RequiredStringSchema<string, import("yup/lib/types").AnyObject>;
-    inboundCount: import("yup").NumberSchema<number, import("yup/lib/types").AnyObject, number>; /**
-     *  preview from contact response
-     */
+    inboundCount: import("yup").NumberSchema<number, import("yup/lib/types").AnyObject, number>;
     outboundCount: import("yup").NumberSchema<number, import("yup/lib/types").AnyObject, number>;
     ownerAssigneeUser: any;
     routingQueueId: import("yup").StringSchema<string, import("yup/lib/types").AnyObject, string>;
@@ -223,6 +223,7 @@ export declare const CXoneDigitalContactSearchSchema: import("yup").ObjectSchema
     }>>[]>;
     endUserRecipients: any;
     threadId: import("yup/lib/string").RequiredStringSchema<string, import("yup/lib/types").AnyObject>;
+    isDraft: import("yup").BooleanSchema<boolean, import("yup/lib/types").AnyObject, boolean>;
 }>, import("yup/lib/object").AnyObject, import("yup/lib/object").TypeOfShape<import("yup/lib/object").Assign<import("yup/lib/object").ObjectShape, {
     contactId: import("yup").StringSchema<string, import("yup/lib/types").AnyObject, string>;
     /**
@@ -347,7 +348,9 @@ export declare const CXoneDigitalContactSearchSchema: import("yup").ObjectSchema
     preview: import("yup").StringSchema<string, import("yup/lib/types").AnyObject, string>;
     id: import("yup/lib/string").RequiredStringSchema<string, import("yup/lib/types").AnyObject>;
     interactionId: import("yup").StringSchema<string, import("yup/lib/types").AnyObject, string>;
-    status: import("yup/lib/string").RequiredStringSchema<string, import("yup/lib/types").AnyObject>;
+    status: import("yup/lib/string").RequiredStringSchema<string, import("yup/lib/types").AnyObject>; /**
+     *  skill name from contact response
+     */
     customFields: import("yup").ArraySchema<import("yup").ObjectSchema<import("yup/lib/object").Assign<import("yup/lib/object").ObjectShape, {
         ident: import("yup").StringSchema<string, import("yup/lib/types").AnyObject, string>;
         value: import("yup").StringSchema<string, import("yup/lib/types").AnyObject, string>;
@@ -410,9 +413,7 @@ export declare const CXoneDigitalContactSearchSchema: import("yup").ObjectSchema
     authorEndUserIdentity: any;
     direction: import("yup/lib/string").RequiredStringSchema<string, import("yup/lib/types").AnyObject>;
     createdAt: import("yup/lib/string").RequiredStringSchema<string, import("yup/lib/types").AnyObject>;
-    inboundCount: import("yup").NumberSchema<number, import("yup/lib/types").AnyObject, number>; /**
-     *  preview from contact response
-     */
+    inboundCount: import("yup").NumberSchema<number, import("yup/lib/types").AnyObject, number>;
     outboundCount: import("yup").NumberSchema<number, import("yup/lib/types").AnyObject, number>;
     ownerAssigneeUser: any;
     routingQueueId: import("yup").StringSchema<string, import("yup/lib/types").AnyObject, string>;
@@ -447,6 +448,7 @@ export declare const CXoneDigitalContactSearchSchema: import("yup").ObjectSchema
     }>>[]>;
     endUserRecipients: any;
     threadId: import("yup/lib/string").RequiredStringSchema<string, import("yup/lib/types").AnyObject>;
+    isDraft: import("yup").BooleanSchema<boolean, import("yup/lib/types").AnyObject, boolean>;
 }>>, import("yup/lib/object").AssertsShape<import("yup/lib/object").Assign<import("yup/lib/object").ObjectShape, {
     contactId: import("yup").StringSchema<string, import("yup/lib/types").AnyObject, string>;
     /**
@@ -571,7 +573,9 @@ export declare const CXoneDigitalContactSearchSchema: import("yup").ObjectSchema
     preview: import("yup").StringSchema<string, import("yup/lib/types").AnyObject, string>;
     id: import("yup/lib/string").RequiredStringSchema<string, import("yup/lib/types").AnyObject>;
     interactionId: import("yup").StringSchema<string, import("yup/lib/types").AnyObject, string>;
-    status: import("yup/lib/string").RequiredStringSchema<string, import("yup/lib/types").AnyObject>;
+    status: import("yup/lib/string").RequiredStringSchema<string, import("yup/lib/types").AnyObject>; /**
+     *  skill name from contact response
+     */
     customFields: import("yup").ArraySchema<import("yup").ObjectSchema<import("yup/lib/object").Assign<import("yup/lib/object").ObjectShape, {
         ident: import("yup").StringSchema<string, import("yup/lib/types").AnyObject, string>;
         value: import("yup").StringSchema<string, import("yup/lib/types").AnyObject, string>;
@@ -634,9 +638,7 @@ export declare const CXoneDigitalContactSearchSchema: import("yup").ObjectSchema
     authorEndUserIdentity: any;
     direction: import("yup/lib/string").RequiredStringSchema<string, import("yup/lib/types").AnyObject>;
     createdAt: import("yup/lib/string").RequiredStringSchema<string, import("yup/lib/types").AnyObject>;
-    inboundCount: import("yup").NumberSchema<number, import("yup/lib/types").AnyObject, number>; /**
-     *  preview from contact response
-     */
+    inboundCount: import("yup").NumberSchema<number, import("yup/lib/types").AnyObject, number>;
     outboundCount: import("yup").NumberSchema<number, import("yup/lib/types").AnyObject, number>;
     ownerAssigneeUser: any;
     routingQueueId: import("yup").StringSchema<string, import("yup/lib/types").AnyObject, string>;
@@ -671,6 +673,7 @@ export declare const CXoneDigitalContactSearchSchema: import("yup").ObjectSchema
     }>>[]>;
     endUserRecipients: any;
     threadId: import("yup/lib/string").RequiredStringSchema<string, import("yup/lib/types").AnyObject>;
+    isDraft: import("yup").BooleanSchema<boolean, import("yup/lib/types").AnyObject, boolean>;
 }>>>;
 export declare const CXoneDigitalContactSearch: import("yup/lib/object").OptionalObjectSchema<{
     hits: import("yup/lib/number").RequiredNumberSchema<number, import("yup/lib/types").AnyObject>;
@@ -800,7 +803,9 @@ export declare const CXoneDigitalContactSearch: import("yup/lib/object").Optiona
         preview: import("yup").StringSchema<string, import("yup/lib/types").AnyObject, string>;
         id: import("yup/lib/string").RequiredStringSchema<string, import("yup/lib/types").AnyObject>;
         interactionId: import("yup").StringSchema<string, import("yup/lib/types").AnyObject, string>;
-        status: import("yup/lib/string").RequiredStringSchema<string, import("yup/lib/types").AnyObject>;
+        status: import("yup/lib/string").RequiredStringSchema<string, import("yup/lib/types").AnyObject>; /**
+         *  skill name from contact response
+         */
         customFields: import("yup").ArraySchema<import("yup").ObjectSchema<import("yup/lib/object").Assign<import("yup/lib/object").ObjectShape, {
             ident: import("yup").StringSchema<string, import("yup/lib/types").AnyObject, string>;
             value: import("yup").StringSchema<string, import("yup/lib/types").AnyObject, string>;
@@ -863,9 +868,7 @@ export declare const CXoneDigitalContactSearch: import("yup/lib/object").Optiona
         authorEndUserIdentity: any;
         direction: import("yup/lib/string").RequiredStringSchema<string, import("yup/lib/types").AnyObject>;
         createdAt: import("yup/lib/string").RequiredStringSchema<string, import("yup/lib/types").AnyObject>;
-        inboundCount: import("yup").NumberSchema<number, import("yup/lib/types").AnyObject, number>; /**
-         *  preview from contact response
-         */
+        inboundCount: import("yup").NumberSchema<number, import("yup/lib/types").AnyObject, number>;
         outboundCount: import("yup").NumberSchema<number, import("yup/lib/types").AnyObject, number>;
         ownerAssigneeUser: any;
         routingQueueId: import("yup").StringSchema<string, import("yup/lib/types").AnyObject, string>;
@@ -900,6 +903,7 @@ export declare const CXoneDigitalContactSearch: import("yup/lib/object").Optiona
         }>>[]>;
         endUserRecipients: any;
         threadId: import("yup/lib/string").RequiredStringSchema<string, import("yup/lib/types").AnyObject>;
+        isDraft: import("yup").BooleanSchema<boolean, import("yup/lib/types").AnyObject, boolean>;
     }>, import("yup/lib/object").AnyObject, import("yup/lib/object").TypeOfShape<import("yup/lib/object").Assign<import("yup/lib/object").ObjectShape, {
         [x: string]: import("yup").AnySchema<any, any, any> | import("yup/lib/Reference").default<unknown> | import("yup/lib/Lazy").default<any, any>;
         contactId: import("yup").StringSchema<string, import("yup/lib/types").AnyObject, string>;
@@ -1025,7 +1029,9 @@ export declare const CXoneDigitalContactSearch: import("yup/lib/object").Optiona
         preview: import("yup").StringSchema<string, import("yup/lib/types").AnyObject, string>;
         id: import("yup/lib/string").RequiredStringSchema<string, import("yup/lib/types").AnyObject>;
         interactionId: import("yup").StringSchema<string, import("yup/lib/types").AnyObject, string>;
-        status: import("yup/lib/string").RequiredStringSchema<string, import("yup/lib/types").AnyObject>;
+        status: import("yup/lib/string").RequiredStringSchema<string, import("yup/lib/types").AnyObject>; /**
+         *  skill name from contact response
+         */
         customFields: import("yup").ArraySchema<import("yup").ObjectSchema<import("yup/lib/object").Assign<import("yup/lib/object").ObjectShape, {
             ident: import("yup").StringSchema<string, import("yup/lib/types").AnyObject, string>;
             value: import("yup").StringSchema<string, import("yup/lib/types").AnyObject, string>;
@@ -1088,9 +1094,7 @@ export declare const CXoneDigitalContactSearch: import("yup/lib/object").Optiona
         authorEndUserIdentity: any;
         direction: import("yup/lib/string").RequiredStringSchema<string, import("yup/lib/types").AnyObject>;
         createdAt: import("yup/lib/string").RequiredStringSchema<string, import("yup/lib/types").AnyObject>;
-        inboundCount: import("yup").NumberSchema<number, import("yup/lib/types").AnyObject, number>; /**
-         *  preview from contact response
-         */
+        inboundCount: import("yup").NumberSchema<number, import("yup/lib/types").AnyObject, number>;
         outboundCount: import("yup").NumberSchema<number, import("yup/lib/types").AnyObject, number>;
         ownerAssigneeUser: any;
         routingQueueId: import("yup").StringSchema<string, import("yup/lib/types").AnyObject, string>;
@@ -1125,6 +1129,7 @@ export declare const CXoneDigitalContactSearch: import("yup/lib/object").Optiona
         }>>[]>;
         endUserRecipients: any;
         threadId: import("yup/lib/string").RequiredStringSchema<string, import("yup/lib/types").AnyObject>;
+        isDraft: import("yup").BooleanSchema<boolean, import("yup/lib/types").AnyObject, boolean>;
     }>>, import("yup/lib/object").AssertsShape<import("yup/lib/object").Assign<import("yup/lib/object").ObjectShape, {
         [x: string]: import("yup").AnySchema<any, any, any> | import("yup/lib/Reference").default<unknown> | import("yup/lib/Lazy").default<any, any>;
         contactId: import("yup").StringSchema<string, import("yup/lib/types").AnyObject, string>;
@@ -1250,7 +1255,9 @@ export declare const CXoneDigitalContactSearch: import("yup/lib/object").Optiona
         preview: import("yup").StringSchema<string, import("yup/lib/types").AnyObject, string>;
         id: import("yup/lib/string").RequiredStringSchema<string, import("yup/lib/types").AnyObject>;
         interactionId: import("yup").StringSchema<string, import("yup/lib/types").AnyObject, string>;
-        status: import("yup/lib/string").RequiredStringSchema<string, import("yup/lib/types").AnyObject>;
+        status: import("yup/lib/string").RequiredStringSchema<string, import("yup/lib/types").AnyObject>; /**
+         *  skill name from contact response
+         */
         customFields: import("yup").ArraySchema<import("yup").ObjectSchema<import("yup/lib/object").Assign<import("yup/lib/object").ObjectShape, {
             ident: import("yup").StringSchema<string, import("yup/lib/types").AnyObject, string>;
             value: import("yup").StringSchema<string, import("yup/lib/types").AnyObject, string>;
@@ -1313,9 +1320,7 @@ export declare const CXoneDigitalContactSearch: import("yup/lib/object").Optiona
         authorEndUserIdentity: any;
         direction: import("yup/lib/string").RequiredStringSchema<string, import("yup/lib/types").AnyObject>;
         createdAt: import("yup/lib/string").RequiredStringSchema<string, import("yup/lib/types").AnyObject>;
-        inboundCount: import("yup").NumberSchema<number, import("yup/lib/types").AnyObject, number>; /**
-         *  preview from contact response
-         */
+        inboundCount: import("yup").NumberSchema<number, import("yup/lib/types").AnyObject, number>;
         outboundCount: import("yup").NumberSchema<number, import("yup/lib/types").AnyObject, number>;
         ownerAssigneeUser: any;
         routingQueueId: import("yup").StringSchema<string, import("yup/lib/types").AnyObject, string>;
@@ -1350,6 +1355,7 @@ export declare const CXoneDigitalContactSearch: import("yup/lib/object").Optiona
         }>>[]>;
         endUserRecipients: any;
         threadId: import("yup/lib/string").RequiredStringSchema<string, import("yup/lib/types").AnyObject>;
+        isDraft: import("yup").BooleanSchema<boolean, import("yup/lib/types").AnyObject, boolean>;
     }>>>, import("yup/lib/types").AnyObject, import("yup/lib/object").TypeOfShape<import("yup/lib/object").Assign<import("yup/lib/object").ObjectShape, {
         [x: string]: import("yup").AnySchema<any, any, any> | import("yup/lib/Reference").default<unknown> | import("yup/lib/Lazy").default<any, any>;
         contactId: import("yup").StringSchema<string, import("yup/lib/types").AnyObject, string>;
@@ -1475,7 +1481,9 @@ export declare const CXoneDigitalContactSearch: import("yup/lib/object").Optiona
         preview: import("yup").StringSchema<string, import("yup/lib/types").AnyObject, string>;
         id: import("yup/lib/string").RequiredStringSchema<string, import("yup/lib/types").AnyObject>;
         interactionId: import("yup").StringSchema<string, import("yup/lib/types").AnyObject, string>;
-        status: import("yup/lib/string").RequiredStringSchema<string, import("yup/lib/types").AnyObject>;
+        status: import("yup/lib/string").RequiredStringSchema<string, import("yup/lib/types").AnyObject>; /**
+         *  skill name from contact response
+         */
         customFields: import("yup").ArraySchema<import("yup").ObjectSchema<import("yup/lib/object").Assign<import("yup/lib/object").ObjectShape, {
             ident: import("yup").StringSchema<string, import("yup/lib/types").AnyObject, string>;
             value: import("yup").StringSchema<string, import("yup/lib/types").AnyObject, string>;
@@ -1538,9 +1546,7 @@ export declare const CXoneDigitalContactSearch: import("yup/lib/object").Optiona
         authorEndUserIdentity: any;
         direction: import("yup/lib/string").RequiredStringSchema<string, import("yup/lib/types").AnyObject>;
         createdAt: import("yup/lib/string").RequiredStringSchema<string, import("yup/lib/types").AnyObject>;
-        inboundCount: import("yup").NumberSchema<number, import("yup/lib/types").AnyObject, number>; /**
-         *  preview from contact response
-         */
+        inboundCount: import("yup").NumberSchema<number, import("yup/lib/types").AnyObject, number>;
         outboundCount: import("yup").NumberSchema<number, import("yup/lib/types").AnyObject, number>;
         ownerAssigneeUser: any;
         routingQueueId: import("yup").StringSchema<string, import("yup/lib/types").AnyObject, string>;
@@ -1575,6 +1581,7 @@ export declare const CXoneDigitalContactSearch: import("yup/lib/object").Optiona
         }>>[]>;
         endUserRecipients: any;
         threadId: import("yup/lib/string").RequiredStringSchema<string, import("yup/lib/types").AnyObject>;
+        isDraft: import("yup").BooleanSchema<boolean, import("yup/lib/types").AnyObject, boolean>;
     }>>[], import("yup/lib/object").AssertsShape<import("yup/lib/object").Assign<import("yup/lib/object").ObjectShape, {
         [x: string]: import("yup").AnySchema<any, any, any> | import("yup/lib/Reference").default<unknown> | import("yup/lib/Lazy").default<any, any>;
         contactId: import("yup").StringSchema<string, import("yup/lib/types").AnyObject, string>;
@@ -1700,7 +1707,9 @@ export declare const CXoneDigitalContactSearch: import("yup/lib/object").Optiona
         preview: import("yup").StringSchema<string, import("yup/lib/types").AnyObject, string>;
         id: import("yup/lib/string").RequiredStringSchema<string, import("yup/lib/types").AnyObject>;
         interactionId: import("yup").StringSchema<string, import("yup/lib/types").AnyObject, string>;
-        status: import("yup/lib/string").RequiredStringSchema<string, import("yup/lib/types").AnyObject>;
+        status: import("yup/lib/string").RequiredStringSchema<string, import("yup/lib/types").AnyObject>; /**
+         *  skill name from contact response
+         */
         customFields: import("yup").ArraySchema<import("yup").ObjectSchema<import("yup/lib/object").Assign<import("yup/lib/object").ObjectShape, {
             ident: import("yup").StringSchema<string, import("yup/lib/types").AnyObject, string>;
             value: import("yup").StringSchema<string, import("yup/lib/types").AnyObject, string>;
@@ -1763,9 +1772,7 @@ export declare const CXoneDigitalContactSearch: import("yup/lib/object").Optiona
         authorEndUserIdentity: any;
         direction: import("yup/lib/string").RequiredStringSchema<string, import("yup/lib/types").AnyObject>;
         createdAt: import("yup/lib/string").RequiredStringSchema<string, import("yup/lib/types").AnyObject>;
-        inboundCount: import("yup").NumberSchema<number, import("yup/lib/types").AnyObject, number>; /**
-         *  preview from contact response
-         */
+        inboundCount: import("yup").NumberSchema<number, import("yup/lib/types").AnyObject, number>;
         outboundCount: import("yup").NumberSchema<number, import("yup/lib/types").AnyObject, number>;
         ownerAssigneeUser: any;
         routingQueueId: import("yup").StringSchema<string, import("yup/lib/types").AnyObject, string>;
@@ -1800,6 +1807,7 @@ export declare const CXoneDigitalContactSearch: import("yup/lib/object").Optiona
         }>>[]>;
         endUserRecipients: any;
         threadId: import("yup/lib/string").RequiredStringSchema<string, import("yup/lib/types").AnyObject>;
+        isDraft: import("yup").BooleanSchema<boolean, import("yup/lib/types").AnyObject, boolean>;
     }>>[]>;
 }, import("yup/lib/object").AnyObject, import("yup/lib/object").TypeOfShape<{
     hits: import("yup/lib/number").RequiredNumberSchema<number, import("yup/lib/types").AnyObject>;
@@ -1929,7 +1937,9 @@ export declare const CXoneDigitalContactSearch: import("yup/lib/object").Optiona
         preview: import("yup").StringSchema<string, import("yup/lib/types").AnyObject, string>;
         id: import("yup/lib/string").RequiredStringSchema<string, import("yup/lib/types").AnyObject>;
         interactionId: import("yup").StringSchema<string, import("yup/lib/types").AnyObject, string>;
-        status: import("yup/lib/string").RequiredStringSchema<string, import("yup/lib/types").AnyObject>;
+        status: import("yup/lib/string").RequiredStringSchema<string, import("yup/lib/types").AnyObject>; /**
+         *  skill name from contact response
+         */
         customFields: import("yup").ArraySchema<import("yup").ObjectSchema<import("yup/lib/object").Assign<import("yup/lib/object").ObjectShape, {
             ident: import("yup").StringSchema<string, import("yup/lib/types").AnyObject, string>;
             value: import("yup").StringSchema<string, import("yup/lib/types").AnyObject, string>;
@@ -1992,9 +2002,7 @@ export declare const CXoneDigitalContactSearch: import("yup/lib/object").Optiona
         authorEndUserIdentity: any;
         direction: import("yup/lib/string").RequiredStringSchema<string, import("yup/lib/types").AnyObject>;
         createdAt: import("yup/lib/string").RequiredStringSchema<string, import("yup/lib/types").AnyObject>;
-        inboundCount: import("yup").NumberSchema<number, import("yup/lib/types").AnyObject, number>; /**
-         *  preview from contact response
-         */
+        inboundCount: import("yup").NumberSchema<number, import("yup/lib/types").AnyObject, number>;
         outboundCount: import("yup").NumberSchema<number, import("yup/lib/types").AnyObject, number>;
         ownerAssigneeUser: any;
         routingQueueId: import("yup").StringSchema<string, import("yup/lib/types").AnyObject, string>;
@@ -2029,6 +2037,7 @@ export declare const CXoneDigitalContactSearch: import("yup/lib/object").Optiona
         }>>[]>;
         endUserRecipients: any;
         threadId: import("yup/lib/string").RequiredStringSchema<string, import("yup/lib/types").AnyObject>;
+        isDraft: import("yup").BooleanSchema<boolean, import("yup/lib/types").AnyObject, boolean>;
     }>, import("yup/lib/object").AnyObject, import("yup/lib/object").TypeOfShape<import("yup/lib/object").Assign<import("yup/lib/object").ObjectShape, {
         [x: string]: import("yup").AnySchema<any, any, any> | import("yup/lib/Reference").default<unknown> | import("yup/lib/Lazy").default<any, any>;
         contactId: import("yup").StringSchema<string, import("yup/lib/types").AnyObject, string>;
@@ -2154,7 +2163,9 @@ export declare const CXoneDigitalContactSearch: import("yup/lib/object").Optiona
         preview: import("yup").StringSchema<string, import("yup/lib/types").AnyObject, string>;
         id: import("yup/lib/string").RequiredStringSchema<string, import("yup/lib/types").AnyObject>;
         interactionId: import("yup").StringSchema<string, import("yup/lib/types").AnyObject, string>;
-        status: import("yup/lib/string").RequiredStringSchema<string, import("yup/lib/types").AnyObject>;
+        status: import("yup/lib/string").RequiredStringSchema<string, import("yup/lib/types").AnyObject>; /**
+         *  skill name from contact response
+         */
         customFields: import("yup").ArraySchema<import("yup").ObjectSchema<import("yup/lib/object").Assign<import("yup/lib/object").ObjectShape, {
             ident: import("yup").StringSchema<string, import("yup/lib/types").AnyObject, string>;
             value: import("yup").StringSchema<string, import("yup/lib/types").AnyObject, string>;
@@ -2217,9 +2228,7 @@ export declare const CXoneDigitalContactSearch: import("yup/lib/object").Optiona
         authorEndUserIdentity: any;
         direction: import("yup/lib/string").RequiredStringSchema<string, import("yup/lib/types").AnyObject>;
         createdAt: import("yup/lib/string").RequiredStringSchema<string, import("yup/lib/types").AnyObject>;
-        inboundCount: import("yup").NumberSchema<number, import("yup/lib/types").AnyObject, number>; /**
-         *  preview from contact response
-         */
+        inboundCount: import("yup").NumberSchema<number, import("yup/lib/types").AnyObject, number>;
         outboundCount: import("yup").NumberSchema<number, import("yup/lib/types").AnyObject, number>;
         ownerAssigneeUser: any;
         routingQueueId: import("yup").StringSchema<string, import("yup/lib/types").AnyObject, string>;
@@ -2254,6 +2263,7 @@ export declare const CXoneDigitalContactSearch: import("yup/lib/object").Optiona
         }>>[]>;
         endUserRecipients: any;
         threadId: import("yup/lib/string").RequiredStringSchema<string, import("yup/lib/types").AnyObject>;
+        isDraft: import("yup").BooleanSchema<boolean, import("yup/lib/types").AnyObject, boolean>;
     }>>, import("yup/lib/object").AssertsShape<import("yup/lib/object").Assign<import("yup/lib/object").ObjectShape, {
         [x: string]: import("yup").AnySchema<any, any, any> | import("yup/lib/Reference").default<unknown> | import("yup/lib/Lazy").default<any, any>;
         contactId: import("yup").StringSchema<string, import("yup/lib/types").AnyObject, string>;
@@ -2379,7 +2389,9 @@ export declare const CXoneDigitalContactSearch: import("yup/lib/object").Optiona
         preview: import("yup").StringSchema<string, import("yup/lib/types").AnyObject, string>;
         id: import("yup/lib/string").RequiredStringSchema<string, import("yup/lib/types").AnyObject>;
         interactionId: import("yup").StringSchema<string, import("yup/lib/types").AnyObject, string>;
-        status: import("yup/lib/string").RequiredStringSchema<string, import("yup/lib/types").AnyObject>;
+        status: import("yup/lib/string").RequiredStringSchema<string, import("yup/lib/types").AnyObject>; /**
+         *  skill name from contact response
+         */
         customFields: import("yup").ArraySchema<import("yup").ObjectSchema<import("yup/lib/object").Assign<import("yup/lib/object").ObjectShape, {
             ident: import("yup").StringSchema<string, import("yup/lib/types").AnyObject, string>;
             value: import("yup").StringSchema<string, import("yup/lib/types").AnyObject, string>;
@@ -2442,9 +2454,7 @@ export declare const CXoneDigitalContactSearch: import("yup/lib/object").Optiona
         authorEndUserIdentity: any;
         direction: import("yup/lib/string").RequiredStringSchema<string, import("yup/lib/types").AnyObject>;
         createdAt: import("yup/lib/string").RequiredStringSchema<string, import("yup/lib/types").AnyObject>;
-        inboundCount: import("yup").NumberSchema<number, import("yup/lib/types").AnyObject, number>; /**
-         *  preview from contact response
-         */
+        inboundCount: import("yup").NumberSchema<number, import("yup/lib/types").AnyObject, number>;
         outboundCount: import("yup").NumberSchema<number, import("yup/lib/types").AnyObject, number>;
         ownerAssigneeUser: any;
         routingQueueId: import("yup").StringSchema<string, import("yup/lib/types").AnyObject, string>;
@@ -2479,6 +2489,7 @@ export declare const CXoneDigitalContactSearch: import("yup/lib/object").Optiona
         }>>[]>;
         endUserRecipients: any;
         threadId: import("yup/lib/string").RequiredStringSchema<string, import("yup/lib/types").AnyObject>;
+        isDraft: import("yup").BooleanSchema<boolean, import("yup/lib/types").AnyObject, boolean>;
     }>>>, import("yup/lib/types").AnyObject, import("yup/lib/object").TypeOfShape<import("yup/lib/object").Assign<import("yup/lib/object").ObjectShape, {
         [x: string]: import("yup").AnySchema<any, any, any> | import("yup/lib/Reference").default<unknown> | import("yup/lib/Lazy").default<any, any>;
         contactId: import("yup").StringSchema<string, import("yup/lib/types").AnyObject, string>;
@@ -2604,7 +2615,9 @@ export declare const CXoneDigitalContactSearch: import("yup/lib/object").Optiona
         preview: import("yup").StringSchema<string, import("yup/lib/types").AnyObject, string>;
         id: import("yup/lib/string").RequiredStringSchema<string, import("yup/lib/types").AnyObject>;
         interactionId: import("yup").StringSchema<string, import("yup/lib/types").AnyObject, string>;
-        status: import("yup/lib/string").RequiredStringSchema<string, import("yup/lib/types").AnyObject>;
+        status: import("yup/lib/string").RequiredStringSchema<string, import("yup/lib/types").AnyObject>; /**
+         *  skill name from contact response
+         */
         customFields: import("yup").ArraySchema<import("yup").ObjectSchema<import("yup/lib/object").Assign<import("yup/lib/object").ObjectShape, {
             ident: import("yup").StringSchema<string, import("yup/lib/types").AnyObject, string>;
             value: import("yup").StringSchema<string, import("yup/lib/types").AnyObject, string>;
@@ -2667,9 +2680,7 @@ export declare const CXoneDigitalContactSearch: import("yup/lib/object").Optiona
         authorEndUserIdentity: any;
         direction: import("yup/lib/string").RequiredStringSchema<string, import("yup/lib/types").AnyObject>;
         createdAt: import("yup/lib/string").RequiredStringSchema<string, import("yup/lib/types").AnyObject>;
-        inboundCount: import("yup").NumberSchema<number, import("yup/lib/types").AnyObject, number>; /**
-         *  preview from contact response
-         */
+        inboundCount: import("yup").NumberSchema<number, import("yup/lib/types").AnyObject, number>;
         outboundCount: import("yup").NumberSchema<number, import("yup/lib/types").AnyObject, number>;
         ownerAssigneeUser: any;
         routingQueueId: import("yup").StringSchema<string, import("yup/lib/types").AnyObject, string>;
@@ -2704,6 +2715,7 @@ export declare const CXoneDigitalContactSearch: import("yup/lib/object").Optiona
         }>>[]>;
         endUserRecipients: any;
         threadId: import("yup/lib/string").RequiredStringSchema<string, import("yup/lib/types").AnyObject>;
+        isDraft: import("yup").BooleanSchema<boolean, import("yup/lib/types").AnyObject, boolean>;
     }>>[], import("yup/lib/object").AssertsShape<import("yup/lib/object").Assign<import("yup/lib/object").ObjectShape, {
         [x: string]: import("yup").AnySchema<any, any, any> | import("yup/lib/Reference").default<unknown> | import("yup/lib/Lazy").default<any, any>;
         contactId: import("yup").StringSchema<string, import("yup/lib/types").AnyObject, string>;
@@ -2829,7 +2841,9 @@ export declare const CXoneDigitalContactSearch: import("yup/lib/object").Optiona
         preview: import("yup").StringSchema<string, import("yup/lib/types").AnyObject, string>;
         id: import("yup/lib/string").RequiredStringSchema<string, import("yup/lib/types").AnyObject>;
         interactionId: import("yup").StringSchema<string, import("yup/lib/types").AnyObject, string>;
-        status: import("yup/lib/string").RequiredStringSchema<string, import("yup/lib/types").AnyObject>;
+        status: import("yup/lib/string").RequiredStringSchema<string, import("yup/lib/types").AnyObject>; /**
+         *  skill name from contact response
+         */
         customFields: import("yup").ArraySchema<import("yup").ObjectSchema<import("yup/lib/object").Assign<import("yup/lib/object").ObjectShape, {
             ident: import("yup").StringSchema<string, import("yup/lib/types").AnyObject, string>;
             value: import("yup").StringSchema<string, import("yup/lib/types").AnyObject, string>;
@@ -2892,9 +2906,7 @@ export declare const CXoneDigitalContactSearch: import("yup/lib/object").Optiona
         authorEndUserIdentity: any;
         direction: import("yup/lib/string").RequiredStringSchema<string, import("yup/lib/types").AnyObject>;
         createdAt: import("yup/lib/string").RequiredStringSchema<string, import("yup/lib/types").AnyObject>;
-        inboundCount: import("yup").NumberSchema<number, import("yup/lib/types").AnyObject, number>; /**
-         *  preview from contact response
-         */
+        inboundCount: import("yup").NumberSchema<number, import("yup/lib/types").AnyObject, number>;
         outboundCount: import("yup").NumberSchema<number, import("yup/lib/types").AnyObject, number>;
         ownerAssigneeUser: any;
         routingQueueId: import("yup").StringSchema<string, import("yup/lib/types").AnyObject, string>;
@@ -2929,6 +2941,7 @@ export declare const CXoneDigitalContactSearch: import("yup/lib/object").Optiona
         }>>[]>;
         endUserRecipients: any;
         threadId: import("yup/lib/string").RequiredStringSchema<string, import("yup/lib/types").AnyObject>;
+        isDraft: import("yup").BooleanSchema<boolean, import("yup/lib/types").AnyObject, boolean>;
     }>>[]>;
 }>>;
 export declare type CXoneDigitalContactSearchObject = InferType<typeof CXoneDigitalContactSearch>;

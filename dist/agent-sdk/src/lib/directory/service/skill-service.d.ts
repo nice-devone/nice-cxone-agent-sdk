@@ -1,4 +1,5 @@
 import { AgentSkill, Skills, CXoneRoutingQueue, SkillDeliveryParameters, SkillCPAManagementParameters } from '@nice-devone/common-sdk';
+import { SkillAgentRequest, SkillAgentsApiResponse } from '../interface/skill-agent-assignment';
 import { Logger, HttpUtilService } from '@nice-devone/core-sdk';
 /**
  * Class to perform get skills
@@ -15,7 +16,7 @@ export declare class SkillService {
     private GET_SKILLS_URI_TS;
     private static cachedAgentSkills;
     private readonly requestManager;
-    private isAbortDelayDigitialApiEnabled;
+    private isAbortDelayDigitalApiEnabled;
     /**
        * Create instance of CXoneAuth
        * ```
@@ -93,4 +94,14 @@ export declare class SkillService {
        * ```
        */
     getSkillCPAManagementParametersById(skillId: number): Promise<SkillCPAManagementParameters>;
+    /**
+     * Fetches agents assigned to a given skill from the CMA v16.0 skills/agents endpoint.
+     * @param request - SkillAgentRequest containing skillId and optional pagination/filter params
+     * @returns Parsed SkillAgentsApiResponse
+     * @example
+     * ```
+     * skillService.getAgentsForSkill({ skillId: 1234, startIndex: 0, recordsToLoad: 25 });
+     * ```
+     */
+    getAgentsForSkill(request: SkillAgentRequest): Promise<SkillAgentsApiResponse>;
 }

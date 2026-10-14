@@ -59,4 +59,17 @@ export declare function handleDirectoryItemDeletion<T extends {
     currFavListInLS: number[];
     clientDataApiFailed: boolean;
 }>;
+/**
+ * Normalizes search text for directory searches.
+ *
+ * @example
+ * - "John, Doe" =\> "Doe John"
+ * - " John Doe " =\> "John Doe"
+ * - "John, Doe, Test" =\> "John, Doe, Test" (unchanged)
+ *
+ * @param searchText - The text to normalize.
+ * @returns The normalized search text.
+ * @public
+ */
+export declare const normalizeDirectorySearchText: (searchText?: string) => string;
 export {};

@@ -119,6 +119,7 @@ export declare const StorageKeys: {
     IS_AGENT_COPILOT_ENABLED: string;
     SHOULD_GRAFANA_FARO_LOGS_BE_COLLECTED: string;
     AGENTIC_COPILOT_WS_URL: string;
+    FOCUS_SESSION_ACTIVE: string;
 };
 export declare const NotificationSettings: {
     ACCESSIBILITY: string;

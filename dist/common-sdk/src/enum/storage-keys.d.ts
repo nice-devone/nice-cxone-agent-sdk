@@ -9,4 +9,5 @@ export declare const UIStorageKeys: {
     LV_EXPERIENCE_RECORDS: string;
     DIGITAL_PREVIEW_CONTACT: string;
     PREVIEW_CASES: string;
+    DIGITAL_INTERACTION_SPACE_VERTICAL_RATIO: string;
 };

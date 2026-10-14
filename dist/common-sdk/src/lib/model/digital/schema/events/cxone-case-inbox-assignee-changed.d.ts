@@ -291,6 +291,22 @@ export declare const contactDetailsInboxAssigneeSchema: import("yup/lib/object")
             reason: import("yup").StringSchema<string, import("yup/lib/types").AnyObject, string>;
         }>>[]>;
         customerStatistics: any;
+        authorRecipients: import("yup").ArraySchema<import("yup").ObjectSchema<import("yup/lib/object").Assign<import("yup/lib/object").ObjectShape, {
+            idOnExternalPlatform: import("yup").StringSchema<string, import("yup/lib/types").AnyObject, string>;
+            name: import("yup").StringSchema<string, import("yup/lib/types").AnyObject, string>;
+        }>, import("yup/lib/object").AnyObject, import("yup/lib/object").TypeOfShape<import("yup/lib/object").Assign<import("yup/lib/object").ObjectShape, {
+            idOnExternalPlatform: import("yup").StringSchema<string, import("yup/lib/types").AnyObject, string>;
+            name: import("yup").StringSchema<string, import("yup/lib/types").AnyObject, string>;
+        }>>, import("yup/lib/object").AssertsShape<import("yup/lib/object").Assign<import("yup/lib/object").ObjectShape, {
+            idOnExternalPlatform: import("yup").StringSchema<string, import("yup/lib/types").AnyObject, string>;
+            name: import("yup").StringSchema<string, import("yup/lib/types").AnyObject, string>;
+        }>>>, import("yup/lib/types").AnyObject, import("yup/lib/object").TypeOfShape<import("yup/lib/object").Assign<import("yup/lib/object").ObjectShape, {
+            idOnExternalPlatform: import("yup").StringSchema<string, import("yup/lib/types").AnyObject, string>;
+            name: import("yup").StringSchema<string, import("yup/lib/types").AnyObject, string>;
+        }>>[], import("yup/lib/object").AssertsShape<import("yup/lib/object").Assign<import("yup/lib/object").ObjectShape, {
+            idOnExternalPlatform: import("yup").StringSchema<string, import("yup/lib/types").AnyObject, string>;
+            name: import("yup").StringSchema<string, import("yup/lib/types").AnyObject, string>;
+        }>>[]>;
     }>, import("yup/lib/object").AnyObject, import("yup/lib/object").TypeOfShape<import("yup/lib/object").Assign<import("yup/lib/object").ObjectShape, {
         hasAdditionalMessageContent: import("yup").BooleanSchema<boolean, import("yup/lib/types").AnyObject, boolean>;
         id: import("yup/lib/string").RequiredStringSchema<string, import("yup/lib/types").AnyObject>;
@@ -572,6 +588,22 @@ export declare const contactDetailsInboxAssigneeSchema: import("yup/lib/object")
             reason: import("yup").StringSchema<string, import("yup/lib/types").AnyObject, string>;
         }>>[]>;
         customerStatistics: any;
+        authorRecipients: import("yup").ArraySchema<import("yup").ObjectSchema<import("yup/lib/object").Assign<import("yup/lib/object").ObjectShape, {
+            idOnExternalPlatform: import("yup").StringSchema<string, import("yup/lib/types").AnyObject, string>;
+            name: import("yup").StringSchema<string, import("yup/lib/types").AnyObject, string>;
+        }>, import("yup/lib/object").AnyObject, import("yup/lib/object").TypeOfShape<import("yup/lib/object").Assign<import("yup/lib/object").ObjectShape, {
+            idOnExternalPlatform: import("yup").StringSchema<string, import("yup/lib/types").AnyObject, string>;
+            name: import("yup").StringSchema<string, import("yup/lib/types").AnyObject, string>;
+        }>>, import("yup/lib/object").AssertsShape<import("yup/lib/object").Assign<import("yup/lib/object").ObjectShape, {
+            idOnExternalPlatform: import("yup").StringSchema<string, import("yup/lib/types").AnyObject, string>;
+            name: import("yup").StringSchema<string, import("yup/lib/types").AnyObject, string>;
+        }>>>, import("yup/lib/types").AnyObject, import("yup/lib/object").TypeOfShape<import("yup/lib/object").Assign<import("yup/lib/object").ObjectShape, {
+            idOnExternalPlatform: import("yup").StringSchema<string, import("yup/lib/types").AnyObject, string>;
+            name: import("yup").StringSchema<string, import("yup/lib/types").AnyObject, string>;
+        }>>[], import("yup/lib/object").AssertsShape<import("yup/lib/object").Assign<import("yup/lib/object").ObjectShape, {
+            idOnExternalPlatform: import("yup").StringSchema<string, import("yup/lib/types").AnyObject, string>;
+            name: import("yup").StringSchema<string, import("yup/lib/types").AnyObject, string>;
+        }>>[]>;
     }>>, import("yup/lib/object").AssertsShape<import("yup/lib/object").Assign<import("yup/lib/object").ObjectShape, {
         hasAdditionalMessageContent: import("yup").BooleanSchema<boolean, import("yup/lib/types").AnyObject, boolean>;
         id: import("yup/lib/string").RequiredStringSchema<string, import("yup/lib/types").AnyObject>;
@@ -853,6 +885,22 @@ export declare const contactDetailsInboxAssigneeSchema: import("yup/lib/object")
             reason: import("yup").StringSchema<string, import("yup/lib/types").AnyObject, string>;
         }>>[]>;
         customerStatistics: any;
+        authorRecipients: import("yup").ArraySchema<import("yup").ObjectSchema<import("yup/lib/object").Assign<import("yup/lib/object").ObjectShape, {
+            idOnExternalPlatform: import("yup").StringSchema<string, import("yup/lib/types").AnyObject, string>;
+            name: import("yup").StringSchema<string, import("yup/lib/types").AnyObject, string>;
+        }>, import("yup/lib/object").AnyObject, import("yup/lib/object").TypeOfShape<import("yup/lib/object").Assign<import("yup/lib/object").ObjectShape, {
+            idOnExternalPlatform: import("yup").StringSchema<string, import("yup/lib/types").AnyObject, string>;
+            name: import("yup").StringSchema<string, import("yup/lib/types").AnyObject, string>;
+        }>>, import("yup/lib/object").AssertsShape<import("yup/lib/object").Assign<import("yup/lib/object").ObjectShape, {
+            idOnExternalPlatform: import("yup").StringSchema<string, import("yup/lib/types").AnyObject, string>;
+            name: import("yup").StringSchema<string, import("yup/lib/types").AnyObject, string>;
+        }>>>, import("yup/lib/types").AnyObject, import("yup/lib/object").TypeOfShape<import("yup/lib/object").Assign<import("yup/lib/object").ObjectShape, {
+            idOnExternalPlatform: import("yup").StringSchema<string, import("yup/lib/types").AnyObject, string>;
+            name: import("yup").StringSchema<string, import("yup/lib/types").AnyObject, string>;
+        }>>[], import("yup/lib/object").AssertsShape<import("yup/lib/object").Assign<import("yup/lib/object").ObjectShape, {
+            idOnExternalPlatform: import("yup").StringSchema<string, import("yup/lib/types").AnyObject, string>;
+            name: import("yup").StringSchema<string, import("yup/lib/types").AnyObject, string>;
+        }>>[]>;
     }>>>, import("yup/lib/types").AnyObject, import("yup/lib/object").TypeOfShape<import("yup/lib/object").Assign<import("yup/lib/object").ObjectShape, {
         hasAdditionalMessageContent: import("yup").BooleanSchema<boolean, import("yup/lib/types").AnyObject, boolean>;
         id: import("yup/lib/string").RequiredStringSchema<string, import("yup/lib/types").AnyObject>;
@@ -1134,6 +1182,22 @@ export declare const contactDetailsInboxAssigneeSchema: import("yup/lib/object")
             reason: import("yup").StringSchema<string, import("yup/lib/types").AnyObject, string>;
         }>>[]>;
         customerStatistics: any;
+        authorRecipients: import("yup").ArraySchema<import("yup").ObjectSchema<import("yup/lib/object").Assign<import("yup/lib/object").ObjectShape, {
+            idOnExternalPlatform: import("yup").StringSchema<string, import("yup/lib/types").AnyObject, string>;
+            name: import("yup").StringSchema<string, import("yup/lib/types").AnyObject, string>;
+        }>, import("yup/lib/object").AnyObject, import("yup/lib/object").TypeOfShape<import("yup/lib/object").Assign<import("yup/lib/object").ObjectShape, {
+            idOnExternalPlatform: import("yup").StringSchema<string, import("yup/lib/types").AnyObject, string>;
+            name: import("yup").StringSchema<string, import("yup/lib/types").AnyObject, string>;
+        }>>, import("yup/lib/object").AssertsShape<import("yup/lib/object").Assign<import("yup/lib/object").ObjectShape, {
+            idOnExternalPlatform: import("yup").StringSchema<string, import("yup/lib/types").AnyObject, string>;
+            name: import("yup").StringSchema<string, import("yup/lib/types").AnyObject, string>;
+        }>>>, import("yup/lib/types").AnyObject, import("yup/lib/object").TypeOfShape<import("yup/lib/object").Assign<import("yup/lib/object").ObjectShape, {
+            idOnExternalPlatform: import("yup").StringSchema<string, import("yup/lib/types").AnyObject, string>;
+            name: import("yup").StringSchema<string, import("yup/lib/types").AnyObject, string>;
+        }>>[], import("yup/lib/object").AssertsShape<import("yup/lib/object").Assign<import("yup/lib/object").ObjectShape, {
+            idOnExternalPlatform: import("yup").StringSchema<string, import("yup/lib/types").AnyObject, string>;
+            name: import("yup").StringSchema<string, import("yup/lib/types").AnyObject, string>;
+        }>>[]>;
     }>>[], import("yup/lib/object").AssertsShape<import("yup/lib/object").Assign<import("yup/lib/object").ObjectShape, {
         hasAdditionalMessageContent: import("yup").BooleanSchema<boolean, import("yup/lib/types").AnyObject, boolean>;
         id: import("yup/lib/string").RequiredStringSchema<string, import("yup/lib/types").AnyObject>;
@@ -1415,6 +1479,22 @@ export declare const contactDetailsInboxAssigneeSchema: import("yup/lib/object")
             reason: import("yup").StringSchema<string, import("yup/lib/types").AnyObject, string>;
         }>>[]>;
         customerStatistics: any;
+        authorRecipients: import("yup").ArraySchema<import("yup").ObjectSchema<import("yup/lib/object").Assign<import("yup/lib/object").ObjectShape, {
+            idOnExternalPlatform: import("yup").StringSchema<string, import("yup/lib/types").AnyObject, string>;
+            name: import("yup").StringSchema<string, import("yup/lib/types").AnyObject, string>;
+        }>, import("yup/lib/object").AnyObject, import("yup/lib/object").TypeOfShape<import("yup/lib/object").Assign<import("yup/lib/object").ObjectShape, {
+            idOnExternalPlatform: import("yup").StringSchema<string, import("yup/lib/types").AnyObject, string>;
+            name: import("yup").StringSchema<string, import("yup/lib/types").AnyObject, string>;
+        }>>, import("yup/lib/object").AssertsShape<import("yup/lib/object").Assign<import("yup/lib/object").ObjectShape, {
+            idOnExternalPlatform: import("yup").StringSchema<string, import("yup/lib/types").AnyObject, string>;
+            name: import("yup").StringSchema<string, import("yup/lib/types").AnyObject, string>;
+        }>>>, import("yup/lib/types").AnyObject, import("yup/lib/object").TypeOfShape<import("yup/lib/object").Assign<import("yup/lib/object").ObjectShape, {
+            idOnExternalPlatform: import("yup").StringSchema<string, import("yup/lib/types").AnyObject, string>;
+            name: import("yup").StringSchema<string, import("yup/lib/types").AnyObject, string>;
+        }>>[], import("yup/lib/object").AssertsShape<import("yup/lib/object").Assign<import("yup/lib/object").ObjectShape, {
+            idOnExternalPlatform: import("yup").StringSchema<string, import("yup/lib/types").AnyObject, string>;
+            name: import("yup").StringSchema<string, import("yup/lib/types").AnyObject, string>;
+        }>>[]>;
     }>>[]>;
     messageDrafts: import("yup").ArraySchema<import("yup").ObjectSchema<import("yup/lib/object").Assign<import("yup/lib/object").ObjectShape, {
         createdAt: import("yup/lib/string").RequiredStringSchema<string, import("yup/lib/types").AnyObject>;
@@ -3023,6 +3103,22 @@ export declare const contactDetailsInboxAssigneeSchema: import("yup/lib/object")
             reason: import("yup").StringSchema<string, import("yup/lib/types").AnyObject, string>;
         }>>[]>;
         customerStatistics: any;
+        authorRecipients: import("yup").ArraySchema<import("yup").ObjectSchema<import("yup/lib/object").Assign<import("yup/lib/object").ObjectShape, {
+            idOnExternalPlatform: import("yup").StringSchema<string, import("yup/lib/types").AnyObject, string>;
+            name: import("yup").StringSchema<string, import("yup/lib/types").AnyObject, string>;
+        }>, import("yup/lib/object").AnyObject, import("yup/lib/object").TypeOfShape<import("yup/lib/object").Assign<import("yup/lib/object").ObjectShape, {
+            idOnExternalPlatform: import("yup").StringSchema<string, import("yup/lib/types").AnyObject, string>;
+            name: import("yup").StringSchema<string, import("yup/lib/types").AnyObject, string>;
+        }>>, import("yup/lib/object").AssertsShape<import("yup/lib/object").Assign<import("yup/lib/object").ObjectShape, {
+            idOnExternalPlatform: import("yup").StringSchema<string, import("yup/lib/types").AnyObject, string>;
+            name: import("yup").StringSchema<string, import("yup/lib/types").AnyObject, string>;
+        }>>>, import("yup/lib/types").AnyObject, import("yup/lib/object").TypeOfShape<import("yup/lib/object").Assign<import("yup/lib/object").ObjectShape, {
+            idOnExternalPlatform: import("yup").StringSchema<string, import("yup/lib/types").AnyObject, string>;
+            name: import("yup").StringSchema<string, import("yup/lib/types").AnyObject, string>;
+        }>>[], import("yup/lib/object").AssertsShape<import("yup/lib/object").Assign<import("yup/lib/object").ObjectShape, {
+            idOnExternalPlatform: import("yup").StringSchema<string, import("yup/lib/types").AnyObject, string>;
+            name: import("yup").StringSchema<string, import("yup/lib/types").AnyObject, string>;
+        }>>[]>;
     }>, import("yup/lib/object").AnyObject, import("yup/lib/object").TypeOfShape<import("yup/lib/object").Assign<import("yup/lib/object").ObjectShape, {
         hasAdditionalMessageContent: import("yup").BooleanSchema<boolean, import("yup/lib/types").AnyObject, boolean>;
         id: import("yup/lib/string").RequiredStringSchema<string, import("yup/lib/types").AnyObject>;
@@ -3304,6 +3400,22 @@ export declare const contactDetailsInboxAssigneeSchema: import("yup/lib/object")
             reason: import("yup").StringSchema<string, import("yup/lib/types").AnyObject, string>;
         }>>[]>;
         customerStatistics: any;
+        authorRecipients: import("yup").ArraySchema<import("yup").ObjectSchema<import("yup/lib/object").Assign<import("yup/lib/object").ObjectShape, {
+            idOnExternalPlatform: import("yup").StringSchema<string, import("yup/lib/types").AnyObject, string>;
+            name: import("yup").StringSchema<string, import("yup/lib/types").AnyObject, string>;
+        }>, import("yup/lib/object").AnyObject, import("yup/lib/object").TypeOfShape<import("yup/lib/object").Assign<import("yup/lib/object").ObjectShape, {
+            idOnExternalPlatform: import("yup").StringSchema<string, import("yup/lib/types").AnyObject, string>;
+            name: import("yup").StringSchema<string, import("yup/lib/types").AnyObject, string>;
+        }>>, import("yup/lib/object").AssertsShape<import("yup/lib/object").Assign<import("yup/lib/object").ObjectShape, {
+            idOnExternalPlatform: import("yup").StringSchema<string, import("yup/lib/types").AnyObject, string>;
+            name: import("yup").StringSchema<string, import("yup/lib/types").AnyObject, string>;
+        }>>>, import("yup/lib/types").AnyObject, import("yup/lib/object").TypeOfShape<import("yup/lib/object").Assign<import("yup/lib/object").ObjectShape, {
+            idOnExternalPlatform: import("yup").StringSchema<string, import("yup/lib/types").AnyObject, string>;
+            name: import("yup").StringSchema<string, import("yup/lib/types").AnyObject, string>;
+        }>>[], import("yup/lib/object").AssertsShape<import("yup/lib/object").Assign<import("yup/lib/object").ObjectShape, {
+            idOnExternalPlatform: import("yup").StringSchema<string, import("yup/lib/types").AnyObject, string>;
+            name: import("yup").StringSchema<string, import("yup/lib/types").AnyObject, string>;
+        }>>[]>;
     }>>, import("yup/lib/object").AssertsShape<import("yup/lib/object").Assign<import("yup/lib/object").ObjectShape, {
         hasAdditionalMessageContent: import("yup").BooleanSchema<boolean, import("yup/lib/types").AnyObject, boolean>;
         id: import("yup/lib/string").RequiredStringSchema<string, import("yup/lib/types").AnyObject>;
@@ -3585,6 +3697,22 @@ export declare const contactDetailsInboxAssigneeSchema: import("yup/lib/object")
             reason: import("yup").StringSchema<string, import("yup/lib/types").AnyObject, string>;
         }>>[]>;
         customerStatistics: any;
+        authorRecipients: import("yup").ArraySchema<import("yup").ObjectSchema<import("yup/lib/object").Assign<import("yup/lib/object").ObjectShape, {
+            idOnExternalPlatform: import("yup").StringSchema<string, import("yup/lib/types").AnyObject, string>;
+            name: import("yup").StringSchema<string, import("yup/lib/types").AnyObject, string>;
+        }>, import("yup/lib/object").AnyObject, import("yup/lib/object").TypeOfShape<import("yup/lib/object").Assign<import("yup/lib/object").ObjectShape, {
+            idOnExternalPlatform: import("yup").StringSchema<string, import("yup/lib/types").AnyObject, string>;
+            name: import("yup").StringSchema<string, import("yup/lib/types").AnyObject, string>;
+        }>>, import("yup/lib/object").AssertsShape<import("yup/lib/object").Assign<import("yup/lib/object").ObjectShape, {
+            idOnExternalPlatform: import("yup").StringSchema<string, import("yup/lib/types").AnyObject, string>;
+            name: import("yup").StringSchema<string, import("yup/lib/types").AnyObject, string>;
+        }>>>, import("yup/lib/types").AnyObject, import("yup/lib/object").TypeOfShape<import("yup/lib/object").Assign<import("yup/lib/object").ObjectShape, {
+            idOnExternalPlatform: import("yup").StringSchema<string, import("yup/lib/types").AnyObject, string>;
+            name: import("yup").StringSchema<string, import("yup/lib/types").AnyObject, string>;
+        }>>[], import("yup/lib/object").AssertsShape<import("yup/lib/object").Assign<import("yup/lib/object").ObjectShape, {
+            idOnExternalPlatform: import("yup").StringSchema<string, import("yup/lib/types").AnyObject, string>;
+            name: import("yup").StringSchema<string, import("yup/lib/types").AnyObject, string>;
+        }>>[]>;
     }>>>, import("yup/lib/types").AnyObject, import("yup/lib/object").TypeOfShape<import("yup/lib/object").Assign<import("yup/lib/object").ObjectShape, {
         hasAdditionalMessageContent: import("yup").BooleanSchema<boolean, import("yup/lib/types").AnyObject, boolean>;
         id: import("yup/lib/string").RequiredStringSchema<string, import("yup/lib/types").AnyObject>;
@@ -3866,6 +3994,22 @@ export declare const contactDetailsInboxAssigneeSchema: import("yup/lib/object")
             reason: import("yup").StringSchema<string, import("yup/lib/types").AnyObject, string>;
         }>>[]>;
         customerStatistics: any;
+        authorRecipients: import("yup").ArraySchema<import("yup").ObjectSchema<import("yup/lib/object").Assign<import("yup/lib/object").ObjectShape, {
+            idOnExternalPlatform: import("yup").StringSchema<string, import("yup/lib/types").AnyObject, string>;
+            name: import("yup").StringSchema<string, import("yup/lib/types").AnyObject, string>;
+        }>, import("yup/lib/object").AnyObject, import("yup/lib/object").TypeOfShape<import("yup/lib/object").Assign<import("yup/lib/object").ObjectShape, {
+            idOnExternalPlatform: import("yup").StringSchema<string, import("yup/lib/types").AnyObject, string>;
+            name: import("yup").StringSchema<string, import("yup/lib/types").AnyObject, string>;
+        }>>, import("yup/lib/object").AssertsShape<import("yup/lib/object").Assign<import("yup/lib/object").ObjectShape, {
+            idOnExternalPlatform: import("yup").StringSchema<string, import("yup/lib/types").AnyObject, string>;
+            name: import("yup").StringSchema<string, import("yup/lib/types").AnyObject, string>;
+        }>>>, import("yup/lib/types").AnyObject, import("yup/lib/object").TypeOfShape<import("yup/lib/object").Assign<import("yup/lib/object").ObjectShape, {
+            idOnExternalPlatform: import("yup").StringSchema<string, import("yup/lib/types").AnyObject, string>;
+            name: import("yup").StringSchema<string, import("yup/lib/types").AnyObject, string>;
+        }>>[], import("yup/lib/object").AssertsShape<import("yup/lib/object").Assign<import("yup/lib/object").ObjectShape, {
+            idOnExternalPlatform: import("yup").StringSchema<string, import("yup/lib/types").AnyObject, string>;
+            name: import("yup").StringSchema<string, import("yup/lib/types").AnyObject, string>;
+        }>>[]>;
     }>>[], import("yup/lib/object").AssertsShape<import("yup/lib/object").Assign<import("yup/lib/object").ObjectShape, {
         hasAdditionalMessageContent: import("yup").BooleanSchema<boolean, import("yup/lib/types").AnyObject, boolean>;
         id: import("yup/lib/string").RequiredStringSchema<string, import("yup/lib/types").AnyObject>;
@@ -4147,6 +4291,22 @@ export declare const contactDetailsInboxAssigneeSchema: import("yup/lib/object")
             reason: import("yup").StringSchema<string, import("yup/lib/types").AnyObject, string>;
         }>>[]>;
         customerStatistics: any;
+        authorRecipients: import("yup").ArraySchema<import("yup").ObjectSchema<import("yup/lib/object").Assign<import("yup/lib/object").ObjectShape, {
+            idOnExternalPlatform: import("yup").StringSchema<string, import("yup/lib/types").AnyObject, string>;
+            name: import("yup").StringSchema<string, import("yup/lib/types").AnyObject, string>;
+        }>, import("yup/lib/object").AnyObject, import("yup/lib/object").TypeOfShape<import("yup/lib/object").Assign<import("yup/lib/object").ObjectShape, {
+            idOnExternalPlatform: import("yup").StringSchema<string, import("yup/lib/types").AnyObject, string>;
+            name: import("yup").StringSchema<string, import("yup/lib/types").AnyObject, string>;
+        }>>, import("yup/lib/object").AssertsShape<import("yup/lib/object").Assign<import("yup/lib/object").ObjectShape, {
+            idOnExternalPlatform: import("yup").StringSchema<string, import("yup/lib/types").AnyObject, string>;
+            name: import("yup").StringSchema<string, import("yup/lib/types").AnyObject, string>;
+        }>>>, import("yup/lib/types").AnyObject, import("yup/lib/object").TypeOfShape<import("yup/lib/object").Assign<import("yup/lib/object").ObjectShape, {
+            idOnExternalPlatform: import("yup").StringSchema<string, import("yup/lib/types").AnyObject, string>;
+            name: import("yup").StringSchema<string, import("yup/lib/types").AnyObject, string>;
+        }>>[], import("yup/lib/object").AssertsShape<import("yup/lib/object").Assign<import("yup/lib/object").ObjectShape, {
+            idOnExternalPlatform: import("yup").StringSchema<string, import("yup/lib/types").AnyObject, string>;
+            name: import("yup").StringSchema<string, import("yup/lib/types").AnyObject, string>;
+        }>>[]>;
     }>>[]>;
     messageDrafts: import("yup").ArraySchema<import("yup").ObjectSchema<import("yup/lib/object").Assign<import("yup/lib/object").ObjectShape, {
         createdAt: import("yup/lib/string").RequiredStringSchema<string, import("yup/lib/types").AnyObject>;

@@ -3,6 +3,7 @@ import { DirectoryResponse, DirectoryRequest, AgentSkill, AgentStateResponse, Ad
 import { AddressBookService } from './service/address-book-service';
 import { SkillService } from './service/skill-service';
 import { CXoneDirectoryProvider } from './provider/cxone-directory-provider';
+import { CXoneSkillAgentsProvider } from './provider/cxone-skill-agents-provider';
 import { TeamService } from './service/team-service';
 import { CXoneDynamicDirectory } from './../dynamic-directory/cxone-dynamic-directory';
 /** This is the base class for Directory*/
@@ -12,6 +13,8 @@ export declare class CXoneDirectory {
     skillService: SkillService;
     directoryEvent: Subject<DirectoryResponse>;
     directoryProvider: CXoneDirectoryProvider;
+    /** Provider for polling agents assigned to a specific skill during drill-down. */
+    skillAgentsProvider: CXoneSkillAgentsProvider;
     teamService: TeamService;
     private acdSession;
     onUpdateSkillsEvent: Subject<AgentSkill[]>;

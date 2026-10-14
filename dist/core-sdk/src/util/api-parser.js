@@ -16,7 +16,7 @@ export class ApiParser {
        * ```
        */
     parsePermissions(response) {
-        var _a, _b, _c, _d, _e, _f, _g;
+        var _a, _b, _c, _d, _e, _f, _g, _h, _j, _k;
         const data = (_a = response === null || response === void 0 ? void 0 : response.data) === null || _a === void 0 ? void 0 : _a.permissions;
         const ACS_PERMISSION = (_b = PermissionKeys.ACS) === null || _b === void 0 ? void 0 : _b.toLowerCase();
         const HIDE_CALLER_NUMBER_PERMISSION = (_c = PermissionKeys.HIDE_CALLER_PHONE_NUMBER) === null || _c === void 0 ? void 0 : _c.toLowerCase();
@@ -24,6 +24,9 @@ export class ApiParser {
         const REALTIME_RECORDING_STATUS_UPDATE_SETTING = (_e = PermissionKeys.REALTIME_RECORDING_STATUS_UPDATE) === null || _e === void 0 ? void 0 : _e.toLowerCase();
         const STOP_RECORD_SETTING = (_f = PermissionKeys.STOP_RECORDING) === null || _f === void 0 ? void 0 : _f.toLowerCase();
         const REALTIME_RECORDING_NOTIFICATION_SETTING = (_g = PermissionKeys.REALTIME_RECORDING_NOTIFICATION) === null || _g === void 0 ? void 0 : _g.toLowerCase();
+        const CONVERSATIONS_CREATE_RENAME_GROUP_PERMISSION = (_h = PermissionKeys.CONVERSATIONS_CREATE_RENAME_GROUP) === null || _h === void 0 ? void 0 : _h.toLowerCase();
+        const CONVERSATIONS_ADD_REMOVE_MEMBERS_PERMISSION = (_j = PermissionKeys.CONVERSATIONS_ADD_REMOVE_MEMBERS) === null || _j === void 0 ? void 0 : _j.toLowerCase();
+        const CONVERSATIONS_LEAVE_GROUP_PERMISSION = (_k = PermissionKeys.CONVERSATIONS_LEAVE_GROUP) === null || _k === void 0 ? void 0 : _k.toLowerCase();
         const keys = [
             'agentsfsoftphone',
             'recordcontact',
@@ -45,6 +48,9 @@ export class ApiParser {
             'desearchcustomers',
             'desearchposts',
             'voicetranscript',
+            CONVERSATIONS_CREATE_RENAME_GROUP_PERMISSION,
+            CONVERSATIONS_ADD_REMOVE_MEMBERS_PERMISSION,
+            CONVERSATIONS_LEAVE_GROUP_PERMISSION,
             ACS_PERMISSION,
             HIDE_CALLER_NUMBER_PERMISSION,
             DISABLE_INTEGRATED_SOFTPHONE_SETTINGS,
@@ -92,6 +98,7 @@ export class ApiParser {
             enableUIQueue: data.EnableUIQueue,
             irisNoiseCancellationKey: data.irisNoiseCancellationKey,
             selectedCxaVersion: data === null || data === void 0 ? void 0 : data.selectedCxaVersion,
+            grafanaSampleRate: data === null || data === void 0 ? void 0 : data.grafanaSampleRate,
         };
         return agentSettings;
     }
@@ -142,6 +149,8 @@ export class ApiParser {
             hideReporting: true,
             hideConversations: true,
             hideUnassignDismiss: true,
+            hideDigitalCloseConfirmation: true,
+            voiceCallHoldTimerThreshold: 0,
         };
         const mapping = {
             [AgentProfileConfigurationSettings.CONTACT_HISTORY]: (value) => (configuration.hideContactHistory = !JSON.parse(value)),
@@ -155,6 +164,8 @@ export class ApiParser {
             [AgentProfileConfigurationSettings.CONVERSATIONS]: (value) => (configuration.hideConversations = !JSON.parse(value)),
             [AgentProfileConfigurationSettings.DEFAULT_SCREEN_SIZE]: (value) => (configuration.agentScreenSize = value),
             [AgentProfileConfigurationSettings.UNASSIGN_DISMISS]: (value) => (configuration.hideUnassignDismiss = !JSON.parse(value)),
+            [AgentProfileConfigurationSettings.DIGITAL_CLOSE_CONFIRMATION]: (value) => (configuration.hideDigitalCloseConfirmation = !JSON.parse(value)),
+            [AgentProfileConfigurationSettings.VOICE_CALL_HOLD_TIMER]: (value) => (configuration.voiceCallHoldTimerThreshold = parseInt(value, 10) || 0),
         };
         (_a = agentProfileResponse === null || agentProfileResponse === void 0 ? void 0 : agentProfileResponse.agentProfileConfigurations) === null || _a === void 0 ? void 0 : _a.forEach((config) => {
             const updateConfig = mapping[config.subCategoryName];
@@ -208,6 +219,8 @@ export class ApiParser {
             hideDirectorySkills: true,
             hideDirectoryStandardAddressBook: true,
             hideUnassignDismiss: true,
+            hideDigitalCloseConfirmation: true,
+            voiceCallHoldTimerThreshold: 0,
         };
         const mapping = {
             [DesktopProfileConfigurationSettings.CONTACT_HISTORY]: (value) => (configuration.hideContactHistory = !JSON.parse(value)),
@@ -236,6 +249,10 @@ export class ApiParser {
             [DesktopProfileConfigurationSettings.DIRECTORY_SKILLS]: (value) => (configuration.hideDirectorySkills = !JSON.parse(value)),
             [DesktopProfileConfigurationSettings.DIRECTORY_STANDARD_ADDRESS_BOOK]: (value) => (configuration.hideDirectoryStandardAddressBook = !JSON.parse(value)),
             [DesktopProfileConfigurationSettings.UNASSIGN_DISMISS]: (value) => (configuration.hideUnassignDismiss = !JSON.parse(value)),
+            [DesktopProfileConfigurationSettings.DIGITAL_CLOSE_CONFIRMATION]: (value) => (configuration.hideDigitalCloseConfirmation = !JSON.parse(value)),
+            [DesktopProfileConfigurationSettings.VOICE_CALL_HOLD_TIMER]: (value) => (configuration.voiceCallHoldTimerThreshold = parseInt(value, 10) || 0),
+            [DesktopProfileConfigurationSettings.TEAM_VERSIONING_ENABLED]: (value) => (configuration.teamVersioningEnabled = JSON.parse(value)),
+            [DesktopProfileConfigurationSettings.AGENT_VERSION]: (value) => (configuration.agentVersion = value),
         };
         (_a = desktopProfileAPIResponse === null || desktopProfileAPIResponse === void 0 ? void 0 : desktopProfileAPIResponse.agentProfileConfigurations) === null || _a === void 0 ? void 0 : _a.forEach((config) => {
             const updateConfig = mapping[config.elementId];

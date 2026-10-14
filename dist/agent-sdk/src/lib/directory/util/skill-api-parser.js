@@ -170,5 +170,57 @@ export class SkillApiParser {
         skills.requireCustomerId = data === null || data === void 0 ? void 0 : data.requireCustomerId;
         return skills;
     }
+    /**
+     * Parses the raw API response from the CMA v16.0 skills/agents endpoint.
+     * @param response - Raw HTTP response from the API
+     * @returns Parsed SkillAgentsApiResponse with safe defaults for missing fields
+     * @example
+     * ```
+     * parseSkillAgentsResponse(response);
+     * ```
+     */
+    parseSkillAgentsResponse(response) {
+        const data = response === null || response === void 0 ? void 0 : response.data;
+        const agentSkillAssignments = [];
+        if ((data === null || data === void 0 ? void 0 : data.agentSkillAssignments) && Array.isArray(data.agentSkillAssignments)) {
+            for (const element of data.agentSkillAssignments) {
+                const respObj = element;
+                const assignment = {};
+                assignment.agentId = respObj.agentId;
+                assignment.agentName = respObj.agentName;
+                assignment.isActive = respObj.isActive;
+                assignment.lastUpdateTime = respObj.lastUpdateTime;
+                assignment.mediaType = respObj.mediaType;
+                assignment.mediaTypeName = respObj.mediaTypeName;
+                assignment.proficiencyName = respObj.proficiencyName;
+                assignment.skillId = respObj.skillId;
+                assignment.skillName = respObj.skillName;
+                agentSkillAssignments.push(assignment);
+            }
+        }
+        const result = {};
+        result.totalRecords = typeof (data === null || data === void 0 ? void 0 : data.totalRecords) === 'number' ? data.totalRecords : 0;
+        result.agentSkillAssignments = agentSkillAssignments;
+        result.lastPollTime = typeof (data === null || data === void 0 ? void 0 : data.lastPollTime) === 'string' ? data.lastPollTime : undefined;
+        return result;
+    }
+    /**
+     * Splits a CMA "LastName, FirstName" agent name string into its parts.
+     * @param agentName - Agent name in "LastName, FirstName" format
+     * @returns Object containing `firstName` and `lastName`
+     * @example
+     * ```
+     * parseAgentNameToParts('Smith, John'); // { lastName: 'Smith', firstName: 'John' }
+     * ```
+     */
+    static parseAgentNameToParts(agentName) {
+        if (!agentName)
+            return { firstName: '', lastName: '' };
+        const commaIndex = agentName.indexOf(',');
+        return {
+            lastName: agentName.slice(0, commaIndex).trim(),
+            firstName: agentName.slice(commaIndex + 1).trim(),
+        };
+    }
 }
 //# sourceMappingURL=skill-api-parser.js.map

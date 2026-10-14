@@ -71,4 +71,8 @@ export interface AgentSettings {
      * @remarks - Selected Version of CXA Client
      *  */
     selectedCxaVersion?: string;
+    /**
+     * @remarks - Grafana Sample Rate
+     */
+    grafanaSampleRate?: string;
 }

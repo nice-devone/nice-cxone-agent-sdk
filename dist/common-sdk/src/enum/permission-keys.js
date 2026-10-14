@@ -77,5 +77,17 @@ var PermissionKeys;
      * permission key for enabling or disabling the real-time recording notification feature
      */
     PermissionKeys["REALTIME_RECORDING_NOTIFICATION"] = "RealTimeRecordingNotification";
+    /**
+     * permission key for creating and renaming Conversations groups
+     */
+    PermissionKeys["CONVERSATIONS_CREATE_RENAME_GROUP"] = "createRenameGroup";
+    /**
+     * permission key for adding and removing members in Conversations groups
+     */
+    PermissionKeys["CONVERSATIONS_ADD_REMOVE_MEMBERS"] = "addRemoveMembers";
+    /**
+     * permission key for leaving Conversations groups
+     */
+    PermissionKeys["CONVERSATIONS_LEAVE_GROUP"] = "leaveGroup";
 })(PermissionKeys = exports.PermissionKeys || (exports.PermissionKeys = {}));
 //# sourceMappingURL=permission-keys.js.map

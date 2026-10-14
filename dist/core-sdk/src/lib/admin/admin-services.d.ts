@@ -63,6 +63,12 @@ export declare class AdminService {
      * ```
      */
     static get instance(): AdminService;
+    /**
+     * Extracts only the favorites-related keys (prefixed with `CXAFav`) from a client-data JSON string.
+     * @param clientDataJson - Raw JSON string representing the full client data object.
+     * @returns An object containing only the `CXAFav*` key/value pairs, or an empty object when none exist.
+     */
+    private extractFavoritesForLogging;
     /** @internal Cached permissions array, null if not yet fetched */
     private permissionsCache;
     /** @internal Deduplicates concurrent permissions fetch requests */

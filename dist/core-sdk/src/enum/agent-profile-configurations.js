@@ -14,6 +14,8 @@ export var AgentProfileConfigurationSettings;
     AgentProfileConfigurationSettings["CONVERSATIONS"] = "Conversations";
     AgentProfileConfigurationSettings["DEFAULT_SCREEN_SIZE"] = "Default screen size";
     AgentProfileConfigurationSettings["UNASSIGN_DISMISS"] = "Unassign & Dismiss Assignments";
+    AgentProfileConfigurationSettings["DIGITAL_CLOSE_CONFIRMATION"] = "Show closed contact confirmation";
+    AgentProfileConfigurationSettings["VOICE_CALL_HOLD_TIMER"] = "Voice Call Hold Timer Alert";
 })(AgentProfileConfigurationSettings || (AgentProfileConfigurationSettings = {}));
 /**
  * Enum for Desktop Profile API Response (ElementID)
@@ -46,5 +48,9 @@ export var DesktopProfileConfigurationSettings;
     DesktopProfileConfigurationSettings["DIRECTORY_SKILLS"] = "Directory_Skills";
     DesktopProfileConfigurationSettings["DIRECTORY_STANDARD_ADDRESS_BOOK"] = "Directory_SAB";
     DesktopProfileConfigurationSettings["UNASSIGN_DISMISS"] = "unassign&Dismiss_DigitalAssignments";
+    DesktopProfileConfigurationSettings["DIGITAL_CLOSE_CONFIRMATION"] = "showClosedContactConfirmation";
+    DesktopProfileConfigurationSettings["VOICE_CALL_HOLD_TIMER"] = "voiceCallHoldTimer";
+    DesktopProfileConfigurationSettings["TEAM_VERSIONING_ENABLED"] = "teamVersioningEnabled";
+    DesktopProfileConfigurationSettings["AGENT_VERSION"] = "agentVersion";
 })(DesktopProfileConfigurationSettings || (DesktopProfileConfigurationSettings = {}));
 //# sourceMappingURL=agent-profile-configurations.js.map

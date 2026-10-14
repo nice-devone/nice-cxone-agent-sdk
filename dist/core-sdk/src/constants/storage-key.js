@@ -121,6 +121,7 @@ export const StorageKeys = {
     IS_AGENT_COPILOT_ENABLED: 'isAgentCopilotEnabled',
     SHOULD_GRAFANA_FARO_LOGS_BE_COLLECTED: 'shouldGrafanaFaroLogsBeCollected',
     AGENTIC_COPILOT_WS_URL: 'agenticCopilotWSUrl',
+    FOCUS_SESSION_ACTIVE: 'focus_session_active',
 };
 export const NotificationSettings = {
     ACCESSIBILITY: 'Accessibility',

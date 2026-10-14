@@ -4988,6 +4988,7 @@ class Helpers {
         const isAu2Matched = browserUrl === null || browserUrl === void 0 ? void 0 : browserUrl.match(/sov1.au/);
         const isEu2Matched = browserUrl === null || browserUrl === void 0 ? void 0 : browserUrl.match(/sov1.eu/);
         const isUk2Matched = browserUrl === null || browserUrl === void 0 ? void 0 : browserUrl.match(/sov1.uk/);
+        const isUk3Matched = browserUrl === null || browserUrl === void 0 ? void 0 : browserUrl.match(/sov2.uk/);
         if (isEnvMatched) {
           cxoneHostname = `https://cxone.${isEnvMatched}.niceincontact.com`;
         } else if (isFedMatched) {
@@ -4998,6 +4999,8 @@ class Helpers {
           cxoneHostname = 'https://nicecxone-sov1.eu';
         } else if (isUk2Matched) {
           cxoneHostname = 'https://nicecxone-sov1.uk';
+        } else if (isUk3Matched) {
+          cxoneHostname = 'https://nicecxone-sov2.uk';
         } else {
           cxoneHostname = 'https://cxone.niceincontact.com';
         }

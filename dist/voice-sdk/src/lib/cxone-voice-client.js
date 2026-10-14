@@ -1,6 +1,7 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.CXoneVoiceClient = void 0;
+const tslib_1 = require("tslib");
 const core_sdk_1 = require("@nice-devone/core-sdk");
 const rxjs_1 = require("rxjs");
 const ac_webrtc_service_1 = require("./audiocodes/ac-webrtc-service");
@@ -23,6 +24,7 @@ class CXoneVoiceClient {
         this.webRtcService = new ac_webrtc_service_1.ACWebRtcService();
         this.onConnectionStatusChanged = new rxjs_1.Subject();
         this.onCallStatusChanged = new rxjs_1.Subject();
+        this.onAudioDeviceChange = new rxjs_1.Subject();
         this.webRtcService.onConnectionStatusChanged.subscribe((response) => {
             this.onConnectionStatusChanged.next(response);
         });
@@ -140,6 +142,58 @@ class CXoneVoiceClient {
         const iFrame = document.getElementById('launchCXAFrame');
         if (iFrame)
             (_a = iFrame === null || iFrame === void 0 ? void 0 : iFrame.contentWindow) === null || _a === void 0 ? void 0 : _a.postMessage(msg, '*');
+    }
+    /**
+     * Replaces the active audio input track on the live RTP sender during mid-call audio device failover.
+     * @param newTrack - the new MediaStreamTrack for the microphone input
+     * @example
+     * ```
+     * voiceClient.replaceTrack(newTrack);
+     * ```
+     */
+    replaceTrack(newTrack) {
+        return tslib_1.__awaiter(this, void 0, void 0, function* () {
+            this.logger.info('replaceTrack', 'Delegating to ACWebRtcService');
+            yield this.webRtcService.replaceTrack(newTrack);
+        });
+    }
+    /**
+     * Sets the audio output device on the audio element during mid-call audio device failover
+     * @param deviceId - the deviceId of the target audio output device
+     * @example
+     * ```
+     * voiceClient.setSinkId('device-id');
+     * ```
+     */
+    setSinkId(deviceId) {
+        return tslib_1.__awaiter(this, void 0, void 0, function* () {
+            this.logger.info('setSinkId', `param deviceId: ${deviceId}`);
+            yield this.webRtcService.setSinkId(deviceId);
+        });
+    }
+    /**
+     * Returns the active audio input track label from the current sender to seed the known active device on call connect.
+     * @returns the track label string, or null if unavailable
+     * @example
+     * ```
+     * voiceClient.getActiveAudioTrackLabel();
+     * ```
+     */
+    getActiveAudioTrackLabel() {
+        this.logger.info('getActiveAudioTrackLabel', 'Delegating to ACWebRtcService');
+        return this.webRtcService.getActiveAudioTrackLabel();
+    }
+    /**
+     * Emits the processed audio device change event to all {@link onAudioDeviceChange} subscribers.
+     * @param event - the {@link AudioDeviceChangeEvent} payload to emit
+     * @example
+     * ```
+     * voiceClient.emitAudioDeviceChange(event);
+     * ```
+     */
+    emitAudioDeviceChange(event) {
+        this.logger.info('emitAudioDeviceChange', `Emitting onAudioDeviceChange — activeDeviceDisconnected: ${event.activeDeviceDisconnected}, autoFailoverSucceeded: ${event.autoFailoverSucceeded}`);
+        this.onAudioDeviceChange.next(event);
     }
 }
 exports.CXoneVoiceClient = CXoneVoiceClient;

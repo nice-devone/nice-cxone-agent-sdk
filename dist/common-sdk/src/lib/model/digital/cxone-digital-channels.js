@@ -232,6 +232,12 @@ exports.CXoneDigitalChannelSchema = (0, yup_1.object)({
      * @remarks - flag for tracking message delivery status
      */
     isTrackingMessageDeliveryStatus: (0, yup_1.boolean)().default(false).nullable(),
+    /**
+     * @remarks - Flag indicating whether the thread ID on external platform can be predicted
+     * before the contact is created. When true, recipients validation API should be called
+     * to perform per-recipient validation and duplicate-contact detection.
+     */
+    canPredictThreadIdOnExternalPlatform: (0, yup_1.boolean)().nullable(),
 });
 exports.CXoneDigitalChannelArray = (0, yup_1.array)().of((0, yup_1.object)().shape(exports.CXoneDigitalChannelSchema.fields));
 /**

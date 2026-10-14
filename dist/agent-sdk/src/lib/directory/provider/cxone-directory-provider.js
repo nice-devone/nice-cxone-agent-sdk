@@ -2,7 +2,7 @@ import { __awaiter } from "tslib";
 import { ACDSessionManager, ApiUriConstants, HttpUtilService, Logger, IndexDBStoreNames, dbInstance, IndexDBKeyNames, clearIndexDbStore, LocalStorageHelper, StorageKeys, LoadWorker, } from '@nice-devone/core-sdk';
 import { MessageBus, MessageType, DirectoryEntities, } from '@nice-devone/common-sdk';
 import { CXoneDirectoryAdapter } from '../adapter/cxone-directory-adapter';
-import { DirectorySearchFilter, handleDirectoryItemDeletion } from '../util/utility';
+import { DirectorySearchFilter, handleDirectoryItemDeletion, normalizeDirectorySearchText } from '../util/utility';
 import { AuthStatus } from '@nice-devone/auth-sdk';
 import { FeatureToggleService } from '../../feature-toggle/feature-toggle-services';
 import { UnifiedDirectoryAgentStates } from '../../agent-state/enum/unified-agent-state';
@@ -198,8 +198,12 @@ export class CXoneDirectoryProvider {
                                 this.entityCounts.addressBookList = this.lastAddressBookEntriesArray.length || 0;
                             }
                             if (e == DirectoryEntities.AGENT_LIST) {
-                                directoryResponse.agentList.data = currentAgentList;
-                                this.entityCounts.agentList = (currentAgentList === null || currentAgentList === void 0 ? void 0 : currentAgentList.length) || 0;
+                                const user = this.acdSession.userInfo;
+                                const agentListFromDB = currentAgentList !== null && currentAgentList !== void 0 ? currentAgentList : [];
+                                directoryResponse.agentList.data = shouldFetchAllAgents
+                                    ? agentListFromDB
+                                    : agentListFromDB.filter(agent => { var _a; return ((_a = agent === null || agent === void 0 ? void 0 : agent.agentId) === null || _a === void 0 ? void 0 : _a.toString()) !== (user === null || user === void 0 ? void 0 : user.icAgentId); });
+                                this.entityCounts.agentList = directoryResponse.agentList.data.length;
                             }
                             if (e == DirectoryEntities.SKILL_LIST) {
                                 if (this.mediaType)
@@ -373,7 +377,9 @@ export class CXoneDirectoryProvider {
         return __awaiter(this, void 0, void 0, function* () {
             let agentResultState = [];
             const user = this.acdSession.userInfo;
-            searchText = searchText === null || searchText === void 0 ? void 0 : searchText.toUpperCase();
+            agentList = agentList !== null && agentList !== void 0 ? agentList : [];
+            searchText = normalizeDirectorySearchText(searchText);
+            const searchTextUpperCase = searchText.toUpperCase();
             //Update Agent List to not show logged in user in the list
             //based on shouldFetchAllAgents flag, fetching all agents here which includes current logged-in user as well
             if (!shouldFetchAllAgents) {
@@ -386,7 +392,8 @@ export class CXoneDirectoryProvider {
                 var _a, _b;
                 const firstAndLast = (agent === null || agent === void 0 ? void 0 : agent.firstName) + ' ' + (agent === null || agent === void 0 ? void 0 : agent.lastName);
                 const lastAndFirst = (agent === null || agent === void 0 ? void 0 : agent.lastName) + ' ' + (agent === null || agent === void 0 ? void 0 : agent.firstName);
-                return ((_a = firstAndLast === null || firstAndLast === void 0 ? void 0 : firstAndLast.toUpperCase()) === null || _a === void 0 ? void 0 : _a.includes(searchText)) || ((_b = lastAndFirst === null || lastAndFirst === void 0 ? void 0 : lastAndFirst.toUpperCase()) === null || _b === void 0 ? void 0 : _b.includes(searchText));
+                const emailMatch = (agent === null || agent === void 0 ? void 0 : agent.email) ? agent.email.toUpperCase().includes(searchTextUpperCase) : false;
+                return ((_a = firstAndLast === null || firstAndLast === void 0 ? void 0 : firstAndLast.toUpperCase()) === null || _a === void 0 ? void 0 : _a.includes(searchTextUpperCase)) || ((_b = lastAndFirst === null || lastAndFirst === void 0 ? void 0 : lastAndFirst.toUpperCase()) === null || _b === void 0 ? void 0 : _b.includes(searchTextUpperCase)) || emailMatch;
             });
             agentResultState = yield this.sortAgentList(agentResultState, searchText);
             this.totalSearchResultCount.agentList = agentResultState.length || 0;
@@ -431,11 +438,12 @@ export class CXoneDirectoryProvider {
     * @param addressBookList - list of addressBook
     */
     filterAddressBook(searchText, addressBookList) {
-        var _a;
+        var _a, _b;
         const newAddressBookList = [];
         this.lastAddressBookSearchEntriesMap = new Map();
         let searchCount = 0;
-        searchText = searchText.toUpperCase();
+        // normalize commas to spaces so that comma separated searches (e.g. "lastName, firstName") work
+        searchText = (_a = normalizeDirectorySearchText(searchText)) === null || _a === void 0 ? void 0 : _a.toUpperCase();
         addressBookList === null || addressBookList === void 0 ? void 0 : addressBookList.forEach((addressBook) => {
             var _a, _b;
             if ((_a = addressBook === null || addressBook === void 0 ? void 0 : addressBook.addressBooksEntries) === null || _a === void 0 ? void 0 : _a.length) {
@@ -459,7 +467,7 @@ export class CXoneDirectoryProvider {
                 }
             }
         });
-        this.entityCounts.addressBookList = ((_a = this.lastAddressBookSearchEntriesMap) === null || _a === void 0 ? void 0 : _a.size) || 0;
+        this.entityCounts.addressBookList = ((_b = this.lastAddressBookSearchEntriesMap) === null || _b === void 0 ? void 0 : _b.size) || 0;
         this.totalSearchResultCount.addressBookList = searchCount;
         return newAddressBookList;
     }
@@ -508,11 +516,23 @@ export class CXoneDirectoryProvider {
                         });
                     }
                     else {
-                        const agentStateUriConstant = isTenantSegmentationEnabled
-                            ? ApiUriConstants.AGENT_STATE_URI_TS
-                            : ApiUriConstants.AGENT_STATE_URI;
+                        const isDirectoryEmailSearchEnabled = FeatureToggleService.instance.getFeatureToggleSync("release-cxa-directory-email-search-AW-56625" /* FeatureToggles.DIRECTORY_EMAIL_SEARCH_FEATURE_TOGGLE */);
+                        // The v34 agent-state API is used (and is the only one that supports the `email`
+                        // field) when email search is enabled and tenant segmentation is off.
+                        let agentStateUriConstant;
+                        if (isDirectoryEmailSearchEnabled) {
+                            agentStateUriConstant = ApiUriConstants.AGENT_STATE_URI_V34;
+                        }
+                        else if (isTenantSegmentationEnabled) {
+                            agentStateUriConstant = ApiUriConstants.AGENT_STATE_URI_TS;
+                        }
+                        else {
+                            agentStateUriConstant = ApiUriConstants.AGENT_STATE_URI;
+                        }
                         const agentStateUrl = new URL(agentStateUriConstant, this.baseUri);
-                        agentStateUrl.searchParams.set('fields', 'agentId,agentStateName,contactId,firstName,isActive,isOutbound,lastName,lastPollTime,lastUpdateTime,mediaName,outStateCode,outStateDescription,skillId,skillName,startDate,stationPhoneNumber,teamId,teamName,userName,userId');
+                        // Include the `email` field only when the v34 endpoint is selected.
+                        const agentStateFields = `agentId,${isDirectoryEmailSearchEnabled ? 'email,' : ''}agentStateName,contactId,firstName,isActive,isOutbound,lastName,lastPollTime,lastUpdateTime,mediaName,outStateCode,outStateDescription,skillId,skillName,startDate,stationPhoneNumber,teamId,teamName,userName,userId`;
+                        agentStateUrl.searchParams.set('fields', agentStateFields);
                         if (updatedSinceValue) {
                             agentStateUrl.searchParams.set('updatedSince', updatedSinceValue);
                         }
@@ -740,9 +760,11 @@ export class CXoneDirectoryProvider {
                         }
                     }
                     else { // if search text is not present that means then the response should be for all the data set
-                        if ((_x = this.currentEntities) === null || _x === void 0 ? void 0 : _x.length) {
+                        // currentEntities is cleared after a search; fall back to entity so polling updates show the full list instead of single updated result
+                        const activeEntities = ((_x = this.currentEntities) === null || _x === void 0 ? void 0 : _x.length) ? this.currentEntities : this.entity;
+                        if (activeEntities === null || activeEntities === void 0 ? void 0 : activeEntities.length) {
                             isUpdate = false;
-                            this.currentEntities.forEach(e => {
+                            activeEntities.forEach(e => {
                                 var _a, _b, _c;
                                 if (e === DirectoryEntities.AGENT_LIST) {
                                     directoryEvent.agentList.data = updatedDirectoryResponse.agentList.data;
@@ -769,7 +791,7 @@ export class CXoneDirectoryProvider {
                             directoryEvent.agentList.data = (_z = directoryEvent.agentList.data) === null || _z === void 0 ? void 0 : _z.filter(agent => agent.agentId.toString() !== user.icAgentId);
                         }
                         if (this.offset > 0 && this.limit > 0) { // to handle pagination
-                            directoryEvent = yield this.handleDirectoryPagination(directoryEvent, this.currentEntities);
+                            directoryEvent = yield this.handleDirectoryPagination(directoryEvent, activeEntities);
                         }
                     }
                     if ((_1 = (_0 = directoryEvent.addressBookList) === null || _0 === void 0 ? void 0 : _0.data) === null || _1 === void 0 ? void 0 : _1.length) {
@@ -1866,7 +1888,7 @@ export class CXoneDirectoryProvider {
      * @param teamId - teamId on which we need to filter agents
      */
     filterAgentDataByTeamId(agentList, teamId) {
-        return (agentList.filter(item => item.teamId.toString() === teamId.toString()) || []);
+        return ((agentList === null || agentList === void 0 ? void 0 : agentList.filter(item => item.teamId.toString() === teamId.toString())) || []);
     }
     /**
      * Use to sort the index db data for agents, skills and teams in ascending order

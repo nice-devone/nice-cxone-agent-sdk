@@ -8,3 +8,4 @@ export * from './model/branding-profile';
 export * from './model/cxone-user-details';
 export * from './model/uiq-hub-url';
 export * from './model/agent-profile-settings';
+export * from './model/CXoneVersionMapping';

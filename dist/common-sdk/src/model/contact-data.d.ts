@@ -47,4 +47,5 @@ export interface ContactData {
     receivedInInboxTime: string;
     externalCustomerId?: string;
     smartReachTransactionId?: string;
+    isDraft?: boolean;
 }

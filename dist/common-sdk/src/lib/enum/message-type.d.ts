@@ -29,6 +29,7 @@ export declare enum MessageType {
     WEM_NOTIFICATION_ACK = "WemNotificationAck",
     RESTART_DIRECTORY_POLLING = "RestartDirectoryPolling",
     RESTART_SKILL_ACTIVITY_POLLING = "RestartSkillActivityPolling",
+    RESTART_SKILL_AGENT_POLLING = "RestartSkillAgentPolling",
     ACD_NOTIFICATION_ACK = "ACDNotificationAck",
     AUTO_SUMMARY_RESPONSE = "AutoSummaryResponse",
     AUTO_SUMMARY_NOTIFICATION_RESPONSE = "AutoSummaryNotificationResponse",

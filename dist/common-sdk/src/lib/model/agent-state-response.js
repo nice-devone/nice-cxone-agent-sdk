@@ -7,6 +7,13 @@ const cxone_event_1 = require("./agent/cxone-event");
  * Model class for agent state
  */
 class AgentStateResponse extends cxone_event_1.CXoneEvent {
+    constructor() {
+        super(...arguments);
+        /**
+           * @remarks  Email address of Agent
+           */
+        this.email = null;
+    }
     /**
        * This method to parse agent state response
        * @param data - agent state object
@@ -16,6 +23,7 @@ class AgentStateResponse extends cxone_event_1.CXoneEvent {
        * ```
        */
     parse(data) {
+        var _a;
         this.agentId = (0, utility_1.parseInteger)(data.agentId);
         this.userId = data.userId;
         this.agentStateName = data.agentStateName;
@@ -28,7 +36,8 @@ class AgentStateResponse extends cxone_event_1.CXoneEvent {
         this.lastUpdateTime = new Date(data.lastUpdateTime);
         this.mediaName = data.mediaName;
         this.outStateCode = (0, utility_1.parseInteger)(data.outStateCode);
-        this.outStateDescription = data.outStateDescription;
+        this.outStateDescription = data === null || data === void 0 ? void 0 : data.outStateDescription;
+        this.unavailableStateName = data === null || data === void 0 ? void 0 : data.outStateDescription;
         this.skillId = data.skillId;
         this.skillName = data.skillName;
         this.startDate = new Date(data.startDate);
@@ -36,6 +45,7 @@ class AgentStateResponse extends cxone_event_1.CXoneEvent {
         this.teamId = (0, utility_1.parseInteger)(data === null || data === void 0 ? void 0 : data.teamId);
         this.teamName = data.teamName;
         this.userName = data.userName;
+        this.email = (_a = data.email) !== null && _a !== void 0 ? _a : null;
         this.isFavorite = false;
         this.canDirectTransferVoicemail = false;
         this.isAttendantUser = false;
@@ -49,6 +59,7 @@ class AgentStateResponse extends cxone_event_1.CXoneEvent {
       * ```
       */
     parseUpdatedAgentState(data) {
+        var _a;
         this.agentId = (0, utility_1.parseInteger)(data.agentNo);
         this.userId = data.agentId;
         this.agentStateName = data.agentStateName;
@@ -62,6 +73,7 @@ class AgentStateResponse extends cxone_event_1.CXoneEvent {
         this.mediaName = '';
         this.outStateCode = -1;
         this.outStateDescription = '';
+        this.unavailableStateName = (data === null || data === void 0 ? void 0 : data.unavailableStateName) || '';
         this.skillId = '';
         this.skillName = '';
         this.startDate = new Date();
@@ -69,6 +81,7 @@ class AgentStateResponse extends cxone_event_1.CXoneEvent {
         this.teamId = (0, utility_1.parseInteger)(data === null || data === void 0 ? void 0 : data.teamId);
         this.teamName = '';
         this.userName = data.userName;
+        this.email = (_a = data.email) !== null && _a !== void 0 ? _a : null;
         this.isFavorite = false;
         this.canDialAgent = (0, utility_1.parseBooleanString)(data.canDialAgent);
         this.canDirectTransferVoicemail = false;

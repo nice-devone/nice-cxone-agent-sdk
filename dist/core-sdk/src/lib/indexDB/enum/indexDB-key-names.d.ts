@@ -21,5 +21,6 @@ export declare enum IndexDBKeyNames {
     CONVERSATIONS_GROUPS = "conversationsGroups",
     VOICE_TRANSCRIPTION = "voiceTranscription",
     OMILIA_GET_NEXT = "omiliaGetNext",
-    FAVORITE_NEWGEN_DIR_ENTRIES = "favoriteNewGenDirectoryEntries"
+    FAVORITE_NEWGEN_DIR_ENTRIES = "favoriteNewGenDirectoryEntries",
+    SKILL_DRILL_DOWN_AGENTS = "skillDrillDownAgents"
 }

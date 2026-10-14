@@ -30,11 +30,7 @@ export class GetNextEventProvider {
         this.onPollingExecuted = (response) => {
             var _a;
             const errorResponse = response === null || response === void 0 ? void 0 : response.data;
-            const isRenewStateToggleEnabled = FeatureToggleService.instance.getFeatureToggleSync("release-renew-state-AW-48481" /* FeatureToggles.RENEW_STATE_FEATURE_TOGGLE */);
-            // Pass to handleGetNextResponse when icBranchValue is 3
-            if ((response === null || response === void 0 ? void 0 : response.icBranchValue) === '3' && isRenewStateToggleEnabled) {
-                this.getNextEventAdapter.handleGetNextResponse(response === null || response === void 0 ? void 0 : response.events, response === null || response === void 0 ? void 0 : response.icBranchValue);
-            }
+            const isRenewStateToggleEnabled = FeatureToggleService.instance.getFeatureToggleSync("release-carnival-renew-state-AW-48481" /* FeatureToggles.RENEW_STATE_FEATURE_TOGGLE */);
             //NOTE: This is for the Errors from the API failure PoV
             //NOTE: This is for the offline error which we get when the user is disconnected with the internet.
             if ((errorResponse &&
@@ -70,12 +66,15 @@ export class GetNextEventProvider {
                 this.getNextEvents();
                 if ((response === null || response === void 0 ? void 0 : response.events) && (response === null || response === void 0 ? void 0 : response.events.length) > 0) {
                     this.logger.info('onPollingExecuted', 'Events processed in getNextEventProvider');
-                    this.getNextEventAdapter.handleGetNextResponse(response.events);
+                    this.getNextEventAdapter.handleGetNextResponse(response.events, response === null || response === void 0 ? void 0 : response.icBranchValue);
                     const msg = {
                         type: MessageType.GET_NEXT_EVENT_RESPONSE,
                         data: response.events,
                     };
                     MessageBus.instance.postResponse(msg);
+                }
+                else if ((response === null || response === void 0 ? void 0 : response.icBranchValue) === '3' && isRenewStateToggleEnabled) {
+                    this.getNextEventAdapter.handleGetNextResponse([], response.icBranchValue);
                 }
             }
         };
@@ -86,6 +85,7 @@ export class GetNextEventProvider {
         this.onPollingRetrySuccess = (response, maxRetryAttempts) => {
             var _a;
             const errorResponse = response === null || response === void 0 ? void 0 : response.data;
+            const isRenewStateToggleEnabled = FeatureToggleService.instance.getFeatureToggleSync("release-carnival-renew-state-AW-48481" /* FeatureToggles.RENEW_STATE_FEATURE_TOGGLE */);
             const emptyObjectCheck = errorResponse &&
                 Object.keys(errorResponse).length === 0 &&
                 Object.getPrototypeOf(errorResponse) === Object.prototype;
@@ -142,12 +142,15 @@ export class GetNextEventProvider {
                 this.getNextEvents();
                 if ((response === null || response === void 0 ? void 0 : response.events) && (response === null || response === void 0 ? void 0 : response.events.length) > 0) {
                     this.logger.info('onPollingRetrySuccess', 'Events processed in getNextEventProvider');
-                    this.getNextEventAdapter.handleGetNextResponse(response.events);
+                    this.getNextEventAdapter.handleGetNextResponse(response.events, response === null || response === void 0 ? void 0 : response.icBranchValue);
                     const msg = {
                         type: MessageType.GET_NEXT_EVENT_RESPONSE,
                         data: response.events,
                     };
                     MessageBus.instance.postResponse(msg);
+                }
+                else if ((response === null || response === void 0 ? void 0 : response.icBranchValue) === '3' && isRenewStateToggleEnabled) {
+                    this.getNextEventAdapter.handleGetNextResponse([], response.icBranchValue);
                 }
             }
         };

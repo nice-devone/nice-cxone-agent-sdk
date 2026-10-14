@@ -1,5 +1,5 @@
 import { DBSchema, IDBPDatabase } from 'idb';
-import { AddressBooks, AgentMessageNotification, AgentStateResponse, CXoneAudioVisualNotificationSettings, CXoneDigitalChannel, DirectoryEntities, DirectoryResponse, FavQuickReply, NotificationEntities, SkillEvent, Team, CXoneRoutingQueue, WemNotificationDisplayData, Skills, CopilotMessageData, InteractionFailedMessages, AgentAssistWSRequest, agentCompletedContactsResponse, AddressBooksEntries, DirectoryAdditionalAtrributes, ConversationsGroupDetails, VoiceTranscriptionItem, CXoneAgentAssist } from '@nice-devone/common-sdk';
+import { AddressBooks, AgentMessageNotification, AgentStateResponse, CXoneAudioVisualNotificationSettings, CXoneDigitalChannel, DirectoryEntities, DirectoryResponse, FavQuickReply, NotificationEntities, SkillEvent, Team, CXoneRoutingQueue, WemNotificationDisplayData, Skills, CopilotMessageData, InteractionFailedMessages, AgentAssistWSRequest, agentCompletedContactsResponse, AddressBooksEntries, DirectoryAdditionalAtrributes, ConversationsGroupDetails, VoiceTranscriptionItem, CXoneAgentAssist, SkillAgentAssignment } from '@nice-devone/common-sdk';
 import { IndexDBStoreNames } from './enum/indexDB-store-names';
 import { IndexDBKeyNames } from './enum/indexDB-key-names';
 import { SkillActivityEvent } from './models/skill-activity-event';
@@ -8,8 +8,8 @@ declare type CcfCopilotData = {
 };
 export interface storeSchema extends DBSchema {
     Directory: {
-        key: DirectoryEntities | IndexDBKeyNames.DIRECTORY_SEARCH_RESPONSE | IndexDBKeyNames.ALL_SKILLS | IndexDBKeyNames.FAVORITE_AGENTS | IndexDBKeyNames.FAVORITE_TEAMS | IndexDBKeyNames.FAVORITE_STANDARD_ADDRESS_BOOK | IndexDBKeyNames.FAVORITE_SKILLS | IndexDBKeyNames.FAVORITE_DIGITAL_SKILLS | IndexDBKeyNames.FAVORITE_EXT_DIR_ENTRIES | IndexDBKeyNames.WEM_NOTIFICATIONS | IndexDBKeyNames.FAVORITE_NEWGEN_DIR_ENTRIES;
-        value: Array<AgentStateResponse | SkillEvent | AddressBooks | Team | SkillActivityEvent | DirectoryAdditionalAtrributes> | DirectoryResponse | Array<AddressBooksEntries> | Array<Skills>;
+        key: DirectoryEntities | IndexDBKeyNames.DIRECTORY_SEARCH_RESPONSE | IndexDBKeyNames.ALL_SKILLS | IndexDBKeyNames.FAVORITE_AGENTS | IndexDBKeyNames.FAVORITE_TEAMS | IndexDBKeyNames.FAVORITE_STANDARD_ADDRESS_BOOK | IndexDBKeyNames.FAVORITE_SKILLS | IndexDBKeyNames.FAVORITE_DIGITAL_SKILLS | IndexDBKeyNames.FAVORITE_EXT_DIR_ENTRIES | IndexDBKeyNames.WEM_NOTIFICATIONS | IndexDBKeyNames.FAVORITE_NEWGEN_DIR_ENTRIES | IndexDBKeyNames.SKILL_DRILL_DOWN_AGENTS;
+        value: Array<AgentStateResponse | SkillEvent | AddressBooks | Team | SkillActivityEvent | DirectoryAdditionalAtrributes> | DirectoryResponse | Array<AddressBooksEntries> | Array<Skills> | Array<SkillAgentAssignment>;
     };
     Digital: {
         key: IndexDBKeyNames.OB_CHANNEL_LIST | IndexDBKeyNames.ROUTING_QUEUE | IndexDBKeyNames.ALL_CHANNELS | IndexDBKeyNames.INTERACTION_FAILED_MESSAGES;

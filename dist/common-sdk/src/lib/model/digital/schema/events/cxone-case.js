@@ -51,6 +51,7 @@ exports.CXoneCaseSchema = (0, yup_1.object)({
     skillName: (0, yup_1.string)().nullable().optional(),
     endUserRecipients: (0, yup_1.array)().of((0, yup_1.object)().shape(cxone_recipient_1.CXoneRecipientSchema.fields)).nullable().optional(),
     threadId: (0, yup_1.string)().required(),
+    isDraft: (0, yup_1.boolean)().optional(),
 });
 exports.CXoneCaseArray = (0, yup_1.array)().of((0, yup_1.object)().shape(exports.CXoneCaseSchema.fields));
 //# sourceMappingURL=cxone-case.js.map

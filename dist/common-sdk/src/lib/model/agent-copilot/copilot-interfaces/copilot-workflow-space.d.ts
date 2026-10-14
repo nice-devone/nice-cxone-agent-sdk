@@ -443,6 +443,21 @@ export interface WorkflowInstance {
      * Elapsed time in milliseconds
      */
     elapsedMilliseconds?: number;
+    /**
+     * Card type for the workflow ended card (TEXT or ADAPTIVE_CARD).
+     * Determined from the n-1 element of intentResponse array.
+     */
+    endedCardType?: WorkflowCardType | WorkflowUnknownString;
+    /**
+     * Text description for the workflow ended card (used when endedCardType is TEXT).
+     * Contains the text from the n-1 element of intentResponse array.
+     */
+    endedCardDescription?: string;
+    /**
+     * Adaptive card schema for the workflow ended card (used when endedCardType is ADAPTIVE_CARD).
+     * Contains the adaptive card object from the n-1 element of intentResponse array.
+     */
+    adaptiveCardSchema?: WorkflowAdaptiveCardSchema;
 }
 /**
  * Represents a message in the workflow conversation (multi-turn).
@@ -477,12 +492,21 @@ export interface WorkflowConversationMessage {
      */
     adaptiveCards?: WorkflowAdaptiveCardSchema[];
     /**
-     * Per-input values entered by the agent on the adaptive card(s) within this
-     * message, keyed by Adaptive Card input `id`. Persisted alongside the rest of
-     * the workflow space state so values survive re-renders, navigation, and
-     * browser refresh.
+     * Agent-entered input values for the adaptive card(s) within this message.
+     * Keyed by card (`cardUid`/`elementUid`, with a positional fallback) → input `id` → value,
+     * because a single message can carry more than one adaptive card and each must keep its own
+     * inputs. Persisted alongside the rest of the workflow space state so values survive
+     * re-renders, navigation, and browser refresh.
      */
-    adaptiveCardInputs?: Record<string, string>;
+    adaptiveCardInputs?: Record<string, Record<string, string>>;
+    /**
+     * Submit-lock for the adaptive card(s) within this message, keyed by card
+     * (`cardUid`/`elementUid`, with a positional fallback). `true` once the agent has
+     * successfully submitted that specific card, so it renders locked (non-interactive) and the
+     * lock survives re-renders, navigation, and a browser refresh. Keying by card (not just the
+     * message) means submitting one card never disables a sibling card in the same message.
+     */
+    adaptiveCardSubmitted?: Record<string, boolean>;
 }
 /**
  * @deprecated Use `WorkflowAdaptiveCardSchema`.

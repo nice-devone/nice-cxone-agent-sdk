@@ -12,5 +12,6 @@ exports.UIStorageKeys = {
     LV_EXPERIENCE_RECORDS: 'lv_experience_records',
     DIGITAL_PREVIEW_CONTACT: 'cxoneDigitalPreviewContact',
     PREVIEW_CASES: 'previewCases',
+    DIGITAL_INTERACTION_SPACE_VERTICAL_RATIO: 'digital_interaction_vertical_splitter_ratio',
 };
 //# sourceMappingURL=storage-keys.js.map

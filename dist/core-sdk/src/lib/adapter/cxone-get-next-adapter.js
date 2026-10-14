@@ -32,7 +32,7 @@ export class CXoneGetNextAdapter {
      * @example
      */
     handleGetNextResponse(events, icBranchValue) {
-        const isRenewStateToggleEnabled = FeatureToggleService.instance.getFeatureToggleSync("release-renew-state-AW-48481" /* FeatureToggles.RENEW_STATE_FEATURE_TOGGLE */);
+        const isRenewStateToggleEnabled = FeatureToggleService.instance.getFeatureToggleSync("release-carnival-renew-state-AW-48481" /* FeatureToggles.RENEW_STATE_FEATURE_TOGGLE */);
         if (icBranchValue === '3' && isRenewStateToggleEnabled) {
             const contactIds = [];
             // Loop through all events and capture ACD contact IDs from contact events only
@@ -382,6 +382,10 @@ export class CXoneGetNextAdapter {
                     const complianceValidationEvent = new ComplianceValidationEvent();
                     complianceValidationEvent.parse(event);
                     this.agentSession.onSmartReachValidationEvent.next(complianceValidationEvent);
+                    break;
+                }
+                case GetNextEventType.CONSULT_CONTEXT: {
+                    this.agentSession.onConsultContextEvent.next(event);
                     break;
                 }
             }

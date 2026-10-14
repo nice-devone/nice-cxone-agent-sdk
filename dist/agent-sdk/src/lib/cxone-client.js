@@ -138,7 +138,7 @@ export class CXoneClient {
          */
         this.subscribeResponseMessage = () => {
             MessageBus.instance.onResponseMessage.subscribe((msg) => {
-                var _a, _b, _c, _d, _e, _f, _g, _h, _j;
+                var _a, _b, _c, _d, _e, _f, _g, _h, _j, _k, _l;
                 switch (msg.type) {
                     case MessageType.GET_NEXT_EVENT_RESPONSE:
                     case MessageType.UI_QUEUE_EVENT_RESPONSE: {
@@ -155,29 +155,32 @@ export class CXoneClient {
                     case MessageType.RESTART_SKILL_ACTIVITY_POLLING:
                         (_d = (_c = this.skillActivityQueue) === null || _c === void 0 ? void 0 : _c.skillActivityProvider) === null || _d === void 0 ? void 0 : _d.restartWorker();
                         break;
+                    case MessageType.RESTART_SKILL_AGENT_POLLING:
+                        (_f = (_e = this.directory) === null || _e === void 0 ? void 0 : _e.skillAgentsProvider) === null || _f === void 0 ? void 0 : _f.restartWorker();
+                        break;
                     case MessageType.WEM_NOTIFICATION_POLLING_RESPONSE:
-                        (_e = this.notification.wemNotificationProvider) === null || _e === void 0 ? void 0 : _e.handleWemNotificationWSResponse(msg.data, true);
+                        (_g = this.notification.wemNotificationProvider) === null || _g === void 0 ? void 0 : _g.handleWemNotificationWSResponse(msg.data, true);
                         break;
                     case MessageType.DYNAMIC_DIRECTORY_SEARCH_RESPONSE:
                         this.directory.dynamicDirectory.publishFinalDynamicDirectoryResponse(msg.data);
                         break;
                     case MessageType.AUTO_SUMMARY_NOTIFICATION_RESPONSE:
-                        if ((_f = this.autoSummaryNotificationService) === null || _f === void 0 ? void 0 : _f.broadcastAutoSummary) {
+                        if ((_h = this.autoSummaryNotificationService) === null || _h === void 0 ? void 0 : _h.broadcastAutoSummary) {
                             this.autoSummaryNotificationService.broadcastAutoSummary(msg === null || msg === void 0 ? void 0 : msg.data);
                         }
                         break;
                     case MessageType.AGENT_ASSIST_WS_RESPONSE:
-                        if ((_g = this.agentAssistWSService) === null || _g === void 0 ? void 0 : _g.broadcastWSMessage) {
+                        if ((_j = this.agentAssistWSService) === null || _j === void 0 ? void 0 : _j.broadcastWSMessage) {
                             this.agentAssistWSService.broadcastWSMessage(msg.data);
                         }
                         break;
                     case MessageType.AGENT_COPILOT_RESPONSE:
-                        if ((_h = this.copilotNotificationClient) === null || _h === void 0 ? void 0 : _h.broadcastCopilotNotifications) {
+                        if ((_k = this.copilotNotificationClient) === null || _k === void 0 ? void 0 : _k.broadcastCopilotNotifications) {
                             this.copilotNotificationClient.broadcastCopilotNotifications(msg.data);
                         }
                         break;
                     case MessageType.AUTO_SUMMARY_RESPONSE:
-                        if ((_j = this.autoSummaryService) === null || _j === void 0 ? void 0 : _j.broadcastAutoSummary) {
+                        if ((_l = this.autoSummaryService) === null || _l === void 0 ? void 0 : _l.broadcastAutoSummary) {
                             this.autoSummaryService.broadcastAutoSummary(msg.data);
                         }
                         break;
@@ -492,6 +495,11 @@ export class CXoneClient {
         return __awaiter(this, void 0, void 0, function* () {
             try {
                 this.agentAssistWSService = new AgentAssistWSService();
+                // Ensure feature toggles are resolved before replaying IndexDB entries so that
+                // isAgenticWsEnabled() returns the correct value when connect() is called during replay.
+                // Without this await, the IndexDB read (warm cache) consistently wins the race against
+                // the toggle network call, causing the agentic worker to never be initialised.
+                yield this.agentAssistWSService.loadFeatureToggles();
                 //This logic works when only active contact Ids are stored in IndexDb(that is the current architecture), so all IndexedDb entries need to be reloaded
                 const completeGetNextData = yield this.agentAssistWSService.agentAssistProcessorService.getAllAgentAssistGetNextFromIndexDb();
                 completeGetNextData === null || completeGetNextData === void 0 ? void 0 : completeGetNextData.forEach((getNextData) => {

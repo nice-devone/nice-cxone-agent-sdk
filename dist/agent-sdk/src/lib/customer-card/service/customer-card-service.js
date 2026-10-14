@@ -1,7 +1,7 @@
 import { __awaiter } from "tslib";
 import { CXoneAuth } from '@nice-devone/auth-sdk';
-import { CXoneSdkError, CXoneCaseArray, completedContactsArrayReponse, CXoneSdkErrorType, } from '@nice-devone/common-sdk';
-import { HttpUtilService, Logger, HttpClient, ApiUriConstants, UrlUtilsService, LocalStorageHelper, StorageKeys, } from '@nice-devone/core-sdk';
+import { CXoneSdkError, CXoneCaseArray, completedContactsArrayReponse, CXoneSdkErrorType, RequestControlMode, } from '@nice-devone/common-sdk';
+import { HttpUtilService, Logger, HttpClient, ApiUriConstants, UrlUtilsService, LocalStorageHelper, StorageKeys, RequestManager, } from '@nice-devone/core-sdk';
 import { mergeCustomerCardRequest } from './customer-card-merge';
 import { createCustomerNote, deleteCustomerNote, editCustomerNote, fetchCustomerNotes, } from './customer-card-notes';
 import { getCustomerList } from './customer-card-search';
@@ -34,6 +34,8 @@ export class CustomerCardService {
         this.EXECUTE_WORKFLOW_URI = '/InContactAPI/services/v27.0/agent-integration/configuration/{configurationId}/workflow/{workflowId}';
         this.DELETE_CUSTOMER_CUSTOM_FIELD = '/dfo/3.0/customers/{customerId}/custom-fields/{customFieldIdent}';
         this.GET_CRM_DATA_FOR_TRANSFERED_CONTACT = '/InContactAPI/services/v30.0/agent-integration/workflow-execution/interaction/{cacheKey}';
+        this.requestManager = RequestManager.getInstance();
+        this.isAbortDelayDigitalApiEnabled = FeatureToggleService.instance.getFeatureToggleSync("release-cx-agent-abort-delay-API-on-contact-switch-AW-48514" /* FeatureToggles.ABORT_DELAY_DIGITAL_API_TOGGLE */) || false;
         this.generatePayloadForExecuteWorkFlow = (request) => {
             var _a;
             switch (((_a = request === null || request === void 0 ? void 0 : request.action) !== null && _a !== void 0 ? _a : '').toLowerCase()) {
@@ -90,10 +92,11 @@ export class CustomerCardService {
     }
     /**
      * Method to fetch custom field definition
+     * @param contactId - Contact Id used as unique key for request deduplication when feature toggle is enabled
      * @returns - API Returns Response JSON of Custom field definition
      * @example -
      */
-    getCustomFieldsDefinitions() {
+    getCustomFieldsDefinitions(contactId = '') {
         const baseUrl = this.auth.getCXoneConfig().dfoApiBaseUri;
         const authToken = this.auth.getAuthToken().accessToken;
         const url = baseUrl + ApiUriConstants.GET_CUSTOM_FIELD_DEFINITIONS;
@@ -101,6 +104,22 @@ export class CustomerCardService {
             headers: this.utilService.initHeader(authToken, 'application/json')
                 .headers,
         };
+        if (this.isAbortDelayDigitalApiEnabled && contactId) {
+            return HttpClient.controlledGet(this.requestManager, {
+                uniqueKey: contactId,
+                url,
+                requestInit: reqInit,
+                debugLabel: 'CustomerCardCustomFieldsDefinitions API',
+                requestType: RequestControlMode.DELAY_AND_ABORT,
+            }).then((response) => {
+                this.logger.trace('getCustomFieldsDefinitions', 'Customer card custom field definition fetch success');
+                return response.data;
+            }, (error) => {
+                const errorResponse = new CXoneSdkError(CXoneSdkErrorType.CXONE_API_ERROR, 'Customer card custom field definition fetch failed', error);
+                this.logger.error('getCustomFieldsDefinitions', errorResponse.toString());
+                return Promise.reject(errorResponse);
+            });
+        }
         return new Promise((resolve, reject) => {
             HttpClient.get(url, reqInit).then((response) => {
                 this.logger.info('getCustomFieldsDefinitions', 'Customer card custom field definition fetch success');

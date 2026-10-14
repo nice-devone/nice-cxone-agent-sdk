@@ -195,7 +195,7 @@ export class CXoneVoiceContact extends CXoneContact {
      * Method to set state of the Record button when isLogging is true
      */
     updateCallControlButtonsOnRecord() {
-        this.callControlButton.record.isVisible = true;
+        this.callControlButton.record.isVisible = this.isRecordVisible;
         this.callControlButton.record.isEnable = this.isStopRecordEnabled;
         this.callControlButton.record.controlText = ControlButtonText.RECORDING;
     }
@@ -273,7 +273,7 @@ export class CXoneVoiceContact extends CXoneContact {
             if (this.agentMuted) {
                 this.updateCallControlButtonsOnMute();
             }
-            if (status === CallContactEventStatus.MASKING) {
+            if (status === CallContactEventStatus.MASKING && this.isMaskVisible) {
                 this.updateCallControlButtonsOnMask();
             }
             if (isLogging && (status !== CallContactEventStatus.HOLDING && status !== CallContactEventStatus.MASKING)) {
@@ -319,7 +319,7 @@ export class CXoneVoiceContact extends CXoneContact {
         else {
             this.updateCallControlButtonsOnStopRecord();
         }
-        if (this.status === CallContactEventStatus.MASKING) {
+        if (status === CallContactEventStatus.MASKING && this.isMaskVisible) {
             this.updateCallControlButtonsOnMask();
         }
         switch (status) {

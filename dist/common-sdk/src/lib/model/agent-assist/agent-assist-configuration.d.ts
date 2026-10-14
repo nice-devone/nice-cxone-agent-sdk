@@ -215,6 +215,32 @@ export interface CopilotProfileConfig {
          * Configuration object for Task Assist feature (virtual agent + intents). Present only when task assist is enabled.
          */
         taskAssistConfig?: TaskAssistConfig;
+        /**
+         * Cognigy AI Copilot URL Token for WebSocket authentication.
+         * Retrieved from the retrieve-aah-config API response.
+         */
+        cognigyUrlToken?: string;
+        /**
+         * Cognigy AI Copilot short-lived authentication token.
+         * Retrieved from the retrieve-aah-config API response.
+         */
+        cognigyToken?: string;
+        /**
+         * Cognigy AI Copilot WebSocket URL.
+         * Retrieved from the retrieve-aah-config API response.
+         */
+        cognigySocketUrl?: string;
+        /**
+         * Cognigy AI Copilot origin header for CORS.
+         * Retrieved from the retrieve-aah-config API response.
+         */
+        cognigyOrigin?: string;
+        /**
+         * Profile type for the copilot configuration.
+         * When set to 'agentic', enables the Cognigy AI Copilot grid integration.
+         * Retrieved from the retrieve-aah-config API response.
+         */
+        profileType?: string;
     };
 }
 /**

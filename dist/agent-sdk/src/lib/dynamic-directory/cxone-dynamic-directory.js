@@ -4,6 +4,7 @@ import { CXoneSdkError, CXoneSdkErrorType, DirectoryEntries, Directories, Search
 import { ApiUriConstants, dbInstance, HttpClient, HttpUtilService, IndexDBKeyNames, IndexDBStoreNames, LocalStorageHelper, Logger, StorageKeys, UrlUtilsService, ValidationUtils, } from '@nice-devone/core-sdk';
 import { Subject } from 'rxjs';
 import { WSProvider } from './provider/ws-provider';
+import { normalizeDirectorySearchText } from '../directory/util/utility';
 /** This is the base class for Dynamic Directory*/
 export class CXoneDynamicDirectory {
     /**
@@ -328,6 +329,8 @@ export class CXoneDynamicDirectory {
    * ```
    */
     getFilteredExtDirList(searchText, extDirectories) {
+        // normalize commas to spaces so that comma separated searches (e.g. "lastName, firstName") work
+        searchText = normalizeDirectorySearchText(searchText);
         const extDirResultState = extDirectories.filter(extDirectory => {
             var _a, _b;
             const firstAndLast = (extDirectory === null || extDirectory === void 0 ? void 0 : extDirectory.firstname) + ' ' + (extDirectory === null || extDirectory === void 0 ? void 0 : extDirectory.lastname);
@@ -346,7 +349,9 @@ export class CXoneDynamicDirectory {
    * ```
    */
     getFilteredNewGenDirList(searchText, newGenDirectories) {
-        const search = searchText === null || searchText === void 0 ? void 0 : searchText.toUpperCase();
+        var _a;
+        // normalize commas to spaces so that comma separated searches (e.g. "lastName, firstName") work
+        const search = (_a = normalizeDirectorySearchText(searchText)) === null || _a === void 0 ? void 0 : _a.toUpperCase();
         const newGenDirResultState = newGenDirectories.filter((entry) => {
             var _a, _b;
             const attributes = (entry === null || entry === void 0 ? void 0 : entry.attributes) || [];
@@ -480,7 +485,7 @@ export class CXoneDynamicDirectory {
             subscriptionId: this.validationUtils.isNotNullOrEmpty(searchDirectoriesRequest.subscriptionId)
                 ? searchDirectoriesRequest.subscriptionId
                 : null,
-            searchString: searchDirectoriesRequest.searchString,
+            searchString: normalizeDirectorySearchText(searchDirectoriesRequest.searchString),
             realTimeUpdates: searchDirectoriesRequest.realTimeUpdates,
             skip: searchDirectoriesRequest.skip,
             top: searchDirectoriesRequest.top,
@@ -551,7 +556,7 @@ export class CXoneDynamicDirectory {
             subscriptionId: this.validationUtils.isNotNullOrEmpty(searchNewGenDirectoriesRequest === null || searchNewGenDirectoriesRequest === void 0 ? void 0 : searchNewGenDirectoriesRequest.subscriptionId)
                 ? searchNewGenDirectoriesRequest === null || searchNewGenDirectoriesRequest === void 0 ? void 0 : searchNewGenDirectoriesRequest.subscriptionId
                 : null,
-            searchString: searchNewGenDirectoriesRequest === null || searchNewGenDirectoriesRequest === void 0 ? void 0 : searchNewGenDirectoriesRequest.searchString,
+            searchString: normalizeDirectorySearchText(searchNewGenDirectoriesRequest === null || searchNewGenDirectoriesRequest === void 0 ? void 0 : searchNewGenDirectoriesRequest.searchString),
             realTimeUpdates: searchNewGenDirectoriesRequest === null || searchNewGenDirectoriesRequest === void 0 ? void 0 : searchNewGenDirectoriesRequest.realTimeUpdates,
             skip: searchNewGenDirectoriesRequest === null || searchNewGenDirectoriesRequest === void 0 ? void 0 : searchNewGenDirectoriesRequest.skip,
             top: searchNewGenDirectoriesRequest === null || searchNewGenDirectoriesRequest === void 0 ? void 0 : searchNewGenDirectoriesRequest.top,

@@ -35,7 +35,6 @@ export * from './logger/model/log-entry';
 export * from './logger/formatter/basic-formatter';
 export * from './logger/model/log-formatter';
 export * from './logger/model/log-appender';
-export * from './lib/datadog/datadog';
 export * from './constants/websocket-status-code';
 export * from './util/common-util';
 export * from './lib/admin/model/tenant';
@@ -48,6 +47,8 @@ export * from './lib/admin/model/agent-profile-settings';
 export * from './enum/agent-profile-configurations';
 export * from './enum/get-next-event-sub-category';
 export * from './lib/grafana/grafana';
+export * from './lib/saola/saola';
 export * from './lib/smart-reach-compliance/compliance-validation-failure-code';
 export * from './lib/smart-reach-compliance/compliance-validation-event';
+export * from './lib/consult-context/consult-context-event';
 //# sourceMappingURL=index.js.map

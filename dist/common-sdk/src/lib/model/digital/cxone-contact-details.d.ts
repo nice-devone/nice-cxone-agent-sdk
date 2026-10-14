@@ -284,6 +284,22 @@ export declare const CXoneContactDetailsSchema: import("yup/lib/object").Optiona
             reason: import("yup").StringSchema<string, import("yup/lib/types").AnyObject, string>;
         }>>[]>;
         customerStatistics: any;
+        authorRecipients: import("yup").ArraySchema<import("yup").ObjectSchema<import("yup/lib/object").Assign<import("yup/lib/object").ObjectShape, {
+            idOnExternalPlatform: import("yup").StringSchema<string, import("yup/lib/types").AnyObject, string>;
+            name: import("yup").StringSchema<string, import("yup/lib/types").AnyObject, string>;
+        }>, import("yup/lib/object").AnyObject, import("yup/lib/object").TypeOfShape<import("yup/lib/object").Assign<import("yup/lib/object").ObjectShape, {
+            idOnExternalPlatform: import("yup").StringSchema<string, import("yup/lib/types").AnyObject, string>;
+            name: import("yup").StringSchema<string, import("yup/lib/types").AnyObject, string>;
+        }>>, import("yup/lib/object").AssertsShape<import("yup/lib/object").Assign<import("yup/lib/object").ObjectShape, {
+            idOnExternalPlatform: import("yup").StringSchema<string, import("yup/lib/types").AnyObject, string>;
+            name: import("yup").StringSchema<string, import("yup/lib/types").AnyObject, string>;
+        }>>>, import("yup/lib/types").AnyObject, import("yup/lib/object").TypeOfShape<import("yup/lib/object").Assign<import("yup/lib/object").ObjectShape, {
+            idOnExternalPlatform: import("yup").StringSchema<string, import("yup/lib/types").AnyObject, string>;
+            name: import("yup").StringSchema<string, import("yup/lib/types").AnyObject, string>;
+        }>>[], import("yup/lib/object").AssertsShape<import("yup/lib/object").Assign<import("yup/lib/object").ObjectShape, {
+            idOnExternalPlatform: import("yup").StringSchema<string, import("yup/lib/types").AnyObject, string>;
+            name: import("yup").StringSchema<string, import("yup/lib/types").AnyObject, string>;
+        }>>[]>;
     }>, import("yup/lib/object").AnyObject, import("yup/lib/object").TypeOfShape<import("yup/lib/object").Assign<import("yup/lib/object").ObjectShape, {
         hasAdditionalMessageContent: import("yup").BooleanSchema<boolean, import("yup/lib/types").AnyObject, boolean>;
         id: import("yup/lib/string").RequiredStringSchema<string, import("yup/lib/types").AnyObject>;
@@ -565,6 +581,22 @@ export declare const CXoneContactDetailsSchema: import("yup/lib/object").Optiona
             reason: import("yup").StringSchema<string, import("yup/lib/types").AnyObject, string>;
         }>>[]>;
         customerStatistics: any;
+        authorRecipients: import("yup").ArraySchema<import("yup").ObjectSchema<import("yup/lib/object").Assign<import("yup/lib/object").ObjectShape, {
+            idOnExternalPlatform: import("yup").StringSchema<string, import("yup/lib/types").AnyObject, string>;
+            name: import("yup").StringSchema<string, import("yup/lib/types").AnyObject, string>;
+        }>, import("yup/lib/object").AnyObject, import("yup/lib/object").TypeOfShape<import("yup/lib/object").Assign<import("yup/lib/object").ObjectShape, {
+            idOnExternalPlatform: import("yup").StringSchema<string, import("yup/lib/types").AnyObject, string>;
+            name: import("yup").StringSchema<string, import("yup/lib/types").AnyObject, string>;
+        }>>, import("yup/lib/object").AssertsShape<import("yup/lib/object").Assign<import("yup/lib/object").ObjectShape, {
+            idOnExternalPlatform: import("yup").StringSchema<string, import("yup/lib/types").AnyObject, string>;
+            name: import("yup").StringSchema<string, import("yup/lib/types").AnyObject, string>;
+        }>>>, import("yup/lib/types").AnyObject, import("yup/lib/object").TypeOfShape<import("yup/lib/object").Assign<import("yup/lib/object").ObjectShape, {
+            idOnExternalPlatform: import("yup").StringSchema<string, import("yup/lib/types").AnyObject, string>;
+            name: import("yup").StringSchema<string, import("yup/lib/types").AnyObject, string>;
+        }>>[], import("yup/lib/object").AssertsShape<import("yup/lib/object").Assign<import("yup/lib/object").ObjectShape, {
+            idOnExternalPlatform: import("yup").StringSchema<string, import("yup/lib/types").AnyObject, string>;
+            name: import("yup").StringSchema<string, import("yup/lib/types").AnyObject, string>;
+        }>>[]>;
     }>>, import("yup/lib/object").AssertsShape<import("yup/lib/object").Assign<import("yup/lib/object").ObjectShape, {
         hasAdditionalMessageContent: import("yup").BooleanSchema<boolean, import("yup/lib/types").AnyObject, boolean>;
         id: import("yup/lib/string").RequiredStringSchema<string, import("yup/lib/types").AnyObject>;
@@ -846,6 +878,22 @@ export declare const CXoneContactDetailsSchema: import("yup/lib/object").Optiona
             reason: import("yup").StringSchema<string, import("yup/lib/types").AnyObject, string>;
         }>>[]>;
         customerStatistics: any;
+        authorRecipients: import("yup").ArraySchema<import("yup").ObjectSchema<import("yup/lib/object").Assign<import("yup/lib/object").ObjectShape, {
+            idOnExternalPlatform: import("yup").StringSchema<string, import("yup/lib/types").AnyObject, string>;
+            name: import("yup").StringSchema<string, import("yup/lib/types").AnyObject, string>;
+        }>, import("yup/lib/object").AnyObject, import("yup/lib/object").TypeOfShape<import("yup/lib/object").Assign<import("yup/lib/object").ObjectShape, {
+            idOnExternalPlatform: import("yup").StringSchema<string, import("yup/lib/types").AnyObject, string>;
+            name: import("yup").StringSchema<string, import("yup/lib/types").AnyObject, string>;
+        }>>, import("yup/lib/object").AssertsShape<import("yup/lib/object").Assign<import("yup/lib/object").ObjectShape, {
+            idOnExternalPlatform: import("yup").StringSchema<string, import("yup/lib/types").AnyObject, string>;
+            name: import("yup").StringSchema<string, import("yup/lib/types").AnyObject, string>;
+        }>>>, import("yup/lib/types").AnyObject, import("yup/lib/object").TypeOfShape<import("yup/lib/object").Assign<import("yup/lib/object").ObjectShape, {
+            idOnExternalPlatform: import("yup").StringSchema<string, import("yup/lib/types").AnyObject, string>;
+            name: import("yup").StringSchema<string, import("yup/lib/types").AnyObject, string>;
+        }>>[], import("yup/lib/object").AssertsShape<import("yup/lib/object").Assign<import("yup/lib/object").ObjectShape, {
+            idOnExternalPlatform: import("yup").StringSchema<string, import("yup/lib/types").AnyObject, string>;
+            name: import("yup").StringSchema<string, import("yup/lib/types").AnyObject, string>;
+        }>>[]>;
     }>>>, import("yup/lib/types").AnyObject, import("yup/lib/object").TypeOfShape<import("yup/lib/object").Assign<import("yup/lib/object").ObjectShape, {
         hasAdditionalMessageContent: import("yup").BooleanSchema<boolean, import("yup/lib/types").AnyObject, boolean>;
         id: import("yup/lib/string").RequiredStringSchema<string, import("yup/lib/types").AnyObject>;
@@ -1127,6 +1175,22 @@ export declare const CXoneContactDetailsSchema: import("yup/lib/object").Optiona
             reason: import("yup").StringSchema<string, import("yup/lib/types").AnyObject, string>;
         }>>[]>;
         customerStatistics: any;
+        authorRecipients: import("yup").ArraySchema<import("yup").ObjectSchema<import("yup/lib/object").Assign<import("yup/lib/object").ObjectShape, {
+            idOnExternalPlatform: import("yup").StringSchema<string, import("yup/lib/types").AnyObject, string>;
+            name: import("yup").StringSchema<string, import("yup/lib/types").AnyObject, string>;
+        }>, import("yup/lib/object").AnyObject, import("yup/lib/object").TypeOfShape<import("yup/lib/object").Assign<import("yup/lib/object").ObjectShape, {
+            idOnExternalPlatform: import("yup").StringSchema<string, import("yup/lib/types").AnyObject, string>;
+            name: import("yup").StringSchema<string, import("yup/lib/types").AnyObject, string>;
+        }>>, import("yup/lib/object").AssertsShape<import("yup/lib/object").Assign<import("yup/lib/object").ObjectShape, {
+            idOnExternalPlatform: import("yup").StringSchema<string, import("yup/lib/types").AnyObject, string>;
+            name: import("yup").StringSchema<string, import("yup/lib/types").AnyObject, string>;
+        }>>>, import("yup/lib/types").AnyObject, import("yup/lib/object").TypeOfShape<import("yup/lib/object").Assign<import("yup/lib/object").ObjectShape, {
+            idOnExternalPlatform: import("yup").StringSchema<string, import("yup/lib/types").AnyObject, string>;
+            name: import("yup").StringSchema<string, import("yup/lib/types").AnyObject, string>;
+        }>>[], import("yup/lib/object").AssertsShape<import("yup/lib/object").Assign<import("yup/lib/object").ObjectShape, {
+            idOnExternalPlatform: import("yup").StringSchema<string, import("yup/lib/types").AnyObject, string>;
+            name: import("yup").StringSchema<string, import("yup/lib/types").AnyObject, string>;
+        }>>[]>;
     }>>[], import("yup/lib/object").AssertsShape<import("yup/lib/object").Assign<import("yup/lib/object").ObjectShape, {
         hasAdditionalMessageContent: import("yup").BooleanSchema<boolean, import("yup/lib/types").AnyObject, boolean>;
         id: import("yup/lib/string").RequiredStringSchema<string, import("yup/lib/types").AnyObject>;
@@ -1408,6 +1472,22 @@ export declare const CXoneContactDetailsSchema: import("yup/lib/object").Optiona
             reason: import("yup").StringSchema<string, import("yup/lib/types").AnyObject, string>;
         }>>[]>;
         customerStatistics: any;
+        authorRecipients: import("yup").ArraySchema<import("yup").ObjectSchema<import("yup/lib/object").Assign<import("yup/lib/object").ObjectShape, {
+            idOnExternalPlatform: import("yup").StringSchema<string, import("yup/lib/types").AnyObject, string>;
+            name: import("yup").StringSchema<string, import("yup/lib/types").AnyObject, string>;
+        }>, import("yup/lib/object").AnyObject, import("yup/lib/object").TypeOfShape<import("yup/lib/object").Assign<import("yup/lib/object").ObjectShape, {
+            idOnExternalPlatform: import("yup").StringSchema<string, import("yup/lib/types").AnyObject, string>;
+            name: import("yup").StringSchema<string, import("yup/lib/types").AnyObject, string>;
+        }>>, import("yup/lib/object").AssertsShape<import("yup/lib/object").Assign<import("yup/lib/object").ObjectShape, {
+            idOnExternalPlatform: import("yup").StringSchema<string, import("yup/lib/types").AnyObject, string>;
+            name: import("yup").StringSchema<string, import("yup/lib/types").AnyObject, string>;
+        }>>>, import("yup/lib/types").AnyObject, import("yup/lib/object").TypeOfShape<import("yup/lib/object").Assign<import("yup/lib/object").ObjectShape, {
+            idOnExternalPlatform: import("yup").StringSchema<string, import("yup/lib/types").AnyObject, string>;
+            name: import("yup").StringSchema<string, import("yup/lib/types").AnyObject, string>;
+        }>>[], import("yup/lib/object").AssertsShape<import("yup/lib/object").Assign<import("yup/lib/object").ObjectShape, {
+            idOnExternalPlatform: import("yup").StringSchema<string, import("yup/lib/types").AnyObject, string>;
+            name: import("yup").StringSchema<string, import("yup/lib/types").AnyObject, string>;
+        }>>[]>;
     }>>[]>;
     messageDrafts: import("yup").ArraySchema<import("yup").ObjectSchema<import("yup/lib/object").Assign<import("yup/lib/object").ObjectShape, {
         createdAt: import("yup/lib/string").RequiredStringSchema<string, import("yup/lib/types").AnyObject>;
@@ -2806,6 +2886,7 @@ export declare const CXoneContactDetailsSchema: import("yup/lib/object").Optiona
         canAgentInviteCustomersToContact: import("yup").BooleanSchema<boolean, import("yup/lib/types").AnyObject, boolean>;
         canReplyToAnyMessage: import("yup").BooleanSchema<boolean, import("yup/lib/types").AnyObject, boolean>;
         isTrackingMessageDeliveryStatus: import("yup").BooleanSchema<boolean, import("yup/lib/types").AnyObject, boolean>;
+        canPredictThreadIdOnExternalPlatform: import("yup").BooleanSchema<boolean, import("yup/lib/types").AnyObject, boolean>;
     }>>, import("yup/lib/object").AnyObject, import("yup/lib/object").TypeOfShape<import("yup/lib/object").Assign<import("yup/lib/object").ObjectShape, import("yup/lib/object").Assign<import("yup/lib/object").ObjectShape, {
         originId: import("yup").StringSchema<string, import("yup/lib/types").AnyObject, string>;
         channelId: import("yup").StringSchema<string, import("yup/lib/types").AnyObject, string>;
@@ -2862,6 +2943,7 @@ export declare const CXoneContactDetailsSchema: import("yup/lib/object").Optiona
         canAgentInviteCustomersToContact: import("yup").BooleanSchema<boolean, import("yup/lib/types").AnyObject, boolean>;
         canReplyToAnyMessage: import("yup").BooleanSchema<boolean, import("yup/lib/types").AnyObject, boolean>;
         isTrackingMessageDeliveryStatus: import("yup").BooleanSchema<boolean, import("yup/lib/types").AnyObject, boolean>;
+        canPredictThreadIdOnExternalPlatform: import("yup").BooleanSchema<boolean, import("yup/lib/types").AnyObject, boolean>;
     }>>>, import("yup/lib/object").AssertsShape<import("yup/lib/object").Assign<import("yup/lib/object").ObjectShape, import("yup/lib/object").Assign<import("yup/lib/object").ObjectShape, {
         originId: import("yup").StringSchema<string, import("yup/lib/types").AnyObject, string>;
         channelId: import("yup").StringSchema<string, import("yup/lib/types").AnyObject, string>;
@@ -2918,6 +3000,7 @@ export declare const CXoneContactDetailsSchema: import("yup/lib/object").Optiona
         canAgentInviteCustomersToContact: import("yup").BooleanSchema<boolean, import("yup/lib/types").AnyObject, boolean>;
         canReplyToAnyMessage: import("yup").BooleanSchema<boolean, import("yup/lib/types").AnyObject, boolean>;
         isTrackingMessageDeliveryStatus: import("yup").BooleanSchema<boolean, import("yup/lib/types").AnyObject, boolean>;
+        canPredictThreadIdOnExternalPlatform: import("yup").BooleanSchema<boolean, import("yup/lib/types").AnyObject, boolean>;
     }>>>>, import("yup/lib/types").AnyObject, import("yup/lib/object").TypeOfShape<import("yup/lib/object").Assign<import("yup/lib/object").ObjectShape, import("yup/lib/object").Assign<import("yup/lib/object").ObjectShape, {
         originId: import("yup").StringSchema<string, import("yup/lib/types").AnyObject, string>;
         channelId: import("yup").StringSchema<string, import("yup/lib/types").AnyObject, string>;
@@ -2974,6 +3057,7 @@ export declare const CXoneContactDetailsSchema: import("yup/lib/object").Optiona
         canAgentInviteCustomersToContact: import("yup").BooleanSchema<boolean, import("yup/lib/types").AnyObject, boolean>;
         canReplyToAnyMessage: import("yup").BooleanSchema<boolean, import("yup/lib/types").AnyObject, boolean>;
         isTrackingMessageDeliveryStatus: import("yup").BooleanSchema<boolean, import("yup/lib/types").AnyObject, boolean>;
+        canPredictThreadIdOnExternalPlatform: import("yup").BooleanSchema<boolean, import("yup/lib/types").AnyObject, boolean>;
     }>>>[], import("yup/lib/object").AssertsShape<import("yup/lib/object").Assign<import("yup/lib/object").ObjectShape, import("yup/lib/object").Assign<import("yup/lib/object").ObjectShape, {
         originId: import("yup").StringSchema<string, import("yup/lib/types").AnyObject, string>;
         channelId: import("yup").StringSchema<string, import("yup/lib/types").AnyObject, string>;
@@ -3030,6 +3114,7 @@ export declare const CXoneContactDetailsSchema: import("yup/lib/object").Optiona
         canAgentInviteCustomersToContact: import("yup").BooleanSchema<boolean, import("yup/lib/types").AnyObject, boolean>;
         canReplyToAnyMessage: import("yup").BooleanSchema<boolean, import("yup/lib/types").AnyObject, boolean>;
         isTrackingMessageDeliveryStatus: import("yup").BooleanSchema<boolean, import("yup/lib/types").AnyObject, boolean>;
+        canPredictThreadIdOnExternalPlatform: import("yup").BooleanSchema<boolean, import("yup/lib/types").AnyObject, boolean>;
     }>>>[]>;
     isAssignedToAgentInbox: import("yup").BooleanSchema<boolean, import("yup/lib/types").AnyObject, boolean>;
     customerContactCustomFieldDefinitions: import("yup").ArraySchema<import("yup").ObjectSchema<import("yup/lib/object").Assign<import("yup/lib/object").ObjectShape, {
@@ -3368,6 +3453,22 @@ export declare const CXoneContactDetailsSchema: import("yup/lib/object").Optiona
             reason: import("yup").StringSchema<string, import("yup/lib/types").AnyObject, string>;
         }>>[]>;
         customerStatistics: any;
+        authorRecipients: import("yup").ArraySchema<import("yup").ObjectSchema<import("yup/lib/object").Assign<import("yup/lib/object").ObjectShape, {
+            idOnExternalPlatform: import("yup").StringSchema<string, import("yup/lib/types").AnyObject, string>;
+            name: import("yup").StringSchema<string, import("yup/lib/types").AnyObject, string>;
+        }>, import("yup/lib/object").AnyObject, import("yup/lib/object").TypeOfShape<import("yup/lib/object").Assign<import("yup/lib/object").ObjectShape, {
+            idOnExternalPlatform: import("yup").StringSchema<string, import("yup/lib/types").AnyObject, string>;
+            name: import("yup").StringSchema<string, import("yup/lib/types").AnyObject, string>;
+        }>>, import("yup/lib/object").AssertsShape<import("yup/lib/object").Assign<import("yup/lib/object").ObjectShape, {
+            idOnExternalPlatform: import("yup").StringSchema<string, import("yup/lib/types").AnyObject, string>;
+            name: import("yup").StringSchema<string, import("yup/lib/types").AnyObject, string>;
+        }>>>, import("yup/lib/types").AnyObject, import("yup/lib/object").TypeOfShape<import("yup/lib/object").Assign<import("yup/lib/object").ObjectShape, {
+            idOnExternalPlatform: import("yup").StringSchema<string, import("yup/lib/types").AnyObject, string>;
+            name: import("yup").StringSchema<string, import("yup/lib/types").AnyObject, string>;
+        }>>[], import("yup/lib/object").AssertsShape<import("yup/lib/object").Assign<import("yup/lib/object").ObjectShape, {
+            idOnExternalPlatform: import("yup").StringSchema<string, import("yup/lib/types").AnyObject, string>;
+            name: import("yup").StringSchema<string, import("yup/lib/types").AnyObject, string>;
+        }>>[]>;
     }>, import("yup/lib/object").AnyObject, import("yup/lib/object").TypeOfShape<import("yup/lib/object").Assign<import("yup/lib/object").ObjectShape, {
         hasAdditionalMessageContent: import("yup").BooleanSchema<boolean, import("yup/lib/types").AnyObject, boolean>;
         id: import("yup/lib/string").RequiredStringSchema<string, import("yup/lib/types").AnyObject>;
@@ -3649,6 +3750,22 @@ export declare const CXoneContactDetailsSchema: import("yup/lib/object").Optiona
             reason: import("yup").StringSchema<string, import("yup/lib/types").AnyObject, string>;
         }>>[]>;
         customerStatistics: any;
+        authorRecipients: import("yup").ArraySchema<import("yup").ObjectSchema<import("yup/lib/object").Assign<import("yup/lib/object").ObjectShape, {
+            idOnExternalPlatform: import("yup").StringSchema<string, import("yup/lib/types").AnyObject, string>;
+            name: import("yup").StringSchema<string, import("yup/lib/types").AnyObject, string>;
+        }>, import("yup/lib/object").AnyObject, import("yup/lib/object").TypeOfShape<import("yup/lib/object").Assign<import("yup/lib/object").ObjectShape, {
+            idOnExternalPlatform: import("yup").StringSchema<string, import("yup/lib/types").AnyObject, string>;
+            name: import("yup").StringSchema<string, import("yup/lib/types").AnyObject, string>;
+        }>>, import("yup/lib/object").AssertsShape<import("yup/lib/object").Assign<import("yup/lib/object").ObjectShape, {
+            idOnExternalPlatform: import("yup").StringSchema<string, import("yup/lib/types").AnyObject, string>;
+            name: import("yup").StringSchema<string, import("yup/lib/types").AnyObject, string>;
+        }>>>, import("yup/lib/types").AnyObject, import("yup/lib/object").TypeOfShape<import("yup/lib/object").Assign<import("yup/lib/object").ObjectShape, {
+            idOnExternalPlatform: import("yup").StringSchema<string, import("yup/lib/types").AnyObject, string>;
+            name: import("yup").StringSchema<string, import("yup/lib/types").AnyObject, string>;
+        }>>[], import("yup/lib/object").AssertsShape<import("yup/lib/object").Assign<import("yup/lib/object").ObjectShape, {
+            idOnExternalPlatform: import("yup").StringSchema<string, import("yup/lib/types").AnyObject, string>;
+            name: import("yup").StringSchema<string, import("yup/lib/types").AnyObject, string>;
+        }>>[]>;
     }>>, import("yup/lib/object").AssertsShape<import("yup/lib/object").Assign<import("yup/lib/object").ObjectShape, {
         hasAdditionalMessageContent: import("yup").BooleanSchema<boolean, import("yup/lib/types").AnyObject, boolean>;
         id: import("yup/lib/string").RequiredStringSchema<string, import("yup/lib/types").AnyObject>;
@@ -3930,6 +4047,22 @@ export declare const CXoneContactDetailsSchema: import("yup/lib/object").Optiona
             reason: import("yup").StringSchema<string, import("yup/lib/types").AnyObject, string>;
         }>>[]>;
         customerStatistics: any;
+        authorRecipients: import("yup").ArraySchema<import("yup").ObjectSchema<import("yup/lib/object").Assign<import("yup/lib/object").ObjectShape, {
+            idOnExternalPlatform: import("yup").StringSchema<string, import("yup/lib/types").AnyObject, string>;
+            name: import("yup").StringSchema<string, import("yup/lib/types").AnyObject, string>;
+        }>, import("yup/lib/object").AnyObject, import("yup/lib/object").TypeOfShape<import("yup/lib/object").Assign<import("yup/lib/object").ObjectShape, {
+            idOnExternalPlatform: import("yup").StringSchema<string, import("yup/lib/types").AnyObject, string>;
+            name: import("yup").StringSchema<string, import("yup/lib/types").AnyObject, string>;
+        }>>, import("yup/lib/object").AssertsShape<import("yup/lib/object").Assign<import("yup/lib/object").ObjectShape, {
+            idOnExternalPlatform: import("yup").StringSchema<string, import("yup/lib/types").AnyObject, string>;
+            name: import("yup").StringSchema<string, import("yup/lib/types").AnyObject, string>;
+        }>>>, import("yup/lib/types").AnyObject, import("yup/lib/object").TypeOfShape<import("yup/lib/object").Assign<import("yup/lib/object").ObjectShape, {
+            idOnExternalPlatform: import("yup").StringSchema<string, import("yup/lib/types").AnyObject, string>;
+            name: import("yup").StringSchema<string, import("yup/lib/types").AnyObject, string>;
+        }>>[], import("yup/lib/object").AssertsShape<import("yup/lib/object").Assign<import("yup/lib/object").ObjectShape, {
+            idOnExternalPlatform: import("yup").StringSchema<string, import("yup/lib/types").AnyObject, string>;
+            name: import("yup").StringSchema<string, import("yup/lib/types").AnyObject, string>;
+        }>>[]>;
     }>>>, import("yup/lib/types").AnyObject, import("yup/lib/object").TypeOfShape<import("yup/lib/object").Assign<import("yup/lib/object").ObjectShape, {
         hasAdditionalMessageContent: import("yup").BooleanSchema<boolean, import("yup/lib/types").AnyObject, boolean>;
         id: import("yup/lib/string").RequiredStringSchema<string, import("yup/lib/types").AnyObject>;
@@ -4211,6 +4344,22 @@ export declare const CXoneContactDetailsSchema: import("yup/lib/object").Optiona
             reason: import("yup").StringSchema<string, import("yup/lib/types").AnyObject, string>;
         }>>[]>;
         customerStatistics: any;
+        authorRecipients: import("yup").ArraySchema<import("yup").ObjectSchema<import("yup/lib/object").Assign<import("yup/lib/object").ObjectShape, {
+            idOnExternalPlatform: import("yup").StringSchema<string, import("yup/lib/types").AnyObject, string>;
+            name: import("yup").StringSchema<string, import("yup/lib/types").AnyObject, string>;
+        }>, import("yup/lib/object").AnyObject, import("yup/lib/object").TypeOfShape<import("yup/lib/object").Assign<import("yup/lib/object").ObjectShape, {
+            idOnExternalPlatform: import("yup").StringSchema<string, import("yup/lib/types").AnyObject, string>;
+            name: import("yup").StringSchema<string, import("yup/lib/types").AnyObject, string>;
+        }>>, import("yup/lib/object").AssertsShape<import("yup/lib/object").Assign<import("yup/lib/object").ObjectShape, {
+            idOnExternalPlatform: import("yup").StringSchema<string, import("yup/lib/types").AnyObject, string>;
+            name: import("yup").StringSchema<string, import("yup/lib/types").AnyObject, string>;
+        }>>>, import("yup/lib/types").AnyObject, import("yup/lib/object").TypeOfShape<import("yup/lib/object").Assign<import("yup/lib/object").ObjectShape, {
+            idOnExternalPlatform: import("yup").StringSchema<string, import("yup/lib/types").AnyObject, string>;
+            name: import("yup").StringSchema<string, import("yup/lib/types").AnyObject, string>;
+        }>>[], import("yup/lib/object").AssertsShape<import("yup/lib/object").Assign<import("yup/lib/object").ObjectShape, {
+            idOnExternalPlatform: import("yup").StringSchema<string, import("yup/lib/types").AnyObject, string>;
+            name: import("yup").StringSchema<string, import("yup/lib/types").AnyObject, string>;
+        }>>[]>;
     }>>[], import("yup/lib/object").AssertsShape<import("yup/lib/object").Assign<import("yup/lib/object").ObjectShape, {
         hasAdditionalMessageContent: import("yup").BooleanSchema<boolean, import("yup/lib/types").AnyObject, boolean>;
         id: import("yup/lib/string").RequiredStringSchema<string, import("yup/lib/types").AnyObject>;
@@ -4492,6 +4641,22 @@ export declare const CXoneContactDetailsSchema: import("yup/lib/object").Optiona
             reason: import("yup").StringSchema<string, import("yup/lib/types").AnyObject, string>;
         }>>[]>;
         customerStatistics: any;
+        authorRecipients: import("yup").ArraySchema<import("yup").ObjectSchema<import("yup/lib/object").Assign<import("yup/lib/object").ObjectShape, {
+            idOnExternalPlatform: import("yup").StringSchema<string, import("yup/lib/types").AnyObject, string>;
+            name: import("yup").StringSchema<string, import("yup/lib/types").AnyObject, string>;
+        }>, import("yup/lib/object").AnyObject, import("yup/lib/object").TypeOfShape<import("yup/lib/object").Assign<import("yup/lib/object").ObjectShape, {
+            idOnExternalPlatform: import("yup").StringSchema<string, import("yup/lib/types").AnyObject, string>;
+            name: import("yup").StringSchema<string, import("yup/lib/types").AnyObject, string>;
+        }>>, import("yup/lib/object").AssertsShape<import("yup/lib/object").Assign<import("yup/lib/object").ObjectShape, {
+            idOnExternalPlatform: import("yup").StringSchema<string, import("yup/lib/types").AnyObject, string>;
+            name: import("yup").StringSchema<string, import("yup/lib/types").AnyObject, string>;
+        }>>>, import("yup/lib/types").AnyObject, import("yup/lib/object").TypeOfShape<import("yup/lib/object").Assign<import("yup/lib/object").ObjectShape, {
+            idOnExternalPlatform: import("yup").StringSchema<string, import("yup/lib/types").AnyObject, string>;
+            name: import("yup").StringSchema<string, import("yup/lib/types").AnyObject, string>;
+        }>>[], import("yup/lib/object").AssertsShape<import("yup/lib/object").Assign<import("yup/lib/object").ObjectShape, {
+            idOnExternalPlatform: import("yup").StringSchema<string, import("yup/lib/types").AnyObject, string>;
+            name: import("yup").StringSchema<string, import("yup/lib/types").AnyObject, string>;
+        }>>[]>;
     }>>[]>;
     messageDrafts: import("yup").ArraySchema<import("yup").ObjectSchema<import("yup/lib/object").Assign<import("yup/lib/object").ObjectShape, {
         createdAt: import("yup/lib/string").RequiredStringSchema<string, import("yup/lib/types").AnyObject>;
@@ -5890,6 +6055,7 @@ export declare const CXoneContactDetailsSchema: import("yup/lib/object").Optiona
         canAgentInviteCustomersToContact: import("yup").BooleanSchema<boolean, import("yup/lib/types").AnyObject, boolean>;
         canReplyToAnyMessage: import("yup").BooleanSchema<boolean, import("yup/lib/types").AnyObject, boolean>;
         isTrackingMessageDeliveryStatus: import("yup").BooleanSchema<boolean, import("yup/lib/types").AnyObject, boolean>;
+        canPredictThreadIdOnExternalPlatform: import("yup").BooleanSchema<boolean, import("yup/lib/types").AnyObject, boolean>;
     }>>, import("yup/lib/object").AnyObject, import("yup/lib/object").TypeOfShape<import("yup/lib/object").Assign<import("yup/lib/object").ObjectShape, import("yup/lib/object").Assign<import("yup/lib/object").ObjectShape, {
         originId: import("yup").StringSchema<string, import("yup/lib/types").AnyObject, string>;
         channelId: import("yup").StringSchema<string, import("yup/lib/types").AnyObject, string>;
@@ -5946,6 +6112,7 @@ export declare const CXoneContactDetailsSchema: import("yup/lib/object").Optiona
         canAgentInviteCustomersToContact: import("yup").BooleanSchema<boolean, import("yup/lib/types").AnyObject, boolean>;
         canReplyToAnyMessage: import("yup").BooleanSchema<boolean, import("yup/lib/types").AnyObject, boolean>;
         isTrackingMessageDeliveryStatus: import("yup").BooleanSchema<boolean, import("yup/lib/types").AnyObject, boolean>;
+        canPredictThreadIdOnExternalPlatform: import("yup").BooleanSchema<boolean, import("yup/lib/types").AnyObject, boolean>;
     }>>>, import("yup/lib/object").AssertsShape<import("yup/lib/object").Assign<import("yup/lib/object").ObjectShape, import("yup/lib/object").Assign<import("yup/lib/object").ObjectShape, {
         originId: import("yup").StringSchema<string, import("yup/lib/types").AnyObject, string>;
         channelId: import("yup").StringSchema<string, import("yup/lib/types").AnyObject, string>;
@@ -6002,6 +6169,7 @@ export declare const CXoneContactDetailsSchema: import("yup/lib/object").Optiona
         canAgentInviteCustomersToContact: import("yup").BooleanSchema<boolean, import("yup/lib/types").AnyObject, boolean>;
         canReplyToAnyMessage: import("yup").BooleanSchema<boolean, import("yup/lib/types").AnyObject, boolean>;
         isTrackingMessageDeliveryStatus: import("yup").BooleanSchema<boolean, import("yup/lib/types").AnyObject, boolean>;
+        canPredictThreadIdOnExternalPlatform: import("yup").BooleanSchema<boolean, import("yup/lib/types").AnyObject, boolean>;
     }>>>>, import("yup/lib/types").AnyObject, import("yup/lib/object").TypeOfShape<import("yup/lib/object").Assign<import("yup/lib/object").ObjectShape, import("yup/lib/object").Assign<import("yup/lib/object").ObjectShape, {
         originId: import("yup").StringSchema<string, import("yup/lib/types").AnyObject, string>;
         channelId: import("yup").StringSchema<string, import("yup/lib/types").AnyObject, string>;
@@ -6058,6 +6226,7 @@ export declare const CXoneContactDetailsSchema: import("yup/lib/object").Optiona
         canAgentInviteCustomersToContact: import("yup").BooleanSchema<boolean, import("yup/lib/types").AnyObject, boolean>;
         canReplyToAnyMessage: import("yup").BooleanSchema<boolean, import("yup/lib/types").AnyObject, boolean>;
         isTrackingMessageDeliveryStatus: import("yup").BooleanSchema<boolean, import("yup/lib/types").AnyObject, boolean>;
+        canPredictThreadIdOnExternalPlatform: import("yup").BooleanSchema<boolean, import("yup/lib/types").AnyObject, boolean>;
     }>>>[], import("yup/lib/object").AssertsShape<import("yup/lib/object").Assign<import("yup/lib/object").ObjectShape, import("yup/lib/object").Assign<import("yup/lib/object").ObjectShape, {
         originId: import("yup").StringSchema<string, import("yup/lib/types").AnyObject, string>;
         channelId: import("yup").StringSchema<string, import("yup/lib/types").AnyObject, string>;
@@ -6114,6 +6283,7 @@ export declare const CXoneContactDetailsSchema: import("yup/lib/object").Optiona
         canAgentInviteCustomersToContact: import("yup").BooleanSchema<boolean, import("yup/lib/types").AnyObject, boolean>;
         canReplyToAnyMessage: import("yup").BooleanSchema<boolean, import("yup/lib/types").AnyObject, boolean>;
         isTrackingMessageDeliveryStatus: import("yup").BooleanSchema<boolean, import("yup/lib/types").AnyObject, boolean>;
+        canPredictThreadIdOnExternalPlatform: import("yup").BooleanSchema<boolean, import("yup/lib/types").AnyObject, boolean>;
     }>>>[]>;
     isAssignedToAgentInbox: import("yup").BooleanSchema<boolean, import("yup/lib/types").AnyObject, boolean>;
     customerContactCustomFieldDefinitions: import("yup").ArraySchema<import("yup").ObjectSchema<import("yup/lib/object").Assign<import("yup/lib/object").ObjectShape, {

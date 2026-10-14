@@ -28,4 +28,8 @@ export interface AgentProfileSettings {
     hideDirectorySkills?: boolean;
     hideDirectoryStandardAddressBook?: boolean;
     hideUnassignDismiss?: boolean;
+    hideDigitalCloseConfirmation?: boolean;
+    voiceCallHoldTimerThreshold?: number;
+    teamVersioningEnabled?: boolean;
+    agentVersion?: string;
 }

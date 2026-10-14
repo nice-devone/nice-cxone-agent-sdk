@@ -6,5 +6,6 @@ exports.CXOneOwnerAssigneeUserSchema = (0, yup_1.object)({
     firstName: (0, yup_1.string)(),
     surname: (0, yup_1.string)(),
     nickname: (0, yup_1.string)(),
+    incontactId: (0, yup_1.string)(),
 });
 //# sourceMappingURL=cxone-owner-assignee-user.js.map

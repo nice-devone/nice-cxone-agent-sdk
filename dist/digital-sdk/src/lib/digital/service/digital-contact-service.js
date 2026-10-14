@@ -33,8 +33,10 @@ export class DigitalContactService {
         this.DIGITAL_QUICK_REPLIES_OUTBOUND = '/dfo/3.0/quick-responses';
         this.DIGITAL_QR_REPLACE_VARIABLES = '/dfo/3.0/quick-responses/{quickResponseId}/replace-variables'; // TODO: To be replaced by below API facade in future release
         this.QUICK_RESPONSE_REPLACE_VARIABLES = '/rich-message-settings/1.0/quick-responses/{quickResponseId}/replace-variables';
+        this.DIGITAL_DRAFT_CONTACT = '/dfo/3.0/contacts/draft';
+        this.DIGITAL_RECIPIENTS_VALIDATION = '/dfo/3.0/channels/{channelId}/recipients/validation';
         this.requestManager = RequestManager.getInstance();
-        this.isAbortDelayDigitialApiEnabled = FeatureToggleService.instance.getFeatureToggleSync("release-cx-agent-abort-delay-API-on-contact-switch-AW-48514" /* FeatureToggles.ABORT_DELAY_DIGITAL_API_TOGGLE */) || false;
+        this.isAbortDelayDigitalApiEnabled = FeatureToggleService.instance.getFeatureToggleSync("release-cx-agent-abort-delay-API-on-contact-switch-AW-48514" /* FeatureToggles.ABORT_DELAY_DIGITAL_API_TOGGLE */) || false;
         this.auth = CXoneAuth.instance;
         this.adminService = AdminService.instance;
     }
@@ -282,7 +284,7 @@ export class DigitalContactService {
         const authToken = this.auth.getAuthToken().accessToken;
         const url = baseUrl + ApiUriConstants.DIGITAL_CONTACT_DETAILS.replace('{contactId}', contactId);
         const reqInit = this.utilService.initHeader(authToken);
-        if (this.isAbortDelayDigitialApiEnabled) {
+        if (this.isAbortDelayDigitalApiEnabled) {
             /* CONTROLLED GET LOGIC */
             const uniqueKey = contactId;
             const debugLabel = 'DigitalContactDetails API';
@@ -821,8 +823,17 @@ export class DigitalContactService {
         const reqInit = {
             headers: this.utilService.initHeader(authToken, 'application/json').headers,
         };
+        const requestPromise = this.isAbortDelayDigitalApiEnabled && contactId
+            ? HttpClient.controlledGet(this.requestManager, {
+                uniqueKey: contactId,
+                url,
+                requestInit: reqInit,
+                debugLabel: 'loadPreviousNextCases Pagination API',
+                requestType: RequestControlMode.DELAY_AND_ABORT,
+            })
+            : HttpClient.get(url, reqInit);
         return new Promise((resolve, reject) => {
-            HttpClient.get(url, reqInit).then((response) => {
+            requestPromise.then((response) => {
                 this.logger.info('loadPreviousNextCases', 'Previous and next contact fetched successfully');
                 resolve(response);
             }, (error) => {
@@ -895,6 +906,60 @@ export class DigitalContactService {
         var _a;
         const traceIdHeader = (_a = response === null || response === void 0 ? void 0 : response.headers) === null || _a === void 0 ? void 0 : _a.find(currentHeader => { var _a; return ((_a = currentHeader === null || currentHeader === void 0 ? void 0 : currentHeader.name) === null || _a === void 0 ? void 0 : _a.toLowerCase()) === AllowedResponseHeaders.TRACE_ID; });
         return traceIdHeader ? traceIdHeader.value : '';
+    }
+    /**
+     * Creates or upsert a draft contact
+     * When draftContactId is omitted in the request a new draft is created.
+     * When draftContactId is provided the existing draft is updated (upsert).
+     * @param draftContactRequest - CXoneDigitalDraftContactRequest containing channelId, recipients and optional draftContactId
+     * @returns HttpResponse containing the draftContactId
+     * @example createOutboundDraftContact(draftContactRequest)
+     */
+    createOutboundDraftContact(draftContactRequest) {
+        const baseUrl = this.auth.getCXoneConfig().dfoApiBaseUri;
+        const authToken = this.auth.getAuthToken().accessToken;
+        const url = baseUrl + this.DIGITAL_DRAFT_CONTACT;
+        const reqInit = {
+            headers: this.utilService.initHeader(authToken, 'application/json').headers,
+            body: draftContactRequest,
+        };
+        return new Promise((resolve, reject) => {
+            HttpClient.put(url, reqInit).then((response) => {
+                this.logger.info('createOutboundDraftContact', 'Draft contact created/updated successfully');
+                resolve(response);
+            }, (error) => {
+                const errorResponse = new CXoneSdkError(CXoneSdkErrorType.CXONE_API_ERROR, 'Draft contact creation/update failed', error);
+                this.logger.error('createOutboundDraftContact', errorResponse.toString());
+                reject(errorResponse);
+            });
+        });
+    }
+    /**
+     * Validates recipients for an outbound contact
+     * Should only be called when the channel flag canPredictThreadIdOnExternalPlatform is true.
+     * @param channelId - ID of the digital channel
+     * @param request - CXoneDigitalRecipientsValidationRequest containing the list of recipients to validate
+     * @returns HttpResponse containing per-recipient validation results
+     * @example validateRecipients('ch-1', recipientsValidationRequest)
+     */
+    validateRecipients(channelId, recipientsValidationRequest) {
+        const baseUrl = this.auth.getCXoneConfig().dfoApiBaseUri;
+        const authToken = this.auth.getAuthToken().accessToken;
+        const url = baseUrl + this.DIGITAL_RECIPIENTS_VALIDATION.replace('{channelId}', channelId);
+        const reqInit = {
+            headers: this.utilService.initHeader(authToken, 'application/json').headers,
+            body: recipientsValidationRequest,
+        };
+        return new Promise((resolve, reject) => {
+            HttpClient.post(url, reqInit).then((response) => {
+                this.logger.info('validateRecipients', 'Recipients validation completed successfully');
+                resolve(response);
+            }, (error) => {
+                const errorResponse = new CXoneSdkError(CXoneSdkErrorType.CXONE_API_ERROR, 'Recipients validation failed', error);
+                this.logger.error('validateRecipients', errorResponse.toString());
+                reject(errorResponse);
+            });
+        });
     }
 }
 //# sourceMappingURL=digital-contact-service.js.map

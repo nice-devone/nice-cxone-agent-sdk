@@ -1,6 +1,6 @@
 import { Subject } from 'rxjs';
 import { CcfLogger } from '@nice-devone/agent-sdk';
-import { CaseStatusChangedDeltaEvent, MessageAddedIntoCaseDeltaEvent } from '@nice-devone/common-sdk';
+import { CaseStatusChangedDeltaEvent, MessageAddedIntoCaseDeltaEvent, MessagePreviewDeltaEvent, SenderTypingDeltaEvent } from '@nice-devone/common-sdk';
 /**
  * DigitalEventFactory - Singleton factory for parsing and publishing delta events.
  *
@@ -31,7 +31,7 @@ export declare class DigitalEventFactory {
     /**
      * RxJS Subject for publishing delta events to subscribers
      */
-    deltaEventSubject: Subject<CaseStatusChangedDeltaEvent | MessageAddedIntoCaseDeltaEvent>;
+    deltaEventSubject: Subject<CaseStatusChangedDeltaEvent | MessageAddedIntoCaseDeltaEvent | SenderTypingDeltaEvent | MessagePreviewDeltaEvent>;
     /**
      * Retrieves the singleton instance of DigitalEventFactory.
      * Creates the instance if it doesn't exist.

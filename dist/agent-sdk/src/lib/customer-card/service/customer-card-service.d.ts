@@ -13,16 +13,19 @@ export declare class CustomerCardService {
     private EXECUTE_WORKFLOW_URI;
     private DELETE_CUSTOMER_CUSTOM_FIELD;
     private GET_CRM_DATA_FOR_TRANSFERED_CONTACT;
+    private readonly requestManager;
+    private isAbortDelayDigitalApiEnabled;
     /**
      * @example
      */
     constructor();
     /**
      * Method to fetch custom field definition
+     * @param contactId - Contact Id used as unique key for request deduplication when feature toggle is enabled
      * @returns - API Returns Response JSON of Custom field definition
      * @example -
      */
-    getCustomFieldsDefinitions(): Promise<CXoneCustomerCardCustomFields>;
+    getCustomFieldsDefinitions(contactId?: string): Promise<CXoneCustomerCardCustomFields>;
     /**
      * Method to fetch Customer details by Full Name
      * @param Id - Customer Id of the Customer

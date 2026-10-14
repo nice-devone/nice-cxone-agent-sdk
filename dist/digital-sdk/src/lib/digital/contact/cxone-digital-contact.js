@@ -1,6 +1,6 @@
 import { __awaiter } from "tslib";
 import { Logger } from '@nice-devone/core-sdk';
-import { CXoneSdkError, CXoneFileUploadResponseSchema, CXoneDigitalEventType, CXoneContactDetailsSchema, CXoneLoadPreviousContactDetailsSchema, CXoneSdkErrorType, CXonePreviousNextContactSchema, } from '@nice-devone/common-sdk';
+import { CXoneSdkError, CXoneFileUploadResponseSchema, CXoneDigitalEventType, CXoneContactDetailsSchema, CXoneLoadPreviousContactDetailsSchema, CXoneSdkErrorType, CXonePreviousNextContactSchema, CXoneDraftContactSchema, parseRecipientsValidationResponse, } from '@nice-devone/common-sdk';
 import { CXoneUser } from '@nice-devone/auth-sdk';
 import { DigitalContactService } from '../service/digital-contact-service';
 import { CXoneContact, ContactType } from '@nice-devone/agent-sdk';
@@ -621,6 +621,68 @@ export class CXoneDigitalContact extends CXoneContact {
                 }
             }, (error) => {
                 this.logger.error('loadConversationHistory', 'Previous and Next conversation history fetch failed ' + JSON.stringify(error));
+                reject(error);
+            });
+        });
+    }
+    /**
+     * Method to create a draft contact via the draftContact API.
+     * @param draftContactRequest - CXoneDigitalDraftContactRequest containing channelId, recipients and optional fields
+     * @returns - promise resolving to validated CXoneDigitalDraftContactResponse
+     * ```
+     * @example
+     * createOutboundDraftContact(draftContactRequest)
+     * ```
+     */
+    createOutboundDraftContact(draftContactRequest) {
+        return new Promise((resolve, reject) => {
+            this.digitalContactService.createOutboundDraftContact(draftContactRequest).then((response) => {
+                try {
+                    this.logger.info('createOutboundDraftContact', 'Draft contact created successfully');
+                    const contactDetails = response === null || response === void 0 ? void 0 : response.data;
+                    const validateResult = CXoneDraftContactSchema.validateSync(contactDetails, { stripUnknown: true });
+                    resolve(validateResult);
+                }
+                catch (error) {
+                    if (error instanceof Error) {
+                        const errorResponse = new CXoneSdkError(CXoneSdkErrorType.DATA_VALIDATION_ERROR, 'Validation Error: ' + error.message);
+                        this.logger.error('createOutboundDraftContact', errorResponse.toString());
+                        reject(errorResponse);
+                    }
+                }
+            }, (error) => {
+                this.logger.error('createOutboundDraftContact', 'Draft contact creation failed ' + JSON.stringify(error));
+                reject(error);
+            });
+        });
+    }
+    /**
+     * Method to validate recipients for an outbound contact.
+     * @param channelId - ID of the digital channel
+     * @param recipientsValidationRequest - CXoneDigitalRecipientsValidationRequest containing the list of recipients to validate
+     * @returns - promise resolving to CXoneDigitalRecipientsValidationResponse
+     * ```
+     * @example
+     * validateRecipients('ch-1', recipientsValidationRequest)
+     * ```
+     */
+    validateRecipients(channelId, recipientsValidationRequest) {
+        return new Promise((resolve, reject) => {
+            this.digitalContactService.validateRecipients(channelId, recipientsValidationRequest).then((response) => {
+                try {
+                    const responseData = response === null || response === void 0 ? void 0 : response.data;
+                    this.logger.info('validateRecipients', 'Recipients validation completed successfully');
+                    resolve(parseRecipientsValidationResponse(responseData));
+                }
+                catch (error) {
+                    if (error instanceof Error) {
+                        const errorResponse = new CXoneSdkError(CXoneSdkErrorType.DATA_VALIDATION_ERROR, 'Validation Error: ' + error.message);
+                        this.logger.error('validateRecipients', errorResponse.toString());
+                        reject(errorResponse);
+                    }
+                }
+            }, (error) => {
+                this.logger.error('validateRecipients', 'Recipients validation failed ' + JSON.stringify(error));
                 reject(error);
             });
         });

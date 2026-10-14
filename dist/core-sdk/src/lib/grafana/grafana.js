@@ -15,9 +15,9 @@ import { GrafanaAppender } from '../../logger/appenders/grafana-log-appender';
  * ```
  */
 export const grafanaInit = (agentSettings, userInfo, appName = 'cxa', grafanaFaroUri, grafanaFaroKey) => {
-    var _a, _b, _c, _d;
+    var _a, _b, _c;
     try {
-        const grafanaFaroSampleRate = Number(agentSettings.dataDogSampleRate) / 100;
+        const grafanaFaroSampleRate = Number((agentSettings === null || agentSettings === void 0 ? void 0 : agentSettings.grafanaSampleRate) || (agentSettings === null || agentSettings === void 0 ? void 0 : agentSettings.dataDogSampleRate)) / 100;
         if (grafanaFaroSampleRate && grafanaFaroSampleRate > 0 && grafanaFaroUri) {
             let isLocalEnv = false;
             let environment = 'NA';
@@ -54,7 +54,7 @@ export const grafanaInit = (agentSettings, userInfo, appName = 'cxa', grafanaFar
                 let faroInstance = null;
                 const isBrowser = typeof window !== 'undefined';
                 const isNonProdEnv = ['dev', 'test', 'staging', 'performance'].includes(process.env.NX_DEST_ENV || '');
-                let grafanaApiKey;
+                let grafanaApiKey = '';
                 if (appName === 'WEBRTC') {
                     grafanaApiKey = grafanaFaroKey || '';
                 }
@@ -77,44 +77,20 @@ export const grafanaInit = (agentSettings, userInfo, appName = 'cxa', grafanaFar
                             new TracingInstrumentation() // Use only tracing instrumentation (disables other default web instrumentations)
                         ],
                     }) : null;
-                    const logLevelsForGrafana = [];
                     const grafanaAppender = new GrafanaAppender();
-                    let logLevelFromSettings = { LoggingLevel: LogLevel.ERROR };
                     if (appName !== 'WEBRTC') {
-                        logLevelFromSettings = (_d = LocalStorageHelper === null || LocalStorageHelper === void 0 ? void 0 : LocalStorageHelper.getItem(StorageKeys === null || StorageKeys === void 0 ? void 0 : StorageKeys.CLIENT_DATA, true)) !== null && _d !== void 0 ? _d : {};
-                        switch (logLevelFromSettings === null || logLevelFromSettings === void 0 ? void 0 : logLevelFromSettings.LoggingLevel) {
-                            case LogLevel.TRACE:
-                                logLevelsForGrafana.push(GrafanaConsoleLogLevel.Trace);
-                                grafanaAppender.setLogLevelFilter(LogLevel.TRACE);
-                                break;
-                            case LogLevel.DEBUG:
-                                logLevelsForGrafana.push(GrafanaConsoleLogLevel.Debug);
-                                grafanaAppender.setLogLevelFilter(LogLevel.DEBUG);
-                                break;
-                            case LogLevel.INFO:
-                                logLevelsForGrafana.push(GrafanaConsoleLogLevel.Info);
-                                grafanaAppender.setLogLevelFilter(LogLevel.INFO);
-                                break;
-                            case LogLevel.WARN:
-                                logLevelsForGrafana.push(GrafanaConsoleLogLevel.Warn);
-                                grafanaAppender.setLogLevelFilter(LogLevel.WARN);
-                                break;
-                            case LogLevel.ERROR:
-                                logLevelsForGrafana.push(GrafanaConsoleLogLevel.Error);
-                                grafanaAppender.setLogLevelFilter(LogLevel.ERROR);
-                                break;
-                            default:
-                                logLevelsForGrafana.push(GrafanaConsoleLogLevel.Error);
-                                grafanaAppender.setLogLevelFilter(LogLevel.ERROR);
-                        }
+                        const storedLevel = LocalStorageHelper === null || LocalStorageHelper === void 0 ? void 0 : LocalStorageHelper.getItem(StorageKeys === null || StorageKeys === void 0 ? void 0 : StorageKeys.LOGGING_LEVEL);
+                        const appenderLogLevel = (storedLevel !== '' && storedLevel !== null && storedLevel !== undefined)
+                            ? Number(storedLevel)
+                            : LogLevel.ERROR;
+                        grafanaAppender.setLogLevelFilter(appenderLogLevel);
                     }
                     Logger.config.addAppender(grafanaAppender);
                     if (faroInstance) {
                         if (appName === 'WEBRTC') {
                             const logLevelsForWebrtc = Object.values(GrafanaConsoleLogLevel);
                             logLevelsForWebrtc.forEach((level) => {
-                                const logLevel = level;
-                                const consoleLogger = console[logLevel];
+                                const consoleLogger = console[level];
                                 const logger = consoleLogger.bind(consoleLogger);
                                 console[level] = (...args) => {
                                     var _a, _b;
@@ -132,30 +108,48 @@ export const grafanaInit = (agentSettings, userInfo, appName = 'cxa', grafanaFar
                             });
                         }
                         else {
-                            if ((logLevelsForGrafana === null || logLevelsForGrafana === void 0 ? void 0 : logLevelsForGrafana.length) !== 0 && (logLevelFromSettings === null || logLevelFromSettings === void 0 ? void 0 : logLevelFromSettings.LoggingLevel) !== LogLevel.OFF) {
-                                logLevelsForGrafana === null || logLevelsForGrafana === void 0 ? void 0 : logLevelsForGrafana.forEach((level) => {
-                                    const consoleLogger = console[level].bind(console);
-                                    console[level] = (...args) => {
-                                        var _a, _b, _c, _d;
-                                        let formattedMessage = '';
-                                        if (typeof args[0] === 'string') {
-                                            formattedMessage = (_a = args[0]) === null || _a === void 0 ? void 0 : _a.replace(/%s/g, args[1]);
-                                        }
-                                        else {
-                                            formattedMessage = String(args[0]);
-                                        }
-                                        if (level === 'error') {
-                                            // sending logs to faro , with error log levels
-                                            (_b = faro === null || faro === void 0 ? void 0 : faro.api) === null || _b === void 0 ? void 0 : _b.pushError({ name: (_c = args[0]) === null || _c === void 0 ? void 0 : _c.name, message: formattedMessage });
-                                        }
-                                        else {
-                                            // sending logs to faro , with all types of log levels except error
-                                            (_d = faro === null || faro === void 0 ? void 0 : faro.api) === null || _d === void 0 ? void 0 : _d.pushError({ name: level, message: formattedMessage });
-                                        }
-                                        consoleLogger.apply(console, args);
-                                    };
-                                });
-                            }
+                            const consoleLevelToLogLevel = {
+                                [GrafanaConsoleLogLevel.Trace]: LogLevel.TRACE,
+                                [GrafanaConsoleLogLevel.Debug]: LogLevel.DEBUG,
+                                [GrafanaConsoleLogLevel.Info]: LogLevel.INFO,
+                                [GrafanaConsoleLogLevel.Warn]: LogLevel.WARN,
+                                [GrafanaConsoleLogLevel.Error]: LogLevel.ERROR,
+                            };
+                            /**
+                           * Converts a raw localStorage string to a LogLevel, defaulting to ERROR when absent.
+                           * @param localstorageLevel - raw string from localStorage (null/undefined/'' when key is missing)
+                           * @returns parsed LogLevel numeric value, or LogLevel.ERROR as fallback
+                           * @example resolveLevel('3') // LogLevel.WARN
+                           */
+                            const resolveLevel = (localstorageLevel) => (localstorageLevel !== '' && localstorageLevel !== null && localstorageLevel !== undefined) ? Number(localstorageLevel) : LogLevel.ERROR;
+                            // exclude GrafanaConsoleLogLevel.Log ('log') — console.log is never forwarded to Faro
+                            const levelsToPatch = Object.values(GrafanaConsoleLogLevel).filter(l => l !== GrafanaConsoleLogLevel.Log);
+                            levelsToPatch.forEach((level) => {
+                                const consoleLogger = console[level].bind(console);
+                                console[level] = (...args) => {
+                                    var _a, _b;
+                                    const currentLogLevel = resolveLevel(LocalStorageHelper === null || LocalStorageHelper === void 0 ? void 0 : LocalStorageHelper.getItem(StorageKeys === null || StorageKeys === void 0 ? void 0 : StorageKeys.LOGGING_LEVEL));
+                                    if (currentLogLevel === LogLevel.OFF || consoleLevelToLogLevel[level] < currentLogLevel) {
+                                        consoleLogger.apply(console, args); // below threshold — skip Grafana
+                                        return;
+                                    }
+                                    const first = args[0];
+                                    let formattedMessage = '';
+                                    if (typeof first === 'string') {
+                                        formattedMessage = first.replace(/%s/g, String(args[1]));
+                                    }
+                                    else {
+                                        formattedMessage = String(first);
+                                    }
+                                    if (level === GrafanaConsoleLogLevel.Error) {
+                                        (_a = faro === null || faro === void 0 ? void 0 : faro.api) === null || _a === void 0 ? void 0 : _a.pushError({ name: first === null || first === void 0 ? void 0 : first.name, message: formattedMessage });
+                                    }
+                                    else {
+                                        (_b = faro === null || faro === void 0 ? void 0 : faro.api) === null || _b === void 0 ? void 0 : _b.pushError({ name: level, message: formattedMessage });
+                                    }
+                                    consoleLogger.apply(console, args);
+                                };
+                            });
                         }
                     }
                 }

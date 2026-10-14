@@ -1,5 +1,5 @@
 import { BulkReplyHistoryResponse, BulkReplyResponse, CcfLogger } from '@nice-devone/agent-sdk';
-import { CXoneSdkError, HttpResponse, CXoneDigitalReplyRequest, CXoneDigitalReplaceVariables, CXoneFileUploadRequest, CXoneDigitalCreateDraftRequest, CXoneDigitalUpdateDraftRequest, CXoneDigitalQuickReply, CXoneDigitalOutboundQuickReply, CXoneQuickReplyReplaceVariableRequest } from '@nice-devone/common-sdk';
+import { CXoneSdkError, HttpResponse, CXoneDigitalReplyRequest, CXoneDigitalReplaceVariables, CXoneFileUploadRequest, CXoneDigitalCreateDraftRequest, CXoneDigitalUpdateDraftRequest, CXoneDigitalQuickReply, CXoneDigitalOutboundQuickReply, CXoneQuickReplyReplaceVariableRequest, CXoneDigitalDraftContactRequest, CXoneDigitalRecipientsValidationRequest } from '@nice-devone/common-sdk';
 import { HttpUtilService } from '@nice-devone/core-sdk';
 /**
  * Class to handle digital contact related API calls
@@ -23,8 +23,10 @@ export declare class DigitalContactService {
     private DIGITAL_QUICK_REPLIES_OUTBOUND;
     private DIGITAL_QR_REPLACE_VARIABLES;
     private QUICK_RESPONSE_REPLACE_VARIABLES;
+    private DIGITAL_DRAFT_CONTACT;
+    private DIGITAL_RECIPIENTS_VALIDATION;
     private readonly requestManager;
-    private isAbortDelayDigitialApiEnabled;
+    private isAbortDelayDigitalApiEnabled;
     /**
      * @example
      * ```
@@ -286,4 +288,22 @@ export declare class DigitalContactService {
      * @returns - traceId string or empty string if not found
      */
     getTraceIdFromResponseHeader(response: HttpResponse): string;
+    /**
+     * Creates or upsert a draft contact
+     * When draftContactId is omitted in the request a new draft is created.
+     * When draftContactId is provided the existing draft is updated (upsert).
+     * @param draftContactRequest - CXoneDigitalDraftContactRequest containing channelId, recipients and optional draftContactId
+     * @returns HttpResponse containing the draftContactId
+     * @example createOutboundDraftContact(draftContactRequest)
+     */
+    createOutboundDraftContact(draftContactRequest: CXoneDigitalDraftContactRequest): Promise<HttpResponse>;
+    /**
+     * Validates recipients for an outbound contact
+     * Should only be called when the channel flag canPredictThreadIdOnExternalPlatform is true.
+     * @param channelId - ID of the digital channel
+     * @param request - CXoneDigitalRecipientsValidationRequest containing the list of recipients to validate
+     * @returns HttpResponse containing per-recipient validation results
+     * @example validateRecipients('ch-1', recipientsValidationRequest)
+     */
+    validateRecipients(channelId: string, recipientsValidationRequest: CXoneDigitalRecipientsValidationRequest): Promise<HttpResponse>;
 }

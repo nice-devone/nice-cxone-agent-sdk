@@ -188,4 +188,32 @@ export declare class ACWebRtcService {
      * ```
      */
     private removeConnectedSBC;
+    /**
+     * Replaces the active audio input track on the live RTP sender with a new track during mid-call audio device failover.
+     * @param newTrack - the new MediaStreamTrack to use for the microphone input
+     * @example
+     * ```
+     * webRtcService.replaceTrack(newTrack);
+     * ```
+     */
+    replaceTrack(newTrack: MediaStreamTrack): Promise<void>;
+    /**
+     * Sets the audio output device on the audio element via `setSinkId` during mid-call audio device failover.
+     * Throws if `setSinkId` is not supported in the current browser context or if the switch fails, allowing callers to detect failure and avoid persisting an unapplied device ID.
+     * @param deviceId - the deviceId of the target audio output device
+     * @example
+     * ```
+     * webRtcService.setSinkId('device-id');
+     * ```
+     */
+    setSinkId(deviceId: string): Promise<void>;
+    /**
+     * Returns the active audio input track label from the current RTCPeerConnection sender to seed the known active device on call connect.
+     * @returns the track label string, or null if no active call or audio sender is found
+     * @example
+     * ```
+     * webRtcService.getActiveAudioTrackLabel();
+     * ```
+     */
+    getActiveAudioTrackLabel(): string | null;
 }

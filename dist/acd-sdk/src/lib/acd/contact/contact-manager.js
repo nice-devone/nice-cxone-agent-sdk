@@ -51,6 +51,7 @@ export class ContactManager {
         this.voiceCallRecordServicePollingEvent = new Subject();
         this.onVoiceTranscriptContactEndEvent = new Subject();
         this.renewStateSubscription = null;
+        this.isDisposed = false;
         /**
          * Method used to get the CXoneContact
          */
@@ -73,6 +74,21 @@ export class ContactManager {
         this.acdSession = ACDSessionManager.instance;
         this.adminService = AdminService.instance;
         this.initialize();
+    }
+    /**
+     * Disposes of subscriptions to prevent memory leaks when this instance is replaced.
+     * Must be called before creating a new ContactManager instance.
+     * @example
+     * ```
+     * contactManager.dispose();
+     * ```
+     */
+    dispose() {
+        this.isDisposed = true;
+        if (this.renewStateSubscription) {
+            this.renewStateSubscription.unsubscribe();
+            this.renewStateSubscription = null;
+        }
     }
     /**
      * Method to create instance for voice and contact service and update agent permissions and call contact event
@@ -99,7 +115,7 @@ export class ContactManager {
             this.connectVoiceBioHubWebSocket();
         }
         this.conferenceCallEventHandler();
-        const isRenewStateToggleEnabled = FeatureToggleService.instance.getFeatureToggleSync("release-renew-state-AW-48481" /* FeatureToggles.RENEW_STATE_FEATURE_TOGGLE */);
+        const isRenewStateToggleEnabled = FeatureToggleService.instance.getFeatureToggleSync("release-carnival-renew-state-AW-48481" /* FeatureToggles.RENEW_STATE_FEATURE_TOGGLE */);
         if (isRenewStateToggleEnabled) {
             this.subscribeToRenewStateEvents();
         }
@@ -115,6 +131,8 @@ export class ContactManager {
             return;
         // Dynamic import to avoid circular dependency between common-core-sdk and common-acd-sdk
         import('@nice-devone/core-sdk').then(({ GetNextEventProvider }) => {
+            if (this.isDisposed)
+                return;
             this.renewStateSubscription = GetNextEventProvider.instance.adapter.renewStateRequested.subscribe((data) => {
                 this.logger.info('subscribeToRenewStateEvents', `Renew state requested for ${data.contactIds.length} backend contacts`);
                 this.handleRenewState(data.contactIds);

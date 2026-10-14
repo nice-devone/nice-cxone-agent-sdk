@@ -12,7 +12,7 @@ export declare class DispositionService {
     private GET_SAVED_DISPOSITION;
     private SAVE_DISPOSITION_URI;
     private readonly requestManager;
-    private isAbortDelayDigitialApiEnabled;
+    private isAbortDelayDigitalApiEnabled;
     /**
      * Create instance of CXoneAuth and ACDSessionManager
      * ```

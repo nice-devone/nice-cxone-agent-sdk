@@ -2,6 +2,7 @@ import { HttpUtilService } from '../../http/index';
 import { Logger } from '../../../logger/logger';
 import { CXoneIndicator, CustomFormData, StartSessionRequest, CXonePageOpen, CXoneRunApp, CXoneSdkError, HttpResponse, EndSessionRequest, AgentSessionResponse, MCHSetting, CXonePopUrl, CXoneContactScreenpop, AgentWorkflowResponseEvent, AgentWorkflowRequestEvent, UserInfo, CXoneAgentAssist, CommitmentEvent, CommitmentStatusEvent, CoBrowseEvent, LocalPostEvent, AgentAssistWSRequest, CallContactEvent, MuteEvent, UpdatePermissionsEvent, AgentStateEvent, UpdateUnavailableCodeEvent, AgentLegEvent, DigitalContactEvent, CXoneConfiguration, UpdateNetworkTimeoutEvent, CXoneCustomScreenpop, GetNextAgentAssistEvent } from '@nice-devone/common-sdk';
 import { ComplianceValidationEvent } from '../../smart-reach-compliance/compliance-validation-event';
+import { ConsultContextEvent } from '../../consult-context/consult-context-event';
 import { Subject, ReplaySubject } from 'rxjs';
 import { CXoneGetNextAdapter } from '../../adapter/cxone-get-next-adapter';
 /**
@@ -46,6 +47,7 @@ export declare class ACDSessionManager {
     private _onCommitmentEvent;
     private _onCommitmentStatusEvent;
     private _onSmartReachValidationEvent;
+    private _onConsultContextEvent;
     private _agentAssistSummarySubject;
     private _agentAssistWSSubject;
     private _agentAssistOmiliaGetNextSubject;
@@ -203,9 +205,6 @@ export declare class ACDSessionManager {
         screenPopUrl: import("yup/lib/string").RequiredStringSchema<string, import("yup/lib/types").AnyObject>;
         skill: import("yup").StringSchema<string, import("yup/lib/types").AnyObject, string>;
         skillName: import("yup").StringSchema<string, import("yup/lib/types").AnyObject, string>;
-        /**
-         * Utility for agent session management
-         */
         startTime: import("yup/lib/date").RequiredDateSchema<Date, import("yup/lib/types").AnyObject>;
         status: import("yup/lib/string").RequiredStringSchema<string, import("yup/lib/types").AnyObject>;
         to: import("yup").StringSchema<string, import("yup/lib/types").AnyObject, string>;
@@ -715,6 +714,13 @@ export declare class ACDSessionManager {
      * ```
      */
     get onSmartReachValidationEvent(): Subject<ComplianceValidationEvent>;
+    /**
+     * @example -
+     * ```
+     * const onConsultContextEvent = agentSession.onConsultContextEvent
+     * ```
+     */
+    get onConsultContextEvent(): Subject<ConsultContextEvent>;
     /**
     * @example -const agentAssistWebSocketUnsubscribeSubject  = acdSession.agentAssistWebSocketUnsubsribeSubject
     */

@@ -16,5 +16,6 @@ export declare class AdminApis {
     static resizeEventQueueUri: string;
     static getTenantDataUri: string;
     static getAgentVersionUri: string;
-    static getAgentSettingsVersionServiceUri: string;
+    static getAgentSettingsV34Uri: string;
+    static getAgentSettingsV33Uri: string;
 }

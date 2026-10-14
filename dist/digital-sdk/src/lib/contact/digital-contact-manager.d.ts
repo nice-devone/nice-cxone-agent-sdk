@@ -45,6 +45,7 @@ export declare class DigitalContactManager {
         message: CXoneMessage;
     }>;
     private userSlotSubscribed;
+    private messageHandlerSubscription?;
     private isWebSocketFailure;
     private digitalEventSyncService;
     private digitalEventSyncDictionary;

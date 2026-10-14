@@ -111,7 +111,11 @@ export class AgentAssistWSService extends WebsocketClient {
                                 if (setAgentAssistGetNextInIndexDb) {
                                     setAgentAssistGetNextInIndexDb(agentAssistInput);
                                 }
-                                this.cxoneClientInstance.copilotNotificationClient.connect(aahNotificationWssUri, userInfo.icAgentId, agentAssistInput);
+                                const { icAgentId, userId, icBUId } = userInfo;
+                                const isMultiACDWebsocketEnabled = FeatureToggleService.instance.getFeatureToggleSync("release-agentcopilot-multiacd-websocket-CSA-28481" /* FeatureToggles.MULTI_ACD_WEBSOCKET */);
+                                const connectionIdentifier = isMultiACDWebsocketEnabled ? userId : icAgentId;
+                                const copilotNotificationWssUri = `${aahNotificationWssUri}?agentId=${connectionIdentifier}&BUId=${icBUId}`;
+                                this.cxoneClientInstance.copilotNotificationClient.connect(copilotNotificationWssUri, connectionIdentifier, agentAssistInput);
                                 ACDSessionManager.instance.aaVoiceTranscriptEventSubject.next(agentAssistInput);
                             }
                         }
@@ -143,7 +147,11 @@ export class AgentAssistWSService extends WebsocketClient {
                     try {
                         if ((resp === null || resp === void 0 ? void 0 : resp.subCategory) === GetNextEventSubCategory.VOICE_TRANSCRIPT) {
                             const userInfo = this.cxoneClientInstance.cxoneUser.getUserInfo();
-                            this.cxoneClientInstance.copilotNotificationClient.connect(resp.webSocketUri, userInfo.icAgentId, resp);
+                            const { icAgentId, userId, icBUId } = userInfo;
+                            const isMultiACDWebsocketEnabled = FeatureToggleService.instance.getFeatureToggleSync("release-agentcopilot-multiacd-websocket-CSA-28481" /* FeatureToggles.MULTI_ACD_WEBSOCKET */);
+                            const connectionIdentifier = isMultiACDWebsocketEnabled ? userId : icAgentId;
+                            const copilotNotificationWssUri = `${resp.webSocketUri}?agentId=${connectionIdentifier}&BUId=${icBUId}`;
+                            this.cxoneClientInstance.copilotNotificationClient.connect(copilotNotificationWssUri, connectionIdentifier, resp);
                             ACDSessionManager.instance.aaVoiceTranscriptEventSubject.next(resp);
                         }
                         else {

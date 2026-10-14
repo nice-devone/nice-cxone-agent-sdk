@@ -1,5 +1,5 @@
 import { Logger } from '@nice-devone/core-sdk';
-import { CXoneSdkError, HttpResponse, DigitalContactEvent, CXoneDigitalReplyRequest, CXoneFileUploadRequest, CXoneRoutingQueue, CXoneCase, CXoneChannel, CXoneInboxAssignee, CXoneMessageArray, DigitalContactStatus, CXoneFileUploadResponse, CXoneDigitalEvent, AttachmentType, CXoneDigitalCreateDraftRequest, CXoneDigitalUpdateDraftRequest, CXoneMessageDraftsArray, CXonePublicMessage, CXoneLoadPreviousContactDetails, CXoneLoadPreviousNextContact, CXoneDigitalReplyChannel, CXoneUserRolePermissions, CXoneContactCustomFieldDefinition } from '@nice-devone/common-sdk';
+import { CXoneSdkError, HttpResponse, DigitalContactEvent, CXoneDigitalReplyRequest, CXoneFileUploadRequest, CXoneRoutingQueue, CXoneCase, CXoneChannel, CXoneInboxAssignee, CXoneMessageArray, DigitalContactStatus, CXoneFileUploadResponse, CXoneDigitalEvent, AttachmentType, CXoneDigitalCreateDraftRequest, CXoneDigitalUpdateDraftRequest, CXoneMessageDraftsArray, CXonePublicMessage, CXoneLoadPreviousContactDetails, CXoneLoadPreviousNextContact, CXoneDigitalReplyChannel, CXoneUserRolePermissions, CXoneContactCustomFieldDefinition, CXoneDigitalDraftContactRequest, CXoneDraftContactDetails, CXoneDigitalRecipientsValidationRequest, CXoneDigitalRecipientsValidationResponse } from '@nice-devone/common-sdk';
 import { CXoneContact, CxoneDigitalMessageNote } from '@nice-devone/agent-sdk';
 /**
  * Interface ContactMessageNote containing message note properties
@@ -351,5 +351,26 @@ export declare class CXoneDigitalContact extends CXoneContact {
      * ```
     */
     loadConversationHistory(contactId: string): Promise<CXoneLoadPreviousContactDetails>;
+    /**
+     * Method to create a draft contact via the draftContact API.
+     * @param draftContactRequest - CXoneDigitalDraftContactRequest containing channelId, recipients and optional fields
+     * @returns - promise resolving to validated CXoneDigitalDraftContactResponse
+     * ```
+     * @example
+     * createOutboundDraftContact(draftContactRequest)
+     * ```
+     */
+    createOutboundDraftContact(draftContactRequest: CXoneDigitalDraftContactRequest): Promise<CXoneDraftContactDetails>;
+    /**
+     * Method to validate recipients for an outbound contact.
+     * @param channelId - ID of the digital channel
+     * @param recipientsValidationRequest - CXoneDigitalRecipientsValidationRequest containing the list of recipients to validate
+     * @returns - promise resolving to CXoneDigitalRecipientsValidationResponse
+     * ```
+     * @example
+     * validateRecipients('ch-1', recipientsValidationRequest)
+     * ```
+     */
+    validateRecipients(channelId: string, recipientsValidationRequest: CXoneDigitalRecipientsValidationRequest): Promise<CXoneDigitalRecipientsValidationResponse>;
 }
 export {};

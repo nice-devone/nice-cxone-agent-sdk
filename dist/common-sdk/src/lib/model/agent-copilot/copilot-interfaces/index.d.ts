@@ -11,3 +11,5 @@ export * from './copilot-decision-tree-data';
 export * from './copilot-custom-adaptive-card';
 export * from './copilot-checklist-data';
 export * from './copilot-workflow-space';
+export * from './copilot-cognigy-feed';
+export * from './copilot-ai-agent-config';

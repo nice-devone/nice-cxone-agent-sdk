@@ -21,7 +21,7 @@ export class DispositionService {
         this.GET_SAVED_DISPOSITION = '/InContactAPI/services/V27.0/contacts/{contactId}/disposition';
         this.SAVE_DISPOSITION_URI = '/InContactAPI/services/v27.0/agent-sessions/{sessionId}/interactions/{contactId}/disposition';
         this.requestManager = RequestManager.getInstance();
-        this.isAbortDelayDigitialApiEnabled = FeatureToggleService.instance.getFeatureToggleSync("release-cx-agent-abort-delay-API-on-contact-switch-AW-48514" /* FeatureToggles.ABORT_DELAY_DIGITAL_API_TOGGLE */) || false;
+        this.isAbortDelayDigitalApiEnabled = FeatureToggleService.instance.getFeatureToggleSync("release-cx-agent-abort-delay-API-on-contact-switch-AW-48514" /* FeatureToggles.ABORT_DELAY_DIGITAL_API_TOGGLE */) || false;
         /**
            * To save tags
            * @param contactId - contact Id
@@ -125,7 +125,7 @@ export class DispositionService {
             const endpointUri = isTenantSegmentationEnabled ? ApiUriConstants.GET_DISPOSITION_URI_TS : ApiUriConstants.GET_DISPOSITION_URI;
             const url = cxOneConfig.acdApiBaseUri +
                 endpointUri.replace('{skillId}', skillId);
-            if (this.isAbortDelayDigitialApiEnabled && contactId) {
+            if (this.isAbortDelayDigitalApiEnabled && contactId) {
                 /* CONTROLLED GET LOGIC */
                 const uniqueKey = contactId;
                 const debugLabel = 'DigitalContactDisposition API';

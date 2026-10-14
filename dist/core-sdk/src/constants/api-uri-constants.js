@@ -30,6 +30,7 @@ ApiUriConstants.END_CONTACT_URI = '/InContactAPI/services/v23.0/agent-sessions/{
 ApiUriConstants.AGENT_STATE_URI_TS = '/InContactAPI/services/v33.0/cache/agentstate';
 ApiUriConstants.AGENT_ATTENDANT_ACD_LIST_V34 = '/InContactAPI/services/v34.0/attendant-agents';
 ApiUriConstants.AGENT_STATE_URI = '/InContactAPI/services/v27.0/cache/agentstate';
+ApiUriConstants.AGENT_STATE_URI_V34 = '/InContactAPI/services/v34.0/cache/agentstate';
 ApiUriConstants.AGENT_STATE_UNIFY_URI = '/acd-apiservices/v1/agents/states';
 ApiUriConstants.AGENT_STATE_UNIFY_URI_TS = '/acd-apiservices/v2/agents/states';
 ApiUriConstants.SKILL_ACTIVITY_URI = '/InContactAPI/services/v23.0/skills/activity';
@@ -210,5 +211,7 @@ ApiUriConstants.AGENT_LOCALPOST_API = 'http://127.0.0.1:{port}/{path}';
 ApiUriConstants.ENHANCED_CUSTOMER_CARD = '/inContactAPI/services/v33.0/enhancedcustomercard';
 //Recording Management Service
 ApiUriConstants.GET_RECORDING_STATUS = '/interaction-recording-management-service/v1/interactions/get-recording-status?userId={userId}';
+// API to get agents assigned for a skill for tenant segmentation
+ApiUriConstants.GET_SKILL_AGENTS_URI = '/acd-skills/v2/skills/agents';
 ;
 //# sourceMappingURL=api-uri-constants.js.map

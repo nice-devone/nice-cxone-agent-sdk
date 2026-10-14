@@ -12,7 +12,9 @@ export declare enum AgentProfileConfigurationSettings {
     REPORTING = "Reporting",
     CONVERSATIONS = "Conversations",
     DEFAULT_SCREEN_SIZE = "Default screen size",
-    UNASSIGN_DISMISS = "Unassign & Dismiss Assignments"
+    UNASSIGN_DISMISS = "Unassign & Dismiss Assignments",
+    DIGITAL_CLOSE_CONFIRMATION = "Show closed contact confirmation",
+    VOICE_CALL_HOLD_TIMER = "Voice Call Hold Timer Alert"
 }
 /**
  * Enum for Desktop Profile API Response (ElementID)
@@ -43,5 +45,9 @@ export declare enum DesktopProfileConfigurationSettings {
     DIRECTORY_TEAMS = "Directory_Teams",
     DIRECTORY_SKILLS = "Directory_Skills",
     DIRECTORY_STANDARD_ADDRESS_BOOK = "Directory_SAB",
-    UNASSIGN_DISMISS = "unassign&Dismiss_DigitalAssignments"
+    UNASSIGN_DISMISS = "unassign&Dismiss_DigitalAssignments",
+    DIGITAL_CLOSE_CONFIRMATION = "showClosedContactConfirmation",
+    VOICE_CALL_HOLD_TIMER = "voiceCallHoldTimer",
+    TEAM_VERSIONING_ENABLED = "teamVersioningEnabled",
+    AGENT_VERSION = "agentVersion"
 }

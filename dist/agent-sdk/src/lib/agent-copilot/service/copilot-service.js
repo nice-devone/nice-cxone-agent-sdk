@@ -43,6 +43,7 @@ export class CopilotService {
         this.AGENT_COPILOT_GET_ALL_ADAPTIVE_CARDS_SCHEMAS = this.AGENT_COPILOT_BASE_URI + 'adaptive-card/get-all-adaptive-cards';
         this.AGENT_COPILOT_GET_TASK_ASSIST_FORM_PREFILLED_DATA = '/agent-copilot/v1/contacts/{contactId}/taskassist/form-data';
         this.TASK_ASSIST_FORM_ADAPTIVE_CARD_SCHEMAS_URL = '/agent-copilot/v2/adaptive-cards/taskassist/profiles/{agentAssistId}/bots/{botName}/intents/{intentName}/cards';
+        this.DEFAULT_BOT_NAME = 'cognigyWorkflows';
         this.REFRESH_TOKENS = '/agent-copilot/v1/agent-idtoken';
         this.DECISION_TREE_BASE = `${this.AGENT_COPILOT_BASE_URI}contacts/{contactId}/decision-tree`;
         this.AGENT_COPILOT_DECISION_TREE_APIS = {
@@ -59,6 +60,7 @@ export class CopilotService {
             SUBMIT: `${this.CHECKLIST_BASE}/submit`,
             CANCEL: `${this.CHECKLIST_BASE}/cancel`,
         };
+        this.CANCEL_WORKFLOW = '/agent-copilot/v1/contacts/{contactId}/taskassist/cancel';
         /**
          * @returns base url for ACP backend
          * @example getBaseHttpRequest()
@@ -183,14 +185,12 @@ export class CopilotService {
          */
         this.healthCheck = (contactId) => {
             return new Promise((resolve, reject) => {
-                var _a;
                 const reqInit = this.getBaseHttpRequest({ 'Content-Type': 'application/json' });
                 const userInfo = CXoneUser.instance.getUserInfo();
                 const busNo = userInfo === null || userInfo === void 0 ? void 0 : userInfo.icBUId;
                 reqInit.body = Object.assign(Object.assign({}, reqInit === null || reqInit === void 0 ? void 0 : reqInit.body), { busNo });
                 if (contactId !== '') {
-                    // eslint-disable-next-line @typescript-eslint/no-unused-expressions
-                    ((_a = reqInit === null || reqInit === void 0 ? void 0 : reqInit.body) === null || _a === void 0 ? void 0 : _a.contactId) === contactId;
+                    reqInit.body.contactId = contactId;
                 }
                 const baseUrl = this.getBaseUrlForAcp();
                 const healthCheckUrl = baseUrl + this.AGENT_COPILOT_HEALTH_CHECK;
@@ -326,6 +326,29 @@ export class CopilotService {
             }
             return aahConfig;
         });
+        /**
+         * Fetches the Cognigy AI Copilot access token secret from the backend.
+         * Used by both standalone and context-based Copilot grid connections.
+         * @returns Promise resolving to an object containing the accessTokenSecret
+         * @example
+         * ```ts
+         * const { accessTokenSecret } = await copilotService.getCognigyConfig();
+         * ```
+         */
+        this.getCognigyConfig = () => {
+            return new Promise((resolve, reject) => {
+                const reqInit = this.getBaseHttpRequest({});
+                const baseUrl = this.getBaseUrlForAcp();
+                const url = `${baseUrl}/profile-hub/v1/cognigy/config`;
+                HttpClient === null || HttpClient === void 0 ? void 0 : HttpClient.get(url, reqInit).then((response) => {
+                    resolve(response.data);
+                }, (error) => {
+                    const errorResponse = new CXoneSdkError(CXoneSdkErrorType.CXONE_API_ERROR, 'Failed to fetch Cognigy config', error);
+                    this.logger.error('getCognigyConfig', errorResponse.toString());
+                    reject(errorResponse);
+                });
+            });
+        };
         /**
          * Used to get the last generated list of topics for the contact id
          * @param contactId - contact Id
@@ -764,10 +787,13 @@ export class CopilotService {
                 virtualAgentId: taskAssistConfig.virtualAgentId,
             });
             const baseUrl = this.getBaseUrlForAcp();
+            const botName = (taskAssistConfig === null || taskAssistConfig === void 0 ? void 0 : taskAssistConfig.virtualAgentId)
+                ? decodeURIComponent(taskAssistConfig.virtualAgentId)
+                : this.DEFAULT_BOT_NAME;
             const schemaUrl = baseUrl +
                 this.TASK_ASSIST_FORM_ADAPTIVE_CARD_SCHEMAS_URL.replace('{agentAssistId}', agentAssistId)
                     .replace('{intentName}', intentName)
-                    .replace('{botName}', decodeURIComponent(taskAssistConfig.virtualAgentId));
+                    .replace('{botName}', botName);
             HttpClient === null || HttpClient === void 0 ? void 0 : HttpClient.get(schemaUrl, reqInit).then((response) => {
                 const cachedSchemas = LocalStorageHelper.getItem(StorageKeys.AGENT_COPILOT_ADAPTIVE_CARD_SCHEMAS, true);
                 const matchedIntentConfig = taskAssistConfig.intentConfig.find((intent) => intent.intentName === intentName);
@@ -1348,6 +1374,31 @@ export class CopilotService {
             }, (error) => {
                 const errorResponse = new CXoneSdkError(CXoneSdkErrorType.CXONE_API_ERROR, 'Failed to close checklist', error);
                 this.logger.error('closeChecklist', errorResponse.toString());
+                reject(errorResponse);
+            });
+        });
+    }
+    /**
+     * Cancels an active workflow session.
+     *
+     * @param contactId - The contact/case ID associated with the active interaction.
+     * @param taskSessionUid - The task session UID of the workflow being cancelled.
+     * @returns Promise that resolves when the cancellation is acknowledged.
+     * @example
+     * ```ts
+     * await copilotService.cancelWorkflow('contact-123', 'task-session-456');
+     * ```
+     */
+    cancelWorkflow(contactId, taskSessionUid) {
+        return new Promise((resolve, reject) => {
+            const baseUrl = this.getBaseUrlForAcp();
+            const cancelUrl = baseUrl + this.CANCEL_WORKFLOW.replace('{contactId}', contactId);
+            const reqInit = this.getBaseHttpRequest({ contactId, taskSessionUid });
+            HttpClient === null || HttpClient === void 0 ? void 0 : HttpClient.post(cancelUrl, reqInit).then(() => {
+                resolve();
+            }, (error) => {
+                const errorResponse = new CXoneSdkError(CXoneSdkErrorType.CXONE_API_ERROR, 'Failed to cancel workflow', error);
+                this.logger.error('cancelWorkflow', errorResponse.toString());
                 reject(errorResponse);
             });
         });

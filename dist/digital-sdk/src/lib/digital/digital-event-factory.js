@@ -2,7 +2,7 @@ import { __awaiter } from "tslib";
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { Subject } from 'rxjs';
 import { CcfLogger } from '@nice-devone/agent-sdk';
-import { CaseStatusChangedDeltaEvent, CXoneDigitalEventType, CXoneSdkError, CXoneSdkErrorType, MessageAddedIntoCaseDeltaEvent } from '@nice-devone/common-sdk';
+import { CaseStatusChangedDeltaEvent, CXoneDigitalEventType, CXoneSdkError, CXoneSdkErrorType, MessageAddedIntoCaseDeltaEvent, MessagePreviewDeltaEvent, SenderTypingDeltaEvent } from '@nice-devone/common-sdk';
 import { CXoneDigitalUtil } from './util/cxone-digital-util';
 /**
  * DigitalEventFactory - Singleton factory for parsing and publishing delta events.
@@ -79,6 +79,13 @@ export class DigitalEventFactory {
                     case CXoneDigitalEventType.MESSAGE_ADDED_INTO_CASE:
                         parsedAndValidatedData = new MessageAddedIntoCaseDeltaEvent(eventData);
                         asyncExecutionHandler && (yield asyncExecutionHandler(parsedAndValidatedData));
+                        break;
+                    case CXoneDigitalEventType.SENDER_TYPING_START:
+                    case CXoneDigitalEventType.SENDER_TYPING_END:
+                        parsedAndValidatedData = new SenderTypingDeltaEvent(eventData);
+                        break;
+                    case CXoneDigitalEventType.MESSAGE_PREVIEW:
+                        parsedAndValidatedData = new MessagePreviewDeltaEvent(eventData);
                         break;
                     default:
                         throw new Error(`Unknown Delta eventType: ${eventType}`);

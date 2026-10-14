@@ -56,6 +56,10 @@ export declare class AgentStateResponse extends CXoneEvent {
        */
     outStateDescription: string;
     /**
+       * @remarks  Name of Unavailable state from updated agent-state API
+       */
+    unavailableStateName: string;
+    /**
        * @remarks  ID of Skill Agent is working on
        */
     skillId: string;
@@ -99,6 +103,10 @@ export declare class AgentStateResponse extends CXoneEvent {
          * @remarks  Represents whether agent is Attendant user or not
          */
     isAttendantUser: boolean;
+    /**
+       * @remarks  Email address of Agent
+       */
+    email: string | null;
     /**
        * This method to parse agent state response
        * @param data - agent state object

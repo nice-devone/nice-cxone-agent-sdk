@@ -28,6 +28,7 @@ export declare class ApiUriConstants {
     static AGENT_STATE_URI_TS: string;
     static AGENT_ATTENDANT_ACD_LIST_V34: string;
     static AGENT_STATE_URI: string;
+    static AGENT_STATE_URI_V34: string;
     static AGENT_STATE_UNIFY_URI: string;
     static AGENT_STATE_UNIFY_URI_TS: string;
     static SKILL_ACTIVITY_URI: string;
@@ -169,4 +170,5 @@ export declare class ApiUriConstants {
     static AGENT_LOCALPOST_API: string;
     static ENHANCED_CUSTOMER_CARD: string;
     static GET_RECORDING_STATUS: string;
+    static GET_SKILL_AGENTS_URI: string;
 }

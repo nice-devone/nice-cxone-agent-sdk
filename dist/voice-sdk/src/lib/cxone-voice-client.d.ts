@@ -1,5 +1,6 @@
 import { AgentLegEvent } from '@nice-devone/common-sdk';
 import { Subject } from 'rxjs';
+import { AudioDeviceChangeEvent } from './model/audio-device-change-event';
 import { CXoneVoiceCall } from './model/cxone-voice-call';
 import { CXoneVoiceConnection } from './model/cxone-voice-connection';
 import { CXoneVoiceConnectionOptions } from './model/cxone-voice-connection-options';
@@ -14,6 +15,7 @@ export declare class CXoneVoiceClient {
     private static singleton;
     onConnectionStatusChanged: Subject<CXoneVoiceConnection>;
     onCallStatusChanged: Subject<CXoneVoiceCall>;
+    onAudioDeviceChange: Subject<AudioDeviceChangeEvent>;
     /**
      * Constructor for Voice Client
      * @example
@@ -99,4 +101,40 @@ export declare class CXoneVoiceClient {
      * ```
      */
     triggerAutoAccept(agentLegId: string): void;
+    /**
+     * Replaces the active audio input track on the live RTP sender during mid-call audio device failover.
+     * @param newTrack - the new MediaStreamTrack for the microphone input
+     * @example
+     * ```
+     * voiceClient.replaceTrack(newTrack);
+     * ```
+     */
+    replaceTrack(newTrack: MediaStreamTrack): Promise<void>;
+    /**
+     * Sets the audio output device on the audio element during mid-call audio device failover
+     * @param deviceId - the deviceId of the target audio output device
+     * @example
+     * ```
+     * voiceClient.setSinkId('device-id');
+     * ```
+     */
+    setSinkId(deviceId: string): Promise<void>;
+    /**
+     * Returns the active audio input track label from the current sender to seed the known active device on call connect.
+     * @returns the track label string, or null if unavailable
+     * @example
+     * ```
+     * voiceClient.getActiveAudioTrackLabel();
+     * ```
+     */
+    getActiveAudioTrackLabel(): string | null;
+    /**
+     * Emits the processed audio device change event to all {@link onAudioDeviceChange} subscribers.
+     * @param event - the {@link AudioDeviceChangeEvent} payload to emit
+     * @example
+     * ```
+     * voiceClient.emitAudioDeviceChange(event);
+     * ```
+     */
+    emitAudioDeviceChange(event: AudioDeviceChangeEvent): void;
 }

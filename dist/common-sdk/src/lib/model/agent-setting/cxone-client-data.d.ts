@@ -90,6 +90,15 @@ export declare class CXoneClientData {
      */
     cxaFavStandAddBook?: number[];
     /**
+     * @remarks - Quick app sequence
+     * Can be ultra-compressed string (Phase 2), compressed object (Phase 1), or legacy object
+     */
+    quickAppSequence?: string | object;
+    /**
+     * @remarks - Pinned menu item name
+     */
+    pinnedMenuItem?: string;
+    /**
      * The parse method will take the data object and assign the values to the CXoneClientData class properties
      * @param data - Data object received
      * @example -
@@ -118,9 +127,7 @@ export declare class CXoneClientData {
      */
     mapper(currentClientDataObj: any, data: CXoneClientData): {
         softPhoneVolume: any;
-        CXASecondaryDevice: any; /**
-         * @remarks - Favorite Skill Activity
-         **/
+        CXASecondaryDevice: any;
         CXASecondaryDeviceName: any;
         CXARingtone: any;
         SecondaryDeviceDelay: any;
@@ -148,6 +155,8 @@ export declare class CXoneClientData {
         CXAFavInQuickRep: any;
         CXAFavOutQuickRep: any;
         emailMessageSortOrder: any;
+        quickAppSequence: any;
+        pinnedMenuItem: any;
         CXAFavTeams: any;
         CXAFavStandAddBook: any;
         CXAFavExtDirectory: any;
@@ -166,9 +175,7 @@ export declare class CXoneClientData {
     mapperIncludingSearchAppSettings(currentClientDataObj: Record<string, unknown>, data: CXoneClientData): {
         CxaSearchAppSettings: unknown;
         softPhoneVolume: any;
-        CXASecondaryDevice: any; /**
-         * @remarks - Favorite Skill Activity
-         **/
+        CXASecondaryDevice: any;
         CXASecondaryDeviceName: any;
         CXARingtone: any;
         SecondaryDeviceDelay: any;
@@ -196,6 +203,8 @@ export declare class CXoneClientData {
         CXAFavInQuickRep: any;
         CXAFavOutQuickRep: any;
         emailMessageSortOrder: any;
+        quickAppSequence: any;
+        pinnedMenuItem: any;
         CXAFavTeams: any;
         CXAFavStandAddBook: any;
         CXAFavExtDirectory: any;

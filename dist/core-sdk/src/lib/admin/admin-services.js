@@ -87,6 +87,20 @@ export class AdminService {
         return AdminService.singleton;
     }
     /**
+     * Extracts only the favorites-related keys (prefixed with `CXAFav`) from a client-data JSON string.
+     * @param clientDataJson - Raw JSON string representing the full client data object.
+     * @returns An object containing only the `CXAFav*` key/value pairs, or an empty object when none exist.
+     */
+    extractFavoritesForLogging(clientDataJson) {
+        try {
+            const parsed = JSON.parse(clientDataJson !== null && clientDataJson !== void 0 ? clientDataJson : '{}');
+            return Object.fromEntries(Object.entries(parsed).filter(([key]) => key.startsWith('CXAFav')));
+        }
+        catch (_a) {
+            return {};
+        }
+    }
+    /**
    * Retrieves the list of permissions for the current agent.
    * @param forceFetch - When `true`, bypasses all caches and forces a new API call. Defaults to `false`.
    * @returns A promise resolving to the agent's {@link Permissions} array.
@@ -160,49 +174,71 @@ export class AdminService {
             let isCxssVersionServiceToggleEnabled = false;
             isCxssVersionServiceToggleEnabled = FeatureToggleService.instance.getFeatureToggleSync("release-cx-agent-cxss-versioning-api-AW-37635" /* FeatureToggles.GET_VERSION_FROM_CXSS_VERSIONING_API */);
             const isTenantSegmentationEnabled = FeatureToggleService.instance.getFeatureToggleSync("release-cxa-tenant-segmentation-AW-28101" /* FeatureToggles.TENANT_SEGMENTATION */);
+            const getGrafanaSampleRateFromSetting = FeatureToggleService.instance.getFeatureToggleSync("release-cxa-sample-rate-grafana-AW-50991" /* FeatureToggles.GRAFANA_SAMPLE_RATE_TOGGLE */);
             if (!agentSettingFromStorage) {
                 const reqInit = this.utilService.initHeader(this.accessToken, 'application/json');
                 // Dev Note : Till monolith dependency is not removed, this logic should not be changed.
                 // variable 'getAgentSettingsVersionServiceUri' to be used for Versioning Service usage, and variable 'getAgentSettingsUri' for direct Monolith usage
-                const agentSettingAPIURL = (isCxssVersionServiceToggleEnabled || isTenantSegmentationEnabled) ? AdminApis.getAgentSettingsVersionServiceUri : AdminApis.getAgentSettingsUri;
+                let agentSettingAPIURL = AdminApis.getAgentSettingsUri;
+                if (getGrafanaSampleRateFromSetting)
+                    agentSettingAPIURL = AdminApis.getAgentSettingsV34Uri;
+                else if (isTenantSegmentationEnabled)
+                    agentSettingAPIURL = AdminApis.getAgentSettingsV33Uri;
                 const permissionUrl = this.cxOneConfig.acdApiBaseUri +
                     agentSettingAPIURL.replace('{agentId}', this.userInfo.icAgentId);
                 HttpClient.get(permissionUrl, reqInit).then((resp) => __awaiter(this, void 0, void 0, function* () {
-                    var _a;
+                    var _a, _b, _c;
                     this.logger.info('getAgentSettings', 'Get Agent settings Success');
                     const agentSettings = this.apiParser.parseAgentSettings(resp);
-                    if (isCxssVersionServiceToggleEnabled && (agentSettings === null || agentSettings === void 0 ? void 0 : agentSettings.selectedCxaVersion) !== undefined) {
+                    if (isCxssVersionServiceToggleEnabled) {
                         try {
-                            const cxoneConfig = LocalStorageHelper.getItem(StorageKeys.CXONE_CONFIG, true) || {};
-                            let finalVersion = '';
-                            switch ((_a = agentSettings === null || agentSettings === void 0 ? void 0 : agentSettings.selectedCxaVersion) === null || _a === void 0 ? void 0 : _a.toString()) {
-                                case '0':
-                                    finalVersion = CXoneVersionMapping.PREVIOUS;
-                                    break;
-                                case '1':
-                                    finalVersion = CXoneVersionMapping.CURRENT;
-                                    break;
-                                case '2':
-                                    finalVersion = CXoneVersionMapping.DEV;
-                                    break;
-                                default:
-                                    finalVersion = CXoneVersionMapping.CURRENT;
-                            }
-                            const versioningAPIURL = this.cxOneConfig.apiFacadeBaseUri +
-                                AdminApis.getAgentVersionUri.replace('{clusterId}', cxoneConfig.cluster).replace('{versionName}', finalVersion);
-                            const reqInit = this.utilService.initHeader(this.accessToken, 'application/json');
+                            let versionName = '';
                             try {
-                                const response = yield HttpClient.get(versioningAPIURL, reqInit);
-                                const appConfig = response.data.appUrl;
-                                agentSettings.cxaClientVersion = appConfig === null || appConfig === void 0 ? void 0 : appConfig.url;
-                                LocalStorageHelper.setItem(StorageKeys.AGENT_SETTINGS, agentSettings);
+                                const profileResponse = yield this.getAgentProfileDetails();
+                                // teamVersioningEnabled is only returned when true; absent means team versioning is not enabled
+                                if ((profileResponse === null || profileResponse === void 0 ? void 0 : profileResponse.teamVersioningEnabled) && (profileResponse === null || profileResponse === void 0 ? void 0 : profileResponse.agentVersion)) {
+                                    const versionStr = profileResponse.agentVersion;
+                                    if (versionStr !== 'default' && versionStr !== 'disabled') {
+                                        switch (versionStr) {
+                                            case 'previous':
+                                                versionName = CXoneVersionMapping.PREVIOUS;
+                                                break;
+                                            case 'current':
+                                                versionName = CXoneVersionMapping.CURRENT;
+                                                break;
+                                            case 'dev':
+                                                versionName = CXoneVersionMapping.DEV;
+                                                break;
+                                            default:
+                                                versionName = CXoneVersionMapping.CURRENT;
+                                        }
+                                    }
+                                }
                             }
-                            catch (innerError) {
-                                this.logger.error('Error processing versioning API response', JSON.stringify(innerError));
+                            catch (profileError) {
+                                // No Desktop Profile assigned (API returns 200 with no agentProfileId): still resolve the tenant
+                                // default hash via CXSS with an empty versionName. Any other failure rethrows to the outer catch,
+                                // preserving the raw cxaClientVersion fallback.
+                                if ((profileError === null || profileError === void 0 ? void 0 : profileError.errorType) !== CXoneSdkErrorType.NO_DATA_FOUND) {
+                                    throw profileError;
+                                }
+                                this.logger.info('getAgentSettings', 'No Desktop Profile assigned; resolving tenant default version from CXSS.');
+                            }
+                            const cxoneConfig = LocalStorageHelper.getItem(StorageKeys.CXONE_CONFIG, true) || {};
+                            // tenantId and versionName are optional; their segments are stripped from the URL when not present
+                            const versioningUrl = this.cxOneConfig.apiFacadeBaseUri + AdminApis.getAgentVersionUri
+                                .replace('{clusterId}', cxoneConfig.cluster)
+                                .replace('&tenantId={tenantId}', ((_a = this.userInfo) === null || _a === void 0 ? void 0 : _a.tenantId) ? '&tenantId=' + this.userInfo.tenantId : '')
+                                .replace('&versionName={versionName}', versionName ? '&versionName=' + versionName : '');
+                            const versionReqInit = this.utilService.initHeader(this.accessToken, 'application/json');
+                            const versionResponse = yield HttpClient.get(versioningUrl, versionReqInit);
+                            const resolvedHash = (_c = (_b = versionResponse === null || versionResponse === void 0 ? void 0 : versionResponse.data) === null || _b === void 0 ? void 0 : _b.appUrl) === null || _c === void 0 ? void 0 : _c.url;
+                            if (resolvedHash) {
+                                agentSettings.cxaClientVersion = resolvedHash;
                             }
                         }
                         catch (error) {
-                            this.logger.error('Error in versioning API call block', JSON.stringify(error));
+                            this.logger.error('getAgentSettings', 'Desktop Profile + CXSS version resolution failed: ' + ((error === null || error === void 0 ? void 0 : error.message) || String(error)));
                         }
                     }
                     LocalStorageHelper.setItem(StorageKeys.AGENT_SETTINGS, agentSettings);
@@ -307,10 +343,11 @@ export class AdminService {
                 const url = this.cxOneConfig.acdApiBaseUri +
                     AdminApis.getClientDataUri.replace('{agentId}', this.userInfo.icAgentId);
                 HttpClient.get(url, reqInit).then((resp) => {
-                    var _a, _b, _c, _d;
+                    var _a, _b, _c, _d, _e;
                     this.logger.info('getClientData', 'Get Client Data Success');
-                    LocalStorageHelper.setItem(StorageKeys.CLIENT_DATA, (_b = (_a = resp === null || resp === void 0 ? void 0 : resp.data) === null || _a === void 0 ? void 0 : _a.Data) !== null && _b !== void 0 ? _b : '{}');
-                    resolve(JSON.parse((_d = (_c = resp === null || resp === void 0 ? void 0 : resp.data) === null || _c === void 0 ? void 0 : _c.Data) !== null && _d !== void 0 ? _d : '{}'));
+                    this.logger.trace('getClientData', 'Get Client Data Success: ' + JSON.stringify(this.extractFavoritesForLogging((_a = resp === null || resp === void 0 ? void 0 : resp.data) === null || _a === void 0 ? void 0 : _a.Data)));
+                    LocalStorageHelper.setItem(StorageKeys.CLIENT_DATA, (_c = (_b = resp === null || resp === void 0 ? void 0 : resp.data) === null || _b === void 0 ? void 0 : _b.Data) !== null && _c !== void 0 ? _c : '{}');
+                    resolve(JSON.parse((_e = (_d = resp === null || resp === void 0 ? void 0 : resp.data) === null || _d === void 0 ? void 0 : _d.Data) !== null && _e !== void 0 ? _e : '{}'));
                 }, (err) => {
                     var _a;
                     this.logger.error('getClientData', 'Get Client Data Failed' + JSON.stringify(err));
@@ -319,6 +356,7 @@ export class AdminService {
             }
             else {
                 this.logger.info('getClientData', 'Get Client data from storage');
+                this.logger.trace('getClientData', 'Get Client data from storage: ' + JSON.stringify(this.extractFavoritesForLogging(clientDataFromStorage)));
                 // eslint-disable-next-line @nice-cxone/ccf/required-tsdoc
                 const parseClientDataFromStorage = () => {
                     let parsedClientDataFromStorage = '';
@@ -358,6 +396,7 @@ export class AdminService {
                     body: data,
                 };
                 HttpClient.put(url, reqInit).then(() => {
+                    this.logger.trace('putClientData', 'Put Client Data Success: ' + JSON.stringify(this.extractFavoritesForLogging(dataSet)));
                     this.logger.info('putClientData', 'Put Client Data Success');
                     LocalStorageHelper.setItem(StorageKeys.CLIENT_DATA, dataSet);
                     resolve(dataSet);

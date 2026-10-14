@@ -72,7 +72,13 @@ export class DigitalContactManager {
             CXoneDigitalEventType.MESSAGE_ADDED_INTO_CASE,
             CXoneDigitalEventType.CASE_STATUS_CHANGED
         ]);
-        this.deltaEvents = [CXoneDigitalEventType.CASE_STATUS_CHANGED, CXoneDigitalEventType.MESSAGE_ADDED_INTO_CASE];
+        this.deltaEvents = [
+            CXoneDigitalEventType.CASE_STATUS_CHANGED,
+            CXoneDigitalEventType.MESSAGE_ADDED_INTO_CASE,
+            CXoneDigitalEventType.SENDER_TYPING_START,
+            CXoneDigitalEventType.SENDER_TYPING_END,
+            CXoneDigitalEventType.MESSAGE_PREVIEW
+        ];
         // Checks if delta event publishing is enabled and the event type is a delta event
         this.isDeltaEventApplicable = (eventType) => this.isDigitalEventDeltaPublishingEnabled && this.deltaEvents.includes(eventType);
         /**
@@ -524,19 +530,21 @@ export class DigitalContactManager {
      * ```
      */
     digitalWebsocketMessageHandler() {
-        var _a, _b;
+        var _a, _b, _c;
         let currentContact;
         this.currentUserId = (_a = CXoneUser.instance.getUserInfo()) === null || _a === void 0 ? void 0 : _a.userId;
         const isConversationsFTEnabled = FeatureToggleService.instance.getFeatureToggleSync("release-agent-chat-AW-30672" /* FeatureToggles.AGENT_CHAT_FEATURE_TOGGLE */);
-        (_b = this.digitalWebsocket.onMessageReceived) === null || _b === void 0 ? void 0 : _b.subscribe((eventData) => __awaiter(this, void 0, void 0, function* () {
-            var _c, _d, _e, _f, _g, _h, _j, _k, _l, _m, _o, _p, _q, _r, _s, _t, _u, _v;
+        (_b = this.messageHandlerSubscription) === null || _b === void 0 ? void 0 : _b.unsubscribe();
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        this.messageHandlerSubscription = (_c = this.digitalWebsocket.onMessageReceived) === null || _c === void 0 ? void 0 : _c.subscribe((eventData) => __awaiter(this, void 0, void 0, function* () {
+            var _d, _e, _f, _g, _h, _j, _k, _l, _m, _o, _p, _q, _r, _s, _t, _u, _v, _w;
             let eventTypeToPublish;
             if ((eventData === null || eventData === void 0 ? void 0 : eventData.eventType) === CXoneDigitalEventType.CASE_INBOX_ASSIGNEE_CHANGED) {
-                if (((_d = (_c = eventData === null || eventData === void 0 ? void 0 : eventData.data) === null || _c === void 0 ? void 0 : _c.inboxAssignee) === null || _d === void 0 ? void 0 : _d.incontactId) !== this.currentUserId ||
-                    !((_e = eventData === null || eventData === void 0 ? void 0 : eventData.data) === null || _e === void 0 ? void 0 : _e.inboxAssignee)) {
+                if (((_e = (_d = eventData === null || eventData === void 0 ? void 0 : eventData.data) === null || _d === void 0 ? void 0 : _d.inboxAssignee) === null || _e === void 0 ? void 0 : _e.incontactId) !== this.currentUserId ||
+                    !((_f = eventData === null || eventData === void 0 ? void 0 : eventData.data) === null || _f === void 0 ? void 0 : _f.inboxAssignee)) {
                     eventTypeToPublish = CXoneDigitalEventType.CASE_INBOX_UNASSIGNED; //when case is transferred to some other agent or is unassigned
                 }
-                else if (((_f = eventData === null || eventData === void 0 ? void 0 : eventData.data) === null || _f === void 0 ? void 0 : _f.inboxAssignee) && ((_h = (_g = eventData === null || eventData === void 0 ? void 0 : eventData.data) === null || _g === void 0 ? void 0 : _g.inboxAssignee) === null || _h === void 0 ? void 0 : _h.incontactId) === this.currentUserId) {
+                else if (((_g = eventData === null || eventData === void 0 ? void 0 : eventData.data) === null || _g === void 0 ? void 0 : _g.inboxAssignee) && ((_j = (_h = eventData === null || eventData === void 0 ? void 0 : eventData.data) === null || _h === void 0 ? void 0 : _h.inboxAssignee) === null || _j === void 0 ? void 0 : _j.incontactId) === this.currentUserId) {
                     eventTypeToPublish = CXoneDigitalEventType.CASE_INBOX_ASSIGNED;
                 }
             }
@@ -552,14 +560,14 @@ export class DigitalContactManager {
                 CXoneDigitalEventType.MESSAGE_DELIVERY_STATUS_CHANGED
             ];
             if (eventDetailsToPublish.eventType === CXoneDigitalEventType.CASE_INBOX_ASSIGNED) {
-                this.getDigitalContactDetails((_k = (_j = eventData.data) === null || _j === void 0 ? void 0 : _j.case) === null || _k === void 0 ? void 0 : _k.id, eventDetailsToPublish);
+                this.getDigitalContactDetails((_l = (_k = eventData.data) === null || _k === void 0 ? void 0 : _k.case) === null || _l === void 0 ? void 0 : _l.id, eventDetailsToPublish);
             }
             else if (relevantEventTypes.includes(eventDetailsToPublish.eventType)) {
                 this.checkSchemaAndPublishForMessage(currentContact, eventData);
             }
             else if (eventDetailsToPublish.eventType === CXoneDigitalEventType.MESSAGE_UPDATED) {
                 // this condition is to detect if there are changes in tags key in message array
-                if (((_o = (_m = (_l = eventData === null || eventData === void 0 ? void 0 : eventData.data) === null || _l === void 0 ? void 0 : _l.message) === null || _m === void 0 ? void 0 : _m._changes[0]) === null || _o === void 0 ? void 0 : _o.fieldName) === 'tags') {
+                if (((_p = (_o = (_m = eventData === null || eventData === void 0 ? void 0 : eventData.data) === null || _m === void 0 ? void 0 : _m.message) === null || _o === void 0 ? void 0 : _o._changes[0]) === null || _p === void 0 ? void 0 : _p.fieldName) === 'tags') {
                     this.checkSchemaAndPublishForMessage(currentContact, eventData);
                     //this condition is to handle all changes other than tags for messageupdated event where we don't need to publish any contact object
                 }
@@ -567,22 +575,25 @@ export class DigitalContactManager {
                     return;
                 }
             }
-            else if (isConversationsFTEnabled && eventDetailsToPublish.eventType === CXoneDigitalEventType.MESSAGE_CREATED && ((_q = (_p = eventData === null || eventData === void 0 ? void 0 : eventData.data) === null || _p === void 0 ? void 0 : _p.channel) === null || _q === void 0 ? void 0 : _q.hasAgentsAsRecipients)) {
-                this.onAgentHiveEvent.next({ eventType: eventDetailsToPublish.eventType, message: (_r = eventData === null || eventData === void 0 ? void 0 : eventData.data) === null || _r === void 0 ? void 0 : _r.message });
+            else if (isConversationsFTEnabled && eventDetailsToPublish.eventType === CXoneDigitalEventType.MESSAGE_CREATED && ((_r = (_q = eventData === null || eventData === void 0 ? void 0 : eventData.data) === null || _q === void 0 ? void 0 : _q.channel) === null || _r === void 0 ? void 0 : _r.hasAgentsAsRecipients)) {
+                this.onAgentHiveEvent.next({ eventType: eventDetailsToPublish.eventType, message: (_s = eventData === null || eventData === void 0 ? void 0 : eventData.data) === null || _s === void 0 ? void 0 : _s.message });
             }
             else if (this.isDeltaEventApplicable(eventDetailsToPublish.eventType)) {
                 //This condition handles all delta events when the delta event publishing FT is enabled. In this case, the traditional flow will not be executed, since execution is terminated at this else if block.
                 try {
+                    const asyncHandler = eventDetailsToPublish.eventType === CXoneDigitalEventType.MESSAGE_ADDED_INTO_CASE
+                        ? this.hydrateAndPublishAdditionalData
+                        : undefined;
                     if (this.isWSAPIIntegrationRevampToggleEnabled) {
-                        if (this.getTraceIdFromEventSyncDictionary(eventDetailsToPublish.eventType, (_t = (_s = eventData.data) === null || _s === void 0 ? void 0 : _s.case) === null || _t === void 0 ? void 0 : _t.id) !== eventDetailsToPublish.traceId) {
-                            yield DigitalEventFactory.instance.parseAndPublishDeltaEvent(eventData, this.hydrateAndPublishAdditionalData);
+                        if (this.getTraceIdFromEventSyncDictionary(eventDetailsToPublish.eventType, (_u = (_t = eventData.data) === null || _t === void 0 ? void 0 : _t.case) === null || _u === void 0 ? void 0 : _u.id) !== eventDetailsToPublish.traceId) {
+                            yield DigitalEventFactory.instance.parseAndPublishDeltaEvent(eventData, asyncHandler);
                             if (eventDetailsToPublish.traceId && this.isSyncDictionaryUpdateRequired(eventDetailsToPublish.eventType, eventDetailsToPublish.traceId)) {
-                                this.updateDESyncDictionary((_v = (_u = eventData.data) === null || _u === void 0 ? void 0 : _u.case) === null || _v === void 0 ? void 0 : _v.id, eventDetailsToPublish.eventType, eventDetailsToPublish.traceId);
+                                this.updateDESyncDictionary((_w = (_v = eventData.data) === null || _v === void 0 ? void 0 : _v.case) === null || _w === void 0 ? void 0 : _w.id, eventDetailsToPublish.eventType, eventDetailsToPublish.traceId);
                             }
                         }
                     }
                     else {
-                        yield DigitalEventFactory.instance.parseAndPublishDeltaEvent(eventData, this.hydrateAndPublishAdditionalData);
+                        yield DigitalEventFactory.instance.parseAndPublishDeltaEvent(eventData, asyncHandler);
                     }
                 }
                 catch (error) {
