@@ -35,7 +35,7 @@
 - `[Added]`: Added & Modified schemas and HTTP client to support delay and abort of API invocations during digital contact switch
 - `[Added]`: Modified schemas to include delta event models for WebSocket event delta publishing for digital contacts
 
-## 26.3.0 - 2026-09-29 ##
+## 26.3.0 - 2026-10-14 ##
 
 - `[Updated]`: Updated storage keys enum to add a key for persisting the Digital channel response area splitter position
 - `[Added]`: Added draft contact model and updated reply request schema to support outbound draft contact creation
