@@ -38,6 +38,6 @@
 - `[Updated]`: Updated Copilot base API routes from `/agentcopilotapi` to `/agent-copilot`
 
 
-## 26.3.0 - 2026-09-29 ##
+## 26.3.0 - 2026-10-14 ##
 
 - `[Updated]`: Updated agent SDK services with delay and abort mechanisms for API calls during digital contact switch
