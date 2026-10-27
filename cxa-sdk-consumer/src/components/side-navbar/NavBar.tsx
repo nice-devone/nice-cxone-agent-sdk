@@ -44,6 +44,8 @@ import DigitalSdk from "../digital-sdk/DigitalSdk";
 import Auth from "../auth/Auth";
 import AuthCallBack from "../auth/AuthCallback";
 import { CXoneAcdClient } from "@nice-devone/acd-sdk";
+import { AuthStatus, CXoneAuth } from "@nice-devone/auth-sdk";
+import { initSdkEngagement } from "../../utils/initEngagement";
 import { CXoneClient } from "@nice-devone/agent-sdk";
 import { LocalStorageHelper, Logger, StorageKeys } from '@nice-devone/core-sdk';
 import LockOpenIcon from "@mui/icons-material/LockOpen";
@@ -225,6 +227,22 @@ export default function NavBar() {
   };
 
   let tabNamesArray = ["Authentication","ACD SDK","Digital SDK","CXA Widget","Logout"];
+
+  // Initialise ACD and Digital engagement as soon as login succeeds, as the CMA landing page does,
+  // instead of waiting for the ACD or Digital page. Why: this starts the UI_QUEUE_WS tenant check (and
+  // leader election) early, so the tenant data is cached and isUIQueueEnabled is set before the ACD page
+  // joins the session. Without it the first login fell back to get-next polling and UIQ only connected
+  // after a refresh. See utils/initEngagement.ts.
+  useEffect(() => {
+    const subscription = CXoneAuth.instance.onAuthStatusChange.subscribe((data) => {
+      if (data.status === AuthStatus.AUTHENTICATED) {
+        initSdkEngagement().catch(() => {
+          logger.error("initSdkEngagement failed", '');
+        });
+      }
+    });
+    return () => subscription.unsubscribe();
+  }, []);
  
 
   useEffect(() => {

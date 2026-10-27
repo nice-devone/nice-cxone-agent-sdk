@@ -50,6 +50,7 @@ import DirectoryAndAddressBook from "./directory-address-book/DirectoryAndAddres
 import { UserInfo } from "@nice-devone/common-sdk";
 import { useLocation } from "react-router-dom";
 import { tryCatchWrapper } from "../../utils/tryCatchWrapper";
+import { initSdkEngagement } from "../../utils/initEngagement";
 import { CcfMessageType } from '@nice-devone/shared-apps-lib';
 import PlayArrowIcon from "@mui/icons-material/PlayArrow";
 import StopIcon from "@mui/icons-material/Stop";
@@ -99,7 +100,8 @@ const AcdSdk = () => {
 
   useEffect(() => {
     logger.info("initAcdEngagement", '');
-    CXoneAcdClient.instance.initAcdEngagement().finally(() => {
+    // Shared one-time init (started after login, like CMA). See utils/initEngagement.ts.
+    initSdkEngagement().finally(() => {
       logger.info("initAcdEngagement complete", '');
       setInitEngagement(true);
 
