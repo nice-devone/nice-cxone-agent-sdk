@@ -291,6 +291,7 @@ const AcdSdk = () => {
         (queues: any) => {
         }
       );
+    const oidc_config = LocalStorageHelper.getItem(StorageKeys.OIDC_CONFIG,true)
 
       // Subscribe only once — re-subscribing on re-render would duplicate handlers.
       CXoneAcdClient.instance.session.onAgentSessionChange.subscribe(
@@ -311,6 +312,9 @@ const AcdSdk = () => {
               setVoiceConnectionState(null);
               setVoiceCallState(null);
               setStartSessionButton(false);
+              CXoneClient.instance.clearCache();
+              const logoutUri = `${oidc_config.endSessionEndpoint}?post_logout_redirect_uri=${window.location.origin}/logout-callback`;
+              window.location.href = logoutUri;
               break;
             }
             case AgentSessionStatus.JOIN_SESSION_FAILURE:
@@ -433,9 +437,7 @@ const AcdSdk = () => {
         startSessiononCall();
       });
 
-    CXoneAcdClient.instance.session.onAgentSessionChange.next({
-      status: AgentSessionStatus.SESSION_END,
-    });
+
   };
 
   initMethodsRef.current = initMethods;

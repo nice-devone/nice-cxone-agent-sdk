@@ -44,7 +44,8 @@ import DigitalSdk from "../digital-sdk/DigitalSdk";
 import Auth from "../auth/Auth";
 import AuthCallBack from "../auth/AuthCallback";
 import { CXoneAcdClient } from "@nice-devone/acd-sdk";
-import { Logger } from '@nice-devone/core-sdk';
+import { CXoneClient } from "@nice-devone/agent-sdk";
+import { LocalStorageHelper, Logger, StorageKeys } from '@nice-devone/core-sdk';
 import LockOpenIcon from "@mui/icons-material/LockOpen";
 import HeadsetMicIcon from "@mui/icons-material/HeadsetMic";
 import ChatIcon from "@mui/icons-material/Chat";
@@ -198,18 +199,28 @@ export default function NavBar() {
     if (index === 2) navigate("/digital-sdk");
     if (index === 3) navigate("/cxa-placeholder");
     if (index === 4) {
-
-     CXoneAcdClient.instance.session
-     .endSession({
-      forceLogoff: false,
-      endContacts: true,
-      ignorePersonalQueue: true,
-    }).catch((err: any) => {
-       logger.error("endSession", '');
-     });
-     localStorage.clear();
-     setDisableTab(true);
-     window.location.href = "/";
+      setDisableTab(true);
+      try {
+        // Optional chaining: session is an empty {} if the agent never joined an ACD session.
+        await CXoneAcdClient.instance.session?.endSession?.({
+          forceLogoff: false,
+          endContacts: true,
+          ignorePersonalQueue: true,
+        });
+      } catch (err: any) {
+        logger.error("endSession failed", '');
+      }
+      // Read the OIDC config before clearCache(), which can wipe it from storage.
+      const oidc_config = LocalStorageHelper.getItem(StorageKeys.OIDC_CONFIG, true);
+      CXoneClient.instance.clearCache();
+      if (oidc_config?.endSessionEndpoint) {
+        const logoutUri = `${oidc_config.endSessionEndpoint}?post_logout_redirect_uri=${window.location.origin}/logout-callback`;
+        window.location.href = logoutUri;
+      } else {
+        // Access-token flow has no OIDC config, so there is no IdP session to end.
+        localStorage.clear();
+        window.location.href = "/";
+      }
     }
   };
 
