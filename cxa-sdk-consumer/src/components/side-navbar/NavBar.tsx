@@ -44,7 +44,10 @@ import DigitalSdk from "../digital-sdk/DigitalSdk";
 import Auth from "../auth/Auth";
 import AuthCallBack from "../auth/AuthCallback";
 import { CXoneAcdClient } from "@nice-devone/acd-sdk";
-import { Logger } from '@nice-devone/core-sdk';
+import { AuthStatus, CXoneAuth } from "@nice-devone/auth-sdk";
+import { initSdkEngagement } from "../../utils/initEngagement";
+import { CXoneClient } from "@nice-devone/agent-sdk";
+import { LocalStorageHelper, Logger, StorageKeys } from '@nice-devone/core-sdk';
 import LockOpenIcon from "@mui/icons-material/LockOpen";
 import HeadsetMicIcon from "@mui/icons-material/HeadsetMic";
 import ChatIcon from "@mui/icons-material/Chat";
@@ -198,22 +201,48 @@ export default function NavBar() {
     if (index === 2) navigate("/digital-sdk");
     if (index === 3) navigate("/cxa-placeholder");
     if (index === 4) {
-
-     CXoneAcdClient.instance.session
-     .endSession({
-      forceLogoff: false,
-      endContacts: true,
-      ignorePersonalQueue: true,
-    }).catch((err: any) => {
-       logger.error("endSession", '');
-     });
-     localStorage.clear();
-     setDisableTab(true);
-     window.location.href = "/";
+      setDisableTab(true);
+      try {
+        // Optional chaining: session is an empty {} if the agent never joined an ACD session.
+        await CXoneAcdClient.instance.session?.endSession?.({
+          forceLogoff: false,
+          endContacts: true,
+          ignorePersonalQueue: true,
+        });
+      } catch (err: any) {
+        logger.error("endSession failed", '');
+      }
+      // Read the OIDC config before clearCache(), which can wipe it from storage.
+      const oidc_config = LocalStorageHelper.getItem(StorageKeys.OIDC_CONFIG, true);
+      CXoneClient.instance.clearCache();
+      if (oidc_config?.endSessionEndpoint) {
+        const logoutUri = `${oidc_config.endSessionEndpoint}?post_logout_redirect_uri=${window.location.origin}/logout-callback`;
+        window.location.href = logoutUri;
+      } else {
+        // Access-token flow has no OIDC config, so there is no IdP session to end.
+        localStorage.clear();
+        window.location.href = "/";
+      }
     }
   };
 
   let tabNamesArray = ["Authentication","ACD SDK","Digital SDK","CXA Widget","Logout"];
+
+  // Initialise ACD and Digital engagement as soon as login succeeds, as the CMA landing page does,
+  // instead of waiting for the ACD or Digital page. Why: this starts the UI_QUEUE_WS tenant check (and
+  // leader election) early, so the tenant data is cached and isUIQueueEnabled is set before the ACD page
+  // joins the session. Without it the first login fell back to get-next polling and UIQ only connected
+  // after a refresh. See utils/initEngagement.ts.
+  useEffect(() => {
+    const subscription = CXoneAuth.instance.onAuthStatusChange.subscribe((data) => {
+      if (data.status === AuthStatus.AUTHENTICATED) {
+        initSdkEngagement().catch(() => {
+          logger.error("initSdkEngagement failed", '');
+        });
+      }
+    });
+    return () => subscription.unsubscribe();
+  }, []);
  
 
   useEffect(() => {

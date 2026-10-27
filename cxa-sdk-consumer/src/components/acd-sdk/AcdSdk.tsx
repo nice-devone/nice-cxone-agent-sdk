@@ -50,6 +50,7 @@ import DirectoryAndAddressBook from "./directory-address-book/DirectoryAndAddres
 import { UserInfo } from "@nice-devone/common-sdk";
 import { useLocation } from "react-router-dom";
 import { tryCatchWrapper } from "../../utils/tryCatchWrapper";
+import { initSdkEngagement } from "../../utils/initEngagement";
 import { CcfMessageType } from '@nice-devone/shared-apps-lib';
 import PlayArrowIcon from "@mui/icons-material/PlayArrow";
 import StopIcon from "@mui/icons-material/Stop";
@@ -99,7 +100,8 @@ const AcdSdk = () => {
 
   useEffect(() => {
     logger.info("initAcdEngagement", '');
-    CXoneAcdClient.instance.initAcdEngagement().finally(() => {
+    // Shared one-time init (started after login, like CMA). See utils/initEngagement.ts.
+    initSdkEngagement().finally(() => {
       logger.info("initAcdEngagement complete", '');
       setInitEngagement(true);
 
@@ -291,6 +293,7 @@ const AcdSdk = () => {
         (queues: any) => {
         }
       );
+    const oidc_config = LocalStorageHelper.getItem(StorageKeys.OIDC_CONFIG,true)
 
       // Subscribe only once — re-subscribing on re-render would duplicate handlers.
       CXoneAcdClient.instance.session.onAgentSessionChange.subscribe(
@@ -311,6 +314,9 @@ const AcdSdk = () => {
               setVoiceConnectionState(null);
               setVoiceCallState(null);
               setStartSessionButton(false);
+              CXoneClient.instance.clearCache();
+              const logoutUri = `${oidc_config.endSessionEndpoint}?post_logout_redirect_uri=${window.location.origin}/logout-callback`;
+              window.location.href = logoutUri;
               break;
             }
             case AgentSessionStatus.JOIN_SESSION_FAILURE:
@@ -433,9 +439,7 @@ const AcdSdk = () => {
         startSessiononCall();
       });
 
-    CXoneAcdClient.instance.session.onAgentSessionChange.next({
-      status: AgentSessionStatus.SESSION_END,
-    });
+
   };
 
   initMethodsRef.current = initMethods;
