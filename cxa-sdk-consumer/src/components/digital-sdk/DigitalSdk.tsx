@@ -48,6 +48,7 @@ import { Logger } from '@nice-devone/core-sdk';
 import { uuid } from 'uuidv4';
 import HorizontalCards from './horizontal-cards-caseIds/HorizontalCards';
 import { tryCatchWrapper } from '../../utils/tryCatchWrapper';
+import { initSdkEngagement } from '../../utils/initEngagement';
 
 import SendIcon from '@mui/icons-material/Send';
 import InboxIcon from '@mui/icons-material/Inbox';
@@ -402,7 +403,8 @@ const DigitalSdk = () => {
 
   useEffect(() => {
     logger.info('initDigitalEngagement request', '');
-    CXoneDigitalClient.instance.initDigitalEngagement().finally(() => {
+    // Shared one-time init (started after login, like CMA). See utils/initEngagement.ts.
+    initSdkEngagement().finally(() => {
       logger.info('initDigitalEngagement complete', '');
       setInitEngagement(true);
     });
