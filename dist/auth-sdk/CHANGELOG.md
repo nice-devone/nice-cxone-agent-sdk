@@ -15,3 +15,7 @@
 ## 26.2.0 - 2026-04-29 ##
 
 - `[Updated]`: Updated code to incorporate the new Queue and Queue Details microservice
+
+## 26.4.0 - 2026-11-20 ##
+
+- `[Updated]`: Updated login to no longer block on /whoami behind a feature toggle; base URI and team ID patched when it returns

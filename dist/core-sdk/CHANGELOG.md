@@ -32,3 +32,8 @@
 ## 26.3.0 - 2026-10-14 ##
 
 - `[Updated]`: Integrated Desktop Profile API for per-team agent versioning control in Business Unit settings
+
+## 26.4.0 - 2026-11-20 ##
+
+- `[Updated]`: Updated User Hub get-user-by-id calls to use the v4 endpoint behind a feature toggle
+- `[Updated]`: Updated getBusinessUnit to fall back to tenant licenses when /business-unit fails, behind a feature toggle

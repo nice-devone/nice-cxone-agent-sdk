@@ -42,3 +42,9 @@
 - `[Updated]`: Updated CXoneMessage schema to include authorRecipients field for configurable email reply-to address
 - `[Added]`: Added delta event schemas for MESSAGE_PREVIEW and SENDER_TYPING_START/END WebSocket events
 - `[Updated]`: Updated cxone-client-data model to include app sequence field for server-side Quick Bar ordering persistence
+
+## 26.4.0 - 2026-11-20 ##
+
+- `[Added]`: Added feature toggle for the User Hub users API v4 migration
+- `[Added]`: Added feature toggle for /whoami non-blocking login
+- `[Added]`: Added feature toggle for /business-unit non-blocking login
