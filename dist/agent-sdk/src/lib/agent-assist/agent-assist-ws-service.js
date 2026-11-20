@@ -114,7 +114,7 @@ export class AgentAssistWSService extends WebsocketClient {
                                 const { icAgentId, userId, icBUId } = userInfo;
                                 const isMultiACDWebsocketEnabled = FeatureToggleService.instance.getFeatureToggleSync("release-agentcopilot-multiacd-websocket-CSA-28481" /* FeatureToggles.MULTI_ACD_WEBSOCKET */);
                                 const connectionIdentifier = isMultiACDWebsocketEnabled ? userId : icAgentId;
-                                const copilotNotificationWssUri = `${aahNotificationWssUri}?agentId=${connectionIdentifier}&BUId=${icBUId}`;
+                                const copilotNotificationWssUri = `${aahNotificationWssUri}?agentId=${connectionIdentifier}&BUid=${icBUId}`;
                                 this.cxoneClientInstance.copilotNotificationClient.connect(copilotNotificationWssUri, connectionIdentifier, agentAssistInput);
                                 ACDSessionManager.instance.aaVoiceTranscriptEventSubject.next(agentAssistInput);
                             }
@@ -150,7 +150,7 @@ export class AgentAssistWSService extends WebsocketClient {
                             const { icAgentId, userId, icBUId } = userInfo;
                             const isMultiACDWebsocketEnabled = FeatureToggleService.instance.getFeatureToggleSync("release-agentcopilot-multiacd-websocket-CSA-28481" /* FeatureToggles.MULTI_ACD_WEBSOCKET */);
                             const connectionIdentifier = isMultiACDWebsocketEnabled ? userId : icAgentId;
-                            const copilotNotificationWssUri = `${resp.webSocketUri}?agentId=${connectionIdentifier}&BUId=${icBUId}`;
+                            const copilotNotificationWssUri = `${resp.webSocketUri}?agentId=${connectionIdentifier}&BUid=${icBUId}`;
                             this.cxoneClientInstance.copilotNotificationClient.connect(copilotNotificationWssUri, connectionIdentifier, resp);
                             ACDSessionManager.instance.aaVoiceTranscriptEventSubject.next(resp);
                         }

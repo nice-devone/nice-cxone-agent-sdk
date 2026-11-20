@@ -9,6 +9,7 @@ export declare class AdminApis {
     static putClientDataUri: string;
     static getCentralBrandingProfileUri: string;
     static getUHBrandingProfileUri: string;
+    static getUHBrandingProfileV2Uri: string;
     static getScriptData: string;
     static spawnScriptUri: string;
     static signalScriptUri: string;

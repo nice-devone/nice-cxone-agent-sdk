@@ -51,4 +51,5 @@ export * from './lib/saola/saola';
 export * from './lib/smart-reach-compliance/compliance-validation-failure-code';
 export * from './lib/smart-reach-compliance/compliance-validation-event';
 export * from './lib/consult-context/consult-context-event';
+export * from './lib/diagnostic-capture';
 //# sourceMappingURL=index.js.map

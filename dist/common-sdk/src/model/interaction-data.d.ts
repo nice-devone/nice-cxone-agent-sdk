@@ -107,6 +107,13 @@ export interface AssignmentPanelMetadata {
      * This property will return Incomming DFO Contact Interaction ID in the Assignment Panel.
      */
     incommingDfoInteractionId?: string;
+    /**
+     * Under Multi-Call Handling, identifies the interaction whose tile triggered the
+     * current consult/transfer/conference flow. Set when the agent opens the Directory
+     * or Conference panel from a specific tile, and consumed by those panels so their
+     * thunks operate on the correct call leg rather than a session-level singleton.
+     */
+    activeConsultInteractionId?: string | null;
 }
 export interface Tabs {
     id: any;

@@ -15,15 +15,15 @@ import { FeatureToggleService } from '../../../util/feature-toggle-services';
 class CustomHttpClient extends DefaultHttpClient {
     /**
      * constructor to initialise the data members for CustomHttpClient
-     * @param accessToken - accessToken
+     * @param getAccessToken - getter that returns the current (live) access token
      * @example
      * ```
-     * new CustomHttpClient('accessToken')
+     * new CustomHttpClient(() => this.getValidAccessToken())
      * ```
      */
-    constructor(accessToken) {
+    constructor(getAccessToken) {
         super(console);
-        this.accessToken = accessToken;
+        this.getAccessToken = getAccessToken;
     }
     /**
      * Method to override send method of DefaultHttpClient
@@ -34,7 +34,8 @@ class CustomHttpClient extends DefaultHttpClient {
      * ```
      */
     send(request) {
-        request.headers = Object.assign(Object.assign({}, request.headers), { 'Authorization': `Bearer ${this.accessToken}`, 'IsMaxAgent': 'True' });
+        // Read the token live on every request so negotiate/reconnect never reuses a stale token
+        request.headers = Object.assign(Object.assign({}, request.headers), { 'Authorization': `Bearer ${this.getAccessToken()}`, 'IsMaxAgent': 'True' });
         return super.send(request);
     }
 }
@@ -286,7 +287,6 @@ export class UIQueueWsProvider {
      */
     getNewHubConnection(userInfo, retryOptions, sessionId) {
         return __awaiter(this, void 0, void 0, function* () {
-            const accessToken = this.getValidAccessToken();
             let attempt = 0;
             /**
              * Attempts to establish a new hub connection with retry logic.
@@ -307,7 +307,7 @@ export class UIQueueWsProvider {
                     hubUrlObject.searchParams.set('isAutoLogout', this.isAutoLogoutEnabled ? 'true' : 'false');
                     const hubUrlWithParams = hubUrlObject.toString();
                     this.hubConnection = new HubConnectionBuilder()
-                        .withUrl(hubUrlWithParams, { httpClient: new CustomHttpClient(accessToken), accessTokenFactory: () => `Bearer ${accessToken}` })
+                        .withUrl(hubUrlWithParams, { httpClient: new CustomHttpClient(() => this.getValidAccessToken()), accessTokenFactory: () => `Bearer ${this.getValidAccessToken()}` })
                         .withAutomaticReconnect([0])
                         .build();
                     this.hubConnection.serverTimeoutInMilliseconds = 30000;

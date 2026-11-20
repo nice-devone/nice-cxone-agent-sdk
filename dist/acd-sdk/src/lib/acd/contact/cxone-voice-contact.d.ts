@@ -51,6 +51,8 @@ export declare class CXoneVoiceContact extends CXoneContact {
     voiceBioHubPatronId: string;
     externalCustomerId: string;
     smartReachTransactionId: string;
+    /** Indicates if this contact supports Multiple Call Appearances */
+    isMultiCallSkill: boolean;
     /**
      * @example
      * ```

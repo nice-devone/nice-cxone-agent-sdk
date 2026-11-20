@@ -9,7 +9,7 @@ export declare class LoadWorker {
      * this.getWorker(workerScriptName,workerName);
      * ```
      */
-    getWorker(workerScriptName: string, workerName: string): any;
+    getWorker(workerScriptName: string, workerName: string): Worker;
     /**
      * Use to initializing the util worker and will return the method inside the worker
      * @example

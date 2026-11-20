@@ -22,5 +22,6 @@ var VoiceContactStatus;
     VoiceContactStatus["NATURAL_CALL_DIALING"] = "naturalcalldialing";
     VoiceContactStatus["NATURAL_CALL_AMD"] = "naturalcallamd";
     VoiceContactStatus["NATURAL_CALL_RINGING"] = "naturalcallringing";
+    VoiceContactStatus["DISCARDED"] = "discarded";
 })(VoiceContactStatus = exports.VoiceContactStatus || (exports.VoiceContactStatus = {}));
 //# sourceMappingURL=voice-contact-status.js.map

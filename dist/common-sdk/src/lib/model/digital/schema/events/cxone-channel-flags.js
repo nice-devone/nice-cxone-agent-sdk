@@ -27,5 +27,11 @@ exports.CXoneChannelFlagsSchema = (0, yup_1.object)({
     hasAbilityToChangeFrom: (0, yup_1.boolean)(),
     hasMultipleThreadsPerEndUser: (0, yup_1.boolean)(),
     replyPrefixMentionTemplate: (0, yup_1.string)(),
+    /**
+     * @remarks - When false, the provider does not send an authoritative customer name for this
+     * channel and the customer identity display name is agent-editable. Absent/true means the
+     * provider name is authoritative and must not be edited.
+     */
+    isSendingCustomerIdentityName: (0, yup_1.boolean)().nullable(),
 });
 //# sourceMappingURL=cxone-channel-flags.js.map

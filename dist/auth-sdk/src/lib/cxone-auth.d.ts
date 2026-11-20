@@ -1,5 +1,5 @@
 import { CXoneSdkError, HttpResponse, AuthToken, AuthState, CXoneConfiguration } from '@nice-devone/common-sdk';
-import { BusinessUnit, CXoneUserDetails, Permissions, BrandingProfile } from '@nice-devone/core-sdk';
+import { BusinessUnit, CXoneUserDetails, Permissions, BrandingProfile, BrandingProfileV2 } from '@nice-devone/core-sdk';
 import { AuthResponse } from './model/auth-response';
 import { Subject } from 'rxjs';
 import { AuthWithCodeReq } from './model/auth-with-code-req';
@@ -303,6 +303,15 @@ export declare class CXoneAuth {
      */
     getBrandingProfile(): Promise<BrandingProfile | CXoneSdkError>;
     /**
+     * Method to return branding profiles using the V2 contract
+     * @returns - returns the branding profiles in the V2 shape
+     * ```
+     * @example
+     * getBrandingProfileV2()
+     * ```
+     */
+    getBrandingProfileV2(): Promise<BrandingProfileV2 | CXoneSdkError>;
+    /**
        * Method to launch CXoneAgent application from SDK
        * @param targetDivId - Target div id wherein application needs to be loaded
        * @param appUrl - Application url that needs to be launched
@@ -360,9 +369,12 @@ export declare class CXoneAuth {
     private getJWKS;
     /**
      * Fetch the user details of logged in user
+     * @param shouldSetTeamId - set the team id from the user management response. Used by the non
+     * blocking login flow, where whoami has not run yet and the id token carries no team id. The
+     * users api returns the team GUID, which the acd apis accept in place of the numeric team id.
      * @example
      * ```
-     * getUserManagementDetails();
+     * getUserManagementDetails(true);
      * ```
      */
     private getUserManagementDetails;

@@ -44,16 +44,21 @@ export class DigitalContactService {
      * Method to change status of digital contact
      * @param caseId - Case Id of the digital contact
      * @param status - Status to be set to the digital contact
+     * @param endReason - Optional end reason sent when the contact is closed (AW-62153)
      * @returns
      * @example -
      */
-    changeCustomerContactStatus(caseId, status) {
+    changeCustomerContactStatus(caseId, status, endReason) {
         const baseUrl = this.auth.getCXoneConfig().dfoApiBaseUri;
         const authToken = this.auth.getAuthToken().accessToken;
         const url = baseUrl + ApiUriConstants.DIGITAL_CONTACT_STATUS.replace('{contactId}', caseId);
+        const isEndReasonEnabled = FeatureToggleService.instance.getFeatureToggleSync("release-cxa-end-reason-for-closed-contact-AW-62153" /* FeatureToggles.END_REASON_FOR_CLOSED_CONTACT_FEATURE_TOGGLE */);
         const targetStatus = {
             'status': status,
         };
+        if (isEndReasonEnabled && endReason) {
+            targetStatus.endReason = endReason;
+        }
         const reqInit = {
             headers: this.utilService.initHeader(authToken, 'application/json').headers,
             body: targetStatus,

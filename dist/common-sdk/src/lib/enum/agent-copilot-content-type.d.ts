@@ -79,6 +79,14 @@ export declare enum AgentCopilotContentType {
      */
     TASK_ASSIST = "taskAssist",
     /**
+     * Represents connected event for Engagement hub
+     */
+    AGENTASSIST_CTI_COMMAND = "AgentAssistCtiCommand",
+    /**
+     * Represents the call disconnected event
+     */
+    CALL_DISCONNECTED = "callDisconnected",
+    /**
      * Represents the copilot decision tree content type.
      */
     DECISION_TREE = "decisionTree",

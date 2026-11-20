@@ -103,6 +103,16 @@ export class CXoneDirectory {
         this.directoryProvider.terminatePolling();
     }
     /**
+     * Used to terminate directory polling
+     * @example -
+     * ```
+     * this.directoryBase.resetServerSideTeamState()
+     * ```
+     */
+    resetServerSideTeamState() {
+        this.directoryProvider.resetServerSideTeamState();
+    }
+    /**
      * Method to get agent skills
      * @example
      * ```

@@ -1,5 +1,5 @@
 import { Logger } from '@nice-devone/core-sdk';
-import { CXoneSdkError, HttpResponse, DigitalContactEvent, CXoneDigitalReplyRequest, CXoneFileUploadRequest, CXoneRoutingQueue, CXoneCase, CXoneChannel, CXoneInboxAssignee, CXoneMessageArray, DigitalContactStatus, CXoneFileUploadResponse, CXoneDigitalEvent, AttachmentType, CXoneDigitalCreateDraftRequest, CXoneDigitalUpdateDraftRequest, CXoneMessageDraftsArray, CXonePublicMessage, CXoneLoadPreviousContactDetails, CXoneLoadPreviousNextContact, CXoneDigitalReplyChannel, CXoneUserRolePermissions, CXoneContactCustomFieldDefinition, CXoneDigitalDraftContactRequest, CXoneDraftContactDetails, CXoneDigitalRecipientsValidationRequest, CXoneDigitalRecipientsValidationResponse } from '@nice-devone/common-sdk';
+import { CXoneSdkError, HttpResponse, DigitalContactEvent, CXoneDigitalReplyRequest, CXoneFileUploadRequest, CXoneRoutingQueue, CXoneCase, CXoneChannel, CXoneInboxAssignee, CXoneMessageArray, DigitalContactStatus, CXoneFileUploadResponse, CXoneDigitalEvent, AttachmentType, CXoneDigitalCreateDraftRequest, CXoneDigitalUpdateDraftRequest, CXoneMessageDraftsArray, CXonePublicMessage, CXoneLoadPreviousContactDetails, CXoneLoadPreviousNextContact, CXoneDigitalReplyChannel, CXoneUserRolePermissions, CXoneContactCustomFieldDefinition, CXoneDigitalDraftContactRequest, CXoneDraftContactDetails, CXoneDigitalRecipientsValidationRequest, CXoneDigitalRecipientsValidationResponse, DigitalContactEndReason } from '@nice-devone/common-sdk';
 import { CXoneContact, CxoneDigitalMessageNote } from '@nice-devone/agent-sdk';
 /**
  * Interface ContactMessageNote containing message note properties
@@ -68,6 +68,14 @@ export declare class CXoneDigitalContact extends CXoneContact {
       * @remarks - represents model for websocket events received
       */
     eventDetails: CXoneDigitalEvent;
+    /**
+      * @remarks - AW-65257: correlation id for the tracked digital-contact-auto-assignment
+      * journey. Set by DigitalContactManager only on the single publish that completes an
+      * assignment journey, and cleared immediately after that publish so later re-publishes
+      * of the same stored contact instance (message, status, unassign, preview, polling) are
+      * not mistaken for another journey terminal.
+    */
+    trackedJourneyId?: string;
     /**
       * @remarks - represents metadata stored in local storage for attachments uploaded by user
     */
@@ -158,7 +166,7 @@ export declare class CXoneDigitalContact extends CXoneContact {
     * changeStatus()
     * ```
     */
-    changeStatus(status: DigitalContactStatus | string): Promise<HttpResponse | CXoneSdkError>;
+    changeStatus(status: DigitalContactStatus | string, endReason?: DigitalContactEndReason): Promise<HttpResponse | CXoneSdkError>;
     /**
      * Method to unassign customer contact
      * @returns - returns customer contact unassigned response

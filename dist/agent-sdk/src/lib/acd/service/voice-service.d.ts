@@ -45,14 +45,14 @@ export declare class VoiceService {
      * consultAgent(12345)
      * ```
      */
-    consultAgent(agentId: number): Promise<HttpResponse>;
+    consultAgent(agentId: number, parentContactId?: string, interactionId?: string): Promise<HttpResponse>;
     /** Method to make the conference call
      * @example -
      * ```
      * conferenceCall();
      * ```
      */
-    conferenceCall(): Promise<HttpResponse>;
+    conferenceCall(interactionId?: string): Promise<HttpResponse>;
     /**
     * This method to make a call with agent
     * @param agentId - agent Id
@@ -62,7 +62,7 @@ export declare class VoiceService {
     * dialAgent('23344','234234324');
     * ```
     */
-    dialAgent(agentId: string, parentContactId: string): Promise<HttpResponse>;
+    dialAgent(agentId: string, parentContactId: string, interactionId?: string): Promise<HttpResponse>;
     /**
     * This method call to transfer voicemail to offline agent
     * @param agentId - agent Id
@@ -76,12 +76,14 @@ export declare class VoiceService {
     /**
      * This method to make a call with another skill
      * @param skillId - skill Id
+     * @param parentContactId - optional, contact the consult leg is spun off from (MCH only)
+     * @param interactionId - optional, interaction the consult leg belongs to (MCH only)
      * @example -
      * ```
      * dialSkill(23344);
      * ```
      */
-    dialSkill(skillId: number): Promise<HttpResponse>;
+    dialSkill(skillId: number, parentContactId?: string, interactionId?: string): Promise<HttpResponse>;
     /**
      *  This method to transfer call
      *
@@ -90,7 +92,7 @@ export declare class VoiceService {
      * transferContact();
      * ```
      */
-    transferContact(): Promise<HttpResponse>;
+    transferContact(interactionId?: string): Promise<HttpResponse>;
     /**
      *  Method to transfer voicemail
      *

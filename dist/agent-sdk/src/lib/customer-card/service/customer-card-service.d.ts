@@ -1,4 +1,4 @@
-import { CXoneCustomerCardCustomFields, CXoneCustomerDetails, CXoneCustomerDetailRequest, HttpResponse, CustomField, CXoneSdkError, CXoneCustomerDetail, CXoneAgentVoiceContactHistoryRequest, CXoneCase, agentCompletedContactsResponse, AgentWorkflowResponseEvent, CXoneMergeCustomerCardArguments, CXoneCustomerList, CXoneWorkflowRequest, CXoneDeleteCustomField, CXoneWorkflowCreateRequest, ECCRequest, CreateInteractionResponse, UpdateInteractionResponse } from '@nice-devone/common-sdk';
+import { CXoneCustomerCardCustomFields, CXoneCustomerDetails, CXoneCustomerDetailRequest, HttpResponse, CustomField, CXoneSdkError, CXoneCustomerDetail, CXoneAgentVoiceContactHistoryRequest, CXoneCase, agentCompletedContactsResponse, AgentWorkflowResponseEvent, CXoneMergeCustomerCardArguments, CXoneCustomerList, CXoneWorkflowRequest, CXoneDeleteCustomField, CXoneWorkflowCreateRequest, ECCRequest, CreateInteractionResponse, UpdateInteractionResponse, UpdateCustomerIdentityNameResponse } from '@nice-devone/common-sdk';
 import { HttpUtilService, Logger } from '@nice-devone/core-sdk';
 /**
  * Class to handle Customer Card API calls
@@ -46,6 +46,20 @@ export declare class CustomerCardService {
      * @example -
      */
     updateCustomFields(customFields: CustomField): Promise<HttpResponse>;
+    /**
+     * Method to update the display name of a customer identity
+     * @param channelId - id of the channel the customer identity belongs to
+     * @param customerIdentityId - the identity's raw platform-native id (authorEndUserIdentity.idOnExternalPlatform),
+     * not the CXone-internal composite id (authorEndUserIdentity.id) — the composite id makes DE's
+     * backend double-prefix the platform and 404
+     * @param fullName - new display name for the customer identity
+     * @returns - canonical customer identity representation post-update
+     * @example
+     * ```
+     * updateCustomerIdentityName('chat_90a2ab6e', 'bharath@gmail.com', 'Bharath Kumar');
+     * ```
+     */
+    updateCustomerIdentityName(channelId: string, customerIdentityId: string, fullName: string): Promise<UpdateCustomerIdentityNameResponse>;
     /**
      * Method to delete linked custom field on customer card
      * @param customFields -  ident & customerId to delete identValue
@@ -151,7 +165,7 @@ export declare class CustomerCardService {
      * @example
      * @returns - API Returns Response JSON with CRM data for transfered contact
      */
-    getCRMDataForTransferedContact(crmInteractionId: string): Promise<unknown>;
+    getCRMDataForTransferedContact(crmInteractionId: string, queryParam?: string): Promise<unknown>;
     /**
      * Method to keep alive cacheKey
      * @param crmInteractionId - CRM record interaction id

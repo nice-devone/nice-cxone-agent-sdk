@@ -22,9 +22,20 @@ export declare class CopilotNotificationClient extends AgentAssistNotificationSe
     private cachedAgenticUrl?;
     private cachedAgenticUrlExpiresAt;
     private agenticReconnectInFlight;
+    private readonly ownsAgenticWs;
     onMessageNotification: Subject<AgentAssistBaseResponse>;
     onVoiceTranscriptionMessage: Subject<VoiceTranscriptionResponse>;
     onVoiceTranscriptionError: Subject<AgentAssistErrorResponse>;
+    /**
+     * Constructor for Copilot Notification Client taking false as default for native copilot, true in case of Copilot MFE
+     * @param options - options.ownsAgenticWs marks this instance as the owner of the
+     * agentic WebSocket connection when COPILOT_MFE is enabled (see {@link ownsAgenticWs}).
+     * @example - new CopilotNotificationClient(true) // For MFE
+     * @example - new CopilotNotificationClient(false) // For CXAgent and native Copilot Component
+     */
+    constructor(options?: {
+        ownsAgenticWs?: boolean;
+    });
     /**
      * used to connect to the socket.
      * @example -  connect('ws://localhost:8080', 1011, 123_subscription);
@@ -81,6 +92,11 @@ export declare class CopilotNotificationClient extends AgentAssistNotificationSe
      */
     broadcastCopilotNotifications(message: any): void;
     /**
+     * Resolves the agentic WebSocket base URL using a two-tier cache:
+     * 1. In-memory (fastest; no I/O)
+     * 2. localStorage with TTL envelope
+     * 3. REST round-trip (last resort)
+     * Returns `null` if the REST call fails — caller must handle gracefully.
      * Resolves the agentic WebSocket base URL using a two-tier cache:
      * 1. In-memory (fastest; no I/O)
      * 2. localStorage with TTL envelope
@@ -167,6 +183,19 @@ export declare class CopilotNotificationClient extends AgentAssistNotificationSe
      * @example - isAgenticWsEnabled()
      */
     private isAgenticWsEnabled;
+    /**
+     * Returns whether the Copilot MFE feature toggle is enabled.
+     * @example - isCopilotMFEEnabled()
+     */
+    private isCopilotMFEEnabled;
+    /**
+     * Returns whether THIS instance should establish the agentic WebSocket connection.
+     * When COPILOT_MFE is on, the csa-agent-copilot MFE instance (ownsAgenticWs=true)
+     * owns the agentic socket; the host shell's instance must defer to it so the two
+     * do not both connect for the same agent.
+     * @example - shouldConnectAgenticWs()
+     */
+    private shouldConnectAgenticWs;
     /**
      * Callback method when a connection is open and ready to send and receive data
      * @example - onOpen()

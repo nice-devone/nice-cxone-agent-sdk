@@ -4,6 +4,21 @@ import { TracingInstrumentation } from '@grafana/faro-web-tracing';
 import { GrafanaConsoleLogLevel, LogLevel } from '../../logger/enum/log-level';
 import { LocalStorageHelper, Logger, SessionStorageHelper, StorageKeys } from '../../';
 import { GrafanaAppender } from '../../logger/appenders/grafana-log-appender';
+import { FeatureToggleService } from '../../util/feature-toggle-services';
+/**
+ * Strips control characters and caps length on a free-form journey field before it
+ * is forwarded to the Grafana Faro backend.
+ * @param value - Raw field value.
+ * @param maxLen - Maximum allowed length after sanitization.
+ * @example
+ * ```
+ * sanitizeJourneyField('agent-assigned');
+ * ```
+ * @returns Sanitized field value.
+ */
+const sanitizeJourneyField = (value, maxLen = 256) => 
+// eslint-disable-next-line no-control-regex -- intentional: stripping control characters is the point of this sanitizer.
+value.replace(/[\x00-\x1F\x7F]/g, '').slice(0, maxLen);
 /** Used to toggle favorite agent in Index DB through SDK
  * @param agentSettings - agent settings from backend
  * @param userInfo - user info from backend
@@ -87,6 +102,34 @@ export const grafanaInit = (agentSettings, userInfo, appName = 'cxa', grafanaFar
                     }
                     Logger.config.addAppender(grafanaAppender);
                     if (faroInstance) {
+                        // Installed on the global console object rather than as a LogAppender method,
+                        // mirroring the console.trace/debug/info/warn/error patching below: journey()
+                        // callers may live in a different module-federation remote with their own
+                        // separate bundled copy of Logger (and hence Logger.config), but
+                        // window.console is a true browser singleton shared by every remote on the
+                        // page, so this guarantees delivery regardless of which remote calls
+                        // journey(). It's also the sole delivery path, so a journey checkpoint is
+                        // never sent twice. Gated on its own independent Feature Toggle, and independent of
+                        // logLevelFilter - journey checkpoints are never level-filtered.
+                        console.__cxaJourneyCheckpoint = (entry) => {
+                            var _a;
+                            const isJourneyTelemetryEnabled = FeatureToggleService.instance.getFeatureToggleSync("release-cxa-digital-journey-telemetry-AW-63285" /* FeatureToggles.DIGITAL_JOURNEY_TELEMETRY_FEATURE_TOGGLE */);
+                            if (!isJourneyTelemetryEnabled) {
+                                return;
+                            }
+                            try {
+                                (_a = faro === null || faro === void 0 ? void 0 : faro.api) === null || _a === void 0 ? void 0 : _a.pushEvent('journey_checkpoint', {
+                                    journeyId: entry.journeyId,
+                                    journeyName: sanitizeJourneyField(entry.journeyName),
+                                    journeyPoint: sanitizeJourneyField(entry.journeyPoint),
+                                    role: entry.role,
+                                    status: sanitizeJourneyField(entry.status),
+                                });
+                            }
+                            catch (e) {
+                                console.error('Error in journey checkpoint hook', e);
+                            }
+                        };
                         if (appName === 'WEBRTC') {
                             const logLevelsForWebrtc = Object.values(GrafanaConsoleLogLevel);
                             logLevelsForWebrtc.forEach((level) => {

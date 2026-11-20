@@ -36,6 +36,7 @@ ApiUriConstants.AGENT_STATE_UNIFY_URI_TS = '/acd-apiservices/v2/agents/states';
 ApiUriConstants.SKILL_ACTIVITY_URI = '/InContactAPI/services/v23.0/skills/activity';
 ApiUriConstants.SKILL_ACTIVITY_URI_TS = '/InContactAPI/services/v33.0/skills/activity';
 ApiUriConstants.CONFERENCE_CALL_URI = '/InContactAPI/services/v23.0/agent-sessions/{sessionId}/interactions/conference-calls';
+ApiUriConstants.CONFERENCE_CALL_URI_V35 = '/InContactAPI/services/v35.0/agent-sessions/{sessionId}/interactions/conference-calls';
 ApiUriConstants.CONFERENCE_HOLD_URI = '/InContactAPI/services/v31.0/agent-sessions/{sessionId}/interactions/conference-hold';
 ApiUriConstants.CONFERENCE_RESUME_URI = '/InContactAPI/services/v31.0/agent-sessions/{sessionId}/interactions/conference-resume';
 ApiUriConstants.CONFERENCE_JOIN_URI = '/InContactAPI/services/v31.0/agent-sessions/{sessionId}/interactions/{contactId}/join-conference';
@@ -63,6 +64,7 @@ ApiUriConstants.DIAL_AGENT_URI_TS = '/InContactAPI/services/v33.0/agent-sessions
 ApiUriConstants.DIAL_SKILL_URI = '/InContactAPI/services/v23.0/agent-sessions/{sessionId}/dial-skill';
 ApiUriConstants.DIAL_SKILL_URI_TS = '/InContactAPI/services/v33.0/agent-sessions/{sessionId}/dial-skill';
 ApiUriConstants.TRANSFER_CONTACT_URI = '/InContactAPI/services/v23.0/agent-sessions/{sessionId}/interactions/transfer-calls';
+ApiUriConstants.TRANSFER_CONTACT_URI_V35 = '/InContactAPI/services/v35.0/agent-sessions/{sessionId}/interactions/transfer-calls';
 ApiUriConstants.TRANSFER_VOICEMAIL_CONTACT_URI = '/InContactAPI/services/v23.0/agent-sessions/{sessionId}/interactions/{contactId}/transfer-voicemail-to-agent';
 ApiUriConstants.TRANSFER_VOICEMAIL_CONTACT_URI_TS = '/InContactAPI/services/v33.0/agent-sessions/{sessionId}/interactions/{contactId}/transfer-voicemail-to-agent';
 ApiUriConstants.TRANSFER_WORK_ITEM_CONTACT_URI = '/InContactAPI/services/v23.0/agent-sessions/{sessionId}/interactions/{contactId}/transfer-work-item-to-agent';
@@ -71,10 +73,10 @@ ApiUriConstants.SEND_DTMF = '/InContactAPI/services/v23.0/agent-sessions/{sessio
 ApiUriConstants.SKILL_CACHE_URI = '/InContactAPI/services/v23.0/cache/skills';
 ApiUriConstants.AGENT_QUEUE_URI = '/incontactapi/services/v23.0/agents/{agentId}/queues';
 ApiUriConstants.AGENT_QUEUE_URI_TS = '/incontactapi/services/v33.0/agents/{agentId}/queues';
-ApiUriConstants.AGENT_QUEUE_URI_NEW = '/acd-queues-service/v1/agents/{agentId}/queues';
+ApiUriConstants.AGENT_QUEUE_URI_NEW = '/acd-queues/v1/agents/{agentId}/queues';
 ApiUriConstants.AGENT_QUEUE_DETAIL_URI = '/incontactapi/services/v23.0/agents/{agentId}/queues-detail';
 ApiUriConstants.AGENT_QUEUE_DETAIL_URI_TS = '/incontactapi/services/v33.0/agents/{agentId}/queues-detail';
-ApiUriConstants.AGENT_QUEUE_DETAIL_URI_NEW = '/acd-queue-details-service/v1/agents/{agentId}/queues-detail';
+ApiUriConstants.AGENT_QUEUE_DETAIL_URI_NEW = '/acd-queue-details/v1/agents/{agentId}/queues-detail';
 //Api uris to accept and reject inbound contact
 ApiUriConstants.ACCEPT_CONTACT_URI = '/InContactAPI/services/v23.0/agent-sessions/{sessionId}/interactions/{contactId}/accept';
 ApiUriConstants.REJECT_CONTACT_URI = '/InContactAPI/services/v23.0/agent-sessions/{sessionId}/interactions/{contactId}/reject';
@@ -92,7 +94,10 @@ ApiUriConstants.DIRECTORY_ENTRIES = '/rtd/v1/agents/{agentId}/directories/{direc
 ApiUriConstants.GET_DIRECTORIES = '/rtd/v1/agents/{agentId}/directories';
 ApiUriConstants.GET_DIRECTORY_METADATA = '/rtd/v1/agents/{agentId}/directories/{directoryId}/metadata';
 ApiUriConstants.GET_NEWGEN_DIRECTORIES = '/external-directory-admin-service/v1/agent/directories';
+// AW-55807 - v1 is deprecated (prod retirement 2026-07-24). Selection between the two
+// is gated by UH_USERS_API_V4_FEATURE_TOGGLE; see AdminService.getUHUsersUri().
 ApiUriConstants.UH_GET_USERS = '/user-management/v1/users/';
+ApiUriConstants.UH_GET_USERS_V4 = '/user-management/v4/users/';
 //Api to search directories
 ApiUriConstants.SEARCH_DIRECTORIES = '/rtd/v2/agents/directories/entries/search';
 ApiUriConstants.SEARCH_NEWGEN_DIRECTORIES = '/external-directory-service/v1/directory/contact/search';
@@ -143,8 +148,7 @@ ApiUriConstants.DIGITAL_MESSAGE_TRANSLATION = '/dfo/3.0/translate';
 ApiUriConstants.GET_UNAVAILABLE_CODES_URI = '/InContactAPI/services/v23.0/teams/{teamId}/unavailable-codes';
 ApiUriConstants.GET_UNAVAILABLE_CODES_URI_TS = '/InContactAPI/services/v34.0/teams/{teamId}/unavailable-codes';
 //Api uris to get team list
-ApiUriConstants.GET_TEAMS = '/InContactAPI/services/v23.0/teams';
-ApiUriConstants.GET_TEAMS_TS = '/InContactAPI/services/v34.0/teams';
+ApiUriConstants.GET_TEAMS = '/InContactAPI/services/v34.0/teams';
 //API for event hub subscription
 ApiUriConstants.EVENT_HUB_SUBSCRIPTION_URI = '/dfo/3.0/event-hub-subscriptions';
 //Api uris to get agent list
@@ -173,6 +177,8 @@ ApiUriConstants.PLAY_VOICEMAIL = '/incontactapi/services/V4.0/agent-sessions/{se
 // Customer Notes API
 ApiUriConstants.GET_CREATE_CUSTOMER_NOTE = '/dfo/3.0/customers/{customerId}/notes';
 ApiUriConstants.UPDATE_DELETE_CUSTOMER_NOTE = '/dfo/3.0/customers/{customerId}/notes/{noteId}';
+// Customer identity name edit API
+ApiUriConstants.UPDATE_CUSTOMER_IDENTITY_NAME = '/dfo/3.0/channels/{channelId}/customer-identities/{customerIdentityId}';
 //Api uri to get team by team id
 ApiUriConstants.GET_TEAM_WITH_TEAM_ID = '/InContactAPI/services/v23.0/teams/{teamId}';
 ApiUriConstants.GET_TEAM_WITH_TEAM_ID_TS = '/InContactAPI/services/v34.0/teams/{teamId}';

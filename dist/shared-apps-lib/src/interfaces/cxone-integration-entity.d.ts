@@ -36,4 +36,11 @@ export interface CXoneScreenPopEntity extends CXoneIntegrationEntity {
      * Custom CRM data for screenpop
      */
     data?: string;
+    /**
+     * CRM system type identifier sourced from `system.type` in the search result
+     * (e.g. `'salesforce'`, `'servicenow'`, `'msd'`, `'zendesk'`).
+     * Present only when the screenpop originates from a customer card pinned-record
+     * click. Absent for ACD-triggered screenpops — use URL hostname as fallback.
+     */
+    crmType?: string;
 }

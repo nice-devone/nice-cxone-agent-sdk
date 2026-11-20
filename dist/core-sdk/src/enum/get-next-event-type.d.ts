@@ -33,5 +33,7 @@ export declare enum GetNextEventType {
     HOURS_OF_OPERATION = "HoursOfOperation",
     AGENT_WORKFLOW_CREATE_PAYLOAD = "AgentWorkflowCreatePayload",
     SMART_REACH_VALIDATION = "SmartReachValidation",
-    CONSULT_CONTEXT = "ConsultContext"
+    CONSULT_CONTEXT = "ConsultContext",
+    LIVEVOXERROR_NOTIFY_EVENT = "LiveVoxError",
+    SUPERVISOR_CONTACT_EVENT = "SupervisorContact"
 }

@@ -1,7 +1,7 @@
 import { __awaiter, __rest } from "tslib";
 import { CXoneAuth, CXoneUser } from '@nice-devone/auth-sdk';
 import { CXoneSdkError, CXoneSdkErrorType, customAdaptiveCardSchemaKey } from '@nice-devone/common-sdk';
-import { Logger, HttpUtilService, StorageKeys, HttpClient, LocalStorageHelper, dbInstance, IndexDBStoreNames, IndexDBKeyNames, clearIndexDbKey, ValidationUtils } from '@nice-devone/core-sdk';
+import { Logger, HttpUtilService, StorageKeys, HttpClient, LocalStorageHelper, dbInstance, IndexDBStoreNames, IndexDBKeyNames, clearIndexDbKey, ValidationUtils, SessionStorageHelper, UrlUtilsService } from '@nice-devone/core-sdk';
 import { Feedback } from '../../enum/feedback';
 /**
  * Class for copilot base service
@@ -18,12 +18,14 @@ export class CopilotService {
         this.logger = new Logger('agent-sdk', 'CopilotService');
         this.utilService = new HttpUtilService();
         this.validationUtilService = new ValidationUtils();
+        this.urlUtilsService = new UrlUtilsService();
         this.AGENT_COPILOT_BASE_URI = '/agent-copilot/v1/';
         this.AGENT_COPILOT_BASE_URI_V2 = '/agent-copilot/v2/';
         this.AGENT_COPILOT_SEARCH = this.AGENT_COPILOT_BASE_URI + 'agent-search';
         this.AGENT_COPILOT_FINAL_SUMMARY = this.AGENT_COPILOT_BASE_URI + 'final-summary';
         this.AGENT_COPILOT_HEALTH_CHECK = this.AGENT_COPILOT_BASE_URI + 'copilot-health';
         this.AGENT_COPILOT_AGENTIC_WS_URL = this.AGENT_COPILOT_BASE_URI + 'agentic-websocket-url';
+        this.AGENT_COPILOT_CLIENT_SETTING = this.AGENT_COPILOT_BASE_URI + 'client-setting';
         this.AGENT_COPILOT_AGENT_ASSIST_HUB_CONFIG = this.AGENT_COPILOT_BASE_URI_V2 + 'license/retrieve-aah-config';
         this.AGENT_COPILOT_GET_ADAPTIVE_CARD_SCHEMAS = '/agent-copilot/v2/adaptive-cards?cardType={cardType}&cxaClientVersion={cxaClientVersion}';
         this.AGENT_COPILOT_EMAIL_APIS = {
@@ -38,11 +40,14 @@ export class CopilotService {
         this.JOURNEY_SUMMARY = '/agent-copilot/v1/journey-summary';
         this.FINAL_SUMMARY = '/agent-copilot/v1/final-summary?contactId={contactId}';
         this.EDITED_SUMMARY = '/agent-copilot/v1/contacts/{contactId}/edited-autosummary';
+        this.COPILOT_INTERACTION_STATUS = '/agent-copilot/v1/copilot-interaction-status';
         this.TASK_ASSIST = '/agent-copilot/v1/contacts/{contactId}/task-assist';
         this.aahConfigStore = {};
         this.AGENT_COPILOT_GET_ALL_ADAPTIVE_CARDS_SCHEMAS = this.AGENT_COPILOT_BASE_URI + 'adaptive-card/get-all-adaptive-cards';
         this.AGENT_COPILOT_GET_TASK_ASSIST_FORM_PREFILLED_DATA = '/agent-copilot/v1/contacts/{contactId}/taskassist/form-data';
         this.TASK_ASSIST_FORM_ADAPTIVE_CARD_SCHEMAS_URL = '/agent-copilot/v2/adaptive-cards/taskassist/profiles/{agentAssistId}/bots/{botName}/intents/{intentName}/cards';
+        this.AGENT_COPILOT_GET_TRANSFER_SUMMARY = '/agent-copilot/v1/contacts/{contactId}/transfer-summary';
+        this.AGENT_COPILOT_GET_ACTIVE_CONTACTS = '/agent-copilot/v1/contacts';
         this.DEFAULT_BOT_NAME = 'cognigyWorkflows';
         this.REFRESH_TOKENS = '/agent-copilot/v1/agent-idtoken';
         this.DECISION_TREE_BASE = `${this.AGENT_COPILOT_BASE_URI}contacts/{contactId}/decision-tree`;
@@ -90,7 +95,7 @@ export class CopilotService {
         this.basePayload = () => {
             const { idToken } = this.auth.getAuthToken();
             const payload = {
-                contactId: LocalStorageHelper.getItem(StorageKeys.FOCUSED_CONTACT_ID) || '',
+                contactId: LocalStorageHelper.getItem(StorageKeys.FOCUSED_CONTACT_ID) || SessionStorageHelper.getItem('contactId'),
                 idToken,
             };
             return payload;
@@ -174,6 +179,24 @@ export class CopilotService {
         this.addAdaptiveCardSchemaToIndexDB = (copilotReduxSlice) => __awaiter(this, void 0, void 0, function* () {
             const db = yield dbInstance();
             db === null || db === void 0 ? void 0 : db.put(IndexDBStoreNames.COPILOT, copilotReduxSlice, IndexDBKeyNames.COPILOT);
+        });
+        /**
+         * Used to clear all copilot data from IndexDB on logout
+         * @example -
+         * ```
+         * copilotService.clearCopilotIndexDb();
+         * ```
+         */
+        this.clearCopilotIndexDb = () => __awaiter(this, void 0, void 0, function* () {
+            try {
+                const db = yield dbInstance();
+                yield (db === null || db === void 0 ? void 0 : db.clear(IndexDBStoreNames.COPILOT));
+                this.logger.info('clearCopilotIndexDb', 'Copilot IndexDB cleared successfully');
+            }
+            catch (error) {
+                this.logger.error('clearCopilotIndexDb', JSON.stringify(error));
+                throw error;
+            }
         });
         /**
          * Used to get the copilot health
@@ -290,11 +313,12 @@ export class CopilotService {
          * @param agentAssistId - agent assist ID
          * @example -
          * ```
-         * copilotService.storeAgentAssistConfig('12321');
+         * copilotService.storeAgentAssistConfig({ contactId: '12321' });
          * ```
          */
-        this.storeAgentAssistConfig = (contactId, mediaType, agentAssistId) => __awaiter(this, void 0, void 0, function* () {
+        this.storeAgentAssistConfig = (config) => __awaiter(this, void 0, void 0, function* () {
             var _a;
+            const { contactId, mediaType, agentAssistId } = config;
             let aahConfig = this.getAgentAssistConfig(contactId, true);
             if (!aahConfig || ((_a = aahConfig === null || aahConfig === void 0 ? void 0 : aahConfig.Params) === null || _a === void 0 ? void 0 : _a.agentAssistId) !== agentAssistId) {
                 aahConfig = yield this.retriveAgentAssistConfig(contactId, mediaType, agentAssistId);
@@ -518,6 +542,53 @@ export class CopilotService {
                 }
             });
         };
+        /**
+         * Used to get the list of all active contacts
+         * ```
+         * copilotService.fetchAllActiveInteractions();
+         * ```
+         */
+        this.fetchAllActiveInteractions = () => {
+            return new Promise((resolve) => {
+                const reqInit = this.getBaseHttpRequest({});
+                const baseUrl = this.getBaseUrlForAcp();
+                const adaptiveCardUrl = baseUrl + this.AGENT_COPILOT_GET_ACTIVE_CONTACTS;
+                HttpClient === null || HttpClient === void 0 ? void 0 : HttpClient.get(adaptiveCardUrl, reqInit).then((response) => {
+                    resolve(response.data);
+                }, (error) => {
+                    const errorResponse = new CXoneSdkError(CXoneSdkErrorType.CXONE_API_ERROR, 'Failed to fetch all active interactions', error);
+                    this.logger.error('fetchAllActiveInteractions', errorResponse.toString());
+                });
+            });
+        };
+        this.fetchCopilotVersion = () => __awaiter(this, void 0, void 0, function* () {
+            var _b, _c;
+            const cachedCopilotVersion = LocalStorageHelper.getItem(CopilotService.COPILOT_VERSION_STORAGE_KEY);
+            if (cachedCopilotVersion) {
+                return cachedCopilotVersion;
+            }
+            const reqInit = this.getBaseHttpRequest({});
+            const baseUrl = this.getBaseUrlForAcp();
+            const url = `${baseUrl}${this.AGENT_COPILOT_CLIENT_SETTING}`;
+            try {
+                const response = yield HttpClient.get(url, reqInit);
+                const copilotVersion = (_c = (_b = response === null || response === void 0 ? void 0 : response.data) === null || _b === void 0 ? void 0 : _b.version) === null || _c === void 0 ? void 0 : _c.version;
+                if (!copilotVersion) {
+                    throw new CXoneSdkError(CXoneSdkErrorType.CXONE_API_ERROR, 'Copilot version not found in response', response);
+                }
+                LocalStorageHelper.setItem(CopilotService.COPILOT_VERSION_STORAGE_KEY, copilotVersion);
+                return copilotVersion;
+            }
+            catch (error) {
+                if (error instanceof CXoneSdkError) {
+                    this.logger.error('fetchCopilotVersion', error.toString());
+                    throw error;
+                }
+                const errorResponse = new CXoneSdkError(CXoneSdkErrorType.CXONE_API_ERROR, 'Failed to fetch copilot version', error);
+                this.logger.error('fetchCopilotVersion', errorResponse.toString());
+                throw errorResponse;
+            }
+        });
         this.auth = CXoneAuth.instance;
     }
     /**
@@ -675,6 +746,60 @@ export class CopilotService {
     }
     ;
     /**
+    * Use to update agent filters (Knowledge Hub Locked/Unlocked schema). Same kb-filter/update endpoint as
+    * updateCopilotFilters, just with `agentFilters` in the body instead of `expertTags`.
+    * @param agentFilters - full agentFilters schema with the agent's selections written into each listDefault
+    * @param contactId - contactId/caseId
+    * @example -
+    * ```
+    * copilotService.updateAgentFilters({ Locked: { filters: [...] }, Unlocked: { MatchType: 'Any', filters: [...] } }, '1234');
+    * ```
+    */
+    updateAgentFilters(agentFilters, contactId) {
+        return new Promise((resolve, reject) => {
+            const reqInit = this.getBaseHttpRequest({
+                contactId,
+                agentFilters,
+            });
+            const updateAgentFiltersUrl = this.getBaseUrlForAcp() + this.PATH_KB_FILTER_UPDATE;
+            HttpClient === null || HttpClient === void 0 ? void 0 : HttpClient.put(updateAgentFiltersUrl, reqInit).then((response) => {
+                resolve(response === null || response === void 0 ? void 0 : response.data);
+            }, (error) => {
+                const errorResponse = new CXoneSdkError(CXoneSdkErrorType.CXONE_API_ERROR, 'Update agent filters failed', error);
+                this.logger.error('updateAgentFilters', errorResponse.toString());
+                reject(errorResponse);
+            });
+        });
+    }
+    ;
+    /**
+    * Use to clear copilot filters on the KB filter update endpoint when neither expertTags (Expert mode)
+    * nor agentFilters (Knowledge Hub mode) apply - sends both fields explicitly null.
+    * @param contactId - contactId/caseId
+    * @example -
+    * ```
+    * copilotService.clearCopilotFilters('1234');
+    * ```
+    */
+    clearCopilotFilters(contactId) {
+        return new Promise((resolve, reject) => {
+            const reqInit = this.getBaseHttpRequest({
+                contactId,
+                expertTags: null,
+                agentFilters: null,
+            });
+            const clearCopilotFiltersUrl = this.getBaseUrlForAcp() + this.PATH_KB_FILTER_UPDATE;
+            HttpClient === null || HttpClient === void 0 ? void 0 : HttpClient.put(clearCopilotFiltersUrl, reqInit).then((response) => {
+                resolve(response === null || response === void 0 ? void 0 : response.data);
+            }, (error) => {
+                const errorResponse = new CXoneSdkError(CXoneSdkErrorType.CXONE_API_ERROR, 'Clear copilot filters failed', error);
+                this.logger.error('clearCopilotFilters', errorResponse.toString());
+                reject(errorResponse);
+            });
+        });
+    }
+    ;
+    /**
     * Use to get journey summary data
     * @param contactHistory - contact history of the contact
     * @param contactId - contactId/caseId
@@ -709,17 +834,22 @@ export class CopilotService {
     ;
     /**
      * Used to fetch the generated final summary
-     * @param connectionId - connection id to send with the data
+     * @param contactId - contact id whose summary is being read
+     * @param regenerate - when true, appends `regenerate=true` so the backend generates a new summary instead of re-reading the cache
      * @example -
      * ```
      * copilotService.fetchGeneratedFinalSummary("1234");
+     * copilotService.fetchGeneratedFinalSummary("1234", true);
      * ```
      */
-    fetchGeneratedFinalSummary(contactId) {
+    fetchGeneratedFinalSummary(contactId, regenerate = false) {
         return new Promise((resolve, reject) => {
             const reqInit = this.getBaseHttpRequest({});
             const baseUrl = this.getBaseUrlForAcp();
-            const copilotUrl = baseUrl + this.FINAL_SUMMARY.replace('{contactId}', contactId);
+            const finalSummaryUrl = baseUrl + this.FINAL_SUMMARY.replace('{contactId}', contactId);
+            const copilotUrl = regenerate
+                ? this.urlUtilsService.appendQueryString(finalSummaryUrl, { regenerate: true })
+                : finalSummaryUrl;
             HttpClient === null || HttpClient === void 0 ? void 0 : HttpClient.get(copilotUrl, reqInit).then((response) => {
                 resolve(response);
             }, (error) => {
@@ -858,6 +988,31 @@ export class CopilotService {
             });
         });
     }
+    /**
+     * Used to get tranfser summary for standalone copilot
+     * @param contactId - contact Id
+     * @example -
+     * ```
+     * copilotService.getTransferSummary('1234');
+     * ```
+     */
+    getTransferSummary(contactId) {
+        return new Promise((resolve, reject) => {
+            const reqInit = this.getBaseHttpRequest({
+                contactId,
+            });
+            const baseUrl = this.getBaseUrlForAcp();
+            const transferSummaryUrl = baseUrl + this.AGENT_COPILOT_GET_TRANSFER_SUMMARY.replace('{contactId}', contactId);
+            HttpClient === null || HttpClient === void 0 ? void 0 : HttpClient.get(transferSummaryUrl, reqInit).then((response) => {
+                resolve(response.data);
+            }, (error) => {
+                const errorResponse = new CXoneSdkError(CXoneSdkErrorType.CXONE_API_ERROR, 'Failed to get transfer summary', error);
+                this.logger.error('getTransferSummary', errorResponse.toString());
+                reject(errorResponse);
+            });
+        });
+    }
+    ;
     /**
      * Saves the edited summary for a given channel and contact number.
      * @param channel - The communication channel.
@@ -1120,6 +1275,30 @@ export class CopilotService {
         });
     }
     ;
+    /**
+     * Used to check the copilot interaction status (whether conversation has ended)
+     * @param contactId - contact id to check the interaction status
+     * @example -
+     * ```
+     * copilotService.fetchCopilotInteractionStatus("1234");
+     * ```
+     */
+    fetchCopilotInteractionStatus(contactId) {
+        return new Promise((resolve, reject) => {
+            const reqInit = this.getBaseHttpRequest({
+                contactId,
+            });
+            const baseUrl = this.getBaseUrlForAcp();
+            const copilotUrl = baseUrl + this.COPILOT_INTERACTION_STATUS;
+            HttpClient === null || HttpClient === void 0 ? void 0 : HttpClient.post(copilotUrl, reqInit).then((response) => {
+                resolve(response.data || { conversationEnded: false });
+            }, (error) => {
+                const errorResponse = new CXoneSdkError(CXoneSdkErrorType.CXONE_API_ERROR, 'Failed to fetch copilot interaction status', error);
+                this.logger.error('fetchCopilotInteractionStatus', errorResponse.toString());
+                reject(errorResponse);
+            });
+        });
+    }
     /**
      * Cancels the Decision Tree session for a given contact.
      *
@@ -1404,4 +1583,13 @@ export class CopilotService {
         });
     }
 }
+/**
+ * Fetches the csa-agent-copilot MFE version from the client-setting API.
+ * @returns Promise resolving to the version string
+ * @example
+ * ```
+ * const version = await copilotService.fetchCopilotVersion();
+ * ```
+ */
+CopilotService.COPILOT_VERSION_STORAGE_KEY = 'copilotVersion';
 //# sourceMappingURL=copilot-service.js.map

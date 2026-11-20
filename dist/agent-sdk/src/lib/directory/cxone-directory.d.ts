@@ -49,6 +49,14 @@ export declare class CXoneDirectory {
      */
     terminateDirectoryPolling(): void;
     /**
+     * Used to terminate directory polling
+     * @example -
+     * ```
+     * this.directoryBase.resetServerSideTeamState()
+     * ```
+     */
+    resetServerSideTeamState(): void;
+    /**
    * get Standard Address book entries for all standardbooks for a email autocomplete search
    * @param addressBooks - AddressBooks[], used to make api call for every addressbook
    * @param skip - number starting index of the result array.

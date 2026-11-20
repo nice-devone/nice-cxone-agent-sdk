@@ -5,6 +5,13 @@ import { DirectoryEntities, MediaTypeId, MessageBus, MessageType, } from '@nice-
 import { DirectorySearchFilter, handleDirectoryItemDeletion } from '../../directory/util/utility';
 import { AuthStatus } from '@nice-devone/auth-sdk';
 import { FeatureToggleService } from '../../feature-toggle/feature-toggle-services';
+import { markSkillActivityBootstrapFinished, markSkillActivityBootstrapProgress, markSkillActivityBootstrapStarted, waitForSkillActivityBootstrap, } from './skill-activity-bootstrap-gate';
+/** Field set requested from the skill activity endpoint, shared by polling and the login-time bootstrap. */
+const SKILL_ACTIVITY_FIELDS = 'agentsAvailable,agentsUnavailable,agentsLoggedIn,agentsWorking,campaignId,earliestQueueTime,emailFromAddress,inSLA,isActive,isNaturalCalling,isOutbound,mediaTypeId,mediaTypeName,outSLA,personalQueueCount,queueCount,serviceLevel,serviceLevelGoal,skillId,skillName,skillQueueCount';
+/** Rows requested per bootstrap page. */
+const BOOTSTRAP_PAGE_SIZE = 10000;
+/** Concurrent bootstrap page requests, kept low so login-critical requests are not starved of connections. */
+const BOOTSTRAP_MAX_PARALLEL = 2;
 /**
  * skill activity Provider Class
  */
@@ -100,6 +107,9 @@ export class CXoneSkillActivityProvider {
     startPolling(skillActivityPollingRequest) {
         return __awaiter(this, void 0, void 0, function* () {
             this.logger.info('startPolling', 'startPolling in CXoneSkillActivityProvider');
+            // Never race an in-flight login-time bootstrap with a duplicate, unpaginated updatedSince=1970 call -
+            // wait it out so this reads the freshly-seeded cursor instead. No-op once nothing is in flight.
+            yield waitForSkillActivityBootstrap();
             this.baseUri = this.acdSession.cxOneConfig.acdApiBaseUri;
             const authToken = this.acdSession.accessToken;
             this.offset = skillActivityPollingRequest.offset
@@ -111,16 +121,14 @@ export class CXoneSkillActivityProvider {
             this.limit = skillActivityPollingRequest.limit
                 ? skillActivityPollingRequest.limit
                 : -1;
-            if (skillActivityPollingRequest.mediaTypeId !== undefined) {
-                this.mediaTypeId = skillActivityPollingRequest.mediaTypeId;
-            }
+            this.mediaTypeId = skillActivityPollingRequest.mediaTypeId;
             this.isOutbound = skillActivityPollingRequest.isOutbound ? skillActivityPollingRequest.isOutbound : false;
             let activityUpdatedSinceValue = LocalStorageHelper.getItem(StorageKeys.ACTIVITY_POLLING_UPDATED_SINCE) || new Date(0).toISOString();
             if (this.baseUri && authToken && !this.pollingWorker) {
                 const isTenantSegmentationEnabled = FeatureToggleService.instance.getFeatureToggleSync("release-cxa-tenant-segmentation-AW-28101" /* FeatureToggles.TENANT_SEGMENTATION */);
                 const endpointUri = isTenantSegmentationEnabled ? ApiUriConstants.SKILL_ACTIVITY_URI_TS : ApiUriConstants.SKILL_ACTIVITY_URI;
                 const Url = new URL(endpointUri, this.baseUri);
-                Url.searchParams.set('fields', 'agentsAvailable,agentsUnavailable,agentsLoggedIn,agentsWorking,campaignId,earliestQueueTime,emailFromAddress,inSLA,isActive,isNaturalCalling,isOutbound,mediaTypeId,mediaTypeName,outSLA,personalQueueCount,queueCount,serviceLevel,serviceLevelGoal,skillId,skillName,skillQueueCount');
+                Url.searchParams.set('fields', SKILL_ACTIVITY_FIELDS);
                 Url.searchParams.set('updatedSince', activityUpdatedSinceValue);
                 const reqInit = {
                     headers: this.utilService.initHeader(authToken).headers,
@@ -130,7 +138,7 @@ export class CXoneSkillActivityProvider {
                     this.initSkillActivityWorker();
                     this.pollingWorker.onmessage = (response) => {
                         var _a;
-                        this.handleSkillActivityResponse(response.data);
+                        this.handleSkillActivityResponse(response.data).catch(err => this.logger.error('handleSkillActivityResponse', err));
                         if ((_a = response.data) === null || _a === void 0 ? void 0 : _a.lastPollTime) {
                             activityUpdatedSinceValue = response.data.lastPollTime;
                         }
@@ -144,12 +152,14 @@ export class CXoneSkillActivityProvider {
                 });
             }
             else {
-                this.getSkillsFromIndexDB();
+                this.getSkillsFromIndexDB().catch(err => this.logger.error('getSkillsFromIndexDB', err));
             }
         });
     }
     /**
-     * Used to terminate the polling of skill activity
+     * Used to terminate the real-time polling of skill activity for the current view. Does not touch the
+     * separate, session-scoped login-time bootstrap - that has its own lifecycle (see
+     * terminateBootstrapWorker()) and must keep running even if a view stops/restarts its own polling.
      * @example -
      * ```
      * const agentActivityProvider = new CXoneSkillActivityProvider();
@@ -200,7 +210,7 @@ export class CXoneSkillActivityProvider {
                     this.cxoneClient.skillActivityQueue.skillActivityEvent.next(paginationSkillResponse);
                 }
                 else {
-                    this.getSkillsFromIndexDB();
+                    this.getSkillsFromIndexDB().catch(err => this.logger.error('getSkillsFromIndexDB', err));
                 }
             }
             else {
@@ -265,6 +275,131 @@ export class CXoneSkillActivityProvider {
         this.pollingWorker = undefined;
     }
     /**
+     * Downloads the full skill set on a worker thread right after login and seeds SKILL_ACTIVITY/SKILL_LIST,
+     * so the Directory opens against a warm cache instead of fetching everything with `updatedSince=1970`.
+     * No-op on a warm cache, on repeat calls, or before base uri/auth token are available.
+     * @example - await CXoneClient.instance.skillActivityQueue.skillActivityProvider.bootstrapSkillActivity();
+     */
+    bootstrapSkillActivity() {
+        var _a;
+        return __awaiter(this, void 0, void 0, function* () {
+            const isBootstrapEnabled = yield FeatureToggleService.instance.getFeatureToggle("release-cx-skill-activity-bootstrap-worker-AW-62211" /* FeatureToggles.SKILL_ACTIVITY_BOOTSTRAP_WORKER */);
+            if (!isBootstrapEnabled) {
+                return;
+            }
+            if (this.bootstrapWorker) {
+                return;
+            }
+            const baseUri = (_a = this.acdSession.cxOneConfig) === null || _a === void 0 ? void 0 : _a.acdApiBaseUri;
+            const authToken = this.acdSession.accessToken;
+            if (!baseUri || !authToken) {
+                return;
+            }
+            if (yield this.isSkillStoreSeeded()) {
+                return;
+            }
+            const isTenantSegmentationEnabled = yield FeatureToggleService.instance.getFeatureToggle("release-cxa-tenant-segmentation-AW-28101" /* FeatureToggles.TENANT_SEGMENTATION */);
+            const endpointUri = isTenantSegmentationEnabled
+                ? ApiUriConstants.SKILL_ACTIVITY_URI_TS
+                : ApiUriConstants.SKILL_ACTIVITY_URI;
+            const url = new URL(endpointUri, baseUri);
+            url.searchParams.set('fields', SKILL_ACTIVITY_FIELDS);
+            url.searchParams.set('updatedSince', new Date(0).toISOString());
+            const reqInit = {
+                headers: this.utilService.initHeader(authToken).headers,
+            };
+            const bootstrapWorker = new LoadWorker().getWorker('util-worker', 'ccf-skill-activity-bootstrap-worker');
+            if (!bootstrapWorker) {
+                this.logger.error('bootstrapSkillActivity', 'Failed to create bootstrap worker');
+                return;
+            }
+            this.bootstrapWorker = bootstrapWorker;
+            markSkillActivityBootstrapStarted();
+            bootstrapWorker.onmessage = (response) => {
+                const data = response.data;
+                // Heartbeat only - reset the gate's stuck-worker detector and keep waiting, skip handleBootstrapResponse.
+                if ((data === null || data === void 0 ? void 0 : data.type) === 'skill-activity-bootstrap-progress') {
+                    markSkillActivityBootstrapProgress();
+                    return;
+                }
+                this.handleBootstrapResponse(data);
+            };
+            bootstrapWorker.postMessage({
+                type: 'skill-activity-bootstrap',
+                requestParams: { url: url.toString(), method: 'GET', request: reqInit },
+                bootstrapOptions: {
+                    pageSize: BOOTSTRAP_PAGE_SIZE,
+                    maxParallel: BOOTSTRAP_MAX_PARALLEL,
+                },
+            });
+            this.logger.info('bootstrapSkillActivity', 'Skill activity bootstrap started on worker thread');
+        });
+    }
+    /**
+     * True when SKILL_ACTIVITY already holds data. Checked before starting and again immediately before the
+     * write, since a real poll response can land while the bootstrap is still in flight. Does not look at
+     * SKILL_LIST - that store has its own independent write path in the Directory provider.
+     */
+    isSkillStoreSeeded() {
+        return __awaiter(this, void 0, void 0, function* () {
+            const db = yield dbInstance();
+            const skillActivityList = (yield (db === null || db === void 0 ? void 0 : db.get(IndexDBStoreNames.DIRECTORY, DirectoryEntities.SKILL_ACTIVITY)));
+            return Boolean(skillActivityList === null || skillActivityList === void 0 ? void 0 : skillActivityList.length);
+        });
+    }
+    /**
+     * Seeds both skill stores from the bootstrap worker payload and advances both polling cursors.
+     * @param data - message posted back by the bootstrap worker
+     */
+    handleBootstrapResponse(data) {
+        return __awaiter(this, void 0, void 0, function* () {
+            try {
+                if (!data) {
+                    return;
+                }
+                if (data.type !== 'skill-activity-bootstrap-complete') {
+                    return;
+                }
+                const skillList = data.skillList || [];
+                if (!skillList.length) {
+                    return;
+                }
+                if (yield this.isSkillStoreSeeded()) {
+                    return;
+                }
+                // Filtering, field mapping and sorting already happened on the worker thread - this only writes.
+                const skillActivityList = data.skillActivityList || [];
+                const db = yield dbInstance();
+                yield (db === null || db === void 0 ? void 0 : db.put(IndexDBStoreNames.DIRECTORY, skillActivityList, DirectoryEntities.SKILL_ACTIVITY));
+                yield (db === null || db === void 0 ? void 0 : db.put(IndexDBStoreNames.DIRECTORY, skillList, DirectoryEntities.SKILL_LIST));
+                this.entityCounts.skillList = skillActivityList.length;
+                if (data.lastPollTime) {
+                    LocalStorageHelper.setItem(StorageKeys.ACTIVITY_POLLING_UPDATED_SINCE, data.lastPollTime);
+                    LocalStorageHelper.setItem(StorageKeys.SKILL_POLLING_UPDATED_SINCE, data.lastPollTime);
+                }
+                this.logger.info('handleBootstrapResponse', 'Seeded ' + skillActivityList.length + ' active skills and ' + skillList.length + ' skill records');
+            }
+            catch (error) {
+                this.logger.error('handleBootstrapResponse', 'Error seeding skill stores: ' + error);
+            }
+            finally {
+                this.terminateBootstrapWorker();
+            }
+        });
+    }
+    /**
+     * Terminates the bootstrap worker.
+     * @example - this.terminateBootstrapWorker();
+     */
+    terminateBootstrapWorker() {
+        var _a;
+        (_a = this.bootstrapWorker) === null || _a === void 0 ? void 0 : _a.terminate();
+        this.bootstrapWorker = undefined;
+        // Called on normal completion (handleBootstrapResponse's finally) and on early abort (terminatePolling
+        // at logout) - both cases must release anything waiting via waitForSkillActivityBootstrap().
+        markSkillActivityBootstrapFinished();
+    }
+    /**
      * Used to update the skill list in index DB as per the new list
      * @param SkillList - new skill list response
      */
@@ -279,9 +414,21 @@ export class CXoneSkillActivityProvider {
             if (currentSkillList === null || currentSkillList === void 0 ? void 0 : currentSkillList.length) {
                 /* below flow will be executed in case when skill list is already present in indexDB which happens in case user is already logged in
                 or user logged in again without deleting browser history */
+                // skillId -> index lookup built once; matching becomes O(1) instead of O(n) per skill.
+                // String() keys preserve the previous loose-equality (==) match for mixed string/number ids.
+                const skillIdToIndex = new Map();
+                for (let i = 0; i < currentSkillList.length; i++) {
+                    skillIdToIndex.set(String(currentSkillList[i].skillId), i);
+                }
+                // Inactive matches are marked for removal and compacted once after the loop (below) instead of
+                // splicing mid-loop, which would shift every later index and invalidate the lookup.
+                const removedIndices = new Set();
                 SkillList.forEach((skill, index) => {
                     var _a, _b;
-                    const matchedSkillIndex = currentSkillList.findIndex((currentSkill) => currentSkill.skillId == skill.skillId);
+                    const skillKey = String(skill.skillId);
+                    const matchedSkillIndex = skillIdToIndex.has(skillKey)
+                        ? skillIdToIndex.get(skillKey)
+                        : -1;
                     if (matchedSkillIndex >= 0) {
                         if (((_a = currentSkillList[matchedSkillIndex]) === null || _a === void 0 ? void 0 : _a.isFavorite)
                             && ((_b = clientData === null || clientData === void 0 ? void 0 : clientData.CXAFavSkills) === null || _b === void 0 ? void 0 : _b.includes(currentSkillList[matchedSkillIndex].skillId))) {
@@ -294,16 +441,27 @@ export class CXoneSkillActivityProvider {
                         else {
                             SkillList[index].isFavorite = false;
                         }
-                        if (skill.isActive) { // If skills are active, add into SKILL_ACTIVITY DB else remove. 
+                        if (skill.isActive) { // If skills are active, add into SKILL_ACTIVITY DB else remove.
                             currentSkillList[matchedSkillIndex] = SkillList[index];
                         }
                         else {
-                            currentSkillList.splice(matchedSkillIndex, 1);
+                            // inactive match → mark for removal (don't splice); drop the id from the lookup so a later
+                            // incoming skill with the same id is pushed as new, exactly as the original findIndex flow did.
+                            removedIndices.add(matchedSkillIndex);
+                            skillIdToIndex.delete(skillKey);
                         }
                     }
-                    else
+                    else {
                         currentSkillList.push(skill);
+                        // keep the lookup in sync so a later duplicate id matches the just-pushed entry.
+                        skillIdToIndex.set(skillKey, currentSkillList.length - 1);
+                    }
                 });
+                // Compact once: elements were only replaced in place or pushed (never shifted), so filtering the
+                // marked indices yields the same set, in the same order, as the original splice-based flow.
+                if (removedIndices.size) {
+                    currentSkillList = currentSkillList.filter((_, i) => !removedIndices.has(i));
+                }
                 if ((_a = clientData === null || clientData === void 0 ? void 0 : clientData.CXAFavSkills) === null || _a === void 0 ? void 0 : _a.length) {
                     ({ currFavListInLS } = yield handleDirectoryItemDeletion({ listFromDB: currentSkillList, idName: 'skillId', favClientList: clientData.CXAFavSkills, storageKey: 'cxaFavSkills', clientDataKey: 'CXAFavSkills' }));
                 }
@@ -383,9 +541,15 @@ export class CXoneSkillActivityProvider {
      * ```
      */
     sortResponse(skillList) {
+        // Precompute the lowercased skill name once per skill instead of on every comparison.
+        const nameBySkill = new Map();
+        for (const skill of skillList) {
+            nameBySkill.set(skill, skill.skillName.toLowerCase());
+        }
+        // Sort in place (same array reference/return) over the precomputed keys — identical ordering.
         skillList.sort((a, b) => {
-            const firstValue = a.skillName.toLowerCase();
-            const secondValue = b.skillName.toLowerCase();
+            const firstValue = nameBySkill.get(a);
+            const secondValue = nameBySkill.get(b);
             if (firstValue > secondValue) {
                 return 1;
             }

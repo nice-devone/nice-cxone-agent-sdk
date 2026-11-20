@@ -8,7 +8,8 @@ export interface UserInfo {
     userId: string;
     firstName: string;
     lastName: string;
-    teamId?: number;
+    /** ACD numeric team id (from whoami) or User Hub team GUID (from the users api) */
+    teamId?: number | string;
     digitalUserId?: number;
     digitalBrandId?: number;
 }

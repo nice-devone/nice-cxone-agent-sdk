@@ -1,5 +1,6 @@
 import { __awaiter } from "tslib";
 import { ACDSessionManager, ApiUriConstants, HttpUtilService, Logger, IndexDBStoreNames, dbInstance, IndexDBKeyNames, clearIndexDbStore, LocalStorageHelper, StorageKeys, LoadWorker, } from '@nice-devone/core-sdk';
+import { TeamService } from '../service/team-service';
 import { MessageBus, MessageType, DirectoryEntities, } from '@nice-devone/common-sdk';
 import { CXoneDirectoryAdapter } from '../adapter/cxone-directory-adapter';
 import { DirectorySearchFilter, handleDirectoryItemDeletion, normalizeDirectorySearchText } from '../util/utility';
@@ -7,6 +8,7 @@ import { AuthStatus } from '@nice-devone/auth-sdk';
 import { FeatureToggleService } from '../../feature-toggle/feature-toggle-services';
 import { UnifiedDirectoryAgentStates } from '../../agent-state/enum/unified-agent-state';
 import { isUnifiedAgentStateEnabled } from '../../utils/unified-agent-state-utils';
+import { waitForSkillActivityBootstrap } from '../../acd/provider/skill-activity-bootstrap-gate';
 const NO_MATCHING_RECORDS_FOUND = 'No Matching Records Found.';
 const OFFSET_AND_LIMIT_VALUES_SHOULD_ALWAYS_BE_GREATER_THAN_ZERO = 'Offset and Limit values should always be greater than zero.';
 const AgentState = {
@@ -43,6 +45,7 @@ export class CXoneDirectoryProvider {
         this.baseUri = '';
         this.utilService = new HttpUtilService();
         this.directoryAdapter = new CXoneDirectoryAdapter();
+        this.teamService = new TeamService();
         this.directoryBase = {};
         this.offset = -1; // to know the pagination offset for the directory data requested
         this.limit = -1; // to know the pagination last index for the directory data requested
@@ -82,6 +85,15 @@ export class CXoneDirectoryProvider {
         this.favoriteTeamList = [];
         this.favoriteSkillList = [];
         this.favoriteAddressBookList = [];
+        this.teamServerTotalLoaded = 0;
+        this.teamServerTotalRecords = 0;
+        this.teamServerSearchTotalLoaded = 0;
+        // true while a load-more team page is in flight, so repeated scroll-to-bottom events can't fire
+        // overlapping requests with the same skip and over-count what has been loaded
+        this.teamServerLoadMoreInFlight = false;
+        // Separate from this.searchText, which any getDirectoryData call overwrites (even agent-only
+        // repolls) and would otherwise mask search-text changes from the team reset check below.
+        this.lastTeamSearchText = '';
         this.getDirectoryPollingConfig = () => {
             return LocalStorageHelper.getItem(StorageKeys.DIRECTORY_POLLING_CONFIG, true);
         };
@@ -118,7 +130,7 @@ export class CXoneDirectoryProvider {
      * ```
      */
     getDirectoryData(entity, pollingOptions, offset, limit, searchText, teamId, mediaType, shouldFetchAllAgents) {
-        var _a;
+        var _a, _b, _c, _d;
         return __awaiter(this, void 0, void 0, function* () {
             if (offset !== undefined && limit !== undefined && (offset <= 0 || limit <= 0)) { // if offset and limit is less than equal to 0 send error response for the requested entity
                 const directoryResponse = { skillList: { data: [] }, agentList: { data: [] }, addressBookList: { data: [] }, teamList: { data: [] } };
@@ -148,12 +160,26 @@ export class CXoneDirectoryProvider {
                 this.teamId = teamId;
             }
             this.mediaType = mediaType || undefined; // based on this we filter out the skill based on media type
+            const isServerSideTeamsToggleOn = FeatureToggleService.instance.getFeatureToggleSync("release-cxa-directory-server-side-teams-AW-62352" /* FeatureToggles.DIRECTORY_SERVER_TEAMS_TOGGLE */);
             if (searchText) { // if search text is present that means the current request for search
                 const isNewSearchRequest = this.isNewSearchedRequest(searchText, offset, limit, entity, teamId, mediaType);
                 this.offset = offset || -1;
                 this.limit = limit || -1;
                 this.searchText = searchText;
                 this.currentEntities = entity; // to keep track of the current search entities which will be needed while update
+                // FT ON: always re-include TEAM_LIST in polling so searchString reaches the server-side endpoint
+                if (isServerSideTeamsToggleOn && entity.includes(DirectoryEntities.TEAM_LIST)) {
+                    this.entityPollingFlag[DirectoryEntities.TEAM_LIST] = false;
+                    // Compared against lastTeamSearchText, not this.searchText — an unrelated agent/skill-only
+                    // call (e.g. the auto-repoll after an agent response) also overwrites this.searchText even
+                    // though its own entity list excludes TEAM_LIST, which would otherwise make this check see
+                    // "no change" and skip the reset the next time a real team call runs.
+                    if (this.lastTeamSearchText !== searchText) {
+                        this.teamServerSearchTotalLoaded = 0;
+                        this.teamServerTotalRecords = 0;
+                    }
+                    this.lastTeamSearchText = searchText;
+                }
                 const currentPollingNeededEntities = this.isPollingNeeded(entity);
                 if (currentPollingNeededEntities === null || currentPollingNeededEntities === void 0 ? void 0 : currentPollingNeededEntities.length) { // if the polling need any of the entity requested for the search then we will first poll the data first and then send the response for the search
                     if (isNewSearchRequest)
@@ -175,6 +201,15 @@ export class CXoneDirectoryProvider {
                 }
             }
             else { // if no search text is present then that means the request is for polling
+                if (isServerSideTeamsToggleOn && this.lastTeamSearchText && entity.includes(DirectoryEntities.TEAM_LIST)) {
+                    // Transitioning from search back to no-search — reset server-side cursors so the
+                    // next requestDirectoryData starts fresh (skip=0) instead of load-more.
+                    this.teamServerTotalLoaded = 0;
+                    this.teamServerTotalRecords = 0;
+                    this.teamServerSearchTotalLoaded = 0;
+                    this.lastTeamSearchText = '';
+                    this.entityPollingFlag[DirectoryEntities.TEAM_LIST] = false;
+                }
                 this.searchText = ''; // to reset the search text to identify that while update we are not sending response as per search data
                 yield (db === null || db === void 0 ? void 0 : db.delete(IndexDBStoreNames.DIRECTORY, IndexDBKeyNames.DIRECTORY_SEARCH_RESPONSE)); // to store the search data in the indexDB
                 this.offset = offset || -1;
@@ -218,10 +253,19 @@ export class CXoneDirectoryProvider {
                             }
                         });
                         if (this.offset > 0 && this.limit > 0) {
-                            directoryResponse = yield this.handleDirectoryPagination(directoryResponse);
+                            directoryResponse = yield this.handleDirectoryPagination(directoryResponse, undefined, shouldFetchAllAgents);
                         }
                         if ((_a = directoryResponse.addressBookList.data) === null || _a === void 0 ? void 0 : _a.length) {
                             directoryResponse.addressBookList.allAddressBookEntries = this.handleAddressBookList(directoryResponse.addressBookList.data);
+                        }
+                        if (FeatureToggleService.instance.getFeatureToggleSync("release-cx-directory-dwp-scalability-agent-fix-AW-61369" /* FeatureToggles.DWP_SCALABILITY_AGENT_FIX_TOGGLE */) && this.teamId && !((_d = (_c = (_b = directoryResponse.agentList) === null || _b === void 0 ? void 0 : _b.data) === null || _c === void 0 ? void 0 : _c.filter(a => a.isActive)) === null || _d === void 0 ? void 0 : _d.length)) {
+                            if (directoryResponse.agentList) {
+                                // selectedTeam.agentCount reflects currently active agents, so it is 0 in exactly this
+                                // scenario (every team member offline) -- see the identical check in handleDirectoryResponse
+                                // for the full explanation of why gating on agentCount > 0 hid the message.
+                                directoryResponse.agentList.errorMsg = 'allTeamMembersOffline';
+                                directoryResponse.agentList.errorDetails = { translationKey: 'allTeamMembersOffline' };
+                            }
                         }
                         this.publishDirectoryData(directoryResponse);
                     }
@@ -336,6 +380,8 @@ export class CXoneDirectoryProvider {
             const addressBookList = (yield (db === null || db === void 0 ? void 0 : db.get(IndexDBStoreNames.DIRECTORY, DirectoryEntities.ADDRESS_BOOK_LIST))) || [];
             const teamList = (yield (db === null || db === void 0 ? void 0 : db.get(IndexDBStoreNames.DIRECTORY, DirectoryEntities.TEAM_LIST))) || [];
             let addressBookResultState = [], agentResultState = [], skillResultState = [], teamResult = [];
+            // FT ON: teams are fetched and filtered server-side, so IndexedDB teams (not maintained under the FT) must not be searched
+            const isServerSideTeamsToggleOn = FeatureToggleService.instance.getFeatureToggleSync("release-cxa-directory-server-side-teams-AW-62352" /* FeatureToggles.DIRECTORY_SERVER_TEAMS_TOGGLE */);
             if (entities === null || entities === void 0 ? void 0 : entities.length) {
                 for (const entity of entities) {
                     switch (entity) {
@@ -349,7 +395,7 @@ export class CXoneDirectoryProvider {
                             skillResultState = this.getFilteredSkillList(searchTextUpperCase, skillList);
                             break;
                         case DirectoryEntities.TEAM_LIST:
-                            teamResult = this.getFilteredTeamList(searchTextUpperCase, teamList);
+                            teamResult = isServerSideTeamsToggleOn ? [] : this.getFilteredTeamList(searchTextUpperCase, teamList);
                             break;
                     }
                 }
@@ -358,7 +404,7 @@ export class CXoneDirectoryProvider {
                 addressBookResultState = this.filterAddressBook(searchTextUpperCase, addressBookList);
                 agentResultState = yield this.getFilteredAgentList(searchTextUpperCase, AgentList);
                 skillResultState = this.getFilteredSkillList(searchTextUpperCase, skillList);
-                teamResult = this.getFilteredTeamList(searchTextUpperCase, teamList);
+                teamResult = isServerSideTeamsToggleOn ? [] : this.getFilteredTeamList(searchTextUpperCase, teamList);
             }
             directoryResponse.agentList.data = agentResultState;
             directoryResponse.skillList.data = skillResultState;
@@ -397,8 +443,16 @@ export class CXoneDirectoryProvider {
             });
             agentResultState = yield this.sortAgentList(agentResultState, searchText);
             this.totalSearchResultCount.agentList = agentResultState.length || 0;
+            /* start from index 0 rather than this.offset - 1: "Load More" re-runs this full search from scratch
+            (isNewSearchedRequest) and its result wholesale-overwrites DIRECTORY_SEARCH_RESPONSE in
+            getDirectoryData, so this.offset/this.limit reflect only the newest page requested. Slicing from just
+            that page's start would drop every earlier-loaded match from the persisted snapshot -- so a status
+            change for one of them then finds no match in updateSearchAgentList and either silently misses (or gets
+            re-added out of order) instead of updating in place. this.limit + this.offset - 1 is still the correct
+            cumulative upper bound because the UI always requests the next page's offset as
+            (recordsAlreadyLoaded + 1) -- same fix as handleDirectoryPagination's pagination loop. */
             if (this.offset > 0 && this.limit > 0) {
-                agentResultState = agentResultState.slice(this.offset - 1, this.offset + this.limit - 1);
+                agentResultState = agentResultState.slice(0, this.offset + this.limit - 1);
             }
             this.entityCounts.agentList = agentResultState.length || 0;
             return agentResultState;
@@ -489,16 +543,20 @@ export class CXoneDirectoryProvider {
     ], shouldFetchAllAgents) {
         return __awaiter(this, void 0, void 0, function* () {
             this.pollingOptions = pollingOptions;
-            let updatedSinceValue = LocalStorageHelper.getItem(StorageKeys.DIRECTORY_POLLING_UPDATED_SINCE) || new Date(0).toISOString();
-            let teamUpdatedSinceValue = LocalStorageHelper.getItem(StorageKeys.TEAM_POLLING_UPDATED_SINCE) || new Date(0).toISOString();
-            let skillUpdatedSinceValue = LocalStorageHelper.getItem(StorageKeys.SKILL_POLLING_UPDATED_SINCE) || new Date(0).toISOString();
             this.entity = entity;
             this.isFreshRequest = true; // whenever new api request for directory is made that means its an explicit user request to get the directory data as per the entity provided
             this.logger.info('startPolling', 'startPolling in CXoneDirectoryProvider');
+            let updatedSinceValue = LocalStorageHelper.getItem(StorageKeys.DIRECTORY_POLLING_UPDATED_SINCE) || new Date(0).toISOString();
+            let teamUpdatedSinceValue = LocalStorageHelper.getItem(StorageKeys.TEAM_POLLING_UPDATED_SINCE) || new Date(0).toISOString();
+            let skillUpdatedSinceValue = LocalStorageHelper.getItem(StorageKeys.SKILL_POLLING_UPDATED_SINCE) || new Date(0).toISOString();
             const requests = [];
             const isFTUnifyAgentStateOn = yield isUnifiedAgentStateEnabled();
             this.baseUri = isFTUnifyAgentStateOn ? this.acdSession.cxOneConfig.apiFacadeBaseUri : this.acdSession.cxOneConfig.acdApiBaseUri;
             const isTenantSegmentationEnabled = FeatureToggleService.instance.getFeatureToggleSync("release-cxa-tenant-segmentation-AW-28101" /* FeatureToggles.TENANT_SEGMENTATION */);
+            const isDWPScalabilityAgentFixEnabled = FeatureToggleService.instance.getFeatureToggleSync("release-cx-directory-dwp-scalability-agent-fix-AW-61369" /* FeatureToggles.DWP_SCALABILITY_AGENT_FIX_TOGGLE */);
+            // Gates the SKILL_LIST-waits-separately behavior below; off means SKILL_LIST stays in the shared
+            // batch and dispatches with the rest, exactly as before the bootstrap-gate work.
+            const isSkillActivityBootstrapWorkerEnabled = FeatureToggleService.instance.getFeatureToggleSync("release-cx-skill-activity-bootstrap-worker-AW-62211" /* FeatureToggles.SKILL_ACTIVITY_BOOTSTRAP_WORKER */);
             const authToken = this.acdSession.accessToken;
             if (this.baseUri && authToken) {
                 if (entity.includes(DirectoryEntities.AGENT_LIST)) {
@@ -517,10 +575,11 @@ export class CXoneDirectoryProvider {
                     }
                     else {
                         const isDirectoryEmailSearchEnabled = FeatureToggleService.instance.getFeatureToggleSync("release-cxa-directory-email-search-AW-56625" /* FeatureToggles.DIRECTORY_EMAIL_SEARCH_FEATURE_TOGGLE */);
+                        const isDWPScalabilityAgentFixEnabled = FeatureToggleService.instance.getFeatureToggleSync("release-cx-directory-dwp-scalability-agent-fix-AW-61369" /* FeatureToggles.DWP_SCALABILITY_AGENT_FIX_TOGGLE */);
                         // The v34 agent-state API is used (and is the only one that supports the `email`
                         // field) when email search is enabled and tenant segmentation is off.
                         let agentStateUriConstant;
-                        if (isDirectoryEmailSearchEnabled) {
+                        if (isDirectoryEmailSearchEnabled || isDWPScalabilityAgentFixEnabled) {
                             agentStateUriConstant = ApiUriConstants.AGENT_STATE_URI_V34;
                         }
                         else if (isTenantSegmentationEnabled) {
@@ -533,8 +592,14 @@ export class CXoneDirectoryProvider {
                         // Include the `email` field only when the v34 endpoint is selected.
                         const agentStateFields = `agentId,${isDirectoryEmailSearchEnabled ? 'email,' : ''}agentStateName,contactId,firstName,isActive,isOutbound,lastName,lastPollTime,lastUpdateTime,mediaName,outStateCode,outStateDescription,skillId,skillName,startDate,stationPhoneNumber,teamId,teamName,userName,userId`;
                         agentStateUrl.searchParams.set('fields', agentStateFields);
-                        if (updatedSinceValue) {
+                        // DWP fix: skip `updatedSince` only on the first request (1970 default) to fetch the full
+                        // logged-in set; later requests send the stored lastPollTime for deltas.
+                        const isInitialUpdatedSince = updatedSinceValue === new Date(0).toISOString();
+                        if (updatedSinceValue && !(isDWPScalabilityAgentFixEnabled && isInitialUpdatedSince)) {
                             agentStateUrl.searchParams.set('updatedSince', updatedSinceValue);
+                        }
+                        if (isDWPScalabilityAgentFixEnabled) {
+                            agentStateUrl.searchParams.set('loggedinonly', 'true');
                         }
                         const agentStateRequest = {
                             headers: this.utilService.initHeader(authToken).headers,
@@ -546,7 +611,8 @@ export class CXoneDirectoryProvider {
                         });
                     }
                 }
-                if (entity.includes(DirectoryEntities.SKILL_LIST)) {
+                if (!isSkillActivityBootstrapWorkerEnabled && entity.includes(DirectoryEntities.SKILL_LIST)) {
+                    // FT off only: build SKILL_LIST into the shared batch, dispatched with the rest below.
                     const endpointUri = isTenantSegmentationEnabled ? ApiUriConstants.SKILL_ACTIVITY_URI_TS : ApiUriConstants.SKILL_ACTIVITY_URI;
                     const skillUrl = new URL(endpointUri, this.baseUri);
                     skillUrl.searchParams.set('fields', 'isActive,isOutbound,mediaTypeId,mediaTypeName,skillId,skillName');
@@ -572,48 +638,97 @@ export class CXoneDirectoryProvider {
                         id: DirectoryEntities.ADDRESS_BOOK_LIST,
                     });
                 }
+                const isServerSideTeamsToggleOn = FeatureToggleService.instance.getFeatureToggleSync("release-cxa-directory-server-side-teams-AW-62352" /* FeatureToggles.DIRECTORY_SERVER_TEAMS_TOGGLE */);
                 if (entity.includes(DirectoryEntities.TEAM_LIST)) {
-                    const teamListUrl = new URL(isTenantSegmentationEnabled ? ApiUriConstants.GET_TEAMS_TS : ApiUriConstants.GET_TEAMS, this.baseUri);
-                    teamListUrl.searchParams.set('fields', 'teamId,teamName,isActive,agentCount');
-                    teamListUrl.searchParams.set('isActive', 'true');
-                    teamListUrl.searchParams.set('updatedSince', teamUpdatedSinceValue);
-                    const teamListRequest = {
-                        headers: this.utilService.initHeader(authToken).headers,
-                    };
-                    requests.push({
-                        url: teamListUrl.toString(),
-                        request: teamListRequest,
-                        id: DirectoryEntities.TEAM_LIST,
-                    });
+                    if (isServerSideTeamsToggleOn) {
+                        const isSearch = !!this.searchText;
+                        const totalLoaded = isSearch ? this.teamServerSearchTotalLoaded : this.teamServerTotalLoaded;
+                        const isLoadMore = totalLoaded > 0;
+                        const updatedSince = new Date(0).toISOString();
+                        let skip;
+                        let top;
+                        if (!isLoadMore) {
+                            skip = 0;
+                            top = this.limit > 0 ? this.limit : 25;
+                        }
+                        else {
+                            const pageSize = this.limit > 0 ? this.limit : 25;
+                            skip = totalLoaded;
+                            top = this.teamServerTotalRecords > 0
+                                ? Math.max(0, Math.min(pageSize, this.teamServerTotalRecords - totalLoaded))
+                                : pageSize;
+                        }
+                        // Teams never polls — a single one-off request via TeamService, no worker, no interval.
+                        this.fetchServerSideTeams({ skip, top, updatedSince, searchString: this.searchText || undefined, isSearch, isLoadMore, shouldFetchAllAgents });
+                    }
+                    else {
+                        const teamListUrl = new URL(ApiUriConstants.GET_TEAMS, this.baseUri);
+                        teamListUrl.searchParams.set('fields', 'teamId,teamName,isActive,agentCount');
+                        teamListUrl.searchParams.set('isActive', 'true');
+                        if (FeatureToggleService.instance.getFeatureToggleSync("release-cxa-isDirectory-teams-flag-AW-65741" /* FeatureToggles.TEAMS_IS_DIRECTORY_FLAG_TOGGLE */)) {
+                            teamListUrl.searchParams.set('isDirectory', 'true');
+                        }
+                        teamListUrl.searchParams.set('updatedSince', teamUpdatedSinceValue);
+                        const teamListRequest = {
+                            headers: this.utilService.initHeader(authToken).headers,
+                        };
+                        requests.push({
+                            url: teamListUrl.toString(),
+                            request: teamListRequest,
+                            id: DirectoryEntities.TEAM_LIST,
+                        });
+                    }
                 }
                 if (!this.pollingWorker) {
                     this.initUtilWorker();
                     this.pollingWorker.onmessage = (response) => {
-                        var _a, _b, _c, _d, _e, _f, _g, _h;
+                        var _a, _b, _c, _d, _e, _f, _g, _h, _j, _k;
+                        if (((_a = response === null || response === void 0 ? void 0 : response.data) === null || _a === void 0 ? void 0 : _a.type) === 'directory-agent-polling-error') {
+                            /* terminal agentList polling failure (all retries exhausted) -- response.data is a plain
+                            object here, not the Map the rest of this handler assumes, so it must be handled separately.
+                            This check is intentionally NOT gated behind isDWPScalabilityAgentFixEnabled: the worker's
+                            retry loop that emits this message has no knowledge of (or dependency on) that toggle, so
+                            gating detection on it here would let this message fall through to the Map-only code below
+                            whenever the toggle happens to be off, throwing on `.get is not a function`. Detecting by
+                            payload shape alone means this can never crash regardless of toggle state. */
+                            this.logger.error('requestDirectoryData', 'agentList polling failed after max retries: ' + ((_b = response.data.data) === null || _b === void 0 ? void 0 : _b.message));
+                            this.publishFinalDirectoryData({
+                                skillList: { data: [] },
+                                agentList: { data: [], agentStateApiRetriesExhausted: true },
+                                addressBookList: { data: [] },
+                                teamList: { data: [] },
+                            });
+                            return;
+                        }
                         this.handleDirectoryResponse(response.data, shouldFetchAllAgents);
                         if (entity.includes(DirectoryEntities.AGENT_LIST)) {
-                            const agentListWrapper = (_a = response === null || response === void 0 ? void 0 : response.data) === null || _a === void 0 ? void 0 : _a.get(DirectoryEntities.AGENT_LIST);
-                            if (isFTUnifyAgentStateOn && ((_b = agentListWrapper === null || agentListWrapper === void 0 ? void 0 : agentListWrapper.value) === null || _b === void 0 ? void 0 : _b.lastPollTime)) {
+                            const agentListWrapper = (_c = response === null || response === void 0 ? void 0 : response.data) === null || _c === void 0 ? void 0 : _c.get(DirectoryEntities.AGENT_LIST);
+                            if (isFTUnifyAgentStateOn && ((_d = agentListWrapper === null || agentListWrapper === void 0 ? void 0 : agentListWrapper.value) === null || _d === void 0 ? void 0 : _d.lastPollTime)) {
                                 const agentList = agentListWrapper === null || agentListWrapper === void 0 ? void 0 : agentListWrapper.value;
                                 updatedSinceValue = agentList === null || agentList === void 0 ? void 0 : agentList.lastPollTime;
                             }
-                            else if ((_c = agentListWrapper === null || agentListWrapper === void 0 ? void 0 : agentListWrapper.value) === null || _c === void 0 ? void 0 : _c.resultSet) {
-                                const agentList = (_d = agentListWrapper === null || agentListWrapper === void 0 ? void 0 : agentListWrapper.value) === null || _d === void 0 ? void 0 : _d.resultSet;
+                            else if ((_e = agentListWrapper === null || agentListWrapper === void 0 ? void 0 : agentListWrapper.value) === null || _e === void 0 ? void 0 : _e.resultSet) {
+                                const agentList = (_f = agentListWrapper === null || agentListWrapper === void 0 ? void 0 : agentListWrapper.value) === null || _f === void 0 ? void 0 : _f.resultSet;
                                 updatedSinceValue = agentList === null || agentList === void 0 ? void 0 : agentList.lastPollTime;
                             }
-                            LocalStorageHelper.setItem(StorageKeys.DIRECTORY_POLLING_UPDATED_SINCE, updatedSinceValue);
+                            const isInitialUpdatedSince = updatedSinceValue === new Date(0).toISOString();
+                            if (!isDWPScalabilityAgentFixEnabled || !isInitialUpdatedSince) {
+                                LocalStorageHelper.setItem(StorageKeys.DIRECTORY_POLLING_UPDATED_SINCE, updatedSinceValue);
+                            }
                         }
-                        if (entity.includes(DirectoryEntities.TEAM_LIST)) {
-                            const teamListWrapper = (_e = response === null || response === void 0 ? void 0 : response.data) === null || _e === void 0 ? void 0 : _e.get(DirectoryEntities.TEAM_LIST);
-                            if ((_f = teamListWrapper === null || teamListWrapper === void 0 ? void 0 : teamListWrapper.value) === null || _f === void 0 ? void 0 : _f.lastPollTime) {
+                        if (!isServerSideTeamsToggleOn && entity.includes(DirectoryEntities.TEAM_LIST)) {
+                            const teamListWrapper = (_g = response === null || response === void 0 ? void 0 : response.data) === null || _g === void 0 ? void 0 : _g.get(DirectoryEntities.TEAM_LIST);
+                            if ((_h = teamListWrapper === null || teamListWrapper === void 0 ? void 0 : teamListWrapper.value) === null || _h === void 0 ? void 0 : _h.lastPollTime) {
                                 const teamList = teamListWrapper === null || teamListWrapper === void 0 ? void 0 : teamListWrapper.value;
                                 teamUpdatedSinceValue = teamList === null || teamList === void 0 ? void 0 : teamList.lastPollTime;
                             }
                             LocalStorageHelper.setItem(StorageKeys.TEAM_POLLING_UPDATED_SINCE, teamUpdatedSinceValue);
                         }
-                        if (entity.includes(DirectoryEntities.SKILL_LIST)) {
-                            const skillListWrapper = (_g = response === null || response === void 0 ? void 0 : response.data) === null || _g === void 0 ? void 0 : _g.get(DirectoryEntities.SKILL_LIST);
-                            if ((_h = skillListWrapper === null || skillListWrapper === void 0 ? void 0 : skillListWrapper.value) === null || _h === void 0 ? void 0 : _h.lastPollTime) {
+                        // FT on: SKILL_LIST arrives in a separate message, so also require the wrapper itself - else
+                        // this overwrites the cursor with a stale value when the agent/address book/team message lands.
+                        const skillListWrapper = (_j = response === null || response === void 0 ? void 0 : response.data) === null || _j === void 0 ? void 0 : _j.get(DirectoryEntities.SKILL_LIST);
+                        if (entity.includes(DirectoryEntities.SKILL_LIST) && (!isSkillActivityBootstrapWorkerEnabled || skillListWrapper)) {
+                            if ((_k = skillListWrapper === null || skillListWrapper === void 0 ? void 0 : skillListWrapper.value) === null || _k === void 0 ? void 0 : _k.lastPollTime) {
                                 const skillList = skillListWrapper === null || skillListWrapper === void 0 ? void 0 : skillListWrapper.value;
                                 skillUpdatedSinceValue = skillList === null || skillList === void 0 ? void 0 : skillList.lastPollTime;
                             }
@@ -621,14 +736,123 @@ export class CXoneDirectoryProvider {
                         }
                     };
                 }
-                this.pollingWorker.postMessage({
-                    type: 'directory-polling',
-                    requestParams: requests,
-                    retryOptions: { maxRetryAttempts: 0, retryInterval: 0 },
-                    pollingOptions,
-                });
+                // FT off: `requests` already has SKILL_LIST, so this is the original single dispatch.
+                // FT on: SKILL_LIST is excluded here and sent separately below so it can't delay this batch.
+                if (requests.length) {
+                    this.pollingWorker.postMessage({
+                        type: 'directory-polling',
+                        requestParams: requests,
+                        retryOptions: { maxRetryAttempts: 0, retryInterval: 0 },
+                        pollingOptions,
+                    });
+                }
+                if (isSkillActivityBootstrapWorkerEnabled && entity.includes(DirectoryEntities.SKILL_LIST)) {
+                    // FT on only: wait out an in-flight bootstrap to avoid a duplicate updatedSince=1970 call, then
+                    // re-read the cursor so a bootstrap that just finished is picked up. See skill-activity-bootstrap-gate.ts.
+                    yield waitForSkillActivityBootstrap();
+                    skillUpdatedSinceValue = LocalStorageHelper.getItem(StorageKeys.SKILL_POLLING_UPDATED_SINCE) || new Date(0).toISOString();
+                    const endpointUri = isTenantSegmentationEnabled ? ApiUriConstants.SKILL_ACTIVITY_URI_TS : ApiUriConstants.SKILL_ACTIVITY_URI;
+                    const skillUrl = new URL(endpointUri, this.baseUri);
+                    skillUrl.searchParams.set('fields', 'isActive,isOutbound,mediaTypeId,mediaTypeName,skillId,skillName');
+                    skillUrl.searchParams.set('updatedSince', skillUpdatedSinceValue);
+                    const skillRequest = {
+                        headers: this.utilService.initHeader(authToken).headers,
+                    };
+                    this.pollingWorker.postMessage({
+                        type: 'directory-polling',
+                        requestParams: [{ url: skillUrl.toString(), request: skillRequest, id: DirectoryEntities.SKILL_LIST }],
+                        retryOptions: { maxRetryAttempts: 0, retryInterval: 0 },
+                        pollingOptions,
+                    });
+                }
             }
         });
+    }
+    /**
+     * Fetches one page of server-side teams via TeamService — no worker, no polling —
+     * and routes the result through the same response pipeline as the rest of directory data.
+     * @param request - skip/top/updatedSince/searchString for the fetch, plus isSearch/isLoadMore/
+     *   shouldFetchAllAgents context for how to apply the response — bundled into one object to stay
+     *   under the max-params lint limit.
+     */
+    fetchServerSideTeams(request) {
+        return __awaiter(this, void 0, void 0, function* () {
+            const { skip, top, updatedSince, searchString, isSearch, isLoadMore, shouldFetchAllAgents } = request;
+            let serverTeams = [];
+            let totalRecords = 0;
+            let succeeded = false;
+            if (isLoadMore && this.teamServerLoadMoreInFlight) {
+                // the in-flight page publishes its own result (and clears the loader), so drop this duplicate
+                return;
+            }
+            if (isLoadMore) {
+                this.teamServerLoadMoreInFlight = true;
+            }
+            try {
+                if (top <= 0) {
+                    // everything is already loaded: a request with top <= 0 is rejected by the API, so publish an
+                    // empty page instead, which clears the loader and marks that there is nothing further to load
+                    succeeded = true;
+                }
+                else {
+                    ({ data: serverTeams, totalRecords } = yield this.teamService.getTeams(skip, top, updatedSince, searchString));
+                    succeeded = true;
+                }
+            }
+            catch (error) {
+                this.logger.info('fetchServerSideTeams', 'All retry attempts failed, giving up: ' + (error === null || error === void 0 ? void 0 : error.toString()));
+                // publish an empty, definitive result so the UI loader doesn't hang forever;
+                // teamsApiFailed marks it as a failure rather than a genuine 0-result search.
+                serverTeams = [];
+                totalRecords = 0;
+            }
+            finally {
+                if (isLoadMore) {
+                    this.teamServerLoadMoreInFlight = false;
+                }
+            }
+            // Discard a response for a search term the user has since moved on from — without this, a slow
+            // request for an earlier term (e.g. "a") can resolve after a newer one (e.g. "ab") and get
+            // merged into the currently-displayed list instead of being dropped.
+            if (searchString !== (this.searchText || undefined)) {
+                this.logger.info('fetchServerSideTeams', `Discarding stale response for searchString="${searchString}" — current searchText is "${this.searchText}"`);
+                return;
+            }
+            if (isSearch) {
+                this.teamServerSearchTotalLoaded += serverTeams.length;
+            }
+            else {
+                this.teamServerTotalLoaded += serverTeams.length;
+            }
+            // Only overwrite the known total on success — a failed load-more shouldn't reset it to 0 and
+            // corrupt pagination for what's already loaded.
+            if (totalRecords > 0)
+                this.teamServerTotalRecords = totalRecords;
+            // Passed as a parameter, not a shared field — two concurrent team fetches would otherwise race
+            // across handleDirectoryResponse's await points, letting one silently overwrite the other's data.
+            const pendingTeamData = { data: serverTeams, totalRecords, isLoadMore, teamsApiFailed: !succeeded };
+            // Minimal stand-in, not the raw payload — TeamService already parsed the data; this just needs
+            // to exist so response.has(TEAM_LIST) resolves true below.
+            const teamsMap = new Map();
+            teamsMap.set(DirectoryEntities.TEAM_LIST, { status: 'fulfilled', value: {} });
+            this.handleDirectoryResponse(teamsMap, shouldFetchAllAgents, pendingTeamData);
+        });
+    }
+    /**
+     * Used to terminate the polling of agent state
+     * @example -
+     * ```
+     * const directoryProvider = new CXoneDirectoryProvider();
+     * this.directoryProvider.resetServerSideTeamState();
+     * ```
+     */
+    resetServerSideTeamState() {
+        this.teamServerTotalLoaded = 0;
+        this.teamServerTotalRecords = 0;
+        this.teamServerSearchTotalLoaded = 0;
+        // Reset the polling flag so the next getDirectoryData(isPolling:true) call re-includes
+        // TEAM_LIST in isPollingNeeded() instead of skipping it as already-polled.
+        this.entityPollingFlag[DirectoryEntities.TEAM_LIST] = false;
     }
     /**
      * Used to terminate the polling of agent state
@@ -638,7 +862,7 @@ export class CXoneDirectoryProvider {
      * this.directoryProvider.terminatePolling();
      * ```
      */
-    terminatePolling() {
+    terminatePolling(preserveServerSideState = false) {
         LocalStorageHelper.removeItem(StorageKeys.DIRECTORY_POLLING_CONFIG);
         this.terminateDirectoryWorker();
         // after polling is terminated then we need to update the entity polling flag to false for all entities
@@ -646,32 +870,49 @@ export class CXoneDirectoryProvider {
         this.entityPollingFlag[DirectoryEntities.AGENT_LIST] = false;
         this.entityPollingFlag[DirectoryEntities.SKILL_LIST] = false;
         this.entityPollingFlag[DirectoryEntities.TEAM_LIST] = false;
+        if (!preserveServerSideState) {
+            this.teamServerTotalLoaded = 0;
+            this.teamServerTotalRecords = 0;
+            this.teamServerSearchTotalLoaded = 0;
+        }
     }
     /**
      * Callback method which will passed on to the worker and will be executed after the polling api response
      * then will publish to the subject subscriber with the directory data
      * @param response - agent state api response object
      * @param shouldFetchAllAgents -flag to get all agent list including logged-in user
+     * @param pendingTeamData - server-side team data for THIS specific response, passed by
+     *   fetchServerSideTeams as a parameter (not read off a shared field) so two concurrent team
+     *   fetches can't race and overwrite each other's data before either is consumed.
      * @example -
      * ```
      * handleDirectoryResponse(data);
      * ```
      */
-    handleDirectoryResponse(response, shouldFetchAllAgents) {
-        var _a, _b, _c, _d, _e, _f, _g, _h, _j, _k, _l, _m, _o, _p, _q, _r, _s, _t, _u, _v, _w, _x, _y, _z, _0, _1;
+    handleDirectoryResponse(response, shouldFetchAllAgents, pendingTeamData) {
+        var _a, _b, _c, _d, _e, _f, _g, _h, _j, _k, _l, _m, _o, _p, _q, _r, _s, _t, _u, _v, _w, _x, _y, _z, _0, _1, _2, _3, _4, _5, _6, _7, _8, _9, _10, _11, _12, _13, _14, _15, _16, _17, _18, _19, _20, _21, _22, _23, _24, _25, _26, _27, _28, _29, _30, _31;
         return __awaiter(this, void 0, void 0, function* () {
             const db = yield dbInstance();
             let isUpdate = true; // this flag will let us know if the data is for updation or for the first time response after initial polling response
+            // true only for the very first agentList response from directoryAgentPolling (loggedinonly=true, no
+            // updatedSince)
+            const isInitialAgentSnapshot = !!((_b = (_a = response === null || response === void 0 ? void 0 : response.get) === null || _a === void 0 ? void 0 : _a.call(response, DirectoryEntities.AGENT_LIST)) === null || _b === void 0 ? void 0 : _b.isInitialSnapshot);
             if (response) {
                 let directoryEvent = yield this.directoryAdapter.handleEvent(response);
-                if (((_b = (_a = directoryEvent === null || directoryEvent === void 0 ? void 0 : directoryEvent.agentList) === null || _a === void 0 ? void 0 : _a.data) === null || _b === void 0 ? void 0 : _b.length) || ((_d = (_c = directoryEvent === null || directoryEvent === void 0 ? void 0 : directoryEvent.addressBookList) === null || _c === void 0 ? void 0 : _c.data) === null || _d === void 0 ? void 0 : _d.length) || ((_f = (_e = directoryEvent === null || directoryEvent === void 0 ? void 0 : directoryEvent.skillList) === null || _e === void 0 ? void 0 : _e.data) === null || _f === void 0 ? void 0 : _f.length)
-                    || ((_h = (_g = directoryEvent === null || directoryEvent === void 0 ? void 0 : directoryEvent.teamList) === null || _g === void 0 ? void 0 : _g.data) === null || _h === void 0 ? void 0 : _h.length) || this.isFreshRequest) { // if data is present for the entity or its a fresh user request
+                const isServerSideTeamsToggleOn = FeatureToggleService.instance.getFeatureToggleSync("release-cxa-directory-server-side-teams-AW-62352" /* FeatureToggles.DIRECTORY_SERVER_TEAMS_TOGGLE */);
+                // pendingTeamData: directoryEvent.teamList.data.length is always 0 for a team-fetch response
+                // (TeamService bypasses handleEvent's own team parsing), so without this check the block below
+                // would be skipped for every team response after the first.
+                if (((_d = (_c = directoryEvent === null || directoryEvent === void 0 ? void 0 : directoryEvent.agentList) === null || _c === void 0 ? void 0 : _c.data) === null || _d === void 0 ? void 0 : _d.length) || ((_f = (_e = directoryEvent === null || directoryEvent === void 0 ? void 0 : directoryEvent.addressBookList) === null || _e === void 0 ? void 0 : _e.data) === null || _f === void 0 ? void 0 : _f.length) || ((_h = (_g = directoryEvent === null || directoryEvent === void 0 ? void 0 : directoryEvent.skillList) === null || _g === void 0 ? void 0 : _g.data) === null || _h === void 0 ? void 0 : _h.length)
+                    || ((_k = (_j = directoryEvent === null || directoryEvent === void 0 ? void 0 : directoryEvent.teamList) === null || _j === void 0 ? void 0 : _j.data) === null || _k === void 0 ? void 0 : _k.length) || (isServerSideTeamsToggleOn && pendingTeamData) || this.isFreshRequest) { // if data is present for the entity or its a fresh user request
                     this.isFreshRequest = false;
                     const { skillList, agentList, addressBookList, teamList } = Object.assign({}, directoryEvent);
                     const updatedDirectoryResponse = { skillList: { data: [] }, agentList: { data: [], favoriteAgents: [] }, addressBookList: { data: [] }, teamList: { data: [] } };
                     //Reset previous entity count
                     this.entityCounts = { addressBookList: 0, skillList: 0, agentList: 0, teamList: 0, totalAgentCount: 0, totalTeamCount: 0, totalSkillCount: 0, totalAddressBookCount: 0 };
-                    if (((_j = skillList === null || skillList === void 0 ? void 0 : skillList.data) === null || _j === void 0 ? void 0 : _j.length) > 0) { //if skillList is present then update skill list and favorite list with latest data
+                    // hoisted so the search-cache pruning below (outside the agentList.data.length branch) can see this cycle's removals
+                    let removedAgentIds = [];
+                    if (((_l = skillList === null || skillList === void 0 ? void 0 : skillList.data) === null || _l === void 0 ? void 0 : _l.length) > 0) { //if skillList is present then update skill list and favorite list with latest data
                         const { currentSkillList, currentFavSkillList } = yield this.updateSkillListInDB(skillList.data);
                         updatedDirectoryResponse.skillList.data = currentSkillList;
                         updatedDirectoryResponse.skillList.favoriteDigitalSkills = currentFavSkillList;
@@ -682,10 +923,13 @@ export class CXoneDirectoryProvider {
                     }
                     ;
                     this.favoriteSkillList = updatedDirectoryResponse.skillList.favoriteDigitalSkills;
-                    if (agentList.data.length > 0) { //if agentList is present then update agent list and favorite list with latest data 
-                        const { currentAgentList, currentFavAgentList } = yield this.updateAgentListInDB(agentList.data);
+                    if (((_m = agentList === null || agentList === void 0 ? void 0 : agentList.data) === null || _m === void 0 ? void 0 : _m.length) > 0) { //if agentList is present then update agent list and favorite list with latest data
+                        const { currentAgentList, currentFavAgentList, removedAgentIds: removedIds } = yield this.updateAgentListInDB(agentList.data, isInitialAgentSnapshot);
+                        removedAgentIds = removedIds;
                         updatedDirectoryResponse.agentList.data = currentAgentList;
                         updatedDirectoryResponse.agentList.favoriteAgents = currentFavAgentList;
+                        // carry removed (e.g. logged-off) agent ids so the store can prune them from its paginated list
+                        updatedDirectoryResponse.agentList.removedAgentIds = removedAgentIds;
                     }
                     else { // if there is no response in agentlist then directory push latest values of index db in response data
                         updatedDirectoryResponse.agentList.data = (yield (db === null || db === void 0 ? void 0 : db.get(IndexDBStoreNames.DIRECTORY, DirectoryEntities.AGENT_LIST)));
@@ -693,7 +937,7 @@ export class CXoneDirectoryProvider {
                     }
                     ;
                     this.favroiteAgentList = updatedDirectoryResponse.agentList.favoriteAgents;
-                    if (((_k = addressBookList === null || addressBookList === void 0 ? void 0 : addressBookList.data) === null || _k === void 0 ? void 0 : _k.length) > 0) { // If there is a response, update lists in IDB and assign both lists
+                    if (((_o = addressBookList === null || addressBookList === void 0 ? void 0 : addressBookList.data) === null || _o === void 0 ? void 0 : _o.length) > 0) { // If there is a response, update lists in IDB and assign both lists
                         const { currentAddressBookList, currentFavAddressBookList } = yield this.updateAddressBookListInDB(addressBookList.data);
                         updatedDirectoryResponse.addressBookList.data = currentAddressBookList;
                         updatedDirectoryResponse.addressBookList.favoriteStandardAddressBooks = currentFavAddressBookList;
@@ -703,72 +947,138 @@ export class CXoneDirectoryProvider {
                         updatedDirectoryResponse.addressBookList.favoriteStandardAddressBooks = (yield (db === null || db === void 0 ? void 0 : db.get(IndexDBStoreNames.DIRECTORY, IndexDBKeyNames.FAVORITE_STANDARD_ADDRESS_BOOK)));
                     }
                     this.favoriteAddressBookList = updatedDirectoryResponse.addressBookList.favoriteStandardAddressBooks;
-                    if (((_l = teamList === null || teamList === void 0 ? void 0 : teamList.data) === null || _l === void 0 ? void 0 : _l.length) > 0) { //if teamList is present then update team list and favorite list with latest data 
+                    if (isServerSideTeamsToggleOn && pendingTeamData && ((_p = response === null || response === void 0 ? void 0 : response.has) === null || _p === void 0 ? void 0 : _p.call(response, DirectoryEntities.TEAM_LIST))) {
+                        // pendingTeamData is a parameter, not a shared field, so concurrent team fetches can't
+                        // clobber each other. response.has(TEAM_LIST) scopes this to genuine team responses; the
+                        // toggle check handles it flipping off mid-flight, falling back to the legacy branch below.
+                        // FT ON: bypass IDB — stamp the server-side metadata onto the response
+                        updatedDirectoryResponse.teamList.data = pendingTeamData.data;
+                        updatedDirectoryResponse.teamList.isServerSide = true;
+                        updatedDirectoryResponse.teamList.isServerSideLoadMore = pendingTeamData.isLoadMore;
+                        updatedDirectoryResponse.teamList.serverTotalRecords = pendingTeamData.totalRecords;
+                        updatedDirectoryResponse.teamList.serverTotalLoaded = this.searchText ? this.teamServerSearchTotalLoaded : this.teamServerTotalLoaded;
+                        updatedDirectoryResponse.teamList.favoriteTeams = this.favoriteTeamList || [];
+                        updatedDirectoryResponse.teamList.teamsApiFailed = pendingTeamData.teamsApiFailed;
+                    }
+                    else if (((_q = teamList === null || teamList === void 0 ? void 0 : teamList.data) === null || _q === void 0 ? void 0 : _q.length) > 0) { //if teamList is present then update team list and favorite list with latest data
                         const { currentTeamList, currentFavTeamList } = yield this.updateTeamListInDB(teamList.data);
                         updatedDirectoryResponse.teamList.data = currentTeamList;
                         updatedDirectoryResponse.teamList.favoriteTeams = currentFavTeamList;
+                        updatedDirectoryResponse.teamList.isServerSide = false;
                     }
                     else { // if there is no response in teamlist then directory push latest values of index db in response data
                         updatedDirectoryResponse.teamList.data = (yield (db === null || db === void 0 ? void 0 : db.get(IndexDBStoreNames.DIRECTORY, DirectoryEntities.TEAM_LIST)));
                         updatedDirectoryResponse.teamList.favoriteTeams = (yield (db === null || db === void 0 ? void 0 : db.get(IndexDBStoreNames.DIRECTORY, IndexDBKeyNames.FAVORITE_TEAMS)));
+                        updatedDirectoryResponse.teamList.isServerSide = false;
                     }
                     ;
                     this.favoriteTeamList = updatedDirectoryResponse.teamList.favoriteTeams;
-                    this.entityCounts.totalAgentCount = ((_m = updatedDirectoryResponse.agentList.data) === null || _m === void 0 ? void 0 : _m.length) || 0;
-                    this.entityCounts.totalTeamCount = ((_o = updatedDirectoryResponse.teamList.data) === null || _o === void 0 ? void 0 : _o.length) || 0;
-                    this.entityCounts.totalSkillCount = ((_p = updatedDirectoryResponse.skillList.data) === null || _p === void 0 ? void 0 : _p.length) || 0;
-                    this.entityCounts.totalAddressBookCount = (_r = (_q = updatedDirectoryResponse.addressBookList) === null || _q === void 0 ? void 0 : _q.data) === null || _r === void 0 ? void 0 : _r.reduce((sum, elem) => { var _a; return sum + ((elem === null || elem === void 0 ? void 0 : elem.addressBooksEntries) ? (_a = elem === null || elem === void 0 ? void 0 : elem.addressBooksEntries) === null || _a === void 0 ? void 0 : _a.length : 0); }, 0);
-                    if (this.searchText && ((_s = this.currentEntities) === null || _s === void 0 ? void 0 : _s.length)) { //if searchText is present then the directory response for search
+                    this.entityCounts.totalAgentCount = ((_r = updatedDirectoryResponse.agentList.data) === null || _r === void 0 ? void 0 : _r.length) || 0;
+                    this.entityCounts.totalTeamCount = ((_s = updatedDirectoryResponse.teamList.data) === null || _s === void 0 ? void 0 : _s.length) || 0;
+                    this.entityCounts.totalSkillCount = ((_t = updatedDirectoryResponse.skillList.data) === null || _t === void 0 ? void 0 : _t.length) || 0;
+                    this.entityCounts.totalAddressBookCount = (_v = (_u = updatedDirectoryResponse.addressBookList) === null || _u === void 0 ? void 0 : _u.data) === null || _v === void 0 ? void 0 : _v.reduce((sum, elem) => { var _a; return sum + ((elem === null || elem === void 0 ? void 0 : elem.addressBooksEntries) ? (_a = elem === null || elem === void 0 ? void 0 : elem.addressBooksEntries) === null || _a === void 0 ? void 0 : _a.length : 0); }, 0);
+                    if (this.searchText && ((_w = this.currentEntities) === null || _w === void 0 ? void 0 : _w.length)) { //if searchText is present then the directory response for search
                         const currentSearchData = yield (db === null || db === void 0 ? void 0 : db.get(IndexDBStoreNames.DIRECTORY, IndexDBKeyNames.DIRECTORY_SEARCH_RESPONSE));
                         if (!currentSearchData) { // if no searchData is present in the indexDB that means its the first time we are searching for the searchText due to polling not been done earlier
                             directoryEvent = yield this.searchDirectoryData(this.searchText, this.currentEntities, shouldFetchAllAgents);
+                            // isServerSide is scoped to this specific response, unlike this.currentEntities which
+                            // an unrelated concurrent request (e.g. the agent auto-repoll) can overwrite between
+                            // when this team request was built and when its response arrives.
+                            if (isServerSideTeamsToggleOn && updatedDirectoryResponse.teamList.isServerSide) {
+                                directoryEvent.teamList.data = updatedDirectoryResponse.teamList.data;
+                                directoryEvent.teamList.favoriteTeams = updatedDirectoryResponse.teamList.favoriteTeams;
+                                directoryEvent.teamList.isServerSide = updatedDirectoryResponse.teamList.isServerSide;
+                                directoryEvent.teamList.isServerSideLoadMore = updatedDirectoryResponse.teamList.isServerSideLoadMore;
+                                directoryEvent.teamList.serverTotalRecords = updatedDirectoryResponse.teamList.serverTotalRecords;
+                                directoryEvent.teamList.serverTotalLoaded = updatedDirectoryResponse.teamList.serverTotalLoaded;
+                                directoryEvent.teamList.teamsApiFailed = updatedDirectoryResponse.teamList.teamsApiFailed;
+                            }
                             isUpdate = false;
                             yield (db === null || db === void 0 ? void 0 : db.put(IndexDBStoreNames.DIRECTORY, directoryEvent, IndexDBKeyNames.DIRECTORY_SEARCH_RESPONSE));
                         }
                         else { // else searchData is already their so we will just update the data in index DB
                             const newSearchData = { skillList: { data: [] }, agentList: { data: [], favoriteAgents: [] }, addressBookList: { data: [] }, teamList: { data: [] } };
-                            this.currentEntities.forEach(entity => {
-                                var _a, _b, _c, _d, _e, _f, _g, _h, _j, _k, _l, _m;
-                                if (entity === DirectoryEntities.AGENT_LIST && ((_b = (_a = directoryEvent === null || directoryEvent === void 0 ? void 0 : directoryEvent.agentList) === null || _a === void 0 ? void 0 : _a.data) === null || _b === void 0 ? void 0 : _b.length)) {
-                                    const { currentSearchAgentList, currentFavAgentList } = this.updateSearchAgentList(currentSearchData.agentList.data, directoryEvent.agentList.data);
+                            for (const entity of this.currentEntities) {
+                                if (entity === DirectoryEntities.AGENT_LIST && ((_y = (_x = directoryEvent === null || directoryEvent === void 0 ? void 0 : directoryEvent.agentList) === null || _x === void 0 ? void 0 : _x.data) === null || _y === void 0 ? void 0 : _y.length)) {
+                                    const { currentSearchAgentList, currentFavAgentList } = yield this.updateSearchAgentList(currentSearchData.agentList.data, directoryEvent.agentList.data);
+                                    /* updateSearchAgentList's sort re-assigns to a new array internally, so it's no longer the
+                                    same object currentSearchData.agentList.data points to -- and currentSearchData (not
+                                    newSearchData, which nothing ever reads back) is what actually gets persisted/published
+                                    below. Without this, the sorted result was silently discarded and the persisted list kept
+                                    its old, unsorted order. */
+                                    currentSearchData.agentList.data = currentSearchAgentList;
                                     newSearchData.agentList.data = currentSearchAgentList;
                                     newSearchData.agentList.favoriteAgents = currentFavAgentList;
                                     this.favroiteAgentList = newSearchData.agentList.favoriteAgents;
                                 }
-                                if (entity === DirectoryEntities.SKILL_LIST && ((_d = (_c = directoryEvent === null || directoryEvent === void 0 ? void 0 : directoryEvent.skillList) === null || _c === void 0 ? void 0 : _c.data) === null || _d === void 0 ? void 0 : _d.length)) {
-                                    const { currentSearchSkillList, currentFavSkillList } = this.updateSearchSkillList((_e = currentSearchData === null || currentSearchData === void 0 ? void 0 : currentSearchData.skillList) === null || _e === void 0 ? void 0 : _e.data, (_f = directoryEvent === null || directoryEvent === void 0 ? void 0 : directoryEvent.skillList) === null || _f === void 0 ? void 0 : _f.data);
+                                if (entity === DirectoryEntities.SKILL_LIST && ((_0 = (_z = directoryEvent === null || directoryEvent === void 0 ? void 0 : directoryEvent.skillList) === null || _z === void 0 ? void 0 : _z.data) === null || _0 === void 0 ? void 0 : _0.length)) {
+                                    const { currentSearchSkillList, currentFavSkillList } = this.updateSearchSkillList((_1 = currentSearchData === null || currentSearchData === void 0 ? void 0 : currentSearchData.skillList) === null || _1 === void 0 ? void 0 : _1.data, (_2 = directoryEvent === null || directoryEvent === void 0 ? void 0 : directoryEvent.skillList) === null || _2 === void 0 ? void 0 : _2.data);
                                     newSearchData.skillList.data = currentSearchSkillList;
                                     newSearchData.skillList.favoriteDigitalSkills = currentFavSkillList;
                                     this.favoriteSkillList = newSearchData.skillList.favoriteDigitalSkills;
                                 }
-                                if (entity === DirectoryEntities.ADDRESS_BOOK_LIST && ((_h = (_g = directoryEvent === null || directoryEvent === void 0 ? void 0 : directoryEvent.addressBookList) === null || _g === void 0 ? void 0 : _g.data) === null || _h === void 0 ? void 0 : _h.length)) {
+                                if (entity === DirectoryEntities.ADDRESS_BOOK_LIST && ((_4 = (_3 = directoryEvent === null || directoryEvent === void 0 ? void 0 : directoryEvent.addressBookList) === null || _3 === void 0 ? void 0 : _3.data) === null || _4 === void 0 ? void 0 : _4.length)) {
                                     newSearchData.addressBookList.data = this.updateAddressBookList(directoryEvent.addressBookList.data);
                                 }
-                                if (entity === DirectoryEntities.TEAM_LIST && ((_k = (_j = directoryEvent === null || directoryEvent === void 0 ? void 0 : directoryEvent.teamList) === null || _j === void 0 ? void 0 : _j.data) === null || _k === void 0 ? void 0 : _k.length)) {
-                                    const { currentSearchTeamList, currentFavTeamList } = this.updateSearchTeamList((_l = currentSearchData === null || currentSearchData === void 0 ? void 0 : currentSearchData.teamList) === null || _l === void 0 ? void 0 : _l.data, (_m = directoryEvent === null || directoryEvent === void 0 ? void 0 : directoryEvent.teamList) === null || _m === void 0 ? void 0 : _m.data);
+                            }
+                            // Team handling lives outside the loop: this.currentEntities can be overwritten by a
+                            // concurrent call before this response is processed, so isServerSide (scoped to this
+                            // response) is used instead of checking its current contents.
+                            const isServerSideTeamsToggleOn = FeatureToggleService.instance.getFeatureToggleSync("release-cxa-directory-server-side-teams-AW-62352" /* FeatureToggles.DIRECTORY_SERVER_TEAMS_TOGGLE */);
+                            if (isServerSideTeamsToggleOn) {
+                                const hasNewIncomingTeamData = yield this.updateServerSearchTeamList(updatedDirectoryResponse, currentSearchData, db);
+                                if (hasNewIncomingTeamData) {
+                                    isUpdate = false;
+                                }
+                            }
+                            else {
+                                const hasNewIncomingTeamData = this.currentEntities.includes(DirectoryEntities.TEAM_LIST);
+                                const incomingTeamData = (_5 = directoryEvent === null || directoryEvent === void 0 ? void 0 : directoryEvent.teamList) === null || _5 === void 0 ? void 0 : _5.data;
+                                if (hasNewIncomingTeamData && (incomingTeamData === null || incomingTeamData === void 0 ? void 0 : incomingTeamData.length)) {
+                                    const { currentSearchTeamList, currentFavTeamList } = this.updateSearchTeamList((_6 = currentSearchData === null || currentSearchData === void 0 ? void 0 : currentSearchData.teamList) === null || _6 === void 0 ? void 0 : _6.data, (_7 = directoryEvent === null || directoryEvent === void 0 ? void 0 : directoryEvent.teamList) === null || _7 === void 0 ? void 0 : _7.data);
                                     newSearchData.teamList.data = currentSearchTeamList;
                                     newSearchData.teamList.favoriteTeams = currentFavTeamList;
                                     this.favoriteTeamList = newSearchData.teamList.favoriteTeams;
+                                    currentSearchData.teamList.isServerSide = updatedDirectoryResponse.teamList.isServerSide;
+                                    currentSearchData.teamList.isServerSideLoadMore = updatedDirectoryResponse.teamList.isServerSideLoadMore;
+                                    currentSearchData.teamList.serverTotalRecords = updatedDirectoryResponse.teamList.serverTotalRecords;
                                 }
-                            });
+                            }
+                            /* the cached search response is a separate copy of the agent data, so logged-off agents have to be
+                            pruned from it as well before it is persisted and published */
+                            const isDwpToggleOn = FeatureToggleService.instance.getFeatureToggleSync("release-cx-directory-dwp-scalability-agent-fix-AW-61369" /* FeatureToggles.DWP_SCALABILITY_AGENT_FIX_TOGGLE */);
+                            if (currentSearchData.agentList && isDwpToggleOn) {
+                                if (removedAgentIds === null || removedAgentIds === void 0 ? void 0 : removedAgentIds.length) {
+                                    const removedAgentIdSet = new Set(removedAgentIds.map(String));
+                                    currentSearchData.agentList.data = ((_8 = currentSearchData.agentList.data) === null || _8 === void 0 ? void 0 : _8.filter(agent => !removedAgentIdSet.has(String(agent.agentId)))) || [];
+                                    currentSearchData.agentList.favoriteAgents = (_9 = currentSearchData.agentList.favoriteAgents) === null || _9 === void 0 ? void 0 : _9.filter(agent => !removedAgentIdSet.has(String(agent.agentId)));
+                                }
+                                /* removedAgentIds must reflect only this cycle's removals, not accumulate/persist across
+                                cycles on the cached search object -- otherwise an agent removed once (e.g. logged out) keeps
+                                getting pruned by the reducer's removedAgentIds filter downstream on every future cycle, using
+                                this stale leftover value, even after they've legitimately logged back in and been re-added
+                                to currentState above. */
+                                currentSearchData.agentList.removedAgentIds = (removedAgentIds === null || removedAgentIds === void 0 ? void 0 : removedAgentIds.length) ? removedAgentIds : [];
+                            }
                             yield (db === null || db === void 0 ? void 0 : db.put(IndexDBStoreNames.DIRECTORY, currentSearchData, IndexDBKeyNames.DIRECTORY_SEARCH_RESPONSE));
                             directoryEvent = currentSearchData;
-                            this.entityCounts.agentList = ((_t = directoryEvent.agentList.data) === null || _t === void 0 ? void 0 : _t.length) || 0;
-                            this.entityCounts.skillList = ((_u = directoryEvent.skillList.data) === null || _u === void 0 ? void 0 : _u.length) || 0;
-                            this.entityCounts.addressBookList = ((_v = directoryEvent.addressBookList.data) === null || _v === void 0 ? void 0 : _v.length) || 0;
-                            this.entityCounts.teamList = ((_w = directoryEvent.teamList.data) === null || _w === void 0 ? void 0 : _w.length) || 0;
+                            this.entityCounts.agentList = ((_10 = directoryEvent.agentList.data) === null || _10 === void 0 ? void 0 : _10.length) || 0;
+                            this.entityCounts.skillList = ((_11 = directoryEvent.skillList.data) === null || _11 === void 0 ? void 0 : _11.length) || 0;
+                            this.entityCounts.addressBookList = ((_12 = directoryEvent.addressBookList.data) === null || _12 === void 0 ? void 0 : _12.length) || 0;
+                            this.entityCounts.teamList = ((_13 = directoryEvent.teamList.data) === null || _13 === void 0 ? void 0 : _13.length) || 0;
                         }
                     }
                     else { // if search text is not present that means then the response should be for all the data set
                         // currentEntities is cleared after a search; fall back to entity so polling updates show the full list instead of single updated result
-                        const activeEntities = ((_x = this.currentEntities) === null || _x === void 0 ? void 0 : _x.length) ? this.currentEntities : this.entity;
+                        const activeEntities = ((_14 = this.currentEntities) === null || _14 === void 0 ? void 0 : _14.length) ? this.currentEntities : this.entity;
                         if (activeEntities === null || activeEntities === void 0 ? void 0 : activeEntities.length) {
                             isUpdate = false;
                             activeEntities.forEach(e => {
-                                var _a, _b, _c;
+                                var _a, _b;
                                 if (e === DirectoryEntities.AGENT_LIST) {
                                     directoryEvent.agentList.data = updatedDirectoryResponse.agentList.data;
                                     directoryEvent.agentList.favoriteAgents = updatedDirectoryResponse.agentList.favoriteAgents;
+                                    directoryEvent.agentList.removedAgentIds = updatedDirectoryResponse.agentList.removedAgentIds;
                                     this.favroiteAgentList = updatedDirectoryResponse.agentList.favoriteAgents;
                                     this.favoriteTeamList = updatedDirectoryResponse.teamList.favoriteTeams;
                                     this.favoriteSkillList = updatedDirectoryResponse.skillList.favoriteDigitalSkills;
@@ -778,24 +1088,62 @@ export class CXoneDirectoryProvider {
                                     directoryEvent.addressBookList.data = (_a = updatedDirectoryResponse === null || updatedDirectoryResponse === void 0 ? void 0 : updatedDirectoryResponse.addressBookList) === null || _a === void 0 ? void 0 : _a.data;
                                 if (e === DirectoryEntities.SKILL_LIST)
                                     directoryEvent.skillList.data = (_b = updatedDirectoryResponse === null || updatedDirectoryResponse === void 0 ? void 0 : updatedDirectoryResponse.skillList) === null || _b === void 0 ? void 0 : _b.data;
-                                if (e === DirectoryEntities.TEAM_LIST)
-                                    directoryEvent.teamList.data = (_c = updatedDirectoryResponse === null || updatedDirectoryResponse === void 0 ? void 0 : updatedDirectoryResponse.teamList) === null || _c === void 0 ? void 0 : _c.data;
                             });
+                            // Team handling lives outside the loop (same as bug #6): this.currentEntities/this.entity
+                            // are shared state a concurrent call can overwrite before this response is processed, so
+                            // isServerSide (scoped to this response) is used instead. FT OFF unchanged.
+                            const isServerSideTeamsToggleOn = FeatureToggleService.instance.getFeatureToggleSync("release-cxa-directory-server-side-teams-AW-62352" /* FeatureToggles.DIRECTORY_SERVER_TEAMS_TOGGLE */);
+                            const hasTeamDataForThisResponse = isServerSideTeamsToggleOn
+                                ? updatedDirectoryResponse.teamList.isServerSide
+                                : activeEntities.includes(DirectoryEntities.TEAM_LIST);
+                            if (hasTeamDataForThisResponse) {
+                                directoryEvent.teamList.data = (_15 = updatedDirectoryResponse === null || updatedDirectoryResponse === void 0 ? void 0 : updatedDirectoryResponse.teamList) === null || _15 === void 0 ? void 0 : _15.data;
+                                directoryEvent.teamList.isServerSide = (_16 = updatedDirectoryResponse === null || updatedDirectoryResponse === void 0 ? void 0 : updatedDirectoryResponse.teamList) === null || _16 === void 0 ? void 0 : _16.isServerSide;
+                                directoryEvent.teamList.isServerSideLoadMore = (_17 = updatedDirectoryResponse === null || updatedDirectoryResponse === void 0 ? void 0 : updatedDirectoryResponse.teamList) === null || _17 === void 0 ? void 0 : _17.isServerSideLoadMore;
+                                directoryEvent.teamList.serverTotalRecords = (_18 = updatedDirectoryResponse === null || updatedDirectoryResponse === void 0 ? void 0 : updatedDirectoryResponse.teamList) === null || _18 === void 0 ? void 0 : _18.serverTotalRecords;
+                                directoryEvent.teamList.serverTotalLoaded = (_19 = updatedDirectoryResponse === null || updatedDirectoryResponse === void 0 ? void 0 : updatedDirectoryResponse.teamList) === null || _19 === void 0 ? void 0 : _19.serverTotalLoaded;
+                                directoryEvent.teamList.teamsApiFailed = (_20 = updatedDirectoryResponse === null || updatedDirectoryResponse === void 0 ? void 0 : updatedDirectoryResponse.teamList) === null || _20 === void 0 ? void 0 : _20.teamsApiFailed;
+                            }
                         }
-                        else if ((_y = directoryEvent.agentList.data) === null || _y === void 0 ? void 0 : _y.length) {
+                        else if ((_21 = directoryEvent.agentList.data) === null || _21 === void 0 ? void 0 : _21.length) {
                             directoryEvent.agentList.data = yield this.sortAgentList(directoryEvent.agentList.data);
                         }
                         const user = this.acdSession.userInfo;
                         //based on shouldFetchAllAgents flag, fetching all agents here which includes current logged-in user as well
-                        if (!shouldFetchAllAgents) {
-                            directoryEvent.agentList.data = (_z = directoryEvent.agentList.data) === null || _z === void 0 ? void 0 : _z.filter(agent => agent.agentId.toString() !== user.icAgentId);
+                        if (!shouldFetchAllAgents && ((_22 = directoryEvent.agentList) === null || _22 === void 0 ? void 0 : _22.data)) {
+                            directoryEvent.agentList.data = (_23 = updatedDirectoryResponse.agentList.data) === null || _23 === void 0 ? void 0 : _23.filter(agent => agent.agentId.toString() !== user.icAgentId);
+                            this.entityCounts.totalAgentCount = (_24 = directoryEvent.agentList.data) === null || _24 === void 0 ? void 0 : _24.length;
                         }
                         if (this.offset > 0 && this.limit > 0) { // to handle pagination
-                            directoryEvent = yield this.handleDirectoryPagination(directoryEvent, activeEntities);
+                            directoryEvent = yield this.handleDirectoryPagination(directoryEvent, activeEntities, shouldFetchAllAgents);
                         }
                     }
-                    if ((_1 = (_0 = directoryEvent.addressBookList) === null || _0 === void 0 ? void 0 : _0.data) === null || _1 === void 0 ? void 0 : _1.length) {
+                    if ((_26 = (_25 = directoryEvent.addressBookList) === null || _25 === void 0 ? void 0 : _25.data) === null || _26 === void 0 ? void 0 : _26.length) {
                         directoryEvent.addressBookList.allAddressBookEntries = this.handleAddressBookList(directoryEvent.addressBookList.data);
+                    }
+                    if (FeatureToggleService.instance.getFeatureToggleSync("release-cx-directory-dwp-scalability-agent-fix-AW-61369" /* FeatureToggles.DWP_SCALABILITY_AGENT_FIX_TOGGLE */) && this.teamId && !((_29 = (_28 = (_27 = directoryEvent.agentList) === null || _27 === void 0 ? void 0 : _27.data) === null || _28 === void 0 ? void 0 : _28.filter(a => a.isActive)) === null || _29 === void 0 ? void 0 : _29.length)) {
+                        /* a polling update only carries the agents that changed, so an empty agent list here does not mean the team
+                        went offline. The offline state is decided from the full merged list for the drilled-in team, not the delta. */
+                        // self is excluded from the published list above (shouldFetchAllAgents), so exclude self here too --
+                        // otherwise the logged-in user being a member of the drilled-in team always counts as "1 online",
+                        // and allTeamMembersOffline never fires once every *other* team member has logged out.
+                        const loggedInUser = this.acdSession.userInfo;
+                        const teamAgentPool = shouldFetchAllAgents
+                            ? (updatedDirectoryResponse.agentList.data || [])
+                            : (updatedDirectoryResponse.agentList.data || []).filter(agent => { var _a; return ((_a = agent.agentId) === null || _a === void 0 ? void 0 : _a.toString()) !== loggedInUser.icAgentId; });
+                        const onlineTeamAgentCount = (_31 = (_30 = this.filterAgentDataByTeamId(teamAgentPool, this.teamId)) === null || _30 === void 0 ? void 0 : _30.filter(agent => agent.isActive)) === null || _31 === void 0 ? void 0 : _31.length;
+                        if (!onlineTeamAgentCount) {
+                            /* selectedTeam.agentCount reflects the team's currently active agent count from the live
+                            Teams API, so it drops to 0 in exactly the scenario this block handles (every team member
+                            just logged out) -- gating on agentCount > 0 meant allTeamMembersOffline never fired for that
+                            case, silently leaving the drilldown view blank instead. this.teamId being set already means
+                            the user is drilled into this team, so surface the message whenever there are zero active
+                            agents, regardless of what agentCount currently reports. */
+                            if (directoryEvent.agentList) {
+                                directoryEvent.agentList.errorMsg = 'allTeamMembersOffline';
+                                directoryEvent.agentList.errorDetails = { translationKey: 'allTeamMembersOffline' };
+                            }
+                        }
                     }
                     this.publishDirectoryData(directoryEvent, isUpdate);
                 }
@@ -862,7 +1210,7 @@ export class CXoneDirectoryProvider {
      * @param isUpdate - this boolean flag will help us to identify if the request is for update or not
      */
     publishDirectoryData(directoryResponse, isUpdate = false) {
-        var _a, _b, _c, _d, _e, _f, _g, _h, _j, _k, _l, _m, _o, _p, _q, _r, _s, _t, _u, _v, _w, _x;
+        var _a, _b, _c, _d, _e, _f, _g, _h, _j, _k, _l, _m, _o, _p, _q, _r, _s, _t, _u, _v, _w, _x, _y;
         if (!isUpdate || ((_b = (_a = directoryResponse === null || directoryResponse === void 0 ? void 0 : directoryResponse.agentList) === null || _a === void 0 ? void 0 : _a.data) === null || _b === void 0 ? void 0 : _b.length) || ((_d = (_c = directoryResponse === null || directoryResponse === void 0 ? void 0 : directoryResponse.addressBookList) === null || _c === void 0 ? void 0 : _c.data) === null || _d === void 0 ? void 0 : _d.length)
             || ((_f = (_e = directoryResponse === null || directoryResponse === void 0 ? void 0 : directoryResponse.skillList) === null || _e === void 0 ? void 0 : _e.data) === null || _f === void 0 ? void 0 : _f.length) || ((_h = (_g = directoryResponse === null || directoryResponse === void 0 ? void 0 : directoryResponse.teamList) === null || _g === void 0 ? void 0 : _g.data) === null || _h === void 0 ? void 0 : _h.length)) {
             if ((_j = directoryResponse === null || directoryResponse === void 0 ? void 0 : directoryResponse.agentList) === null || _j === void 0 ? void 0 : _j.data) {
@@ -891,11 +1239,11 @@ export class CXoneDirectoryProvider {
             if ((_p = this.currentEntities) === null || _p === void 0 ? void 0 : _p.length) {
                 if (this.currentEntities.includes(DirectoryEntities.ADDRESS_BOOK_LIST) && !((_r = (_q = directoryResponse === null || directoryResponse === void 0 ? void 0 : directoryResponse.addressBookList) === null || _q === void 0 ? void 0 : _q.data) === null || _r === void 0 ? void 0 : _r.length))
                     directoryResponse.addressBookList.errorMsg = NO_MATCHING_RECORDS_FOUND;
-                if (this.currentEntities.includes(DirectoryEntities.AGENT_LIST) && !((_t = (_s = directoryResponse === null || directoryResponse === void 0 ? void 0 : directoryResponse.agentList) === null || _s === void 0 ? void 0 : _s.data) === null || _t === void 0 ? void 0 : _t.length))
+                if (this.currentEntities.includes(DirectoryEntities.AGENT_LIST) && !((_t = (_s = directoryResponse === null || directoryResponse === void 0 ? void 0 : directoryResponse.agentList) === null || _s === void 0 ? void 0 : _s.data) === null || _t === void 0 ? void 0 : _t.length) && !((_u = directoryResponse === null || directoryResponse === void 0 ? void 0 : directoryResponse.agentList) === null || _u === void 0 ? void 0 : _u.errorMsg))
                     directoryResponse.agentList.errorMsg = NO_MATCHING_RECORDS_FOUND;
-                if (this.currentEntities.includes(DirectoryEntities.SKILL_LIST) && !((_v = (_u = directoryResponse === null || directoryResponse === void 0 ? void 0 : directoryResponse.skillList) === null || _u === void 0 ? void 0 : _u.data) === null || _v === void 0 ? void 0 : _v.length))
+                if (this.currentEntities.includes(DirectoryEntities.SKILL_LIST) && !((_w = (_v = directoryResponse === null || directoryResponse === void 0 ? void 0 : directoryResponse.skillList) === null || _v === void 0 ? void 0 : _v.data) === null || _w === void 0 ? void 0 : _w.length))
                     directoryResponse.skillList.errorMsg = NO_MATCHING_RECORDS_FOUND;
-                if (this.currentEntities.includes(DirectoryEntities.TEAM_LIST) && !((_x = (_w = directoryResponse === null || directoryResponse === void 0 ? void 0 : directoryResponse.teamList) === null || _w === void 0 ? void 0 : _w.data) === null || _x === void 0 ? void 0 : _x.length))
+                if (this.currentEntities.includes(DirectoryEntities.TEAM_LIST) && !((_y = (_x = directoryResponse === null || directoryResponse === void 0 ? void 0 : directoryResponse.teamList) === null || _x === void 0 ? void 0 : _x.data) === null || _y === void 0 ? void 0 : _y.length))
                     directoryResponse.teamList.errorMsg = NO_MATCHING_RECORDS_FOUND;
                 if (!this.searchText)
                     this.currentEntities = [];
@@ -929,23 +1277,33 @@ export class CXoneDirectoryProvider {
      * @param newAgentList - new response for the updated addressBook data
      */
     updateSearchAgentList(currentSearchAgentList, newAgentList) {
-        const currentFavAgentList = [];
-        newAgentList.forEach(newAgent => {
-            const matchAgentIndex = currentSearchAgentList.findIndex(currentAgent => currentAgent.agentId == newAgent.agentId);
-            if (matchAgentIndex >= 0) {
-                /*
-                Before polled data overrides the Index DB data, we check if an instance of agent in Index DB has
-                the favorite field marked to true. If it is, we mark the respective field to true in the polled data too(at the matched index),
-                before we finally override and perform the PUT operation.
-                */
-                if (currentSearchAgentList[matchAgentIndex].isFavorite) {
-                    newAgent.isFavorite = currentSearchAgentList[matchAgentIndex].isFavorite;
-                    currentFavAgentList.push(currentSearchAgentList[matchAgentIndex]);
+        return __awaiter(this, void 0, void 0, function* () {
+            const currentFavAgentList = [];
+            newAgentList.forEach(newAgent => {
+                const matchAgentIndex = currentSearchAgentList.findIndex(currentAgent => currentAgent.agentId == newAgent.agentId);
+                if (matchAgentIndex >= 0) {
+                    /*
+                    Before polled data overrides the Index DB data, we check if an instance of agent in Index DB has
+                    the favorite field marked to true. If it is, we mark the respective field to true in the polled data too(at the matched index),
+                    before we finally override and perform the PUT operation.
+                    */
+                    if (currentSearchAgentList[matchAgentIndex].isFavorite) {
+                        newAgent.isFavorite = currentSearchAgentList[matchAgentIndex].isFavorite;
+                        currentFavAgentList.push(currentSearchAgentList[matchAgentIndex]);
+                    }
+                    currentSearchAgentList[matchAgentIndex] = newAgent;
                 }
-                currentSearchAgentList[matchAgentIndex] = newAgent;
-            }
+                /* an agent not already in the cached search snapshot (e.g. a brand-new login that now matches) is
+                deliberately left alone here -- they only appear once the user retypes the search box and a fresh
+                searchDirectoryData() call runs from scratch. A matching agent logging out is still pruned below via
+                removedAgentIds regardless of whether they were ever added here. */
+            });
+            /* an in-place update above can change an agent's state (e.g. Available -> Unavailable), which can
+            change where they belong in the state-then-alphabetical order -- re-sort so the merged snapshot stays
+            correctly ordered even though nothing gets newly inserted here. */
+            currentSearchAgentList = yield this.sortAgentList(currentSearchAgentList, this.searchText);
+            return { currentSearchAgentList, currentFavAgentList };
         });
-        return { currentSearchAgentList, currentFavAgentList };
     }
     /**
      * Used to update the skill list for search response matching new Response from the polling update with the existing search response saved in the index db
@@ -995,12 +1353,58 @@ export class CXoneDirectoryProvider {
         return { currentSearchTeamList, currentFavTeamList };
     }
     /**
+     * FT ON — applies this response's server-side team data to the ongoing search cache
+     * (currentSearchData.teamList, mutated in place), or re-reads the latest value from IDB when this
+     * response has no team data of its own (avoiding clobbering a concurrent team write). Returns true
+     * when this is a genuine team response, so the caller can force isUpdate = false — a definitive
+     * "0 matches" answer must still publish instead of being dropped by publishDirectoryData's
+     * empty-list check.
+     * @param updatedDirectoryResponse - this response's own team result (from pendingTeamData)
+     * @param currentSearchData - the ongoing search's cached DirectoryResponse, read from IDB
+     * @param db - IndexedDB instance, used for the stale-reread fallback
+     * @example -
+     * ```
+     * const forceUpdate = await this.updateServerSearchTeamList(updatedDirectoryResponse, currentSearchData, db);
+     * ```
+     */
+    updateServerSearchTeamList(updatedDirectoryResponse, currentSearchData, db) {
+        var _a;
+        return __awaiter(this, void 0, void 0, function* () {
+            const hasNewIncomingTeamData = !!((_a = updatedDirectoryResponse === null || updatedDirectoryResponse === void 0 ? void 0 : updatedDirectoryResponse.teamList) === null || _a === void 0 ? void 0 : _a.isServerSide);
+            if (hasNewIncomingTeamData) {
+                currentSearchData.teamList.isServerSide = updatedDirectoryResponse.teamList.isServerSide;
+                currentSearchData.teamList.isServerSideLoadMore = updatedDirectoryResponse.teamList.isServerSideLoadMore;
+                currentSearchData.teamList.teamsApiFailed = updatedDirectoryResponse.teamList.teamsApiFailed;
+                if (!updatedDirectoryResponse.teamList.teamsApiFailed) {
+                    // Server already filtered by searchString
+                    // (toggleFavoriteForTeams only updates the legacy state.teams array), so no preservation needed.
+                    currentSearchData.teamList.data = updatedDirectoryResponse.teamList.data || [];
+                    currentSearchData.teamList.favoriteTeams = [];
+                    currentSearchData.teamList.serverTotalRecords = updatedDirectoryResponse.teamList.serverTotalRecords;
+                    currentSearchData.teamList.serverTotalLoaded = updatedDirectoryResponse.teamList.serverTotalLoaded;
+                    this.favoriteTeamList = currentSearchData.teamList.favoriteTeams;
+                }
+                // On a failed load-more, keep the already-loaded list/total as-is instead of wiping them
+            }
+            else {
+                // This response has no team data of its own; currentSearchData.teamList may already be stale
+                // relative to a concurrent team write, so re-read it to avoid clobbering.
+                const latestSearchDataFromDB = yield (db === null || db === void 0 ? void 0 : db.get(IndexDBStoreNames.DIRECTORY, IndexDBKeyNames.DIRECTORY_SEARCH_RESPONSE));
+                if (latestSearchDataFromDB === null || latestSearchDataFromDB === void 0 ? void 0 : latestSearchDataFromDB.teamList) {
+                    currentSearchData.teamList = latestSearchDataFromDB.teamList;
+                }
+            }
+            return hasNewIncomingTeamData;
+        });
+    }
+    /**
      * Used to handle the pagination based on the offset and limit in case of normal directory request flow without search request
      * @param directoryResponse - directory response object
      */
-    handleDirectoryPagination(directoryResponse, currentEntities) {
-        var _a, _b, _c, _d, _e, _f, _g, _h, _j, _k, _l, _m, _o, _p, _q, _r, _s, _t, _u, _v, _w, _x, _y, _z, _0, _1, _2;
+    handleDirectoryPagination(directoryResponse, currentEntities, shouldFetchAllAgents) {
+        var _a, _b, _c, _d, _e, _f, _g, _h, _j, _k, _l, _m, _o, _p, _q, _r, _s, _t, _u, _v, _w, _x, _y, _z, _0, _1, _2, _3, _4, _5, _6;
         return __awaiter(this, void 0, void 0, function* () {
+            const isServerSideTeamsToggleOn = FeatureToggleService.instance.getFeatureToggleSync("release-cxa-directory-server-side-teams-AW-62352" /* FeatureToggles.DIRECTORY_SERVER_TEAMS_TOGGLE */);
             const db = yield dbInstance();
             let currentAgentList = yield (db === null || db === void 0 ? void 0 : db.get(IndexDBStoreNames.DIRECTORY, DirectoryEntities.AGENT_LIST));
             let currentSkillList = yield (db === null || db === void 0 ? void 0 : db.get(IndexDBStoreNames.DIRECTORY, DirectoryEntities.SKILL_LIST));
@@ -1008,54 +1412,74 @@ export class CXoneDirectoryProvider {
             let agentList = [];
             let skillList = [];
             let teamList = [];
+            // exclude the logged-in agent from the pagination working set (DB itself is untouched) so index math
+            // lines up with directoryResponse.agentList.data, which had the same agent already filtered out earlier
+            if (!shouldFetchAllAgents) {
+                const user = this.acdSession.userInfo;
+                currentAgentList = currentAgentList === null || currentAgentList === void 0 ? void 0 : currentAgentList.filter(agent => { var _a; return ((_a = agent.agentId) === null || _a === void 0 ? void 0 : _a.toString()) !== user.icAgentId; });
+            }
             if (this.teamId) {
                 currentAgentList = this.filterAgentDataByTeamId(currentAgentList, this.teamId);
             }
             if (this.mediaType) { // if mediaType is present then we need to filter skills based on mediaType and then handle the pagination
                 currentSkillList = this.filterSkillByMediaType(currentSkillList);
             }
-            for (let i = this.offset - 1; i < (this.limit + this.offset - 1); i++) { // to filter the data as per the pagination offset and limit from the data set
+            /* start from index 0 rather than this.offset - 1: this.offset/this.limit reflect only the most recently
+            requested "load more" page, but currentAgentList/currentSkillList/currentTeamList hold everything sorted
+            from the DB. Slicing from just the last page's start would drop earlier already-loaded pages from this
+            response, so a status/state change for an agent on an earlier page would never reach the UI. this.limit +
+            this.offset - 1 is still the correct cumulative upper bound because the UI always requests the next page's
+            offset as (recordsAlreadyLoaded + 1). */
+            for (let i = 0; i < (this.limit + this.offset - 1); i++) { // to filter the data as per the pagination offset and limit from the data set
                 ((_b = (_a = directoryResponse.agentList) === null || _a === void 0 ? void 0 : _a.data) === null || _b === void 0 ? void 0 : _b.length) && (currentAgentList === null || currentAgentList === void 0 ? void 0 : currentAgentList.length) && currentAgentList[i] && agentList.push(currentAgentList[i]);
                 ((_d = (_c = directoryResponse.skillList) === null || _c === void 0 ? void 0 : _c.data) === null || _d === void 0 ? void 0 : _d.length) && (currentSkillList === null || currentSkillList === void 0 ? void 0 : currentSkillList.length) && currentSkillList[i] && skillList.push(currentSkillList[i]);
-                ((_f = (_e = directoryResponse.teamList) === null || _e === void 0 ? void 0 : _e.data) === null || _f === void 0 ? void 0 : _f.length) && (currentTeamList === null || currentTeamList === void 0 ? void 0 : currentTeamList.length) && currentTeamList[i] && teamList.push(currentTeamList[i]);
+                if (isServerSideTeamsToggleOn) {
+                    // Server-side teams are already paginated by the API; skip IDB-based slicing for them
+                    !((_e = directoryResponse.teamList) === null || _e === void 0 ? void 0 : _e.isServerSide) && ((_g = (_f = directoryResponse.teamList) === null || _f === void 0 ? void 0 : _f.data) === null || _g === void 0 ? void 0 : _g.length) && (currentTeamList === null || currentTeamList === void 0 ? void 0 : currentTeamList.length) && currentTeamList[i] && teamList.push(currentTeamList[i]);
+                }
+                else {
+                    ((_j = (_h = directoryResponse.teamList) === null || _h === void 0 ? void 0 : _h.data) === null || _j === void 0 ? void 0 : _j.length) && (currentTeamList === null || currentTeamList === void 0 ? void 0 : currentTeamList.length) && currentTeamList[i] && teamList.push(currentTeamList[i]);
+                }
             }
-            if (((_h = (_g = directoryResponse.agentList) === null || _g === void 0 ? void 0 : _g.data) === null || _h === void 0 ? void 0 : _h.length) && currentAgentList.length && agentList.length) { // in case of agent list updation we will check if the updated data is present in the search option if so then only we will publish that data
+            if (((_l = (_k = directoryResponse.agentList) === null || _k === void 0 ? void 0 : _k.data) === null || _l === void 0 ? void 0 : _l.length) && currentAgentList.length && agentList.length) { // in case of agent list updation we will check if the updated data is present in the search option if so then only we will publish that data
                 const newAgentList = [];
-                (_k = (_j = directoryResponse.agentList) === null || _j === void 0 ? void 0 : _j.data) === null || _k === void 0 ? void 0 : _k.forEach(agent => {
+                (_o = (_m = directoryResponse.agentList) === null || _m === void 0 ? void 0 : _m.data) === null || _o === void 0 ? void 0 : _o.forEach(agent => {
                     const matchedAgentIndex = agentList.findIndex(e => e.agentId == agent.agentId);
                     if (matchedAgentIndex >= 0)
                         newAgentList.push(agent);
                 });
                 agentList = newAgentList;
             }
-            if (((_m = (_l = directoryResponse.skillList) === null || _l === void 0 ? void 0 : _l.data) === null || _m === void 0 ? void 0 : _m.length) && (currentSkillList === null || currentSkillList === void 0 ? void 0 : currentSkillList.length) && (skillList === null || skillList === void 0 ? void 0 : skillList.length)) { // in case of skill list updation we will check if the updated data is present in the search option if so then only we will publish that data
+            if (((_q = (_p = directoryResponse.skillList) === null || _p === void 0 ? void 0 : _p.data) === null || _q === void 0 ? void 0 : _q.length) && (currentSkillList === null || currentSkillList === void 0 ? void 0 : currentSkillList.length) && (skillList === null || skillList === void 0 ? void 0 : skillList.length)) { // in case of skill list updation we will check if the updated data is present in the search option if so then only we will publish that data
                 const newSkillList = [];
-                (_p = (_o = directoryResponse.skillList) === null || _o === void 0 ? void 0 : _o.data) === null || _p === void 0 ? void 0 : _p.forEach(skill => {
+                (_s = (_r = directoryResponse.skillList) === null || _r === void 0 ? void 0 : _r.data) === null || _s === void 0 ? void 0 : _s.forEach(skill => {
                     const matchedSkillIndex = skillList.findIndex(e => e.skillId == skill.skillId);
                     if (matchedSkillIndex >= 0)
                         newSkillList.push(skill);
                 });
                 skillList = newSkillList;
             }
-            if (((_r = (_q = directoryResponse.teamList) === null || _q === void 0 ? void 0 : _q.data) === null || _r === void 0 ? void 0 : _r.length) && (currentTeamList === null || currentTeamList === void 0 ? void 0 : currentTeamList.length) && (teamList === null || teamList === void 0 ? void 0 : teamList.length)) { // in case of team list updation we will check if the updated data is present in the search option if so then only we will publish that data
-                if ((currentEntities === null || currentEntities === void 0 ? void 0 : currentEntities.length) === 0)
-                    directoryResponse.teamList.data = this.sortResponse((_s = directoryResponse === null || directoryResponse === void 0 ? void 0 : directoryResponse.teamList) === null || _s === void 0 ? void 0 : _s.data, DirectoryEntities.TEAM_LIST);
-                const newTeamList = [];
-                (_u = (_t = directoryResponse.teamList) === null || _t === void 0 ? void 0 : _t.data) === null || _u === void 0 ? void 0 : _u.forEach(agent => {
-                    const matchedTeamIndex = teamList.findIndex(e => e.teamId == agent.teamId);
-                    if (matchedTeamIndex >= 0)
-                        newTeamList.push(agent);
-                });
-                teamList = newTeamList;
+            if (!((_t = directoryResponse.teamList) === null || _t === void 0 ? void 0 : _t.isServerSide)) {
+                if (((_v = (_u = directoryResponse.teamList) === null || _u === void 0 ? void 0 : _u.data) === null || _v === void 0 ? void 0 : _v.length) && (currentTeamList === null || currentTeamList === void 0 ? void 0 : currentTeamList.length) && (teamList === null || teamList === void 0 ? void 0 : teamList.length)) { // in case of team list updation we will check if the updated data is present in the search option if so then only we will publish that data
+                    if ((currentEntities === null || currentEntities === void 0 ? void 0 : currentEntities.length) === 0)
+                        directoryResponse.teamList.data = this.sortResponse((_w = directoryResponse === null || directoryResponse === void 0 ? void 0 : directoryResponse.teamList) === null || _w === void 0 ? void 0 : _w.data, DirectoryEntities.TEAM_LIST);
+                    const newTeamList = [];
+                    (_y = (_x = directoryResponse.teamList) === null || _x === void 0 ? void 0 : _x.data) === null || _y === void 0 ? void 0 : _y.forEach(agent => {
+                        const matchedTeamIndex = teamList.findIndex(e => e.teamId == agent.teamId); // eslint-disable-line eqeqeq
+                        if (matchedTeamIndex >= 0)
+                            newTeamList.push(agent);
+                    });
+                    teamList = newTeamList;
+                }
+                directoryResponse.teamList.data = teamList;
             }
             directoryResponse.agentList.data = agentList;
             directoryResponse.skillList.data = skillList;
-            directoryResponse.teamList.data = teamList;
             //update entity count after pagination
-            this.entityCounts.agentList = ((_w = (_v = directoryResponse.agentList) === null || _v === void 0 ? void 0 : _v.data) === null || _w === void 0 ? void 0 : _w.length) || 0;
-            this.entityCounts.skillList = ((_y = (_x = directoryResponse.skillList) === null || _x === void 0 ? void 0 : _x.data) === null || _y === void 0 ? void 0 : _y.length) || 0;
-            this.entityCounts.addressBookList = ((_0 = (_z = directoryResponse.addressBookList) === null || _z === void 0 ? void 0 : _z.data) === null || _0 === void 0 ? void 0 : _0.length) || 0;
-            this.entityCounts.teamList = ((_2 = (_1 = directoryResponse.teamList) === null || _1 === void 0 ? void 0 : _1.data) === null || _2 === void 0 ? void 0 : _2.length) || 0;
+            this.entityCounts.agentList = ((_0 = (_z = directoryResponse.agentList) === null || _z === void 0 ? void 0 : _z.data) === null || _0 === void 0 ? void 0 : _0.length) || 0;
+            this.entityCounts.skillList = ((_2 = (_1 = directoryResponse.skillList) === null || _1 === void 0 ? void 0 : _1.data) === null || _2 === void 0 ? void 0 : _2.length) || 0;
+            this.entityCounts.addressBookList = ((_4 = (_3 = directoryResponse.addressBookList) === null || _3 === void 0 ? void 0 : _3.data) === null || _4 === void 0 ? void 0 : _4.length) || 0;
+            this.entityCounts.teamList = ((_6 = (_5 = directoryResponse.teamList) === null || _5 === void 0 ? void 0 : _5.data) === null || _6 === void 0 ? void 0 : _6.length) || 0;
             return directoryResponse;
         });
     }
@@ -1258,7 +1682,7 @@ export class CXoneDirectoryProvider {
      * Used to update the agent list in index DB as per the new list
      * @param agentList - new agent list response
      */
-    updateAgentListInDB(agentList) {
+    updateAgentListInDB(agentList, isInitialSnapshot = false) {
         var _a;
         return __awaiter(this, void 0, void 0, function* () {
             const db = yield dbInstance();
@@ -1267,11 +1691,39 @@ export class CXoneDirectoryProvider {
             const clientData = LocalStorageHelper.getItem(StorageKeys.CLIENT_DATA, true) || {};
             let currFavListInLS = clientData === null || clientData === void 0 ? void 0 : clientData.CXAFavAgents; // has current favorites team list in local storage
             let clientDataApiFailed = false; // indicates if client data api call failed
+            // ids of agents removed from the stored list this update (DWP scalability logged-off handling)
+            const removedAgentIds = [];
             if (currentAgentList === null || currentAgentList === void 0 ? void 0 : currentAgentList.length) {
                 /* below flow will be executed in case when agent list is already present in indexDB which happens in case user is already logged in
                 or user logged in again without deleting browser history */
+                // agentId -> index lookup built once; matching becomes O(1) instead of O(n) per agent.
+                // String() keys preserve the previous loose-equality (==) match for mixed string/number ids.
+                const agentIdToIndex = new Map();
+                for (let i = 0; i < currentAgentList.length; i++) {
+                    agentIdToIndex.set(String(currentAgentList[i].agentId), i);
+                }
+                // DWP (FT on, non-unified path only): a delta can carry a just-logged-off agent — drop it from the
+                // store instead of merging. Removals are marked and compacted after the loop to keep the map valid.
+                const isFTUnifyAgentStateOn = yield isUnifiedAgentStateEnabled();
+                const isDWPScalabilityAgentFixEnabled = FeatureToggleService.instance.getFeatureToggleSync("release-cx-directory-dwp-scalability-agent-fix-AW-61369" /* FeatureToggles.DWP_SCALABILITY_AGENT_FIX_TOGGLE */);
+                const shouldFilterLoggedOutAgents = isDWPScalabilityAgentFixEnabled && !isFTUnifyAgentStateOn;
+                const removedIndices = new Set();
                 agentList.forEach((agentState, index) => {
-                    const matchedAgentStateIndex = currentAgentList.findIndex((currentAgentState) => currentAgentState.agentId == agentState.agentId);
+                    var _a;
+                    const agentKey = String(agentState.agentId);
+                    const matchedAgentStateIndex = agentIdToIndex.has(agentKey)
+                        ? agentIdToIndex.get(agentKey)
+                        : -1;
+                    if (shouldFilterLoggedOutAgents && ((_a = agentState.agentStateName) === null || _a === void 0 ? void 0 : _a.toLowerCase()) === 'loggedout') {
+                        // logged-off → remove from the store if present, never add; record the id for store pruning and
+                        // drop it from the lookup so a later same-id delta is treated as new (matches the findIndex flow).
+                        if (matchedAgentStateIndex >= 0) {
+                            removedIndices.add(matchedAgentStateIndex);
+                            removedAgentIds.push(agentState.agentId);
+                            agentIdToIndex.delete(agentKey);
+                        }
+                        return;
+                    }
                     if (matchedAgentStateIndex >= 0) {
                         /*
                       Before polled data overrides the Index DB data, we check if an instance of agent in Index DB has
@@ -1287,8 +1739,12 @@ export class CXoneDirectoryProvider {
                         }
                         currentAgentList[matchedAgentStateIndex] = agentList[index];
                     }
-                    else
+                    else {
                         currentAgentList.push(agentState);
+                        // keep the lookup in sync so a later duplicate id matches the just-pushed entry,
+                        // exactly as the original findIndex-over-the-growing-array would have.
+                        agentIdToIndex.set(agentKey, currentAgentList.length - 1);
+                    }
                 });
                 ({ currFavListInLS, clientDataApiFailed } = yield handleDirectoryItemDeletion({
                     listFromDB: currentAgentList,
@@ -1297,6 +1753,32 @@ export class CXoneDirectoryProvider {
                     storageKey: 'cxaFavAgents',
                     clientDataKey: 'CXAFavAgents',
                 }));
+                /* Compact the marked logged off agents in one pass. This runs after the favourite reconciliation above so a
+                  favourited agent going offline is not mistaken for a deleted directory entry and dropped from the user's saved
+                  favourites, and it is safe because the reconciliation does not mutate the list the marked indices point at. */
+                if (removedIndices.size) {
+                    const removedAgentIdSet = new Set(removedAgentIds.map(String));
+                    currentAgentList = currentAgentList.filter((_, i) => !removedIndices.has(i));
+                    currentFavAgentList = currentFavAgentList.filter((agent) => !removedAgentIdSet.has(String(agent.agentId)));
+                }
+                /* The first agentState response after login (loggedinonly=true, no updatedSince) is a complete,
+                authoritative snapshot of everyone currently logged in -- not a delta. loggedinonly=true means a
+                logged-out agent is never reported at all (not even with a 'loggedout' entry, unlike a normal delta
+                poll), so an agent who logged out entirely while this session was disconnected would otherwise never
+                get pruned: no future delta poll re-reports a transition that already happened in the past. Diffing
+                the stored list against this fresh snapshot catches exactly that stale-agent case. */
+                if (isInitialSnapshot && shouldFilterLoggedOutAgents) {
+                    const incomingAgentIdSet = new Set(agentList.map(agent => String(agent.agentId)));
+                    const staleAgentIds = currentAgentList
+                        .filter(agent => !incomingAgentIdSet.has(String(agent.agentId)))
+                        .map(agent => agent.agentId);
+                    if (staleAgentIds.length) {
+                        const staleAgentIdSet = new Set(staleAgentIds.map(String));
+                        currentAgentList = currentAgentList.filter(agent => !staleAgentIdSet.has(String(agent.agentId)));
+                        currentFavAgentList = currentFavAgentList.filter((agent) => !staleAgentIdSet.has(String(agent.agentId)));
+                        removedAgentIds.push(...staleAgentIds);
+                    }
+                }
             }
             else {
                 /* below flow will be executed when agent list is not present in indexDB which happens in case user logs in
@@ -1330,7 +1812,7 @@ export class CXoneDirectoryProvider {
             db === null || db === void 0 ? void 0 : db.put(IndexDBStoreNames.DIRECTORY, currentFavAgentList, IndexDBKeyNames.FAVORITE_AGENTS);
             if (!this.searchText)
                 this.entityCounts.agentList = (currentAgentList === null || currentAgentList === void 0 ? void 0 : currentAgentList.length) || 0; // to keep track of agent list records count
-            return { currentAgentList, currentFavAgentList };
+            return { currentAgentList, currentFavAgentList, removedAgentIds };
         });
     }
     /**
@@ -1712,8 +2194,10 @@ export class CXoneDirectoryProvider {
             if (currentAddressBookList === null || currentAddressBookList === void 0 ? void 0 : currentAddressBookList.length) {
                 /* below flow will be executed in case when address book list is already present in indexDB which happens in case user is already logged in
                 or user logged in again without deleting browser history */
+                const incomingAddressBookIds = new Set();
                 addressBookList.forEach((addressBook) => {
                     var _a, _b;
+                    incomingAddressBookIds.add(addressBook.addressBookId);
                     const addressBookEntries = (addressBook === null || addressBook === void 0 ? void 0 : addressBook.addressBooksEntries) || [];
                     const matchedAddressBookIndex = currentAddressBookList.findIndex((currentAddressBook) => currentAddressBook.addressBookId === addressBook.addressBookId);
                     if (matchedAddressBookIndex >= 0) {
@@ -1763,6 +2247,16 @@ export class CXoneDirectoryProvider {
                         currentAddressBookList.push(addressBook);
                     }
                 });
+                const currentAddressBookEntryIds = new Set();
+                currentAddressBookList = currentAddressBookList.filter((currentAddressBook) => {
+                    var _a;
+                    const isIncoming = incomingAddressBookIds.has(currentAddressBook.addressBookId);
+                    if (isIncoming) {
+                        (_a = currentAddressBook === null || currentAddressBook === void 0 ? void 0 : currentAddressBook.addressBooksEntries) === null || _a === void 0 ? void 0 : _a.forEach((entry) => currentAddressBookEntryIds.add(entry.addressBookEntryId));
+                    }
+                    return isIncoming;
+                });
+                currentFavAddressBookList = currentFavAddressBookList.filter((fav) => currentAddressBookEntryIds.has(fav.addressBookEntryId));
                 if ((_a = clientData === null || clientData === void 0 ? void 0 : clientData.CXAFavStandAddBook) === null || _a === void 0 ? void 0 : _a.length) {
                     const allAddressBookList = [];
                     currentAddressBookList.forEach((addressBook) => {
@@ -1952,44 +2446,28 @@ export class CXoneDirectoryProvider {
     sortAgentList(agentList, searchText) {
         return __awaiter(this, void 0, void 0, function* () {
             const isUnifiedAgentStateOn = yield isUnifiedAgentStateEnabled();
-            //sort agent list by agent state.
-            let sortedAgentList = agentList.sort((agentA, agentB) => {
-                if (isUnifiedAgentStateOn) {
-                    return this.getUnifiedAgentStateOrDefault(agentA.agentStateName) - this.getUnifiedAgentStateOrDefault(agentB.agentStateName);
-                }
-                else {
-                    return this.getAgentStateOrDefault(agentA.agentStateName) - this.getAgentStateOrDefault(agentB.agentStateName);
-                }
+            // Precompute sort keys once per agent (state rank + upper-cased name + search-term position)
+            // instead of recomputing rank and rebuilding/upper-casing the name inside every comparator.
+            // eslint-disable-next-line @nice-cxone/ccf/required-tsdoc
+            const getStateRank = (agentStateName) => isUnifiedAgentStateOn
+                ? this.getUnifiedAgentStateOrDefault(agentStateName)
+                : this.getAgentStateOrDefault(agentStateName);
+            const decorated = agentList.map((agent) => {
+                const name = (agent.firstName + ' ' + agent.lastName).toUpperCase();
+                return {
+                    agent,
+                    rank: getStateRank(agent.agentStateName),
+                    name,
+                    searchPos: searchText ? name.indexOf(searchText) : 0,
+                };
             });
-            // sort agent list with same state alphabetically.
-            sortedAgentList = sortedAgentList.sort((agentA, agentB) => {
-                if ((isUnifiedAgentStateOn &&
-                    this.getUnifiedAgentStateOrDefault(agentA.agentStateName) ===
-                        this.getUnifiedAgentStateOrDefault(agentB.agentStateName)) ||
-                    (!isUnifiedAgentStateOn &&
-                        this.getAgentStateOrDefault(agentA.agentStateName) === this.getAgentStateOrDefault(agentB.agentStateName))) {
-                    return (agentA.firstName + ' ' + agentA.lastName)
-                        .toUpperCase()
-                        .localeCompare((agentB.firstName + ' ' + agentB.lastName).toUpperCase());
-                }
-                return 0;
-            });
-            // sort agent list with same state by the position of search term.
+            // Same three passes / comparators as before, now over the precomputed keys.
+            decorated.sort((a, b) => a.rank - b.rank); // by agent state
+            decorated.sort((a, b) => (a.rank === b.rank ? a.name.localeCompare(b.name) : 0)); // by name within state
             if (searchText) {
-                sortedAgentList = sortedAgentList.sort((agentA, agentB) => {
-                    if ((isUnifiedAgentStateOn &&
-                        this.getUnifiedAgentStateOrDefault(agentA.agentStateName) ===
-                            this.getUnifiedAgentStateOrDefault(agentB.agentStateName)) ||
-                        (!isUnifiedAgentStateOn &&
-                            this.getAgentStateOrDefault(agentA.agentStateName) === this.getAgentStateOrDefault(agentB.agentStateName))) {
-                        const searchTermPositionA = (agentA.firstName + ' ' + agentA.lastName).toUpperCase().indexOf(searchText);
-                        const searchTermPositionB = (agentB.firstName + ' ' + agentB.lastName).toUpperCase().indexOf(searchText);
-                        return searchTermPositionA - searchTermPositionB;
-                    }
-                    return 0;
-                });
+                decorated.sort((a, b) => (a.rank === b.rank ? a.searchPos - b.searchPos : 0)); // by search-term position
             }
-            return sortedAgentList;
+            return decorated.map((d) => d.agent);
         });
     }
 }

@@ -5,13 +5,36 @@ const yup_1 = require("yup");
 const cxone_inbox_assignee_1 = require("./cxone-inbox-assignee");
 const cxone_case_1 = require("./cxone-case");
 const cxone_event_1 = require("./cxone-event");
+/**
+ * Reads DIGITAL_NOTE_AUTHOR_NULL_IDENTITY_FEATURE_TOGGLE directly from persisted feature flags
+ * so the schema self-gates on every validation path.
+ * @returns true when the toggle is enabled
+ * @example
+ * ```
+ * isDigitalNoteAuthorNullIdentityEnabled();
+ * ```
+ */
+const isDigitalNoteAuthorNullIdentityEnabled = () => {
+    try {
+        if (typeof localStorage === 'undefined') {
+            return false;
+        }
+        const features = JSON.parse(localStorage.getItem('feature_toggles') || '[]');
+        return Array.isArray(features) && features.includes("release-cx-agent-digital-note-author-null-identity-AW-41340" /* FeatureToggles.DIGITAL_NOTE_AUTHOR_NULL_IDENTITY_FEATURE_TOGGLE */);
+    }
+    catch (_a) {
+        return false;
+    }
+};
 const CXoneMessageNoteStatusSchema = (0, yup_1.object)({
     type: (0, yup_1.string)().required(),
 });
 const CXoneMessageSchemaForNote = (0, yup_1.object)({
     id: (0, yup_1.string)().required(),
 });
-const CXoneUserDetailSchema = (0, yup_1.object)().shape(Object.assign(Object.assign({}, cxone_inbox_assignee_1.CXoneInboxAssigneeSchema.fields), { agentId: (0, yup_1.string)().nullable(), nickname: (0, yup_1.string)(), imageUrl: (0, yup_1.string)().required(), publicImageUrl: (0, yup_1.string)().nullable(), isBotUser: (0, yup_1.boolean)().required(), isSurveyUser: (0, yup_1.boolean)().required() }));
+const CXoneUserDetailSchema = (0, yup_1.object)().shape(Object.assign(Object.assign({}, cxone_inbox_assignee_1.CXoneInboxAssigneeSchema.fields), { 
+    // Nullable only when DIGITAL_NOTE_AUTHOR_NULL_IDENTITY_FEATURE_TOGGLE is enabled; otherwise stays required.
+    incontactId: (0, yup_1.lazy)(() => (isDigitalNoteAuthorNullIdentityEnabled() ? (0, yup_1.string)().nullable() : (0, yup_1.string)().required())), agentId: (0, yup_1.string)().nullable(), nickname: (0, yup_1.string)(), imageUrl: (0, yup_1.string)().required(), publicImageUrl: (0, yup_1.string)().nullable(), isBotUser: (0, yup_1.boolean)().required(), isSurveyUser: (0, yup_1.boolean)().required() }));
 exports.CXoneMessageNoteSchema = (0, yup_1.object)({
     id: (0, yup_1.string)().required(),
     user: (0, yup_1.object)().shape(CXoneUserDetailSchema.fields).nullable(),

@@ -32,4 +32,8 @@ export interface AgentProfileSettings {
     voiceCallHoldTimerThreshold?: number;
     teamVersioningEnabled?: boolean;
     agentVersion?: string;
+    panelOpenInBrowserGeneral?: boolean;
+    agentEditableGeneral?: boolean;
+    panelOpenInBrowserPageActionOnly?: boolean;
+    agentEditablePageActionOnly?: boolean;
 }

@@ -127,6 +127,7 @@ export class CXoneSession {
             const currentlyInPcDialer = sessionIdValid && ((_b = (_a = this.agentStateService) === null || _a === void 0 ? void 0 : _a.getAgentStateDetails()) === null || _b === void 0 ? void 0 : _b.isPersonalConnection);
             const loginPcDialer = sessionIdValid && agentState.isPersonalConnection;
             const onPcCall = this.cxoneAcdClient.contactManager.hasAnyPersonalConnectionContact();
+            const hasActiveSupervisorContact = this.cxoneAcdClient.contactManager.hasActiveSupervisorContact();
             this.postContactDialerSkill = null;
             let stateChangeResult = new Promise(() => {
                 Promise.resolve(new CXoneSdkError(CXoneSdkErrorType.INVALID_METHOD_INVOCATION, 'Failed to update the agent state'));
@@ -147,10 +148,45 @@ export class CXoneSession {
             else if (loginPcDialer) {
                 stateChangeResult = this.personalConnectionService.pcDialerLogin(agentState);
             }
-            else if (currentlyInPcDialer || onPcCall) {
+            else if (currentlyInPcDialer) {
                 yield this.personalConnectionService.pcDialerLogout().then(() => {
                     stateChangeResult = this.agentStateService.setAgentState(agentState);
                 });
+            }
+            else if (sessionIdValid && hasActiveSupervisorContact) {
+                /**
+                 * Supervisor is live/silent monitoring another agent's call - the agent phone leg used for that
+                 * monitoring session must be ended before the state change API will accept the new state, mirroring
+                 * MAX's behavior. The backend does not reliably send a matching Disconnected event for the supervisor
+                 * contact, so the tracked contact must be cleared explicitly rather than waiting for one - but only
+                 * once the blocking condition is actually confirmed resolved (endAgentLeg succeeding, or the state
+                 * change succeeding anyway), so a transient failure of both never permanently stops the agent from
+                 * retrying endAgentLeg on their next attempt.
+                 * @example
+                 * ```
+                 * clearAndSetAgentState();
+                 * ```
+                 */
+                const clearAndSetAgentState = () => {
+                    this.cxoneAcdClient.contactManager.clearActiveSupervisorContacts();
+                    stateChangeResult = this.agentStateService.setAgentState(agentState);
+                };
+                /**
+                 * endAgentLeg failed - the state change is still attempted (it may succeed anyway), but the
+                 * tracked contact is only cleared if it does, so a genuine double-failure leaves it in place
+                 * for the next attempt to retry endAgentLeg rather than skipping straight to /state forever.
+                 * @example
+                 * ```
+                 * retryStateChangeWithoutClearing();
+                 * ```
+                 */
+                const retryStateChangeWithoutClearing = () => {
+                    stateChangeResult = this.agentStateService.setAgentState(agentState).then((response) => {
+                        this.cxoneAcdClient.contactManager.clearActiveSupervisorContacts();
+                        return response;
+                    });
+                };
+                yield this.cxoneAcdClient.agentLegService.endAgentLeg().then(clearAndSetAgentState, retryStateChangeWithoutClearing);
             }
             else if (sessionIdValid) {
                 stateChangeResult = this.agentStateService.setAgentState(agentState);

@@ -108,5 +108,9 @@ export var CXoneProductFeature;
      * @remarks - Product feature Id for NewGen Directories
      */
     CXoneProductFeature[CXoneProductFeature["DIRECTORY_SYNC_NEWGEN"] = 708009] = "DIRECTORY_SYNC_NEWGEN";
+    /**
+   * @remarks - Product feature Id for CXone Media Rediect for Vdi Extension
+   */
+    CXoneProductFeature[CXoneProductFeature["MEDIA_REDIRECT_VDI_EXT"] = 40360] = "MEDIA_REDIRECT_VDI_EXT";
 })(CXoneProductFeature || (CXoneProductFeature = {}));
 //# sourceMappingURL=cxone-product-feature.js.map

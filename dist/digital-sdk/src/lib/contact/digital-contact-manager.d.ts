@@ -10,7 +10,7 @@ import { DigitalContactService } from '../digital/service/digital-contact-servic
 export declare class DigitalContactManager {
     private acdSession;
     private adminService;
-    private digitalContactMap;
+    digitalContactMap: Map<string, CXoneDigitalContact>;
     onDigitalContactEvent: Subject<CXoneDigitalContact>;
     onUserSlotEvent: Subject<any>;
     onDispositionEvent: Subject<CXoneDisposition[] | CXoneSdkError>;
@@ -52,6 +52,8 @@ export declare class DigitalContactManager {
     private isWSAPIIntegrationRevampToggleEnabled;
     private isDigitalEventDeltaPublishingEnabled;
     private isOldUserSlotFlowEnabled;
+    private isContactCleanupEnabled;
+    private isDeliveryTrackingResolverEnabled;
     private readonly requestManager;
     private readonly SYNC_ENABLED_EVENTS;
     private readonly deltaEvents;
@@ -281,6 +283,18 @@ export declare class DigitalContactManager {
      * this method will be called in case of MESSAGE_ADDED_INTO_CASE & CASE_STATUS_CHANGED event
      */
     private updatePublishDigitalContactMap;
+    /**
+     * Push a single journey checkpoint, but only for a tracked journey.
+     * @param journey - Correlation context, or undefined for an untracked caller.
+     * @param journeyPoint - Checkpoint name, as defined at epic level.
+     * @param role - Position of this checkpoint within the journey.
+     * @param status - Outcome of this checkpoint.
+     * @example
+     * ```
+     * this.emitJourney(journey, 'ws_event_received', 'start');
+     * ```
+     */
+    private emitJourney;
     /**
      * get assigned digital contact details based on caseId
      * @example

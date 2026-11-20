@@ -35,6 +35,7 @@ export declare const CXoneChannelSchema: import("yup").ObjectSchema<{
     hasAbilityToChangeFrom: import("yup").BooleanSchema<boolean, import("yup/lib/types").AnyObject, boolean>;
     hasMultipleThreadsPerEndUser: import("yup").BooleanSchema<boolean, import("yup/lib/types").AnyObject, boolean>;
     replyPrefixMentionTemplate: import("yup").StringSchema<string, import("yup/lib/types").AnyObject, string>;
+    isSendingCustomerIdentityName: import("yup").BooleanSchema<boolean, import("yup/lib/types").AnyObject, boolean>;
 }, import("yup/lib/object").AnyObject, import("yup/lib/object").TypeOfShape<{
     id: import("yup/lib/string").RequiredStringSchema<string, import("yup/lib/types").AnyObject>;
     idOnExternalPlatform: import("yup/lib/string").RequiredStringSchema<string, import("yup/lib/types").AnyObject>;
@@ -71,6 +72,7 @@ export declare const CXoneChannelSchema: import("yup").ObjectSchema<{
     hasAbilityToChangeFrom: import("yup").BooleanSchema<boolean, import("yup/lib/types").AnyObject, boolean>;
     hasMultipleThreadsPerEndUser: import("yup").BooleanSchema<boolean, import("yup/lib/types").AnyObject, boolean>;
     replyPrefixMentionTemplate: import("yup").StringSchema<string, import("yup/lib/types").AnyObject, string>;
+    isSendingCustomerIdentityName: import("yup").BooleanSchema<boolean, import("yup/lib/types").AnyObject, boolean>;
 }>, import("yup/lib/object").AssertsShape<{
     id: import("yup/lib/string").RequiredStringSchema<string, import("yup/lib/types").AnyObject>;
     idOnExternalPlatform: import("yup/lib/string").RequiredStringSchema<string, import("yup/lib/types").AnyObject>;
@@ -107,5 +109,6 @@ export declare const CXoneChannelSchema: import("yup").ObjectSchema<{
     hasAbilityToChangeFrom: import("yup").BooleanSchema<boolean, import("yup/lib/types").AnyObject, boolean>;
     hasMultipleThreadsPerEndUser: import("yup").BooleanSchema<boolean, import("yup/lib/types").AnyObject, boolean>;
     replyPrefixMentionTemplate: import("yup").StringSchema<string, import("yup/lib/types").AnyObject, string>;
+    isSendingCustomerIdentityName: import("yup").BooleanSchema<boolean, import("yup/lib/types").AnyObject, boolean>;
 }>>;
 export declare type CXoneChannel = InferType<typeof CXoneChannelSchema>;

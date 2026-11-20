@@ -1,6 +1,6 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.DigitalContactStatus = void 0;
+exports.DigitalContactEndReason = exports.DigitalContactStatus = void 0;
 /**
  * Enum for Digital Case Status
  */
@@ -39,4 +39,18 @@ var DigitalContactStatus;
      */
     DigitalContactStatus["DRAFT"] = "draft";
 })(DigitalContactStatus = exports.DigitalContactStatus || (exports.DigitalContactStatus = {}));
+/**
+ * Enum for Digital Case End Reason
+ */
+var DigitalContactEndReason;
+(function (DigitalContactEndReason) {
+    /**
+     * The agent closed the contact from Agent Workspace.
+     */
+    DigitalContactEndReason["AGENT_ENDED"] = "AGENT_ENDED";
+    /**
+     * The contact was closed via Interaction Search
+     */
+    DigitalContactEndReason["ADMIN_TERMINATED"] = "ADMIN_TERMINATED";
+})(DigitalContactEndReason = exports.DigitalContactEndReason || (exports.DigitalContactEndReason = {}));
 //# sourceMappingURL=digital-contact-status.js.map

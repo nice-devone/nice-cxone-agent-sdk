@@ -81,6 +81,11 @@ export class CXoneGetNextAdapter {
                     this.agentSession.onContactEvent.next(event);
                     break;
                 }
+                case GetNextEventType.SUPERVISOR_CONTACT_EVENT: {
+                    const supervisorContactEvent = CallContactEventYup.cast(event);
+                    this.agentSession.supervisorContactEventSubject.next(supervisorContactEvent);
+                    break;
+                }
                 case GetNextEventType.VOICEMAIL_CONTACT_EVENT: {
                     const voiceMailContactEvent = VoiceMailContactEventYup.cast(event);
                     this.agentSession.voiceMailContactEventSubject.next(voiceMailContactEvent);
@@ -278,9 +283,15 @@ export class CXoneGetNextAdapter {
                     break;
                 }
                 case GetNextEventType.AGENT_WORKFLOW_CONFIGURATION: {
+                    // Always parse and emit via the existing agentWorkflowRequestEvent subject.
+                    // The subscriber (onAgentWorkflowRequestEvent) is responsible for detecting
+                    // whether this is a single-CRM or multi-CRM event and routing accordingly.
                     const agentWorkflowConfigurationEvent = new AgentWorkflowRequestEvent();
                     agentWorkflowConfigurationEvent.parse(event);
                     this.agentSession.agentWorkflowRequestEvent.next(agentWorkflowConfigurationEvent);
+                    // Also emit the raw (un-transformed) event so multi-CRM subscribers can
+                    // access interactionId, per-position entries, and all original field names.
+                    this.agentSession.agentWorkflowConfigurationRawEvent.next(event);
                     break;
                 }
                 case GetNextEventType.AGENT_ASSIST: {
@@ -388,8 +399,44 @@ export class CXoneGetNextAdapter {
                     this.agentSession.onConsultContextEvent.next(event);
                     break;
                 }
+                case GetNextEventType.LIVEVOXERROR_NOTIFY_EVENT: {
+                    this.processAndPublishLiveVoxError(event);
+                    break;
+                }
             }
         }));
+    }
+    /**
+     * Validates and publishes a LiveVoxErrorEvent from a LiveVoxError VC payload, rejecting malformed or oversized fields
+     * @param event - raw GetNext event payload for GetNextEventType.LIVEVOXERROR_NOTIFY_EVENT
+     */
+    processAndPublishLiveVoxError(event) {
+        const errorName = event === null || event === void 0 ? void 0 : event.ErrorName;
+        const category = event === null || event === void 0 ? void 0 : event.ErrorCategory;
+        const callType = event === null || event === void 0 ? void 0 : event.CallType;
+        const contactId = event === null || event === void 0 ? void 0 : event.ContactID;
+        if (!this.isValidLiveVoxErrorField(errorName) ||
+            !this.isValidLiveVoxErrorField(category) ||
+            !this.isValidLiveVoxErrorField(contactId) ||
+            !this.isValidLiveVoxErrorField(callType)) {
+            this.logger.error('handleGetNextResponse', 'Rejected malformed or oversized LiveVoxError payload');
+            return;
+        }
+        const liveVoxErrorEvent = {
+            errorName,
+            category,
+            callType,
+            contactId,
+        };
+        this.agentSession.onLiveVoxErrorEvent.next(liveVoxErrorEvent);
+    }
+    /**
+     * Validates a LiveVoxErrorEvent field is a non-empty, length-bounded, alphanumeric/underscore string
+     * @param value - raw field value from the VC payload
+     * @example isValidLiveVoxErrorField('ACCOUNT_DO_NOT_CALL')
+     */
+    isValidLiveVoxErrorField(value) {
+        return typeof value === 'string' && value.length > 0 && value.length <= 100 && /^[A-Za-z0-9_]+$/.test(value);
     }
 }
 //# sourceMappingURL=cxone-get-next-adapter.js.map

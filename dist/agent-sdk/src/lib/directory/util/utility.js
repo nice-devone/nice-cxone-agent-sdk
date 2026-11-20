@@ -95,8 +95,13 @@ const sortDirectoryData = (data, filterType, searchText) => {
 * ```
 */
 const handleDirectoryPagination = (data, limit, offset) => {
+    /* start from index 0 rather than offset - 1: this is called on every "Load More" for skill/team search,
+    each of which wholesale-overwrites the persisted search snapshot with just this call's result (see
+    getFilteredAgentList in cxone-directory-provider.ts for the identical issue on the agent side). Slicing
+    from just the newest page's start would drop every earlier-loaded match, so limit + offset - 1 is kept as
+    the cumulative upper bound instead. */
     if (offset && offset > 0 && limit && limit > 0) {
-        return data === null || data === void 0 ? void 0 : data.slice(offset - 1, offset + limit - 1);
+        return data === null || data === void 0 ? void 0 : data.slice(0, offset + limit - 1);
     }
     return data;
 };

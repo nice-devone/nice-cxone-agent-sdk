@@ -12,6 +12,8 @@ export declare class SkillService {
     private urlUtilsService;
     private validationUtils;
     private GET_SKILL_NAME_BY_ROUTING_ID;
+    private ROUTING_QUEUES_MAX_SIZE;
+    private ROUTING_QUEUES_LEGACY_SIZE;
     private GET_SKILLS_URI;
     private GET_SKILLS_URI_TS;
     private static cachedAgentSkills;

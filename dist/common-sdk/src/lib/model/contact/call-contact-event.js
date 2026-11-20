@@ -208,5 +208,24 @@ exports.CallContactEventYup = (0, yup_1.object)({
      * This value is optional and may not be present on all contacts.
      */
     smartReachTransactionId: (0, yup_1.string)().optional(),
+    /**
+     * @remarks - Indicates whether the skill associated with this contact supports Multiple Call Appearances (MCA).
+     */
+    isMultiCallSkill: (0, yup_1.boolean)().transform((_value, originalValue) => {
+        if (originalValue === true || originalValue === '1' || originalValue === 1)
+            return true;
+        if (typeof originalValue === 'string') {
+            const v = originalValue.toLowerCase();
+            if (v === 'true')
+                return true;
+            if (v === 'false' || v === '' || v === '0')
+                return false;
+        }
+        if (originalValue === false || originalValue === '0' || originalValue === 0)
+            return false;
+        // Unrecognized value (e.g. an unexpected string) — default to false rather than passing
+        // the raw value through, which fails the boolean type check and throws on cast().
+        return false;
+    }).default(false),
 }).camelCase();
 //# sourceMappingURL=call-contact-event.js.map

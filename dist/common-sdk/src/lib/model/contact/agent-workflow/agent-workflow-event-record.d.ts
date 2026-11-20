@@ -53,6 +53,11 @@ export declare class AgentWorkflowEventRecord {
      */
     fields: AgentWorkflowEventFieldsData[];
     /**
+     * Flag to determine if the record may be screen popped before the agent accepts the
+     * interaction. Absent means accept is required first.
+     */
+    screenPopBeforeAccept: boolean;
+    /**
      * Used to parse data
      * @param data - data to be parsed
      * @example

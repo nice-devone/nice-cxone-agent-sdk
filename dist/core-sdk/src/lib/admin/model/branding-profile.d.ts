@@ -51,3 +51,38 @@ export interface BrandingProfile {
     sfdcLogoUrl: string;
     fetchTime: Date;
 }
+/**
+ * Declare CXone Branding Profile Details as returned by the `/branding-profiles/v2/current`
+ * contract .Field names differ from {@link BrandingProfile} (the V1 contract) per
+ * the version comparison table — e.g. `cxoneLoginHeaderLogoUrl` -\> `headerLogoUrl`,
+ * `cxoneFaviconUrl` -\> `squareIconUrl` — plus new V2-only fields (`loginBgImageUrl`,
+ * `loginAppSwitcherLogoUrl`, `loginBgColor`).
+ */
+export interface BrandingProfileV2 {
+    profileId: string;
+    profileName: string;
+    description: string;
+    brandName: string;
+    systemEmail: string;
+    hostName: string;
+    status: string;
+    coBrand: boolean;
+    loginBgColor: string;
+    headerBgColor: string;
+    headerIconTextColor: string;
+    maxStylePackName: string;
+    supervisorStylePackName: string;
+    marketingEnabled: string;
+    marketingUrl: string;
+    partnerDefaultBP: boolean;
+    loginBgImageUrl: string;
+    loginAppSwitcherLogoUrl: string;
+    headerLogoUrl: string;
+    emailFormLogoUrl: string;
+    squareIconUrl: string;
+    maxGlanceBarExpLogoUrl: string;
+    maxGlanceBarCollLogoUrl: string;
+    supervisorLogoUrl: string;
+    sfdcLogoUrl: string;
+    fetchTime: Date;
+}

@@ -22,8 +22,16 @@ export const AGENTIC_URL_CACHE_TTL_MS = 24 * 60 * 60 * 1000;
  *  web socket class for agent copilot
  */
 export class CopilotNotificationClient extends AgentAssistNotificationService {
-    constructor() {
-        super(...arguments);
+    /**
+     * Constructor for Copilot Notification Client taking false as default for native copilot, true in case of Copilot MFE
+     * @param options - options.ownsAgenticWs marks this instance as the owner of the
+     * agentic WebSocket connection when COPILOT_MFE is enabled (see {@link ownsAgenticWs}).
+     * @example - new CopilotNotificationClient(true) // For MFE
+     * @example - new CopilotNotificationClient(false) // For CXAgent and native Copilot Component
+     */
+    constructor(options) {
+        var _a;
+        super();
         this.agentId = '';
         this.webSocketUri = '';
         this.subscriptionTopics = new Set();
@@ -39,6 +47,7 @@ export class CopilotNotificationClient extends AgentAssistNotificationService {
         this.onMessageNotification = new Subject();
         this.onVoiceTranscriptionMessage = new Subject();
         this.onVoiceTranscriptionError = new Subject();
+        this.ownsAgenticWs = (_a = options === null || options === void 0 ? void 0 : options.ownsAgenticWs) !== null && _a !== void 0 ? _a : false;
     }
     /**
      * used to connect to the socket.
@@ -54,7 +63,7 @@ export class CopilotNotificationClient extends AgentAssistNotificationService {
             // Recovery: if the agentic toggle is now on but the worker was never initialised
             // (e.g. stale IndexDB replay called connect() before toggles finished loading),
             // create the worker here so it isn't silently missing for the rest of the session.
-            if (this.isAgenticWsEnabled() && !this.agenticWssWorker) {
+            if (this.shouldConnectAgenticWs() && !this.agenticWssWorker) {
                 this.initAgenticWorker();
             }
             this.logger.info('Already connected', ' skipping reconnect.');
@@ -63,14 +72,15 @@ export class CopilotNotificationClient extends AgentAssistNotificationService {
         this.webSocketUri = websocketServerUri;
         this.agentId = agentId;
         const isAgenticWs = this.isAgenticWsEnabled();
-        this.addSubscriptionTopics((agentCopilotInput === null || agentCopilotInput === void 0 ? void 0 : agentCopilotInput.subscriptions) || [], isAgenticWs);
+        const isCopilotMFEEnabled = this.isCopilotMFEEnabled();
+        this.addSubscriptionTopics((agentCopilotInput === null || agentCopilotInput === void 0 ? void 0 : agentCopilotInput.subscriptions) || [], isAgenticWs, isCopilotMFEEnabled);
         this.initLogger('agentCopilot');
         this.initWebSocketWorker('agentCopilot');
         super.connect(websocketServerUri, 'Agent-Copilot');
         // Only create the agentic worker on the very first connect. The worker
         // then survives transient primary-socket errors (see terminateWebSocketWorker)
         // and drives its own reconnect cycle through scheduleAgenticReconnect.
-        if (isAgenticWs && !this.agenticWssWorker) {
+        if (this.shouldConnectAgenticWs() && !this.agenticWssWorker) {
             this.initAgenticWorker();
         }
         this.logger.info('Connect', 'Connecting to WebSocket for Agent-Copilot');
@@ -82,8 +92,8 @@ export class CopilotNotificationClient extends AgentAssistNotificationService {
      * so they are skipped on the old worker.
      * @example -  addSubscriptionTopics([]);
      */
-    addSubscriptionTopics(subscriptions, isAgenticWs) {
-        if (!isAgenticWs) {
+    addSubscriptionTopics(subscriptions, isAgenticWs, isCopilotMFEEnabled) {
+        if (!isAgenticWs && !isCopilotMFEEnabled) {
             // agenticWssWorker owns these topics when toggle is ON; skip them on the old worker
             this.subscriptionTopics.add(`${this.agentId}_agentcopilot`);
             this.subscriptionTopics.add(`${this.agentId}_agentcopilot_health`);
@@ -250,6 +260,11 @@ export class CopilotNotificationClient extends AgentAssistNotificationService {
         this.onMessageNotification.next(msgResponse);
     }
     /**
+     * Resolves the agentic WebSocket base URL using a two-tier cache:
+     * 1. In-memory (fastest; no I/O)
+     * 2. localStorage with TTL envelope
+     * 3. REST round-trip (last resort)
+     * Returns `null` if the REST call fails — caller must handle gracefully.
      * Resolves the agentic WebSocket base URL using a two-tier cache:
      * 1. In-memory (fastest; no I/O)
      * 2. localStorage with TTL envelope
@@ -542,6 +557,27 @@ export class CopilotNotificationClient extends AgentAssistNotificationService {
      */
     isAgenticWsEnabled() {
         return FeatureToggleService.instance.getFeatureToggleSync("release-agentcopilot-websocket-CSA-69545" /* FeatureToggles.AGENTIC_WEBSOCKET */) || false;
+    }
+    /**
+     * Returns whether the Copilot MFE feature toggle is enabled.
+     * @example - isCopilotMFEEnabled()
+     */
+    isCopilotMFEEnabled() {
+        return FeatureToggleService.instance.getFeatureToggleSync("release-agentcopilot-copilot-mfe-CSA-76080" /* FeatureToggles.COPILOT_MFE */) || false;
+    }
+    /**
+     * Returns whether THIS instance should establish the agentic WebSocket connection.
+     * When COPILOT_MFE is on, the csa-agent-copilot MFE instance (ownsAgenticWs=true)
+     * owns the agentic socket; the host shell's instance must defer to it so the two
+     * do not both connect for the same agent.
+     * @example - shouldConnectAgenticWs()
+     */
+    shouldConnectAgenticWs() {
+        if (!this.isAgenticWsEnabled())
+            return false;
+        if (this.ownsAgenticWs)
+            return true;
+        return !this.isCopilotMFEEnabled();
     }
     /**
      * Callback method when a connection is open and ready to send and receive data

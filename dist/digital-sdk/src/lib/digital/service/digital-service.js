@@ -1,6 +1,6 @@
 import { __awaiter } from "tslib";
 /* eslint-disable @typescript-eslint/no-unused-expressions */
-import { CcfLogger } from '@nice-devone/agent-sdk';
+import { CcfLogger, FeatureToggleService } from '@nice-devone/agent-sdk';
 import { CXoneAuth, CXoneUser } from '@nice-devone/auth-sdk';
 import { CXoneSdkError, CXoneDigitalChannelArray, CXoneCaseArray, ReactionType, ExternalPlatformTemplatesResponse, getQueryURLFromObjectKeys, CXoneDigitalContactSearch, CXoneRoutingQueueArray, CXoneSdkErrorType, CXoneDigitalMessageTagArraychema, CXoneDigitalCustomerSearch, CXoneDigitalMessageSearch, CXoneDigitalThreadSearch, CXoneDigitaltranslationApiResponseSchema, getQueryURLForSearchMessagesTab, getQueryURLForSearchThreadsTab, getQueryURLForCustomerTab, UserSlotsSchema, CXoneDigitalEventType, } from '@nice-devone/common-sdk';
 import { HttpUtilService, HttpClient, ApiUriConstants, LocalStorageHelper, StorageKeys, dbInstance, IndexDBStoreNames, IndexDBKeyNames, clearIndexDbStore, UrlUtilsService, } from '@nice-devone/core-sdk';
@@ -23,8 +23,15 @@ export class DigitalService {
         this.UPDATE_MESSAGE_REACTION = '/dfo/3.0/messages/{messageId}/react/{reactionType}';
         this.UPDATE_CASE_CUSTOM_FIELD = '/dfo/3.0/contacts/{caseId}/custom-fields';
         this.EXTERNAL_PLATFORM_TEMPLATE_URI = '/dfo/3.0/channels/{channelId}/external-platform-templates';
-        // default routing queue response is of 50 records therfore we need to pass size of 500 in url
-        this.ROUTING_QUEUES_URI = '/dfo/3.0/routing-queues?size=500';
+        // AW-65744: The routing-queues API defaults to only 50 records when no size is passed, so the param must
+        // always be kept. The size value is chosen at call time based on ROUTING_QUEUE_MAX_SIZE_ENABLED:
+        //  - toggle ON  -> size=1500, the maximum the API allows (requesting more returns 400 resultSizeLimitExceeded)
+        //  - toggle OFF -> size=500, the previous (legacy) cap
+        // Fetching beyond 1500 is not supported by this endpoint and is handled by the long-term skills-API
+        // migration (AW-63392).
+        this.ROUTING_QUEUES_URI = '/dfo/3.0/routing-queues';
+        this.ROUTING_QUEUES_MAX_SIZE = 1500;
+        this.ROUTING_QUEUES_LEGACY_SIZE = 500;
         //URIs for secure forms get & post menthods (Get method to be used for rich text & future quick replies too)
         this.FORM_SUBMISSION = '/dfo/3.0/forms/{formId}/form-submission';
         this.QUICK_RESPONSES = '/rich-message-settings/1.0/quick-responses';
@@ -598,7 +605,11 @@ export class DigitalService {
             const db = yield dbInstance();
             const baseUrl = this.auth.getCXoneConfig().dfoApiBaseUri;
             const authToken = this.auth.getAuthToken().accessToken;
-            const url = baseUrl + this.ROUTING_QUEUES_URI;
+            // AW-65744: request the API max size when ROUTING_QUEUE_MAX_SIZE_ENABLED is on, else the legacy 500 cap.
+            const routingQueuesSize = FeatureToggleService.instance.getFeatureToggleSync("release-cxa-routing-queue-max-size-enabled-AW-65744" /* FeatureToggles.ROUTING_QUEUE_MAX_SIZE_ENABLED */)
+                ? this.ROUTING_QUEUES_MAX_SIZE
+                : this.ROUTING_QUEUES_LEGACY_SIZE;
+            const url = `${baseUrl}${this.ROUTING_QUEUES_URI}?size=${routingQueuesSize}`;
             const reqInit = {
                 headers: this.utilService.initHeader(authToken, 'application/json')
                     .headers,

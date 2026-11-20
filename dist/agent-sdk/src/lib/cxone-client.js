@@ -204,7 +204,7 @@ export class CXoneClient {
                 const providerId = (_a = agentAssistJson === null || agentAssistJson === void 0 ? void 0 : agentAssistJson.Params) === null || _a === void 0 ? void 0 : _a.providerId;
                 if (agentAssistJson && providerId === AgentAssistProvider.AGENT_COPILOT) {
                     this.connectCopilotWebSocket();
-                    this.copilotService.storeAgentAssistConfig(agentAssistJson === null || agentAssistJson === void 0 ? void 0 : agentAssistJson.ContactId.toString(), agentAssistJson === null || agentAssistJson === void 0 ? void 0 : agentAssistJson.MediaType, agentAssistJson === null || agentAssistJson === void 0 ? void 0 : agentAssistJson.AgentAssistId);
+                    this.copilotService.storeAgentAssistConfig({ contactId: agentAssistJson === null || agentAssistJson === void 0 ? void 0 : agentAssistJson.ContactId.toString(), mediaType: agentAssistJson === null || agentAssistJson === void 0 ? void 0 : agentAssistJson.MediaType, agentAssistId: agentAssistJson === null || agentAssistJson === void 0 ? void 0 : agentAssistJson.AgentAssistId });
                 }
             });
         };

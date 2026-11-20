@@ -1,4 +1,4 @@
-import { CXoneVoiceConnectionStatus } from '../enums/cxone-voice-connection-status';
+import { CXoneVdiExtensionErrorType, CXoneVdiExtensionStatus, CXoneVoiceConnectionStatus } from '../enums/cxone-voice-connection-status';
 /**
  * Interface representing the credentials required for Iris.
  */
@@ -16,4 +16,13 @@ export interface CXoneVoiceConnection {
     credentials?: IrisCredentials;
     isExtensionInstalled?: boolean;
     extensionId?: string;
+}
+/**
+ * Interface representing a CXone VDI extension message.
+ */
+export interface CXoneVdiExtensionMessage {
+    status: CXoneVdiExtensionStatus;
+    hasError: boolean;
+    errorType: CXoneVdiExtensionErrorType;
+    isExtensionInstalled: boolean;
 }

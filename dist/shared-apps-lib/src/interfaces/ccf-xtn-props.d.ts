@@ -5,4 +5,6 @@ export interface CcfExtensionProps {
     ctdExtensionId: string;
     voiceExtensionId: string;
     ncExtensionId: string;
+    vdiMediaRedirectorExtId?: string;
+    screenAgentExtensionId?: string;
 }

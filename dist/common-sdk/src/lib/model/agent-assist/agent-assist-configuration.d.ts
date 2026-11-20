@@ -40,6 +40,7 @@ export declare enum AgentAssistConfigACPParamsKeys {
     NEXT_BEST_RESPONSE = "nextBestResponse",
     NEXT_BEST_RESPONSE_LENGTH = "nextBestResponseLength",
     PROVIDER_ID = "providerId",
+    AGENT_ASSIST_ID = "agentAssistId",
     REAL_TIME_SUMMARY = "realTimeSummary",
     REAL_TIME_SUMMARY_RESPONSE_LENGTH = "realTimeSummaryResponseLength",
     SCRIPT_PARAMS = "scriptParams",
@@ -72,14 +73,16 @@ export declare enum AgentAssistConfigACPParamsKeys {
     LEGAL_DISCLOSURE = "legalDisclosure",
     DISCLOSURE_CARD_TITLE = "disclosureCardTitle",
     DISCLOSURE_DESCRIPTION = "disclosureDescription",
-    ENABLE_INPUT_JSON_FILE = "enableInputJsonFile",
     KNOWLEDGE_HUB_CONFIG = "knowledgeHubConfig",
     AUTOSUMMARY_TO_OUTCOME_PANEL = "autoSummaryToOutcomePanel",
     SHOW_AUTOSUMMARY_CARD = "showAutoSummaryCard",
     AUTOSUMMARY_CARD_FEATURES = "autoSummaryCardFeatures",
     SECONDARY_KNOWLEDGE_HUB_CONFIG = "secondaryKnowledgeHubConfig",
     ENABLE_DIRECT_QUERY_FROM_KNOWLEDGE_HUB = "enableDirectQuery",
-    ENABLE_SECONDARY_DIRECT_QUERY_FROM_KNOWLEDGE_HUB = "enableSecondaryDirectQuery"
+    ENABLE_SECONDARY_DIRECT_QUERY_FROM_KNOWLEDGE_HUB = "enableSecondaryDirectQuery",
+    POST_INTERACTION_VISIBILITY = "postInteractionVisibility",
+    POST_INTERACTION_VISIBILITY_DURATION = "postInteractionVisibilityDuration",
+    ENABLE_INPUT_JSON_FILE = "enableInputJsonFile"
 }
 export interface CopilotProfileConfig {
     /**

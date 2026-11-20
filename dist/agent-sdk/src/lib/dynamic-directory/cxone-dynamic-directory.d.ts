@@ -237,6 +237,28 @@ export declare class CXoneDynamicDirectory {
      */
     endDirectoriesSearch(subscriptionId: string): void;
     /**
+     * Ends the legacy external directory's live search using the SDK's own current
+     * subscription id, instead of one supplied by the caller. A caller-supplied id (e.g. a
+     * Redux-cached copy) can be stale relative to this SDK-internal state, which made
+     * endDirectoriesSearch's id-matching silently miss the legacy subscription in some cases.
+     * Also clears the pending request's subscriptionId so that a CONNECTED event which arrives
+     * after this call (the socket was still mid-connect) does not go on to resubscribe.
+     * @example
+     * ```
+     * this.endLegacyDirectorySearch();
+     * ```
+     */
+    endLegacyDirectorySearch(): void;
+    /**
+     * Ends the NewGen directory's live search using the SDK's own current subscription id.
+     * See endLegacyDirectorySearch for why this avoids taking a caller-supplied id.
+     * @example
+     * ```
+     * this.endNewGenDirectorySearch();
+     * ```
+     */
+    endNewGenDirectorySearch(): void;
+    /**
      * Method used to connect the WebSocket
      * @example
      * ```

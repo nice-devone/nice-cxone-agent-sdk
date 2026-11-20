@@ -35,3 +35,16 @@ export declare enum DigitalContactStatus {
      */
     DRAFT = "draft"
 }
+/**
+ * Enum for Digital Case End Reason
+ */
+export declare enum DigitalContactEndReason {
+    /**
+     * The agent closed the contact from Agent Workspace.
+     */
+    AGENT_ENDED = "AGENT_ENDED",
+    /**
+     * The contact was closed via Interaction Search
+     */
+    ADMIN_TERMINATED = "ADMIN_TERMINATED"
+}

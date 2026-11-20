@@ -34,6 +34,7 @@ export declare class ApiUriConstants {
     static SKILL_ACTIVITY_URI: string;
     static SKILL_ACTIVITY_URI_TS: string;
     static CONFERENCE_CALL_URI: string;
+    static CONFERENCE_CALL_URI_V35: string;
     static CONFERENCE_HOLD_URI: string;
     static CONFERENCE_RESUME_URI: string;
     static CONFERENCE_JOIN_URI: string;
@@ -60,6 +61,7 @@ export declare class ApiUriConstants {
     static DIAL_SKILL_URI: string;
     static DIAL_SKILL_URI_TS: string;
     static TRANSFER_CONTACT_URI: string;
+    static TRANSFER_CONTACT_URI_V35: string;
     static TRANSFER_VOICEMAIL_CONTACT_URI: string;
     static TRANSFER_VOICEMAIL_CONTACT_URI_TS: string;
     static TRANSFER_WORK_ITEM_CONTACT_URI: string;
@@ -85,6 +87,7 @@ export declare class ApiUriConstants {
     static GET_DIRECTORY_METADATA: string;
     static GET_NEWGEN_DIRECTORIES: string;
     static UH_GET_USERS: string;
+    static UH_GET_USERS_V4: string;
     static SEARCH_DIRECTORIES: string;
     static SEARCH_NEWGEN_DIRECTORIES: string;
     static PRESENCE_SYNC_WEBSOCKET: string;
@@ -120,7 +123,6 @@ export declare class ApiUriConstants {
     static GET_UNAVAILABLE_CODES_URI: string;
     static GET_UNAVAILABLE_CODES_URI_TS: string;
     static GET_TEAMS: string;
-    static GET_TEAMS_TS: string;
     static EVENT_HUB_SUBSCRIPTION_URI: string;
     static GET_AGENT_WITH_TEAM_ID: string;
     static GET_AGENT_WITH_TEAM_ID_TS: string;
@@ -141,6 +143,7 @@ export declare class ApiUriConstants {
     static PLAY_VOICEMAIL: string;
     static GET_CREATE_CUSTOMER_NOTE: string;
     static UPDATE_DELETE_CUSTOMER_NOTE: string;
+    static UPDATE_CUSTOMER_IDENTITY_NAME: string;
     static GET_TEAM_WITH_TEAM_ID: string;
     static GET_TEAM_WITH_TEAM_ID_TS: string;
     static POST_AMD_OVERRIDE: string;

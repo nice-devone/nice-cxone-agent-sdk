@@ -23,6 +23,12 @@ export declare class AgentWorkflowEventSystem {
      */
     baseUrl: string;
     /**
+     * CRM configuration ID — populated by the Multi-CRM search lambda when the backend
+     * can attribute a result to a specific CRM configuration. Optional because live
+     * (non-cached) responses may omit this field.
+     */
+    configurationId?: string;
+    /**
      * Used to parse data
      * @param data - data to be parsed
      * @example

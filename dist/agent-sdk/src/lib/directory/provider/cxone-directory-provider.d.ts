@@ -18,6 +18,7 @@ export declare class CXoneDirectoryProvider {
     private baseUri;
     private utilService;
     private directoryAdapter;
+    private teamService;
     private directoryBase;
     private offset;
     private limit;
@@ -37,6 +38,11 @@ export declare class CXoneDirectoryProvider {
     private favoriteTeamList;
     private favoriteSkillList;
     private favoriteAddressBookList;
+    private teamServerTotalLoaded;
+    private teamServerTotalRecords;
+    private teamServerSearchTotalLoaded;
+    private teamServerLoadMoreInFlight;
+    private lastTeamSearchText;
     /**
      * Create a directory provider.
      * @example -- Const provider = new CXoneDirectoryProvider();
@@ -154,6 +160,23 @@ export declare class CXoneDirectoryProvider {
      */
     private requestDirectoryData;
     /**
+     * Fetches one page of server-side teams via TeamService — no worker, no polling —
+     * and routes the result through the same response pipeline as the rest of directory data.
+     * @param request - skip/top/updatedSince/searchString for the fetch, plus isSearch/isLoadMore/
+     *   shouldFetchAllAgents context for how to apply the response — bundled into one object to stay
+     *   under the max-params lint limit.
+     */
+    private fetchServerSideTeams;
+    /**
+     * Used to terminate the polling of agent state
+     * @example -
+     * ```
+     * const directoryProvider = new CXoneDirectoryProvider();
+     * this.directoryProvider.resetServerSideTeamState();
+     * ```
+     */
+    resetServerSideTeamState(): void;
+    /**
      * Used to terminate the polling of agent state
      * @example -
      * ```
@@ -161,18 +184,26 @@ export declare class CXoneDirectoryProvider {
      * this.directoryProvider.terminatePolling();
      * ```
      */
-    terminatePolling(): void;
+    terminatePolling(preserveServerSideState?: boolean): void;
     /**
      * Callback method which will passed on to the worker and will be executed after the polling api response
      * then will publish to the subject subscriber with the directory data
      * @param response - agent state api response object
      * @param shouldFetchAllAgents -flag to get all agent list including logged-in user
+     * @param pendingTeamData - server-side team data for THIS specific response, passed by
+     *   fetchServerSideTeams as a parameter (not read off a shared field) so two concurrent team
+     *   fetches can't race and overwrite each other's data before either is consumed.
      * @example -
      * ```
      * handleDirectoryResponse(data);
      * ```
      */
-    handleDirectoryResponse(response: any, shouldFetchAllAgents?: boolean): Promise<void>;
+    handleDirectoryResponse(response: any, shouldFetchAllAgents?: boolean, pendingTeamData?: {
+        data: Team[];
+        totalRecords: number;
+        isLoadMore: boolean;
+        teamsApiFailed?: boolean;
+    } | null): Promise<void>;
     /**
      * merge, sort and paginate addressBookList data
      * @param addressBookList - addressBookList data
@@ -221,6 +252,22 @@ export declare class CXoneDirectoryProvider {
     * @param newSkillList - new response for the updated team data
     */
     private updateSearchTeamList;
+    /**
+     * FT ON — applies this response's server-side team data to the ongoing search cache
+     * (currentSearchData.teamList, mutated in place), or re-reads the latest value from IDB when this
+     * response has no team data of its own (avoiding clobbering a concurrent team write). Returns true
+     * when this is a genuine team response, so the caller can force isUpdate = false — a definitive
+     * "0 matches" answer must still publish instead of being dropped by publishDirectoryData's
+     * empty-list check.
+     * @param updatedDirectoryResponse - this response's own team result (from pendingTeamData)
+     * @param currentSearchData - the ongoing search's cached DirectoryResponse, read from IDB
+     * @param db - IndexedDB instance, used for the stale-reread fallback
+     * @example -
+     * ```
+     * const forceUpdate = await this.updateServerSearchTeamList(updatedDirectoryResponse, currentSearchData, db);
+     * ```
+     */
+    private updateServerSearchTeamList;
     /**
      * Used to handle the pagination based on the offset and limit in case of normal directory request flow without search request
      * @param directoryResponse - directory response object

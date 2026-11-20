@@ -22,6 +22,8 @@ export class CXoneVoiceContact extends CXoneContact {
         this.voiceControlService = new VoiceControlService();
         this.callControlButton = {};
         this.requireDisposition = false;
+        /** Indicates if this contact supports Multiple Call Appearances */
+        this.isMultiCallSkill = false;
         this.updateAgentPreference();
     }
     /**
@@ -412,11 +414,16 @@ export class CXoneVoiceContact extends CXoneContact {
         this.timeout = callInfo.timeout;
         this.omniGroupId = callInfo.omniGroupId;
         this.masterID = callInfo.masterId;
-        this.interactionId = callInfo.interactionId;
+        // Preserve interactionId and isMultiCallSkill once set: some server events (masking,
+        // recording) may omit these fields, which Yup defaults to '' / false. Allowing the
+        // reset would break the MCA guard in addOrUpdateConsultAndConferenceData and create
+        // duplicate interaction tiles.
+        this.interactionId = callInfo.interactionId || this.interactionId;
         this.isRequireManualAccept = callInfo.isRequireManualAccept;
         this.customerCardUrl = callInfo.customerCardUrl || '';
         this.externalCustomerId = callInfo.externalCustomerId || '';
         this.smartReachTransactionId = callInfo.smartReachTransactionId || '';
+        this.isMultiCallSkill = callInfo.isMultiCallSkill || this.isMultiCallSkill;
     }
     /**
      * Method to validate the contact has hold button then invoke the holdContact method

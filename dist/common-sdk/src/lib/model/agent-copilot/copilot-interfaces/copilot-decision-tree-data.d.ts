@@ -141,6 +141,11 @@ export interface DecisionTreeData {
     completeBtnTitle: string;
     mode?: string;
     interviewTreeNavigationStrategy?: string;
+    /**
+     * From the element config (getElement API): when true, Submit opens the
+     * wrap-up/print-and-review flow instead of the plain confirm-submit dialog.
+     */
+    shouldPrint?: boolean;
 }
 /**
  * Enumeration of supported decision tree question primitive types.
@@ -182,6 +187,11 @@ export interface DecisionTreeConfig {
      */
     mode: string;
     shouldAutoFill: boolean;
+    /**
+     * When true, Submit opens the wrap-up/print-and-review flow instead of the
+     * plain confirm-submit dialog. Optional — older element configs omit it.
+     */
+    shouldPrint?: boolean;
     /**
      * Navigation strategy for interview mode — e.g. `'Conversation-Driven'` for responsive sequencing.
      */

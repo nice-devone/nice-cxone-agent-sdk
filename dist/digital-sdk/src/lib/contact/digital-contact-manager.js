@@ -1,7 +1,7 @@
 import { __awaiter } from "tslib";
 import { AdminService, ACDSessionManager, LocalStorageHelper, StorageKeys, WebsocketStatusCode, RequestManager, } from '@nice-devone/core-sdk';
 import { Subject } from 'rxjs';
-import { CXoneSdkError, CXoneSdkErrorType, CXoneDigitalEventType, DigitalContactStatus, NetWorkConnectionStatus, MediaType, UserSlotsSchema, CXoneLeaderElector, } from '@nice-devone/common-sdk';
+import { CXoneSdkError, CXoneSdkErrorType, CXoneDigitalEventType, DigitalContactStatus, NetWorkConnectionStatus, MediaType, UserSlotsSchema, CXoneLeaderElector, isDeliveryTrackingEnabled, } from '@nice-devone/common-sdk';
 import { CXoneUser } from '@nice-devone/auth-sdk';
 import { AcwType, CXoneClient, CcfLogger, ContactType, DispositionService, FeatureToggleService, SkillService } from '@nice-devone/agent-sdk';
 import { CXoneDigitalWebsocket } from '../digital/ws/cxone-digital-websocket';
@@ -64,6 +64,8 @@ export class DigitalContactManager {
         this.isWSAPIIntegrationRevampToggleEnabled = FeatureToggleService.instance.getFeatureToggleSync("release-cx-agent-API-websocket-integration-revamp-AW-42181" /* FeatureToggles.REVAMPED_WEBSOCKET_INTEGRATION_PATTERN */) || false;
         this.isDigitalEventDeltaPublishingEnabled = FeatureToggleService.instance.getFeatureToggleSync("release-cx-agent-digital-event-delta-publishing-AW-48512" /* FeatureToggles.DIGITAL_EVENT_DELTA_PUBLISHING */) || false;
         this.isOldUserSlotFlowEnabled = FeatureToggleService.instance.getFeatureToggleSync("release-cx-agent-userslot-no-restriction-AW-55667" /* FeatureToggles.ENABLE_OLD_USER_SLOT_FLOW */) || false;
+        this.isContactCleanupEnabled = FeatureToggleService.instance.getFeatureToggleSync("release-cx-agent-contact-cleanup-AW-61953" /* FeatureToggles.CONTACT_CLEANUP_FEATURE_TOGGLE */) || false;
+        this.isDeliveryTrackingResolverEnabled = FeatureToggleService.instance.getFeatureToggleSync("release-cx-agent-delivery-tracking-resolver-AW-62918" /* FeatureToggles.DELIVERY_TRACKING_RESOLVER_FEATURE_TOGGLE */) || false;
         this.requestManager = RequestManager.getInstance();
         // Event types that require dictionary sync updates
         this.SYNC_ENABLED_EVENTS = new Set([
@@ -462,10 +464,14 @@ export class DigitalContactManager {
     handleAssigneeChangedEvent(contactId, traceId) {
         return __awaiter(this, void 0, void 0, function* () {
             if (contactId) {
+                // Ingress path B - event hub / DE sync dictionary. The websocket path never
+                // reaches this method, so this is the only start mark path B emits.
+                const journey = { journeyId: contactId };
+                this.emitJourney(journey, 'assignment_confirmed', 'start');
                 this.logger.info('handleAssigneeChangedEvent', 'Inbox assigned contact to be published to map' + contactId);
                 this.requestManager.hardAbort(contactId);
                 const eventDetailsToPublish = { eventId: '', eventObject: 'Case', eventType: CXoneDigitalEventType.CASE_INBOX_ASSIGNED, traceId: traceId };
-                yield this.getDigitalContactDetails(contactId, eventDetailsToPublish);
+                yield this.getDigitalContactDetails(contactId, eventDetailsToPublish, true, journey);
             }
         });
     }
@@ -560,7 +566,11 @@ export class DigitalContactManager {
                 CXoneDigitalEventType.MESSAGE_DELIVERY_STATUS_CHANGED
             ];
             if (eventDetailsToPublish.eventType === CXoneDigitalEventType.CASE_INBOX_ASSIGNED) {
-                this.getDigitalContactDetails((_l = (_k = eventData.data) === null || _k === void 0 ? void 0 : _k.case) === null || _l === void 0 ? void 0 : _l.id, eventDetailsToPublish);
+                // Ingress path A - websocket. No caseId means no correlation key, so no journey.
+                const assignedCaseId = (_l = (_k = eventData.data) === null || _k === void 0 ? void 0 : _k.case) === null || _l === void 0 ? void 0 : _l.id;
+                const journey = assignedCaseId ? { journeyId: assignedCaseId } : undefined;
+                this.emitJourney(journey, 'ws_event_received', 'start');
+                this.getDigitalContactDetails(assignedCaseId, eventDetailsToPublish, true, journey);
             }
             else if (relevantEventTypes.includes(eventDetailsToPublish.eventType)) {
                 this.checkSchemaAndPublishForMessage(currentContact, eventData);
@@ -732,6 +742,22 @@ export class DigitalContactManager {
             if (contact) {
                 currentContact = contact;
                 schemaValidatedMessage.data.channel = currentContact.channel;
+                const isSeenOrDeliveryEvent = [
+                    CXoneDigitalEventType.MESSAGE_DELIVERY_STATUS_CHANGED,
+                    CXoneDigitalEventType.MESSAGE_SEEN_CHANGED
+                ].includes(eventData.eventType);
+                // Ignore seen/delivery events when delivery-status tracking is off for the
+                // point-of-contact (resolved under pointOfContact or channel), falling back to
+                // the tracked contact's channel. Prevents out-of-order events from disrupting
+                // draft reconciliation on channels that never expected them (AW-62918).
+                // Gated behind DELIVERY_TRACKING_RESOLVER_FEATURE_TOGGLE so the guard can be
+                // rolled back without a code change if it misbehaves in production.
+                if (this.isDeliveryTrackingResolverEnabled &&
+                    isSeenOrDeliveryEvent &&
+                    !isDeliveryTrackingEnabled(eventData.data, currentContact.channel)) {
+                    this.logger.trace('checkSchemaAndPublishForMessage', `Ignoring ${eventData.eventType}: delivery-status tracking off for caseId=${currentContact.caseId}`);
+                    return;
+                }
                 currentContact.parse(schemaValidatedMessage);
                 this.updatePublishDigitalContactMap(currentContact);
             }
@@ -904,7 +930,7 @@ export class DigitalContactManager {
      * this method will be called in case of MESSAGE_ADDED_INTO_CASE & CASE_STATUS_CHANGED event
      */
     updatePublishDigitalContactMap(currentContact) {
-        var _a, _b, _c, _d, _e, _f;
+        var _a, _b, _c, _d, _e, _f, _g, _h, _j;
         const currentContactTraceId = (_a = currentContact === null || currentContact === void 0 ? void 0 : currentContact.eventDetails) === null || _a === void 0 ? void 0 : _a.traceId;
         const actualEventName = this.getActualEventName((_b = currentContact === null || currentContact === void 0 ? void 0 : currentContact.eventDetails) === null || _b === void 0 ? void 0 : _b.eventType);
         // If revamp FT is off, always publish the contact
@@ -949,6 +975,14 @@ export class DigitalContactManager {
                 this.digitalContactMap.set(currentContact.caseId, currentContact);
             }
             else {
+                // AW-61953: This branch publishes a removal for a case no longer assigned to the
+                // current user (WS/traditional unassign path). Log the resolved interactionId so a
+                // null/undefined value at emission time is visible in production (it can leave the
+                // contact stuck in Redux because the removal reducer is keyed by interactionId).
+                // Gated behind CONTACT_CLEANUP_FEATURE_TOGGLE (AW-61953).
+                if (this.isContactCleanupEnabled) {
+                    this.logger.debug('updatePublishDigitalContactMap', `AW-61953: publishing unassign/removal for caseId=${currentContact.caseId}, interactionId=${(_g = currentContact.interactionId) !== null && _g !== void 0 ? _g : (_h = currentContact.case) === null || _h === void 0 ? void 0 : _h.interactionId}, eventType=${(_j = currentContact.eventDetails) === null || _j === void 0 ? void 0 : _j.eventType}`);
+                }
                 if (this.digitalContactMap.has(currentContact.caseId)) {
                     this.digitalContactMap.delete(currentContact.caseId);
                     if (this.digitalContactMap.size === 0) {
@@ -967,16 +1001,47 @@ export class DigitalContactManager {
         }
     }
     /**
+     * Push a single journey checkpoint, but only for a tracked journey.
+     * @param journey - Correlation context, or undefined for an untracked caller.
+     * @param journeyPoint - Checkpoint name, as defined at epic level.
+     * @param role - Position of this checkpoint within the journey.
+     * @param status - Outcome of this checkpoint.
+     * @example
+     * ```
+     * this.emitJourney(journey, 'ws_event_received', 'start');
+     * ```
+     */
+    emitJourney(journey, journeyPoint, role, status = 'success') {
+        if (!journey) {
+            return;
+        }
+        try {
+            this.logger.journey({
+                journeyId: journey.journeyId,
+                journeyName: "digital_contact_auto_assignment" /* JourneyNames.DIGITAL_CONTACT_AUTO_ASSIGNMENT */,
+                journeyPoint,
+                role,
+                status,
+            });
+        }
+        catch (error) {
+            // Telemetry must never break contact assignment.
+            this.logger.error('emitJourney', 'Failed to emit journey checkpoint - ' + error);
+        }
+    }
+    /**
      * get assigned digital contact details based on caseId
      * @example
      * ```
      * getDigitalContactDetails
      * ```
     */
-    getDigitalContactDetails(contactId, eventDetails, isAssignedToAgentInbox = true) {
+    getDigitalContactDetails(contactId, eventDetails, isAssignedToAgentInbox = true, journey) {
         return __awaiter(this, void 0, void 0, function* () {
+            this.emitJourney(journey, 'details_api_call_start', 'hop_start');
             yield this.digitalContactService.getDigitalContactDetails(contactId).then((resp) => __awaiter(this, void 0, void 0, function* () {
                 var _a, _b, _c, _d, _e, _f, _g;
+                this.emitJourney(journey, 'details_api_call_end', 'hop_end');
                 this.logger.info('getContactDetails', 'Assigned Digital contact details received' + JSON.stringify(resp));
                 //For public channels, related message API invoked below to fetch complete message history
                 if (!((_b = (_a = resp === null || resp === void 0 ? void 0 : resp.data) === null || _a === void 0 ? void 0 : _a.channel) === null || _b === void 0 ? void 0 : _b.isPrivate)) {
@@ -990,7 +1055,21 @@ export class DigitalContactManager {
                 const contactDetails = { data: resp === null || resp === void 0 ? void 0 : resp.data };
                 const skillId = (_g = (_f = (_e = contactDetails === null || contactDetails === void 0 ? void 0 : contactDetails.data) === null || _e === void 0 ? void 0 : _e.routingQueue) === null || _f === void 0 ? void 0 : _f.skillId) === null || _g === void 0 ? void 0 : _g.toString();
                 //This method used to get skill and customer/agent Response Timer details (ART)/(CRT) from the indexedDB
-                const skillDetails = skillId && (yield this.skillService.getSkillById(skillId, true, contactId));
+                // io_wait hop - IndexedDB lookup. Distinct from the network fetch below; both always run.
+                if (skillId) {
+                    this.emitJourney(journey, 'skill_api_call_cache_start', 'hop_start');
+                }
+                let skillDetails;
+                try {
+                    skillDetails = skillId && (yield this.skillService.getSkillById(skillId, true, contactId));
+                    if (skillDetails)
+                        this.emitJourney(journey, 'skill_api_call_cache_end', 'hop_end', 'success');
+                }
+                catch (_cacheError) {
+                    if (skillId) {
+                        this.emitJourney(journey, 'skill_api_call_cache_end', 'hop_end', 'error');
+                    }
+                }
                 contactDetails.data.routingQueue = skillDetails ? Object.assign(Object.assign({}, contactDetails.data.routingQueue), { agentResponseEnabled: skillDetails.agentResponseEnabled, agentFirstResponseTime: skillDetails.agentFirstResponseTime, agentFollowOnResponseTime: skillDetails.agentFollowOnResponseTime, customerResponseEnabled: skillDetails.customerResponseEnabled, customerIdleTime: skillDetails.customerIdleTime, timeExtensionEnabled: skillDetails.timeExtensionEnabled }) : contactDetails.data.routingQueue;
                 contactDetails.data.isAssignedToAgentInbox = isAssignedToAgentInbox;
                 const isViewOnlyCase = this.viewOnlyCases.includes(contactId);
@@ -1008,12 +1087,36 @@ export class DigitalContactManager {
                 yield cxoneDigitalContact.parse(schemaValidatedResponse);
                 if (skillId) {
                     //Get the disposition details for skill attached to digital contact
-                    const skillResponse = yield this.skillService.getSkillById(skillId, false, contactId);
+                    // api_wait hop - runs whenever skillId is present, it is not a cache-miss fallback.
+                    this.emitJourney(journey, 'skill_api_call_network_start', 'hop_start');
+                    let skillResponse;
+                    try {
+                        skillResponse = yield this.skillService.getSkillById(skillId, false, contactId);
+                        if (skillResponse)
+                            this.emitJourney(journey, 'skill_api_call_network_end', 'hop_end', 'success');
+                    }
+                    catch (_networkError) {
+                        this.emitJourney(journey, 'skill_api_call_network_end', 'hop_end', 'error');
+                    }
                     // If acwType is disposition then only will publish disposition details.
                     if ((skillResponse === null || skillResponse === void 0 ? void 0 : skillResponse.acwTypeId) === AcwType.DISPOSITION) {
                         cxoneDigitalContact.requireDisposition = skillResponse === null || skillResponse === void 0 ? void 0 : skillResponse.requireDisposition;
                         //publish the disposition details for digital contact
-                        this.publishDispositionDetails(cxoneDigitalContact.caseId, skillId, MediaType.DIGITAL);
+                        // Deliberately not awaited, so this hop runs concurrently and its end mark
+                        // may land after the journey terminal.
+                        this.emitJourney(journey, 'disposition_api_call_start', 'hop_start');
+                        this.publishDispositionDetails(cxoneDigitalContact.caseId, skillId, MediaType.DIGITAL, journey)
+                            .catch((dispositionError) => {
+                            // Dispatch itself failed before publishDispositionDetails' own success/error
+                            // marks could run - emit the error end here so the hop isn't left unmatched.
+                            this.emitJourney(journey, 'disposition_api_call_end', 'hop_end', 'error');
+                            this.logger.error('getContactDetails', 'Unhandled disposition dispatch failure: ' + dispositionError);
+                        });
+                    }
+                    else {
+                        // Logged as skipped so completion-rate math stays honest.
+                        this.emitJourney(journey, 'disposition_api_call_start', 'hop_start', 'skipped');
+                        this.emitJourney(journey, 'disposition_api_call_end', 'hop_end', 'skipped');
                     }
                 }
                 else {
@@ -1022,12 +1125,27 @@ export class DigitalContactManager {
                 // Setting data in map post first time authorization when websocket is not emitting any events
                 // Reusing the DIGITAL_CONTACT constant value(DigitalContactEvent) as the contact type is Digital
                 if (cxoneDigitalContact.type === ContactType.DIGITAL_CONTACT && cxoneDigitalContact.status !== DigitalContactStatus.INCOMING) {
+                    // Emitted here rather than inside updatePublishDigitalContactMap, which has
+                    // eight callers and would fire for flows outside this journey.
+                    this.emitJourney(journey, 'contact_published', 'hop_end');
+                    // Tag this one publish as belonging to the tracked journey, then clear the tag
+                    // right after - Subject.next() runs subscribers synchronously, so the marker is
+                    // visible to the middleware for this publish only. digitalContactMap stores this
+                    // same contact instance, and later unrelated events (message, status, unassign,
+                    // preview, polling) mutate and republish it without a journey, so they must not
+                    // inherit a stale marker and be joined as duplicate journey terminals.
+                    if (journey) {
+                        cxoneDigitalContact.trackedJourneyId = journey.journeyId;
+                    }
                     this.updatePublishDigitalContactMap(cxoneDigitalContact);
+                    delete cxoneDigitalContact.trackedJourneyId;
                 }
                 // Call event hub subscription api when websocket is connected
                 if (!this.isWebSocketFailure)
                     cxoneDigitalContact.subscribeToEventHub();
             }), (error) => {
+                // Literal 'error' only - no part of the error object reaches telemetry.
+                this.emitJourney(journey, 'details_api_call_end', 'hop_end', 'error');
                 this.logger.error('getContactDetails', 'Assigned Digital contact fetch failed ' + JSON.stringify(error));
             });
         });
@@ -1041,12 +1159,14 @@ export class DigitalContactManager {
      * publishDispositionDetails('1234', '6545')
      * ```
      */
-    publishDispositionDetails(caseId, skillId, mediaType) {
+    publishDispositionDetails(caseId, skillId, mediaType, journey) {
         return __awaiter(this, void 0, void 0, function* () {
             yield this.dispositionService.getDispositions(skillId, mediaType, caseId).then(response => {
+                this.emitJourney(journey, 'disposition_api_call_end', 'hop_end');
                 this.onDispositionEvent.next(response);
             }, (error) => {
-                //we are using existing message prop from CXoneSdkError to pass case id 
+                this.emitJourney(journey, 'disposition_api_call_end', 'hop_end', 'error');
+                //we are using existing message prop from CXoneSdkError to pass case id
                 const updatedError = Object.assign(Object.assign({}, error), { message: caseId });
                 this.onDispositionEvent.next(updatedError);
             });

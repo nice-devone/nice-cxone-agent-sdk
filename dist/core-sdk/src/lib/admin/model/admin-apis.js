@@ -10,6 +10,7 @@ AdminApis.getClientDataUri = '/InContactAPI/services/v23.0/agents/client-data?ag
 AdminApis.putClientDataUri = '/InContactAPI/services/v23.0/agents/client-data';
 AdminApis.getCentralBrandingProfileUri = '/InContactAPI/services/v23.0/branding-profiles?businessUnitId={businessUnitId}';
 AdminApis.getUHBrandingProfileUri = '/branding-profiles/current';
+AdminApis.getUHBrandingProfileV2Uri = '/branding-profiles/v2/current';
 AdminApis.getScriptData = '/InContactAPI/services/v23.0/scripts/';
 AdminApis.spawnScriptUri = '/InContactAPI/services/v23.0/scripts/{scriptId}/start';
 AdminApis.signalScriptUri = '/InContactAPI/services/v23.0/interactions/{contactId}/signal';

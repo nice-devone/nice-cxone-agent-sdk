@@ -1,6 +1,6 @@
 import { HttpUtilService } from '../../http/index';
 import { Logger } from '../../../logger/logger';
-import { CXoneIndicator, CustomFormData, StartSessionRequest, CXonePageOpen, CXoneRunApp, CXoneSdkError, HttpResponse, EndSessionRequest, AgentSessionResponse, MCHSetting, CXonePopUrl, CXoneContactScreenpop, AgentWorkflowResponseEvent, AgentWorkflowRequestEvent, UserInfo, CXoneAgentAssist, CommitmentEvent, CommitmentStatusEvent, CoBrowseEvent, LocalPostEvent, AgentAssistWSRequest, CallContactEvent, MuteEvent, UpdatePermissionsEvent, AgentStateEvent, UpdateUnavailableCodeEvent, AgentLegEvent, DigitalContactEvent, CXoneConfiguration, UpdateNetworkTimeoutEvent, CXoneCustomScreenpop, GetNextAgentAssistEvent } from '@nice-devone/common-sdk';
+import { CXoneIndicator, CustomFormData, StartSessionRequest, CXonePageOpen, CXoneRunApp, CXoneSdkError, HttpResponse, EndSessionRequest, AgentSessionResponse, MCHSetting, CXonePopUrl, CXoneContactScreenpop, AgentWorkflowResponseEvent, AgentWorkflowRequestEvent, UserInfo, CXoneAgentAssist, CommitmentEvent, CommitmentStatusEvent, CoBrowseEvent, LocalPostEvent, AgentAssistWSRequest, CallContactEvent, MuteEvent, UpdatePermissionsEvent, AgentStateEvent, UpdateUnavailableCodeEvent, AgentLegEvent, DigitalContactEvent, CXoneConfiguration, UpdateNetworkTimeoutEvent, CXoneCustomScreenpop, GetNextAgentAssistEvent, LiveVoxErrorEvent } from '@nice-devone/common-sdk';
 import { ComplianceValidationEvent } from '../../smart-reach-compliance/compliance-validation-event';
 import { ConsultContextEvent } from '../../consult-context/consult-context-event';
 import { Subject, ReplaySubject } from 'rxjs';
@@ -14,6 +14,7 @@ export declare class ACDSessionManager {
     private adminService;
     private sessionId;
     private _callContactEventSubject;
+    private _supervisorContactEventSubject;
     private _voiceMailContactEventSubject;
     private _workItemContactEventSubject;
     private _muteEventSubject;
@@ -36,8 +37,11 @@ export declare class ACDSessionManager {
     private _agentWorkflowEvent;
     private _agentWorkflowRequestEvent;
     private _agentWorkflowCreatePayloadEvent;
+    /** Raw (untransformed) AgentWorkflowConfiguration GNE event — emitted before SDK parsing */
+    private _agentWorkflowConfigurationRawEvent;
     private _coBrowseEvent;
     private _localPostEvent;
+    private _onLiveVoxErrorEvent;
     private static singleton;
     userInfo: UserInfo;
     cxOneConfig: CXoneConfiguration;
@@ -173,6 +177,12 @@ export declare class ACDSessionManager {
         parentContactId: import("yup/lib/string").RequiredStringSchema<string, import("yup/lib/types").AnyObject>;
         omniGroupId: import("yup/lib/string").RequiredStringSchema<string, import("yup/lib/types").AnyObject>;
         externalId: import("yup/lib/string").RequiredStringSchema<string, import("yup/lib/types").AnyObject>;
+        /**
+         * @example -
+         * ```
+         * const agentLegSubject = acdSession.agentLegSubject
+         * ```
+         */
         ansMachineOverride: import("yup").BooleanSchema<boolean, import("yup/lib/types").AnyObject, boolean>;
         ansMachineOverrideEndTime: import("yup/lib/string").RequiredStringSchema<string, import("yup/lib/types").AnyObject>;
         interactionId: import("yup/lib/string").RequiredStringSchema<string, import("yup/lib/types").AnyObject>;
@@ -180,6 +190,62 @@ export declare class ACDSessionManager {
         isRequireManualAccept: import("yup").BooleanSchema<boolean, import("yup/lib/types").AnyObject, boolean>;
         externalCustomerId: import("yup").StringSchema<string, import("yup/lib/types").AnyObject, string>;
         smartReachTransactionId: import("yup").StringSchema<string, import("yup/lib/types").AnyObject, string>;
+        isMultiCallSkill: import("yup").BooleanSchema<boolean, import("yup/lib/types").AnyObject, boolean>;
+    }>>;
+    /**
+     * @example -
+     * ```
+     * const supervisorContactEventSubject  = acdSession.supervisorContactEventSubject
+     * ```
+     */
+    get supervisorContactEventSubject(): Subject<import("yup/lib/object").AssertsShape<{
+        contactId: import("yup/lib/string").RequiredStringSchema<string, import("yup/lib/types").AnyObject>;
+        masterId: import("yup/lib/string").RequiredStringSchema<string, import("yup/lib/types").AnyObject>;
+        status: import("yup/lib/string").RequiredStringSchema<string, import("yup/lib/types").AnyObject>;
+        originalState: import("yup/lib/boolean").RequiredBooleanSchema<boolean, import("yup/lib/types").AnyObject>;
+        callType: import("yup/lib/string").RequiredStringSchema<string, import("yup/lib/types").AnyObject>;
+        dnis: import("yup/lib/string").RequiredStringSchema<string, import("yup/lib/types").AnyObject>;
+        ani: import("yup/lib/string").RequiredStringSchema<string, import("yup/lib/types").AnyObject>;
+        skill: import("yup/lib/string").RequiredStringSchema<string, import("yup/lib/types").AnyObject>;
+        isInbound: import("yup/lib/boolean").RequiredBooleanSchema<boolean, import("yup/lib/types").AnyObject>;
+        startTimeUtc: import("yup/lib/date").RequiredDateSchema<Date, import("yup/lib/types").AnyObject>;
+        startTime: import("yup/lib/date").RequiredDateSchema<Date, import("yup/lib/types").AnyObject>;
+        lastStateChangeTimeUtc: import("yup/lib/date").RequiredDateSchema<Date, import("yup/lib/types").AnyObject>;
+        lastStateChangeTime: import("yup/lib/date").RequiredDateSchema<Date, import("yup/lib/types").AnyObject>;
+        screenPopUrl: import("yup/lib/string").RequiredStringSchema<string, import("yup/lib/types").AnyObject>;
+        screenPopUrlVariables: import("yup/lib/mixed").MixedSchema<any, import("yup/lib/types").AnyObject, any>;
+        disconnectCode: import("yup/lib/string").RequiredStringSchema<string, import("yup/lib/types").AnyObject>;
+        isLogging: import("yup/lib/boolean").RequiredBooleanSchema<boolean, import("yup/lib/types").AnyObject>;
+        timeout: import("yup/lib/number").RequiredNumberSchema<number, import("yup/lib/types").AnyObject>;
+        allowDispositions: import("yup/lib/boolean").RequiredBooleanSchema<boolean, import("yup/lib/types").AnyObject>;
+        label: import("yup/lib/string").RequiredStringSchema<string, import("yup/lib/types").AnyObject>;
+        isLinked: import("yup/lib/boolean").RequiredBooleanSchema<boolean, import("yup/lib/types").AnyObject>;
+        timeZones: import("yup/lib/string").RequiredStringSchema<string, import("yup/lib/types").AnyObject>;
+        finalState: import("yup/lib/boolean").RequiredBooleanSchema<boolean, import("yup/lib/types").AnyObject>;
+        otherInformation: import("yup/lib/string").RequiredStringSchema<string, import("yup/lib/types").AnyObject>;
+        otherInformationNewFormat: import("yup/lib/string").RequiredStringSchema<string, import("yup/lib/types").AnyObject>;
+        blendingToSkillName: import("yup/lib/string").RequiredStringSchema<string, import("yup/lib/types").AnyObject>;
+        deliveryType: import("yup/lib/string").RequiredStringSchema<string, import("yup/lib/types").AnyObject>;
+        customData: import("yup/lib/string").RequiredStringSchema<string, import("yup/lib/types").AnyObject>;
+        complianceRecord: import("yup/lib/boolean").RequiredBooleanSchema<boolean, import("yup/lib/types").AnyObject>;
+        confirmationRequired: import("yup/lib/boolean").RequiredBooleanSchema<boolean, import("yup/lib/types").AnyObject>;
+        parentContactId: import("yup/lib/string").RequiredStringSchema<string, import("yup/lib/types").AnyObject>;
+        omniGroupId: import("yup/lib/string").RequiredStringSchema<string, import("yup/lib/types").AnyObject>;
+        externalId: import("yup/lib/string").RequiredStringSchema<string, import("yup/lib/types").AnyObject>;
+        /**
+         * @example -
+         * ```
+         * const agentLegSubject = acdSession.agentLegSubject
+         * ```
+         */
+        ansMachineOverride: import("yup").BooleanSchema<boolean, import("yup/lib/types").AnyObject, boolean>;
+        ansMachineOverrideEndTime: import("yup/lib/string").RequiredStringSchema<string, import("yup/lib/types").AnyObject>;
+        interactionId: import("yup/lib/string").RequiredStringSchema<string, import("yup/lib/types").AnyObject>;
+        customerCardUrl: import("yup").StringSchema<string, import("yup/lib/types").AnyObject, string>;
+        isRequireManualAccept: import("yup").BooleanSchema<boolean, import("yup/lib/types").AnyObject, boolean>;
+        externalCustomerId: import("yup").StringSchema<string, import("yup/lib/types").AnyObject, string>;
+        smartReachTransactionId: import("yup").StringSchema<string, import("yup/lib/types").AnyObject, string>;
+        isMultiCallSkill: import("yup").BooleanSchema<boolean, import("yup/lib/types").AnyObject, boolean>;
     }>>;
     /**
      * @example -
@@ -370,6 +436,13 @@ export declare class ACDSessionManager {
     /**
      * @example -
      * ```
+     * const onLiveVoxErrorEvent = acdSession.onLiveVoxErrorEvent
+     * ```
+     */
+    get onLiveVoxErrorEvent(): Subject<LiveVoxErrorEvent>;
+    /**
+     * @example -
+     * ```
      * const mchAgentSettingsChangeEvent = agentSession.mchAgentSettingsChangeEvent
      * ```
      */
@@ -397,6 +470,19 @@ export declare class ACDSessionManager {
      * ```
      */
     get agentWorkflowRequestEvent(): Subject<AgentWorkflowRequestEvent>;
+    /**
+     * Raw (untransformed) AgentWorkflowConfiguration GNE event subject.
+     * Emitted in `cxone-get-next-adapter.ts` before the SDK parses the event.
+     * Subscribe here to access the full per-CRM `search`, `dataMemorialization`,
+     * and `timeline` arrays with `position` fields intact.
+     * @example -
+     * ```
+     * acdSession.agentWorkflowConfigurationRawEvent.subscribe((rawEvent) => {
+     *   handleAgentWorkflowConfigurationEvent(rawEvent, dispatch);
+     * });
+     * ```
+     */
+    get agentWorkflowConfigurationRawEvent(): Subject<unknown>;
     /**
     * Used to get the agent workflow event subject
     * @example -
@@ -648,6 +734,12 @@ export declare class ACDSessionManager {
         parentContactId: import("yup/lib/string").RequiredStringSchema<string, import("yup/lib/types").AnyObject>;
         omniGroupId: import("yup/lib/string").RequiredStringSchema<string, import("yup/lib/types").AnyObject>;
         externalId: import("yup/lib/string").RequiredStringSchema<string, import("yup/lib/types").AnyObject>;
+        /**
+         * @example -
+         * ```
+         * const agentLegSubject = acdSession.agentLegSubject
+         * ```
+         */
         ansMachineOverride: import("yup").BooleanSchema<boolean, import("yup/lib/types").AnyObject, boolean>;
         ansMachineOverrideEndTime: import("yup/lib/string").RequiredStringSchema<string, import("yup/lib/types").AnyObject>;
         interactionId: import("yup/lib/string").RequiredStringSchema<string, import("yup/lib/types").AnyObject>;
@@ -655,6 +747,7 @@ export declare class ACDSessionManager {
         isRequireManualAccept: import("yup").BooleanSchema<boolean, import("yup/lib/types").AnyObject, boolean>;
         externalCustomerId: import("yup").StringSchema<string, import("yup/lib/types").AnyObject, string>;
         smartReachTransactionId: import("yup").StringSchema<string, import("yup/lib/types").AnyObject, string>;
+        isMultiCallSkill: import("yup").BooleanSchema<boolean, import("yup/lib/types").AnyObject, boolean>;
     }>>;
     /**
      * @example -

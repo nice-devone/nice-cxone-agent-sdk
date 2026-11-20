@@ -23,7 +23,15 @@ export class SkillService {
         this.apiParser = new SkillApiParser();
         this.urlUtilsService = new UrlUtilsService();
         this.validationUtils = new ValidationUtils();
-        this.GET_SKILL_NAME_BY_ROUTING_ID = '/dfo/3.0/routing-queues?size=500';
+        // AW-65744: The routing-queues API defaults to only 50 records when no size is passed, so the param must
+        // always be kept. The size value is chosen at call time based on ROUTING_QUEUE_MAX_SIZE_ENABLED:
+        //  - toggle ON  -> size=1500, the maximum the API allows (requesting more returns 400 resultSizeLimitExceeded)
+        //  - toggle OFF -> size=500, the previous (legacy) cap
+        // Fetching beyond 1500 is not supported by this endpoint and is handled by the long-term skills-API
+        // migration (AW-63392).
+        this.GET_SKILL_NAME_BY_ROUTING_ID = '/dfo/3.0/routing-queues';
+        this.ROUTING_QUEUES_MAX_SIZE = 1500;
+        this.ROUTING_QUEUES_LEGACY_SIZE = 500;
         this.GET_SKILLS_URI = '/InContactAPI/services/v27.0/skills';
         this.GET_SKILLS_URI_TS = '/acd-skills/v1/skills';
         this.requestManager = RequestManager.getInstance();
@@ -220,7 +228,11 @@ export class SkillService {
     getRoutingQueueNames() {
         const baseUrl = this.auth.getCXoneConfig().dfoApiBaseUri;
         const authToken = this.auth.getAuthToken().accessToken;
-        const url = baseUrl + this.GET_SKILL_NAME_BY_ROUTING_ID;
+        // AW-65744: request the API max size when ROUTING_QUEUE_MAX_SIZE_ENABLED is on, else the legacy 500 cap.
+        const routingQueuesSize = FeatureToggleService.instance.getFeatureToggleSync("release-cxa-routing-queue-max-size-enabled-AW-65744" /* FeatureToggles.ROUTING_QUEUE_MAX_SIZE_ENABLED */)
+            ? this.ROUTING_QUEUES_MAX_SIZE
+            : this.ROUTING_QUEUES_LEGACY_SIZE;
+        const url = `${baseUrl}${this.GET_SKILL_NAME_BY_ROUTING_ID}?size=${routingQueuesSize}`;
         const reqInit = {
             headers: this.utilService.initHeader(authToken, 'application/json')
                 .headers,

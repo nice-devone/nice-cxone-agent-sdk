@@ -26,7 +26,7 @@ export declare class CXoneClientData {
        */
     twentyFourHourTime?: boolean;
     /**
-       * @remarks - Indicates whether to enable panel popout
+       * @remarks - Indicates whether to enable panel popout, undefined when the agent has never set it
        */
     panelPopout?: boolean;
     /**

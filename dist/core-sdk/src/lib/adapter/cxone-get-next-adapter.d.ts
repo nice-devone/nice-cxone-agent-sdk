@@ -23,4 +23,15 @@ export declare class CXoneGetNextAdapter {
     handleGetNextResponse(events: Array<{
         [key: string]: string;
     }>, icBranchValue?: string): void;
+    /**
+     * Validates and publishes a LiveVoxErrorEvent from a LiveVoxError VC payload, rejecting malformed or oversized fields
+     * @param event - raw GetNext event payload for GetNextEventType.LIVEVOXERROR_NOTIFY_EVENT
+     */
+    private processAndPublishLiveVoxError;
+    /**
+     * Validates a LiveVoxErrorEvent field is a non-empty, length-bounded, alphanumeric/underscore string
+     * @param value - raw field value from the VC payload
+     * @example isValidLiveVoxErrorField('ACCOUNT_DO_NOT_CALL')
+     */
+    private isValidLiveVoxErrorField;
 }

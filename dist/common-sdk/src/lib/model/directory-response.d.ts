@@ -21,9 +21,20 @@ export interface DirectoryResponse {
         data: AgentStateResponse[];
         totalRecords?: number;
         errorMsg?: string;
+        /** Structured error carrying a translation key and optional positional args for i18n rendering. */
+        errorDetails?: {
+            translationKey: string;
+            args?: (string | number)[];
+        };
         totalSearchMatchRecords?: number;
         allAgentCount?: number;
         favoriteAgents?: AgentStateResponse[];
+        /** Ids removed from the stored list this update (e.g. logged-off agents, DWP flow) so the store can
+         * prune them from its paginated list — they are no longer present in `data`. */
+        removedAgentIds?: (number | string)[];
+        /** Set only for a terminal agentList polling failure (all retries exhausted) that should surface as
+         * an app-level toast rather than inline directory UI state. */
+        agentStateApiRetriesExhausted?: boolean;
     };
     addressBookList: {
         data: AddressBooks[];
@@ -46,5 +57,11 @@ export interface DirectoryResponse {
         errorMsg?: string;
         totalSearchMatchRecords?: number;
         favoriteTeams?: Team[];
+        isServerSide?: boolean;
+        serverTotalRecords?: number;
+        /** cumulative count of teams fetched so far (FT ON); stays the same when a cached page is republished */
+        serverTotalLoaded?: number;
+        isServerSideLoadMore?: boolean;
+        teamsApiFailed?: boolean;
     };
 }

@@ -1,5 +1,5 @@
 import { CXoneAuth } from '@nice-devone/auth-sdk';
-import { AgentCopilotSearchRequest, CopilotMessageData, CustomCopilotFilterTags, GuidanceFeedbackData, ContactFeedbackData, CopilotProfileConfig, ContactHistoryData, IntentConfig, DecisionTreeElement, DecisionTreeData, CustomAdaptiveCardElement, WorkflowSuggestionResponse, ChecklistCompletionType } from '@nice-devone/common-sdk';
+import { AgentCopilotSearchRequest, CopilotMessageData, CustomCopilotFilterTags, AgentFiltersSchema, GuidanceFeedbackData, ContactFeedbackData, CopilotProfileConfig, ContactHistoryData, IntentConfig, DecisionTreeElement, DecisionTreeData, CustomAdaptiveCardElement, WorkflowSuggestionResponse, ChecklistCompletionType } from '@nice-devone/common-sdk';
 import { Logger, HttpUtilService, HttpRequestInit, ValidationUtils } from '@nice-devone/core-sdk';
 /**
  * Represents a collection of Copilot message data indexed by case ID.
@@ -14,6 +14,7 @@ export declare class CopilotService {
     protected logger: Logger;
     protected utilService: HttpUtilService;
     protected validationUtilService: ValidationUtils;
+    private urlUtilsService;
     auth: CXoneAuth;
     private AGENT_COPILOT_BASE_URI;
     private AGENT_COPILOT_BASE_URI_V2;
@@ -21,6 +22,7 @@ export declare class CopilotService {
     private AGENT_COPILOT_FINAL_SUMMARY;
     private AGENT_COPILOT_HEALTH_CHECK;
     private AGENT_COPILOT_AGENTIC_WS_URL;
+    private AGENT_COPILOT_CLIENT_SETTING;
     private AGENT_COPILOT_AGENT_ASSIST_HUB_CONFIG;
     private AGENT_COPILOT_GET_ADAPTIVE_CARD_SCHEMAS;
     private AGENT_COPILOT_EMAIL_APIS;
@@ -30,11 +32,14 @@ export declare class CopilotService {
     private JOURNEY_SUMMARY;
     private FINAL_SUMMARY;
     private EDITED_SUMMARY;
+    private COPILOT_INTERACTION_STATUS;
     private TASK_ASSIST;
     private aahConfigStore;
     private AGENT_COPILOT_GET_ALL_ADAPTIVE_CARDS_SCHEMAS;
     private AGENT_COPILOT_GET_TASK_ASSIST_FORM_PREFILLED_DATA;
     private TASK_ASSIST_FORM_ADAPTIVE_CARD_SCHEMAS_URL;
+    private AGENT_COPILOT_GET_TRANSFER_SUMMARY;
+    private AGENT_COPILOT_GET_ACTIVE_CONTACTS;
     private readonly DEFAULT_BOT_NAME;
     private REFRESH_TOKENS;
     private DECISION_TREE_BASE;
@@ -141,6 +146,14 @@ export declare class CopilotService {
      */
     addAdaptiveCardSchemaToIndexDB: (copilotReduxSlice: CcfCopilotData) => Promise<void>;
     /**
+     * Used to clear all copilot data from IndexDB on logout
+     * @example -
+     * ```
+     * copilotService.clearCopilotIndexDb();
+     * ```
+     */
+    clearCopilotIndexDb: () => Promise<void>;
+    /**
      * Used to fetch the agentic WebSocket URL for the second worker connection
      * @example -
      * ```
@@ -203,10 +216,14 @@ export declare class CopilotService {
      * @param agentAssistId - agent assist ID
      * @example -
      * ```
-     * copilotService.storeAgentAssistConfig('12321');
+     * copilotService.storeAgentAssistConfig({ contactId: '12321' });
      * ```
      */
-    storeAgentAssistConfig: (contactId: string, mediaType?: string, agentAssistId?: string) => Promise<any>;
+    storeAgentAssistConfig: (config: {
+        contactId: string;
+        mediaType?: string;
+        agentAssistId?: string;
+    }) => Promise<any>;
     /**
      * Ensures the Agent Assist configuration for the given contactId is available in memory.
      * If the configuration is not already cached (in the in-memory store or localStorage),
@@ -312,6 +329,27 @@ export declare class CopilotService {
     */
     updateCopilotFilters(copilotFilterTags: Array<CustomCopilotFilterTags>, contactId: string): Promise<string>;
     /**
+    * Use to update agent filters (Knowledge Hub Locked/Unlocked schema). Same kb-filter/update endpoint as
+    * updateCopilotFilters, just with `agentFilters` in the body instead of `expertTags`.
+    * @param agentFilters - full agentFilters schema with the agent's selections written into each listDefault
+    * @param contactId - contactId/caseId
+    * @example -
+    * ```
+    * copilotService.updateAgentFilters({ Locked: { filters: [...] }, Unlocked: { MatchType: 'Any', filters: [...] } }, '1234');
+    * ```
+    */
+    updateAgentFilters(agentFilters: AgentFiltersSchema, contactId: string): Promise<string>;
+    /**
+    * Use to clear copilot filters on the KB filter update endpoint when neither expertTags (Expert mode)
+    * nor agentFilters (Knowledge Hub mode) apply - sends both fields explicitly null.
+    * @param contactId - contactId/caseId
+    * @example -
+    * ```
+    * copilotService.clearCopilotFilters('1234');
+    * ```
+    */
+    clearCopilotFilters(contactId: string): Promise<string>;
+    /**
     * Use to get journey summary data
     * @param contactHistory - contact history of the contact
     * @param contactId - contactId/caseId
@@ -326,13 +364,15 @@ export declare class CopilotService {
     getJourneySummary(contactHistory: ContactHistoryData[], contactId: string, customerUid: string, aahConfiguration: CopilotProfileConfig, customerName: string): Promise<string>;
     /**
      * Used to fetch the generated final summary
-     * @param connectionId - connection id to send with the data
+     * @param contactId - contact id whose summary is being read
+     * @param regenerate - when true, appends `regenerate=true` so the backend generates a new summary instead of re-reading the cache
      * @example -
      * ```
      * copilotService.fetchGeneratedFinalSummary("1234");
+     * copilotService.fetchGeneratedFinalSummary("1234", true);
      * ```
      */
-    fetchGeneratedFinalSummary(contactId: string): Promise<unknown>;
+    fetchGeneratedFinalSummary(contactId: string, regenerate?: boolean): Promise<unknown>;
     /**
      * Used to get task response based on the intentName for a given contactId
      * @param contactId - contact Id
@@ -376,6 +416,15 @@ export declare class CopilotService {
    */
     getTaskAssistFormPreFilledData(intentConfig: IntentConfig, contactId: string, objectId: string): Promise<string>;
     /**
+     * Used to get tranfser summary for standalone copilot
+     * @param contactId - contact Id
+     * @example -
+     * ```
+     * copilotService.getTransferSummary('1234');
+     * ```
+     */
+    getTransferSummary(contactId: string): Promise<string>;
+    /**
      * Saves the edited summary for a given channel and contact number.
      * @param channel - The communication channel.
      * @param contactNumber - The contact number.
@@ -387,6 +436,13 @@ export declare class CopilotService {
      * ```
      */
     saveEditedSummary(channel: string, contactNumber: number, summary: string): Promise<string>;
+    /**
+     * Used to get the list of all active contacts
+     * ```
+     * copilotService.fetchAllActiveInteractions();
+     * ```
+     */
+    fetchAllActiveInteractions: () => Promise<unknown>;
     /**
      * Refreshes authentication tokens for the current agent session.
      * @param idToken - The current ID token to refresh.
@@ -515,6 +571,17 @@ export declare class CopilotService {
      */
     skipDecisionTreeQuestion(taskSessionUid: string, contactId: string, decisionTreeId: string, questionId: string, sectionId: string): Promise<string>;
     /**
+     * Used to check the copilot interaction status (whether conversation has ended)
+     * @param contactId - contact id to check the interaction status
+     * @example -
+     * ```
+     * copilotService.fetchCopilotInteractionStatus("1234");
+     * ```
+     */
+    fetchCopilotInteractionStatus(contactId: string): Promise<{
+        conversationEnded: boolean;
+    }>;
+    /**
      * Cancels the Decision Tree session for a given contact.
      *
      * This is typically called when the agent decides to exit the Decision Tree
@@ -632,6 +699,16 @@ export declare class CopilotService {
      * ```
      */
     completeChecklist(sessionId: string, contactId: string, checklistId: string): Promise<string>;
+    /**
+     * Fetches the csa-agent-copilot MFE version from the client-setting API.
+     * @returns Promise resolving to the version string
+     * @example
+     * ```
+     * const version = await copilotService.fetchCopilotVersion();
+     * ```
+     */
+    static readonly COPILOT_VERSION_STORAGE_KEY = "copilotVersion";
+    fetchCopilotVersion: () => Promise<string>;
     /**
      * Closes the checklist without submitting.
      *

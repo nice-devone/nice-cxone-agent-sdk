@@ -3,7 +3,7 @@ import { Logger } from '@nice-devone/core-sdk';
 import { CXoneSdkError, CXoneFileUploadResponseSchema, CXoneDigitalEventType, CXoneContactDetailsSchema, CXoneLoadPreviousContactDetailsSchema, CXoneSdkErrorType, CXonePreviousNextContactSchema, CXoneDraftContactSchema, parseRecipientsValidationResponse, } from '@nice-devone/common-sdk';
 import { CXoneUser } from '@nice-devone/auth-sdk';
 import { DigitalContactService } from '../service/digital-contact-service';
-import { CXoneContact, ContactType } from '@nice-devone/agent-sdk';
+import { CXoneContact, ContactType, FeatureToggleService } from '@nice-devone/agent-sdk';
 /**
  * Class containing properties and methods related to a digital contact
  */
@@ -61,9 +61,9 @@ export class CXoneDigitalContact extends CXoneContact {
     * changeStatus()
     * ```
     */
-    changeStatus(status) {
+    changeStatus(status, endReason) {
         return new Promise((resolve, reject) => {
-            this.digitalContactService.changeCustomerContactStatus(this.caseId, status).then((resp) => {
+            this.digitalContactService.changeCustomerContactStatus(this.caseId, status, endReason).then((resp) => {
                 const caseStatusResponse = resp;
                 this.logger.info('changeStatus', 'Case Status Change success ' + JSON.stringify(caseStatusResponse));
                 resolve(caseStatusResponse);
@@ -180,7 +180,7 @@ export class CXoneDigitalContact extends CXoneContact {
      * @example
      */
     parse(validatedResponse) {
-        var _a, _b, _c, _d, _e, _f, _g, _h, _j, _k, _l, _m, _o, _p, _q, _r, _s, _t, _u, _v, _w, _x, _y, _z, _0, _1, _2, _3, _4, _5, _6, _7, _8, _9, _10, _11, _12, _13, _14, _15;
+        var _a, _b, _c, _d, _e, _f, _g, _h, _j, _k, _l, _m, _o, _p, _q, _r, _s, _t, _u, _v, _w, _x, _y, _z, _0, _1, _2, _3, _4, _5, _6, _7, _8, _9, _10, _11, _12, _13, _14, _15, _16, _17;
         return __awaiter(this, void 0, void 0, function* () {
             if (validatedResponse) {
                 const { data } = validatedResponse;
@@ -266,28 +266,36 @@ export class CXoneDigitalContact extends CXoneContact {
                 }
                 this.isCaseAssigned = ((_v = this.case) === null || _v === void 0 ? void 0 : _v.inboxAssignee) && (((_x = (_w = this.case) === null || _w === void 0 ? void 0 : _w.inboxAssigneeUser) === null || _x === void 0 ? void 0 : _x.incontactId) === ((_z = (_y = CXoneUser === null || CXoneUser === void 0 ? void 0 : CXoneUser.instance) === null || _y === void 0 ? void 0 : _y.getUserInfo()) === null || _z === void 0 ? void 0 : _z.userId)) ? true : false;
                 this.type = ContactType.DIGITAL_CONTACT;
-                this.interactionId = (_0 = data === null || data === void 0 ? void 0 : data.case) === null || _0 === void 0 ? void 0 : _0.interactionId;
-                this.channelType = (_1 = data === null || data === void 0 ? void 0 : data.channel) === null || _1 === void 0 ? void 0 : _1.realExternalPlatformId;
-                this.customerName = ((_2 = data === null || data === void 0 ? void 0 : data.case) === null || _2 === void 0 ? void 0 : _2.direction) === 'outbound' ? ((_5 = (_4 = (_3 = data === null || data === void 0 ? void 0 : data.case) === null || _3 === void 0 ? void 0 : _3.authorEndUserIdentity) === null || _4 === void 0 ? void 0 : _4.fullName) !== null && _5 !== void 0 ? _5 : (((_6 = data === null || data === void 0 ? void 0 : data.channel) === null || _6 === void 0 ? void 0 : _6.name) || ((_7 = data === null || data === void 0 ? void 0 : data.channel) === null || _7 === void 0 ? void 0 : _7.idOnExternalPlatform))) : (_9 = (_8 = data === null || data === void 0 ? void 0 : data.case) === null || _8 === void 0 ? void 0 : _8.authorEndUserIdentity) === null || _9 === void 0 ? void 0 : _9.fullName;
+                // AW-61953: preserve existing interactionId when the event omits/nulls it
+                // (case.interactionId is nullable in CXoneCaseSchema). Overwriting it with
+                // null/undefined on a WS unassign leaves the contact stuck in Redux because
+                // the removal reducer is keyed by interactionId. Mirrors the isAssignedToAgentInbox
+                // preservation pattern above (PR #9281).
+                // Gated behind CONTACT_CLEANUP_FEATURE_TOGGLE: when off, use the original assignment.
+                this.interactionId = FeatureToggleService.instance.getFeatureToggleSync("release-cx-agent-contact-cleanup-AW-61953" /* FeatureToggles.CONTACT_CLEANUP_FEATURE_TOGGLE */)
+                    ? ((_1 = (_0 = data === null || data === void 0 ? void 0 : data.case) === null || _0 === void 0 ? void 0 : _0.interactionId) !== null && _1 !== void 0 ? _1 : this.interactionId)
+                    : (_2 = data === null || data === void 0 ? void 0 : data.case) === null || _2 === void 0 ? void 0 : _2.interactionId;
+                this.channelType = (_3 = data === null || data === void 0 ? void 0 : data.channel) === null || _3 === void 0 ? void 0 : _3.realExternalPlatformId;
+                this.customerName = ((_4 = data === null || data === void 0 ? void 0 : data.case) === null || _4 === void 0 ? void 0 : _4.direction) === 'outbound' ? ((_7 = (_6 = (_5 = data === null || data === void 0 ? void 0 : data.case) === null || _5 === void 0 ? void 0 : _5.authorEndUserIdentity) === null || _6 === void 0 ? void 0 : _6.fullName) !== null && _7 !== void 0 ? _7 : (((_8 = data === null || data === void 0 ? void 0 : data.channel) === null || _8 === void 0 ? void 0 : _8.name) || ((_9 = data === null || data === void 0 ? void 0 : data.channel) === null || _9 === void 0 ? void 0 : _9.idOnExternalPlatform))) : (_11 = (_10 = data === null || data === void 0 ? void 0 : data.case) === null || _10 === void 0 ? void 0 : _10.authorEndUserIdentity) === null || _11 === void 0 ? void 0 : _11.fullName;
                 this.customerId = data === null || data === void 0 ? void 0 : data.customerId;
-                this.skill = (_10 = data === null || data === void 0 ? void 0 : data.routingQueue) === null || _10 === void 0 ? void 0 : _10.name;
-                this.status = (_11 = data === null || data === void 0 ? void 0 : data.case) === null || _11 === void 0 ? void 0 : _11.status;
-                this.startTime = (_12 = data === null || data === void 0 ? void 0 : data.case) === null || _12 === void 0 ? void 0 : _12.createdAt;
+                this.skill = (_12 = data === null || data === void 0 ? void 0 : data.routingQueue) === null || _12 === void 0 ? void 0 : _12.name;
+                this.status = (_13 = data === null || data === void 0 ? void 0 : data.case) === null || _13 === void 0 ? void 0 : _13.status;
+                this.startTime = (_14 = data === null || data === void 0 ? void 0 : data.case) === null || _14 === void 0 ? void 0 : _14.createdAt;
                 if (data === null || data === void 0 ? void 0 : data.messageDrafts) {
                     this.messageDrafts = data === null || data === void 0 ? void 0 : data.messageDrafts;
                 }
                 if (data === null || data === void 0 ? void 0 : data.messageNote) {
                     switch (validatedResponse.eventType) {
                         case CXoneDigitalEventType.MESSAGE_NOTE_CREATED:
-                            this.messages = (_13 = this.messages) === null || _13 === void 0 ? void 0 : _13.map(message => message.id === (data === null || data === void 0 ? void 0 : data.messageNote.message.id)
+                            this.messages = (_15 = this.messages) === null || _15 === void 0 ? void 0 : _15.map(message => message.id === (data === null || data === void 0 ? void 0 : data.messageNote.message.id)
                                 ? Object.assign(Object.assign({}, message), { messageNotes: [...(message.messageNotes || []), data === null || data === void 0 ? void 0 : data.messageNote] }) : Object.assign({}, message));
                             break;
                         case CXoneDigitalEventType.MESSAGE_NOTE_DELETED:
-                            this.messages = (_14 = this.messages) === null || _14 === void 0 ? void 0 : _14.map(message => message.id === (data === null || data === void 0 ? void 0 : data.messageNote.message.id)
+                            this.messages = (_16 = this.messages) === null || _16 === void 0 ? void 0 : _16.map(message => message.id === (data === null || data === void 0 ? void 0 : data.messageNote.message.id)
                                 ? Object.assign(Object.assign({}, message), { messageNotes: (((message === null || message === void 0 ? void 0 : message.messageNotes) || []).filter((msgNote) => { var _a; return msgNote.id !== ((_a = data === null || data === void 0 ? void 0 : data.messageNote) === null || _a === void 0 ? void 0 : _a.id); })) }) : Object.assign({}, message));
                             break;
                         case CXoneDigitalEventType.MESSAGE_NOTE_UPDATED:
-                            this.messages = (_15 = this.messages) === null || _15 === void 0 ? void 0 : _15.map(message => message.id === (data === null || data === void 0 ? void 0 : data.messageNote.message.id)
+                            this.messages = (_17 = this.messages) === null || _17 === void 0 ? void 0 : _17.map(message => message.id === (data === null || data === void 0 ? void 0 : data.messageNote.message.id)
                                 ? Object.assign(Object.assign({}, message), { messageNotes: (((message === null || message === void 0 ? void 0 : message.messageNotes) || []).map((msgNote) => { var _a; return msgNote.id === ((_a = data === null || data === void 0 ? void 0 : data.messageNote) === null || _a === void 0 ? void 0 : _a.id) ? data.messageNote : msgNote; })) }) : Object.assign({}, message));
                             break;
                         default: break;
@@ -641,6 +649,9 @@ export class CXoneDigitalContact extends CXoneContact {
                     this.logger.info('createOutboundDraftContact', 'Draft contact created successfully');
                     const contactDetails = response === null || response === void 0 ? void 0 : response.data;
                     const validateResult = CXoneDraftContactSchema.validateSync(contactDetails, { stripUnknown: true });
+                    if (contactDetails === null || contactDetails === void 0 ? void 0 : contactDetails.messages) {
+                        validateResult.messages = contactDetails.messages;
+                    }
                     resolve(validateResult);
                 }
                 catch (error) {

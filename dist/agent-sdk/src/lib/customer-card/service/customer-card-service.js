@@ -1,6 +1,6 @@
 import { __awaiter } from "tslib";
 import { CXoneAuth } from '@nice-devone/auth-sdk';
-import { CXoneSdkError, CXoneCaseArray, completedContactsArrayReponse, CXoneSdkErrorType, RequestControlMode, } from '@nice-devone/common-sdk';
+import { CXoneSdkError, CXoneCaseArray, completedContactsArrayReponse, CXoneSdkErrorType, RequestControlMode, UpdateCustomerIdentityNameResponse, } from '@nice-devone/common-sdk';
 import { HttpUtilService, Logger, HttpClient, ApiUriConstants, UrlUtilsService, LocalStorageHelper, StorageKeys, RequestManager, } from '@nice-devone/core-sdk';
 import { mergeCustomerCardRequest } from './customer-card-merge';
 import { createCustomerNote, deleteCustomerNote, editCustomerNote, fetchCustomerNotes, } from './customer-card-notes';
@@ -219,6 +219,41 @@ export class CustomerCardService {
         });
     }
     /**
+     * Method to update the display name of a customer identity
+     * @param channelId - id of the channel the customer identity belongs to
+     * @param customerIdentityId - the identity's raw platform-native id (authorEndUserIdentity.idOnExternalPlatform),
+     * not the CXone-internal composite id (authorEndUserIdentity.id) — the composite id makes DE's
+     * backend double-prefix the platform and 404
+     * @param fullName - new display name for the customer identity
+     * @returns - canonical customer identity representation post-update
+     * @example
+     * ```
+     * updateCustomerIdentityName('chat_90a2ab6e', 'bharath@gmail.com', 'Bharath Kumar');
+     * ```
+     */
+    updateCustomerIdentityName(channelId, customerIdentityId, fullName) {
+        const baseUrl = this.auth.getCXoneConfig().dfoApiBaseUri;
+        const authToken = this.auth.getAuthToken().accessToken;
+        const url = baseUrl +
+            ApiUriConstants.UPDATE_CUSTOMER_IDENTITY_NAME.replace('{channelId}', encodeURIComponent(channelId)).replace('{customerIdentityId}', encodeURIComponent(customerIdentityId));
+        const reqInit = {
+            headers: this.utilService.initHeader(authToken, 'application/json')
+                .headers,
+            body: { fullName },
+        };
+        return new Promise((resolve, reject) => {
+            HttpClient.put(url, reqInit).then((response) => {
+                this.logger.info('updateCustomerIdentityName', 'Customer identity name update success');
+                resolve(UpdateCustomerIdentityNameResponse.parse(response.data));
+            }, (error) => {
+                // The submitted name is PII — the error log must never include it
+                const errorResponse = new CXoneSdkError(CXoneSdkErrorType.CXONE_API_ERROR, 'Customer identity name update failed', error);
+                this.logger.error('updateCustomerIdentityName', errorResponse.toString());
+                reject(errorResponse);
+            });
+        });
+    }
+    /**
      * Method to delete linked custom field on customer card
      * @param customFields -  ident & customerId to delete identValue
      * @returns - API Returns Response code with success or failure
@@ -390,7 +425,7 @@ export class CustomerCardService {
         };
         return new Promise((resolve, reject) => {
             HttpClient.post(url, reqInit).then((response) => __awaiter(this, void 0, void 0, function* () {
-                var _a, _b, _c, _d, _e, _f, _g, _h, _j, _k, _l;
+                var _a, _b, _c, _d;
                 this.logger.info('executeWorkFlow', 'CRM search execute workflow response success');
                 const resp = response === null || response === void 0 ? void 0 : response.data;
                 //in records or related data, if we receive dynamic data field value other than string then we will not display that field
@@ -413,40 +448,70 @@ export class CustomerCardService {
                     });
                 }
                 // Dev Note : We receive pin records from elastic cache, once ETL expires for cache we need to maintian/retain the values for pin records.
-                if (resp && (resp === null || resp === void 0 ? void 0 : resp.result) && !((_e = resp === null || resp === void 0 ? void 0 : resp.result[0]) === null || _e === void 0 ? void 0 : _e.pinRecords)) {
-                    const agentWorkflowPinRecordsDetails = LocalStorageHelper.getItem(StorageKeys.CRM_PIN_RECORDS, true) || [];
-                    const ifDataAvailable = agentWorkflowPinRecordsDetails.some((item) => {
-                        return (item === null || item === void 0 ? void 0 : item.contactId) === (crmRequest === null || crmRequest === void 0 ? void 0 : crmRequest.contactID);
-                    });
-                    const pinRecordsData = agentWorkflowPinRecordsDetails.filter((item) => {
-                        return (item === null || item === void 0 ? void 0 : item.contactId) === (crmRequest === null || crmRequest === void 0 ? void 0 : crmRequest.contactID);
-                    });
-                    if (ifDataAvailable) {
-                        resp.result[0].pinRecords = pinRecordsData[0].pinRecords;
-                    }
-                }
-                // Dev Note - Below code is for excluding the values other than string type
-                if (resp && (resp === null || resp === void 0 ? void 0 : resp.result) && ((_g = (_f = resp === null || resp === void 0 ? void 0 : resp.result[0]) === null || _f === void 0 ? void 0 : _f.pinRecords) === null || _g === void 0 ? void 0 : _g.length) > 0) {
-                    resp.result[0].pinRecords = (_j = (_h = resp === null || resp === void 0 ? void 0 : resp.result[0]) === null || _h === void 0 ? void 0 : _h.pinRecords) === null || _j === void 0 ? void 0 : _j.map((pinRecords) => (Object.assign(Object.assign({}, pinRecords), { linked: 'true' })));
-                    (_k = resp.result[0].pinRecords) === null || _k === void 0 ? void 0 : _k.forEach((item) => {
-                        var _a;
-                        const newFields = (_a = item === null || item === void 0 ? void 0 : item.fields) === null || _a === void 0 ? void 0 : _a.filter((field) => {
-                            return typeof (field === null || field === void 0 ? void 0 : field.value) === 'string';
+                // CXIFW-3585: keyed by (contactId, configurationId) — not contactId alone — so a sibling
+                // CRM's pinRecords are never backfilled into a different CRM's result when multiple CRMs
+                // share the same contactId (multi-CRM). configurationId is read from the response's own
+                // system.configurationId (real CRM identity), not crmRequest.configurationId, because a
+                // shared multi-CRM cache response's result[0] is not guaranteed to belong to the CRM that
+                // initiated the request. Falls back to contactId-only matching when configurationId is
+                // absent on both sides (e.g. MSD, which omits system.configurationId today), preserving
+                // legacy single-CRM behavior exactly.
+                //
+                // A shared multi-CRM response carries one result per CRM, so every result is restored and
+                // persisted under its own configurationId. A single-CRM response has exactly one result,
+                // which keeps the previous result[0]-only behavior.
+                // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                (Array.isArray(resp === null || resp === void 0 ? void 0 : resp.result) ? resp.result : []).forEach((crmResult) => {
+                    var _a, _b, _c, _d;
+                    if (!crmResult)
+                        return;
+                    const currentConfigurationId = (_a = crmResult === null || crmResult === void 0 ? void 0 : crmResult.system) === null || _a === void 0 ? void 0 : _a.configurationId;
+                    if (!crmResult.pinRecords) {
+                        const agentWorkflowPinRecordsDetails = LocalStorageHelper.getItem(StorageKeys.CRM_PIN_RECORDS, true) || [];
+                        const matchingEntry = agentWorkflowPinRecordsDetails.find((item) => {
+                            return (item === null || item === void 0 ? void 0 : item.contactId) === (crmRequest === null || crmRequest === void 0 ? void 0 : crmRequest.contactID) && (item === null || item === void 0 ? void 0 : item.configurationId) === currentConfigurationId;
                         });
-                        item.fields = newFields;
-                    });
-                    //#region NOTE : Pinned Records - Local Storage
-                    const agentWorkflowPinRecordsDetails = LocalStorageHelper.getItem(StorageKeys.CRM_PIN_RECORDS, true) || [];
-                    if (agentWorkflowPinRecordsDetails.length >= 0) {
-                        const ifDataAvailable = agentWorkflowPinRecordsDetails.some((item) => {
-                            return (item === null || item === void 0 ? void 0 : item.contactId) === (crmRequest === null || crmRequest === void 0 ? void 0 : crmRequest.contactID);
-                        });
-                        !ifDataAvailable && agentWorkflowPinRecordsDetails.push({ contactId: crmRequest === null || crmRequest === void 0 ? void 0 : crmRequest.contactID, pinRecords: (_l = resp === null || resp === void 0 ? void 0 : resp.result[0]) === null || _l === void 0 ? void 0 : _l.pinRecords });
+                        if (matchingEntry) {
+                            crmResult.pinRecords = matchingEntry.pinRecords;
+                        }
                     }
-                    LocalStorageHelper.setItem(StorageKeys.CRM_PIN_RECORDS, agentWorkflowPinRecordsDetails);
-                    //#endregion
-                }
-                ;
+                    // Dev Note - Below code is for excluding the values other than string type
+                    if (((_b = crmResult.pinRecords) === null || _b === void 0 ? void 0 : _b.length) > 0) {
+                        crmResult.pinRecords = crmResult.pinRecords.map((pinRecords) => (Object.assign(Object.assign({}, pinRecords), { linked: 'true' })));
+                        crmResult.pinRecords.forEach((item) => {
+                            var _a;
+                            const newFields = (_a = item === null || item === void 0 ? void 0 : item.fields) === null || _a === void 0 ? void 0 : _a.filter((field) => {
+                                return typeof (field === null || field === void 0 ? void 0 : field.value) === 'string';
+                            });
+                            item.fields = newFields;
+                        });
+                        //#region NOTE : Pinned Records - Local Storage
+                        const agentWorkflowPinRecordsDetails = LocalStorageHelper.getItem(StorageKeys.CRM_PIN_RECORDS, true) || [];
+                        if (agentWorkflowPinRecordsDetails.length >= 0) {
+                            const storedEntry = agentWorkflowPinRecordsDetails.find((item) => {
+                                return (item === null || item === void 0 ? void 0 : item.contactId) === (crmRequest === null || crmRequest === void 0 ? void 0 : crmRequest.contactID) && (item === null || item === void 0 ? void 0 : item.configurationId) === currentConfigurationId;
+                            });
+                            if (!storedEntry) {
+                                agentWorkflowPinRecordsDetails.push({ contactId: crmRequest === null || crmRequest === void 0 ? void 0 : crmRequest.contactID, configurationId: currentConfigurationId, pinRecords: crmResult.pinRecords });
+                            }
+                            else if ((storedEntry === null || storedEntry === void 0 ? void 0 : storedEntry.isPreAcceptFetch) && FeatureToggleService.instance.getFeatureToggleSync("release-cxa-crm-screenpop-before-accept-CRM-16859" /* FeatureToggles.CMA_CRM_SCREENPOP_BEFORE_ACCEPT_FEATURE_TOGGLE */)) {
+                                // Gated so the stored pin list is left untouched when the toggle is off, or when the entry
+                                // was not stored by the pre-accept fetch (voicemail, work item, digital), as before.
+                                // The pre-accept fetch stores an earlier, smaller pin list.
+                                // Merge the latest pin records in so a later refresh without cache does not fall back to the stale list.
+                                // Stored-only records (e.g. newly created entities) are kept.
+                                const latestPinRecords = (_c = crmResult.pinRecords) !== null && _c !== void 0 ? _c : [];
+                                const latestIds = new Set(latestPinRecords.map((record) => record === null || record === void 0 ? void 0 : record.id));
+                                const storedOnlyPinRecords = ((_d = storedEntry === null || storedEntry === void 0 ? void 0 : storedEntry.pinRecords) !== null && _d !== void 0 ? _d : []).filter((record) => !latestIds.has(record === null || record === void 0 ? void 0 : record.id));
+                                storedEntry.pinRecords = [...latestPinRecords, ...storedOnlyPinRecords];
+                                // Merge once - later refreshes behave as before.
+                                storedEntry.isPreAcceptFetch = false;
+                            }
+                        }
+                        LocalStorageHelper.setItem(StorageKeys.CRM_PIN_RECORDS, agentWorkflowPinRecordsDetails);
+                        //#endregion
+                    }
+                });
                 resolve(resp);
             }), (error) => {
                 const errorResponse = new CXoneSdkError(CXoneSdkErrorType.CXONE_API_ERROR, 'CRM search execute workflow response failed', error);
@@ -614,15 +679,16 @@ export class CustomerCardService {
      * @example
      * @returns - API Returns Response JSON with CRM data for transfered contact
      */
-    getCRMDataForTransferedContact(crmInteractionId) {
+    getCRMDataForTransferedContact(crmInteractionId, queryParam) {
         const baseUrl = this.auth.getCXoneConfig().acdApiBaseUri;
         const authToken = this.auth.getAuthToken().accessToken;
         const reqInit = {
             headers: this.utilService.initHeader(authToken, 'application/json')
                 .headers,
         };
+        const queryParams = (queryParam) ? `?${queryParam}` : '';
         const url = baseUrl +
-            this.GET_CRM_DATA_FOR_TRANSFERED_CONTACT.replace('{cacheKey}', crmInteractionId);
+            this.GET_CRM_DATA_FOR_TRANSFERED_CONTACT.replace('{cacheKey}', crmInteractionId) + queryParams;
         return new Promise((resolve, reject) => {
             HttpClient.get(url, reqInit).then((resp) => {
                 this.logger.info('getCRMDataForTransferedContact', 'Get CRM data for transfered contact success');

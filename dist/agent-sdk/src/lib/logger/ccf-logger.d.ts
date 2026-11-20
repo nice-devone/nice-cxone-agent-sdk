@@ -1,4 +1,4 @@
-import { AgentLog, ContactLog, SkillLog } from '@nice-devone/common-sdk';
+import { AgentLog, ContactLog, JourneyLogEntry, SkillLog } from '@nice-devone/common-sdk';
 /**
  * Wrapper for Logger component
  */
@@ -59,4 +59,13 @@ export declare class CcfLogger {
      * ```
      */
     debug(functionName: string, message: string, data?: ContactLog | AgentLog | SkillLog): void;
+    /**
+     *
+     * @param entry - Journey checkpoint data
+     * @example
+     * ```
+     * ccfLogger.journey(entry);
+     * ```
+     */
+    journey(entry: JourneyLogEntry): void;
 }

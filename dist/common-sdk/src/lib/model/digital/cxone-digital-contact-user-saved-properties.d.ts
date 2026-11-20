@@ -79,4 +79,8 @@ export interface CXoneDigitalContactUserSavedProperties {
     * not override the current editor content
     */
     isRejectedMessageCopied?: boolean;
+    /**
+     * This flag is used check draft contact is rendered or not on page reload
+     */
+    isDraftContactRendered?: boolean;
 }

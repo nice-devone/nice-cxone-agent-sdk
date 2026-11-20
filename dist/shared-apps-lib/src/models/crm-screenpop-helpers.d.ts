@@ -36,6 +36,10 @@ export interface AgentWorkflowEventFieldsData {
      * CRM fields dynamic data
      */
     fields?: AgentWorkflowEventFieldsData[];
+    /**
+     * CRM screenpop before accept
+     */
+    screenPopBeforeAccept?: boolean;
 }
 export interface AgentWorkflowEventRelatedData {
     /**
@@ -86,6 +90,11 @@ export interface AgentWorkflowEventRelatedData {
      * CRM fields dynamic data
      */
     fields?: AgentWorkflowEventFieldsData[];
+    /**
+     * Flag to determine if the record may be screen popped before the agent accepts the
+     * interaction. Absent means accept is required first.
+     */
+    screenPopBeforeAccept?: boolean;
 }
 export interface AgentWorkflowEventRecord {
     /**
@@ -132,6 +141,10 @@ export interface AgentWorkflowEventRecord {
      * CRM fields dynamic data
      */
     fields?: AgentWorkflowEventFieldsData[];
+    /**
+     * CRM screenpop before accept
+     */
+    screenPopBeforeAccept?: boolean;
 }
 export interface AgentWorkflowEventPinRecords {
     type?: string;
@@ -171,6 +184,10 @@ export interface AgentWorkflowEventPinRecords {
      * CRM fields dynamic data
      */
     fields?: AgentWorkflowEventFieldsData[];
+    /**
+     * CRM screenpop before accept
+     */
+    screenPopBeforeAccept?: boolean;
 }
 export interface AgentWorkflowResponseEvent {
     contactId: string;

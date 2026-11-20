@@ -1,3 +1,4 @@
+import { __rest } from "tslib";
 import { HttpUtilService, Logger, HttpClient, ACDSessionManager, ApiUriConstants, } from '@nice-devone/core-sdk';
 import { FeatureToggleService } from '../../feature-toggle';
 /**
@@ -35,9 +36,15 @@ export class VoiceService {
         const isSmartReachVoicePmiEnabled = FeatureToggleService.instance.getFeatureToggleSync("release-acd-smartreach-voice-pmi-OB-18214" /* FeatureToggles.SMARTREACH_VOICE_PMI_FEATURE_TOGGLE */);
         const endpointUri = isTenantSegmentationEnabled || isSmartReachVoicePmiEnabled ? ApiUriConstants.DIAL_PHONE_URI_TS : ApiUriConstants.DIAL_PHONE_URI;
         const url = baseUrl + endpointUri.replace('{sessionId}', sessionId);
+        // `interactionId` is MCH-only: there is no DIAL_PHONE_URI_V35, so it is supplied only while the
+        // MCH toggle is on (kill-switch parity with consultAgent()/dialAgent()).
+        // `parentContactId` is NOT gated: it is part of the pre-26.4 contract (voicemail callback and
+        // elevation both sent it), and the server needs it to link the new leg to its originating contact.
+        const isMultiCallHandlingEnabled = FeatureToggleService.instance.getFeatureToggleSync("release-cx-multiple-call-handling-AW-41219" /* FeatureToggles.MULTIPLE_CALL_HANDLING_FEATURE_TOGGLE */);
+        const { interactionId } = dialPhoneRequest, body = __rest(dialPhoneRequest, ["interactionId"]);
         const reqInit = {
             headers: this.utilService.initHeader(authToken).headers,
-            body: dialPhoneRequest,
+            body: Object.assign(Object.assign({}, body), (isMultiCallHandlingEnabled && interactionId ? { interactionId } : {})),
         };
         return new Promise((resolve, reject) => {
             HttpClient.post(url, reqInit).then((response) => {
@@ -85,16 +92,20 @@ export class VoiceService {
      * consultAgent(12345)
      * ```
      */
-    consultAgent(agentId) {
+    consultAgent(agentId, parentContactId, interactionId) {
         const sessionId = this.acdSession.getSessionId();
         const baseUrl = this.acdSession.cxOneConfig.acdApiBaseUri;
         const authToken = this.acdSession.accessToken;
         const url = baseUrl + (FeatureToggleService.instance.getFeatureToggleSync("release-cxa-tenant-segmentation-AW-28101" /* FeatureToggles.TENANT_SEGMENTATION */)
             ? ApiUriConstants.CONSULT_AGENT_URI_TS
             : ApiUriConstants.CONSULT_AGENT_URI).replace('{sessionId}', sessionId);
-        const targetAgentId = {
-            targetAgentId: agentId.toString(),
-        };
+        // the MCH leg-association fields are gated behind the MCH toggle,
+        // the same way conferenceCall() and transferContact() gate theirs. There is no
+        // CONSULT_AGENT_URI_V35 — this request still goes to the unchanged v23 contract — so on a
+        // tenant with MCH OFF these extra properties were being posted to an endpoint that never
+        // declared them, and the kill switch could not revert it.
+        const isMultiCallHandlingEnabled = FeatureToggleService.instance.getFeatureToggleSync("release-cx-multiple-call-handling-AW-41219" /* FeatureToggles.MULTIPLE_CALL_HANDLING_FEATURE_TOGGLE */);
+        const targetAgentId = Object.assign(Object.assign({ targetAgentId: agentId.toString() }, (isMultiCallHandlingEnabled && parentContactId ? { parentContactId } : {})), (isMultiCallHandlingEnabled && interactionId ? { interactionId } : {}));
         const reqInit = {
             headers: this.utilService.initHeader(authToken).headers,
             body: targetAgentId,
@@ -115,14 +126,18 @@ export class VoiceService {
      * conferenceCall();
      * ```
      */
-    conferenceCall() {
+    conferenceCall(interactionId) {
         const sessionId = this.acdSession.getSessionId();
         const baseUrl = this.acdSession.cxOneConfig.acdApiBaseUri;
         const authToken = this.acdSession.accessToken;
-        const url = baseUrl + ApiUriConstants.CONFERENCE_CALL_URI.replace('{sessionId}', sessionId);
-        const reqInit = {
-            headers: this.utilService.initHeader(authToken).headers,
-        };
+        const isMultiCallHandlingEnabled = FeatureToggleService.instance.getFeatureToggleSync("release-cx-multiple-call-handling-AW-41219" /* FeatureToggles.MULTIPLE_CALL_HANDLING_FEATURE_TOGGLE */);
+        const useInteractionScopedApi = isMultiCallHandlingEnabled && !!interactionId;
+        const url = baseUrl + (useInteractionScopedApi
+            ? ApiUriConstants.CONFERENCE_CALL_URI_V35
+            : ApiUriConstants.CONFERENCE_CALL_URI).replace('{sessionId}', sessionId);
+        const reqInit = useInteractionScopedApi
+            ? { headers: this.utilService.initHeader(authToken).headers, body: { interactionId } }
+            : { headers: this.utilService.initHeader(authToken).headers };
         return new Promise((resolve, reject) => {
             HttpClient.post(url, reqInit).then((response) => {
                 this.logger.info('conferenceCall', 'conferenceCall success:-' + response.toString());
@@ -142,17 +157,18 @@ export class VoiceService {
     * dialAgent('23344','234234324');
     * ```
     */
-    dialAgent(agentId, parentContactId) {
+    dialAgent(agentId, parentContactId, interactionId) {
         const sessionId = this.acdSession.getSessionId();
         const baseUrl = this.acdSession.cxOneConfig.acdApiBaseUri;
         const authToken = this.acdSession.accessToken;
         const url = baseUrl + (FeatureToggleService.instance.getFeatureToggleSync("release-cxa-tenant-segmentation-AW-28101" /* FeatureToggles.TENANT_SEGMENTATION */)
             ? ApiUriConstants.DIAL_AGENT_URI_TS
             : ApiUriConstants.DIAL_AGENT_URI).replace('{sessionId}', sessionId);
-        const payloadData = {
-            targetAgentId: agentId,
-            parentContactId: parentContactId,
-        };
+        // see consultAgent() above — there is no DIAL_AGENT_URI_V35 either,
+        // so `interactionId` must not be added to this v33 body unless the MCH toggle is on.
+        // `parentContactId` is NOT gated: it is part of the pre-existing 26.3.2 contract here.
+        const payloadData = Object.assign({ targetAgentId: agentId, parentContactId: parentContactId }, (FeatureToggleService.instance.getFeatureToggleSync("release-cx-multiple-call-handling-AW-41219" /* FeatureToggles.MULTIPLE_CALL_HANDLING_FEATURE_TOGGLE */)
+            && interactionId ? { interactionId } : {}));
         const reqInit = {
             headers: this.utilService.initHeader(authToken).headers,
             body: payloadData,
@@ -202,21 +218,25 @@ export class VoiceService {
     /**
      * This method to make a call with another skill
      * @param skillId - skill Id
+     * @param parentContactId - optional, contact the consult leg is spun off from (MCH only)
+     * @param interactionId - optional, interaction the consult leg belongs to (MCH only)
      * @example -
      * ```
      * dialSkill(23344);
      * ```
      */
-    dialSkill(skillId) {
+    dialSkill(skillId, parentContactId, interactionId) {
         const sessionId = this.acdSession.getSessionId();
         const baseUrl = this.acdSession.cxOneConfig.acdApiBaseUri;
         const authToken = this.acdSession.accessToken;
         const isTenantSegmentationEnabled = FeatureToggleService.instance.getFeatureToggleSync("release-cxa-tenant-segmentation-AW-28101" /* FeatureToggles.TENANT_SEGMENTATION */);
         const endpointUri = isTenantSegmentationEnabled ? ApiUriConstants.DIAL_SKILL_URI_TS : ApiUriConstants.DIAL_SKILL_URI;
         const url = baseUrl + endpointUri.replace('{sessionId}', sessionId);
-        const payloadData = {
-            skillId: skillId,
-        };
+        // MCH: associate the new consult leg with the tile it was started from, gated on the MCH
+        // toggle exactly like consultAgent()/dialAgent()/dialPhone(). Without these the server cannot
+        // attribute the skill-consult leg to the originating interaction in a multi-call session.
+        const isMultiCallHandlingEnabled = FeatureToggleService.instance.getFeatureToggleSync("release-cx-multiple-call-handling-AW-41219" /* FeatureToggles.MULTIPLE_CALL_HANDLING_FEATURE_TOGGLE */);
+        const payloadData = Object.assign(Object.assign({ skillId: skillId }, (isMultiCallHandlingEnabled && parentContactId ? { parentContactId } : {})), (isMultiCallHandlingEnabled && interactionId ? { interactionId } : {}));
         const reqInit = {
             headers: this.utilService.initHeader(authToken).headers,
             body: payloadData,
@@ -239,12 +259,18 @@ export class VoiceService {
      * transferContact();
      * ```
      */
-    transferContact() {
+    transferContact(interactionId) {
         const sessionId = this.acdSession.getSessionId();
         const baseUrl = this.acdSession.cxOneConfig.acdApiBaseUri;
-        const url = baseUrl + ApiUriConstants.TRANSFER_CONTACT_URI.replace('{sessionId}', sessionId);
+        const isMultiCallHandlingEnabled = FeatureToggleService.instance.getFeatureToggleSync("release-cx-multiple-call-handling-AW-41219" /* FeatureToggles.MULTIPLE_CALL_HANDLING_FEATURE_TOGGLE */);
+        const useInteractionScopedApi = isMultiCallHandlingEnabled && !!interactionId;
+        const url = baseUrl + (useInteractionScopedApi
+            ? ApiUriConstants.TRANSFER_CONTACT_URI_V35
+            : ApiUriConstants.TRANSFER_CONTACT_URI).replace('{sessionId}', sessionId);
         const authToken = this.acdSession.accessToken;
-        const reqInit = this.utilService.initHeader(authToken);
+        const reqInit = useInteractionScopedApi
+            ? { headers: this.utilService.initHeader(authToken).headers, body: { interactionId } }
+            : this.utilService.initHeader(authToken);
         return new Promise((resolve, reject) => {
             HttpClient.post(url, reqInit).then((response) => {
                 this.logger.info('transferContact', 'transfer call contact success:-' + response.toString());

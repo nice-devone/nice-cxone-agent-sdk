@@ -68,5 +68,16 @@ export class CcfLogger {
     debug(functionName, message, data) {
         this.logger.debug(functionName, message, data);
     }
+    /**
+     *
+     * @param entry - Journey checkpoint data
+     * @example
+     * ```
+     * ccfLogger.journey(entry);
+     * ```
+     */
+    journey(entry) {
+        this.logger.journey(entry);
+    }
 }
 //# sourceMappingURL=ccf-logger.js.map

@@ -7,6 +7,7 @@ import wsWorkerACPCode from './ws-worker-acp';
 import wsWorkerAgentAssistCode from './ws-worker-agent-assist';
 import wsWorkerAgenticCode from './ws-agentic-worker';
 import uiqWorkerCode from './uiq-worker';
+import { attachWorkerDiagnostics, instrumentWorkerScript, } from '../diagnostic-capture/instrumentation/worker-diagnostics';
 /**
  * Class to create and load worker based on provided script
  */
@@ -19,36 +20,40 @@ export class LoadWorker {
      * ```
      */
     getWorker(workerScriptName, workerName) {
-        let worker;
+        let workerScript;
         switch (workerScriptName) {
             case 'ws-worker':
-                worker = this.initWorker(wsWorkerCode, workerName);
+                workerScript = wsWorkerCode;
                 break;
             case 'util-worker':
-                worker = this.initWorker(utilityWorkerCode, workerName);
+                workerScript = utilityWorkerCode;
                 break;
             case 'wem-notification-worker':
-                worker = this.initWorker(wemWorkerCode, workerName);
+                workerScript = wemWorkerCode;
                 break;
             case 'user-slot-worker':
-                worker = this.initWorker(userSlotWorkerCode, workerName);
+                workerScript = userSlotWorkerCode;
                 break;
             case 'event-hub-worker':
-                worker = this.initWorker(eventHubWorkerCode, workerName);
+                workerScript = eventHubWorkerCode;
                 break;
             case 'ws-worker-acp':
-                worker = this.initWorker(wsWorkerACPCode, workerName);
+                workerScript = wsWorkerACPCode;
                 break;
             case 'ws-worker-agentic':
-                worker = this.initWorker(wsWorkerAgenticCode, workerName);
+                workerScript = wsWorkerAgenticCode;
                 break;
             case 'ws-worker-agent-assist':
-                worker = this.initWorker(wsWorkerAgentAssistCode, workerName);
+                workerScript = wsWorkerAgentAssistCode;
                 break;
             case 'uiq-worker':
-                worker = this.initWorker(uiqWorkerCode, workerName);
+                workerScript = uiqWorkerCode;
                 break;
         }
+        if (!workerScript)
+            return undefined;
+        const worker = this.initWorker(instrumentWorkerScript(workerScriptName, workerName, workerScript), workerName);
+        attachWorkerDiagnostics(workerScriptName, worker);
         return worker;
     }
     /**

@@ -95,24 +95,15 @@ exports.getMillisecondsFrom8601DurationString = getMillisecondsFrom8601DurationS
 */
 const getTimeStringFromMS = (milliseconds) => {
     let totalSeconds = Math.floor(milliseconds / 1000);
-    let seconds = null;
-    let minutes = null;
-    let hours = null;
     if (totalSeconds < 0) {
         totalSeconds = 0;
     }
-    seconds = ('0' + totalSeconds % 60).slice(-2);
-    minutes = ('0' + Math.floor(totalSeconds / 60) % 60).slice(-2);
+    const hours = Math.floor(totalSeconds / 3600);
+    const minutes = ('0' + Math.floor(totalSeconds / 60) % 60).slice(-2);
+    const seconds = ('0' + totalSeconds % 60).slice(-2);
     // the timer is over 100 hours
-    if (totalSeconds >= 360000) {
-        hours = Math.floor(totalSeconds / 3600);
-        return hours + ':' + minutes + ':' + seconds;
-    }
-    else {
-        hours = ('0' + Math.floor(totalSeconds / 3600)).slice(-2);
-    }
-    const formatedDate = new Date(1970, 1, 1, Number(hours), Number(minutes), Number(seconds));
-    return `${('0' + formatedDate.getHours().toString()).slice(-2)}:${('0' + formatedDate.getMinutes().toString()).slice(-2)}:${('0' + formatedDate.getSeconds().toString()).slice(-2)}`;
+    const hoursStr = hours >= 100 ? hours.toString() : ('0' + hours).slice(-2);
+    return `${hoursStr}:${minutes}:${seconds}`;
 };
 exports.getTimeStringFromMS = getTimeStringFromMS;
 /**Returns percentage of value to the total

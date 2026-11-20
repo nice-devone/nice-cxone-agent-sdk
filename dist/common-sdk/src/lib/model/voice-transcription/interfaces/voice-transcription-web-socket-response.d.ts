@@ -33,6 +33,16 @@ export interface VoiceTranscriptionData {
     audioProcessed: string;
     transcriptionProvider: string;
     words: VoiceTranscriptionWords[];
+    ani?: string;
+    dnis?: string;
+    direction?: string;
+    callType?: string;
+    participantName?: string;
+    agentName?: string;
+    masterContactId?: string;
+    participantContactId?: string;
+    sipParticipantId?: string;
+    interactionId?: string;
 }
 export interface VoiceTranscriptionWords {
     words: VoiceTranscriptionWord[];
@@ -49,4 +59,5 @@ export interface VoiceTranscriptionWord {
     word: string;
     confidence: number;
     speakerTag: number;
+    speakerLabel?: string;
 }

@@ -41,6 +41,8 @@ export declare const StorageKeys: {
     CC_LINKED_ACTIVITIES: string;
     WEBRTC_EXTENSION_INSTALL_REMINDER: string;
     WEBRTC_EXT_INSTALL_REMINDER_DISPLAYED: string;
+    VDI_MEDIA_REDIRECTOR_INSTALL_REMINDER: string;
+    VDI_MEDIA_REDIRECTOR_INSTALL_REMINDER_DISPLAYED: string;
     USER_DETAILS: string;
     CRM_BASE_URL: string;
     ACTIVE_CUSTOMWORKSPACE: string;
@@ -91,6 +93,7 @@ export declare const StorageKeys: {
     ENCRYPTION_IV: string;
     ORIGINATING_SERVICE_IDENTIFIER: string;
     CXA_FAV_AGENT_STATES: string;
+    CXA_FALLBACK_VERSION: string;
     AGENT_PROFILE_CONFIGURATION: string;
     AGENT_SCREEN_SIZE: string;
     FAV_QR_ID_TOGGLED: string;
@@ -118,7 +121,17 @@ export declare const StorageKeys: {
     IS_VOICE_TRANSCRIPT_ENABLED: string;
     IS_AGENT_COPILOT_ENABLED: string;
     SHOULD_GRAFANA_FARO_LOGS_BE_COLLECTED: string;
+    /** Stores the raw multi-CRM AgentWorkflowConfiguration GNE event for rehydration after hard refresh */
+    MULTI_CRM_WORKFLOW_CONFIG: string;
+    /**
+     * SessionStorage-backed array of contactIds whose multi-CRM screen pop has already fired in
+     * this browser session — lets a hard/normal refresh replay skip re-popping even when no CRM
+     * in the config returns pinRecords (the case CRM_PIN_RECORDS' ledger can't cover). Cleared
+     * per-contact at real interaction end, alongside clearContactMultiCrmData.
+     */
+    MULTI_CRM_SCREEN_POPPED_INTERACTIONS: string;
     AGENTIC_COPILOT_WS_URL: string;
+    AGENT_MUTED_STATE: string;
     FOCUS_SESSION_ACTIVE: string;
 };
 export declare const NotificationSettings: {

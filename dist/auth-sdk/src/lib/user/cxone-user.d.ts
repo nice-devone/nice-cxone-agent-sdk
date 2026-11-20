@@ -117,7 +117,7 @@ export declare class CXoneUser {
      * setTeamIdUserInfo(teamId)
      * ```
      */
-    setTeamIdUserInfo(teamId: number): void;
+    setTeamIdUserInfo(teamId: number | string): void;
     /**
      * Method to get digital interaction search tab permissions from local storage
      * @returns - the interaction search tab permissions as permission object

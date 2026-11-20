@@ -33,6 +33,7 @@ export * from './lib/directory/util/skill-api-parser';
 export * from './lib/acd/cxone-agent-setting/cxone-agent-setting';
 export * from './lib/commitment/commitment-service';
 export * from './lib/agent-state/enum/unified-agent-state';
+export * from './lib/copilot-client';
 export * from './lib/acd/provider/cxone-voice-recording-status-provider';
 export * from './lib/utils/voiceTranscriptionUtils';
 export * from './lib/utils/unified-agent-state-utils';

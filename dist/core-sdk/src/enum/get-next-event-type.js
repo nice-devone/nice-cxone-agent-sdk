@@ -35,5 +35,7 @@ export var GetNextEventType;
     GetNextEventType["AGENT_WORKFLOW_CREATE_PAYLOAD"] = "AgentWorkflowCreatePayload";
     GetNextEventType["SMART_REACH_VALIDATION"] = "SmartReachValidation";
     GetNextEventType["CONSULT_CONTEXT"] = "ConsultContext";
+    GetNextEventType["LIVEVOXERROR_NOTIFY_EVENT"] = "LiveVoxError";
+    GetNextEventType["SUPERVISOR_CONTACT_EVENT"] = "SupervisorContact";
 })(GetNextEventType || (GetNextEventType = {}));
 //# sourceMappingURL=get-next-event-type.js.map

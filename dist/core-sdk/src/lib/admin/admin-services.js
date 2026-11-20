@@ -277,7 +277,21 @@ export class AdminService {
                 }, (err) => {
                     var _a;
                     this.logger.error('getBusinessUnit', 'Get Business Unit Failed' + JSON.stringify(err));
-                    reject(new CXoneSdkError(CXoneSdkErrorType.CXONE_API_ERROR, (_a = err === null || err === void 0 ? void 0 : err.data) === null || _a === void 0 ? void 0 : _a.message, err === null || err === void 0 ? void 0 : err.data));
+                    const isBusinessUnitNonBlockingLoginEnabled = FeatureToggleService.instance.getFeatureToggleSync("release-cxa-business-unit-non-blocking-login-AW-65753" /* FeatureToggles.BUSINESS_UNIT_NON_BLOCKING_LOGIN_FEATURE_TOGGLE */);
+                    if (isBusinessUnitNonBlockingLoginEnabled) {
+                        this.logger.error('BUSINESS_UNIT_NON_BLOCKING_FAILURE', 'Error from business-unit api, deriving business unit from tenant licenses and continuing login');
+                        this.getTenantData().then((tenantData) => {
+                            const data = this.apiParser.parseBusinessUnitFromTenantData(tenantData);
+                            LocalStorageHelper.setItem(StorageKeys.BUSINESS_UNIT, data);
+                            resolve(data);
+                        }, (tenantError) => {
+                            this.logger.error('BUSINESS_UNIT_NON_BLOCKING_FAILURE', 'Error from tenant data api, continuing login without licensed features' + JSON.stringify(tenantError));
+                            resolve(this.apiParser.parseBusinessUnitFromTenantData(null));
+                        });
+                    }
+                    else {
+                        reject(new CXoneSdkError(CXoneSdkErrorType.CXONE_API_ERROR, (_a = err === null || err === void 0 ? void 0 : err.data) === null || _a === void 0 ? void 0 : _a.message, err === null || err === void 0 ? void 0 : err.data));
+                    }
                 });
             }
             else {
@@ -452,6 +466,12 @@ export class AdminService {
      * ```
      */
     getBrandingProfile() {
+        // Per UH-77537: existing V1 consumers of getBrandingProfile() keep their contract
+        // (BrandingProfile, legacy field names) unchanged. When the Lyra toggle is on, the
+        // V2 API is called under the hood and the response is mapped back onto the V1
+        // shape. Callers that want the native V2 contract (e.g. the Lyra header) should use
+        // getBrandingProfileV2() directly instead.
+        const isLyraThemeEnabled = FeatureToggleService.instance.getFeatureToggleSync("release-cxapp-lyra-navigation-CXAPP-32711" /* FeatureToggles.LYRA_THEME_FEATURE_TOGGLE */);
         return new Promise((resolve, reject) => {
             const BrandingProfileFromStorage = LocalStorageHelper.getItem(StorageKeys.BRANDING_PROFILES, true);
             let timeLeftToExpire = 0;
@@ -471,10 +491,14 @@ export class AdminService {
             }
             if (!BrandingProfileFromStorage || (timeLeftToExpire < 600000)) {
                 const reqInit = this.utilService.initHeader(this.accessToken, 'application/json');
-                const url = this.cxOneConfig.userHubBaseUrl + AdminApis.getUHBrandingProfileUri;
+                const url = isLyraThemeEnabled
+                    ? this.cxOneConfig.userHubBaseUrl + AdminApis.getUHBrandingProfileV2Uri
+                    : this.cxOneConfig.userHubBaseUrl + AdminApis.getUHBrandingProfileUri;
                 HttpClient.get(url, reqInit).then((resp) => {
                     this.logger.info('getBrandingProfile', 'Get Branding Profile Success');
-                    const data = this.apiParser.parseBrandingProfile(resp);
+                    const data = isLyraThemeEnabled
+                        ? this.apiParser.mapBrandingProfileV2ToV1(this.apiParser.parseBrandingProfileV2(resp))
+                        : this.apiParser.parseBrandingProfile(resp);
                     LocalStorageHelper.setItem(StorageKeys.BRANDING_PROFILES, JSON.stringify(data));
                     resolve(data);
                 }, (err) => {
@@ -483,6 +507,32 @@ export class AdminService {
                     reject(new CXoneSdkError(CXoneSdkErrorType.CXONE_API_ERROR, (_a = err === null || err === void 0 ? void 0 : err.data) === null || _a === void 0 ? void 0 : _a.message, err === null || err === void 0 ? void 0 : err.data));
                 });
             }
+        });
+    }
+    /**
+     * Method to return cxone branding profiles using the V2 contract
+     * (`/branding-profiles/v2/current`, UH-77537). Always calls V2 regardless of the Lyra
+     * feature toggle — intended for the Lyra header and other new consumers that are
+     * built against the V2 field names directly. Existing consumers of
+     * {@link getBrandingProfile} keep going through the toggle-gated V1/V2 switch there.
+     * @returns - returns the cxone branding profile in the V2 shape
+     * ```
+     * @example
+     * getBrandingProfileV2()
+     * ```
+     */
+    getBrandingProfileV2() {
+        return new Promise((resolve, reject) => {
+            const reqInit = this.utilService.initHeader(this.accessToken, 'application/json');
+            const url = this.cxOneConfig.userHubBaseUrl + AdminApis.getUHBrandingProfileV2Uri;
+            HttpClient.get(url, reqInit).then((resp) => {
+                this.logger.info('getBrandingProfileV2', 'Get Branding Profile V2 Success');
+                resolve(this.apiParser.parseBrandingProfileV2(resp));
+            }, (err) => {
+                var _a;
+                this.logger.error('getBrandingProfileV2', 'Get Branding Profile V2 Failed' + JSON.stringify(err));
+                reject(new CXoneSdkError(CXoneSdkErrorType.CXONE_API_ERROR, (_a = err === null || err === void 0 ? void 0 : err.data) === null || _a === void 0 ? void 0 : _a.message, err === null || err === void 0 ? void 0 : err.data));
+            });
         });
     }
     /**
@@ -591,6 +641,21 @@ export class AdminService {
         });
     }
     /**
+     * Method to return the User Hub 'get user by id' uri for the active api version.
+     * AW-55807 - toggle ON routes to v4, OFF keeps the deprecated v1 endpoint. The toggle
+     * is the only rollback path, there is deliberately no runtime fallback between versions.
+     * @returns - Uri for the active User Hub users api version
+     * ```
+     * @example
+     * getUHUsersUri()
+     * ```
+     */
+    getUHUsersUri() {
+        return FeatureToggleService.instance.getFeatureToggleSync("release-cxa-user-hub-users-api-v4-AW-55807" /* FeatureToggles.UH_USERS_API_V4_FEATURE_TOGGLE */)
+            ? ApiUriConstants.UH_GET_USERS_V4
+            : ApiUriConstants.UH_GET_USERS;
+    }
+    /**
      * Method to return User Hub user details
      * @returns - User Details
      * ```
@@ -601,7 +666,7 @@ export class AdminService {
     getUHUserDetails() {
         return new Promise((resolve, reject) => {
             const reqInit = this.utilService.initHeader(this.accessToken, 'application/json');
-            const url = this.cxOneConfig.apiFacadeBaseUri + ApiUriConstants.UH_GET_USERS + this.userInfo.userId;
+            const url = this.cxOneConfig.apiFacadeBaseUri + this.getUHUsersUri() + this.userInfo.userId;
             HttpClient.get(url, reqInit).then((response) => {
                 this.logger.info('getUHUserDetails', 'Get UH User Details Success');
                 resolve(response);
@@ -629,7 +694,7 @@ export class AdminService {
             }
             else {
                 const reqInit = this.utilService.initHeader(this.accessToken, 'application/json');
-                const url = this.cxOneConfig.apiFacadeBaseUri + ApiUriConstants.UH_GET_USERS + this.userInfo.userId;
+                const url = this.cxOneConfig.apiFacadeBaseUri + this.getUHUsersUri() + this.userInfo.userId;
                 HttpClient.get(url, reqInit).then((response) => {
                     var _a;
                     if (!((_a = response === null || response === void 0 ? void 0 : response.data) === null || _a === void 0 ? void 0 : _a.user)) {

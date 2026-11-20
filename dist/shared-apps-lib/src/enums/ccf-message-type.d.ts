@@ -14,5 +14,8 @@ export declare enum CcfMessageType {
     CtdDialedNumber = "Ccf_Ctd_Dialed_Number",
     SetObSkillsAvailable = "Ccf_Set_Ob_Skills_Available",
     QueueCounterDetails = "Ccf_Queue_Counte_Details",
-    SetCtdCustomAgentUrl = "Ccf_Set_Ctd_Custom_Agent_Url"
+    SetCtdCustomAgentUrl = "Ccf_Set_Ctd_Custom_Agent_Url",
+    ScreenAgentPing = "screenAgent_ping",
+    ScreenAgentConnect = "screenAgent_connect",
+    ScreenAgentDisconnect = "screenAgent_disconnect"
 }

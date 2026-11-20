@@ -6,13 +6,42 @@ import { CXoneAuthResponseData } from '../interfaces/cxone-auth-response-data';
 export declare class CXoneAgentIntegrationManager {
     private eventHandlerAdded;
     private agentIntegration;
+    /** Stores [eventName, boundHandler] pairs so they can be removed by destroy(). */
+    private readonly boundListeners;
     /**
-     * Constructor to initialize instance
+     * Constructor to initialize instance.
+     * @param embeddedAgentIntegration - CRM-specific integration instance.
      * @example
+     * ```
+     * new CXoneAgentIntegrationManager(integration)
+     * ```
      */
     constructor(embeddedAgentIntegration: ICXoneAgentIntegration);
     /**
-     * Handler of Screenpop CustomEvent raised from CXone Agent (on Click of Customer Card Activity)
+     * Handler of Screenpop CustomEvent raised from CXone Agent (on Click of Customer Card Activity).
+     *
+     * Two-step routing logic:
+     *   `crmType` is populated by the backend on adaptive-card / pinned-record clicks (system.type).
+     *
+     *   Step 1 — CRM type check:
+     *     The manager reads `?app=` from the current page URL and compares it against
+     *     the expected app identifier from `CRM_TYPE_TO_APP_ID`:
+     *     - Match   → proceed to Step 2.
+     *     - Mismatch → foreign CRM type → open the URL in a new browser tab and return.
+     *
+     *   Step 2 — CRM instance check (only reached when Step 1 matches):
+     *     Extracts the first hostname label from both `?base=` (current tab's CRM instance)
+     *     and the screenpop URL (target record's CRM instance) and compares them.
+     *     First label is used (not full hostname) to handle CRMs that serve the same tenant
+     *     from multiple domains (e.g. Salesforce: myorg.my.salesforce.com and
+     *     myorg.lightning.force.com share the first label "myorg").
+     *     - Same label  → same CRM instance → forward to the integration handler.
+     *     - Diff label  → different instance → open the URL in a new browser tab and return.
+     *     - `?base=` absent or URL malformed → skip instance check, handle locally.
+     *
+     *   Fallbacks:
+     *     - `crmType` absent (ACD-triggered pop) → forward unconditionally.
+     *     - `crmType` not in map (unknown / future CRM) → forward as safe default.
      * @example
      */
     private handleCXoneScreenPopEvent;
@@ -108,6 +137,13 @@ export declare class CXoneAgentIntegrationManager {
      * @example const added = connector.addEventHandlers(integration);
      */
     initialize(): boolean;
+    /**
+     * Removes all window event listeners registered by this manager instance.
+     * Call this in tests (afterEach) or when the embedding page unmounts to prevent
+     * listener accumulation across multiple manager instances sharing the same window.
+     * @example manager.destroy()
+     */
+    destroy(): void;
     /**
    * @remarks -Event to dispatch to CXone App once the Embedded App is successfully initialized
    * This event will basically help CXone to understand if it needs to execute only after the

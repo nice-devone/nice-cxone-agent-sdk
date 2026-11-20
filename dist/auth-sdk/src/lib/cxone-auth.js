@@ -196,15 +196,13 @@ export class CXoneAuth {
                         const authToken = yield this.parseAndSaveAuthToken(resp);
                         this.getCXoneConfiguration(this.authSettings.cxoneHostname, this.cxoneUser.userInfo.tenantId, this.cxoneUser.userInfo.tenant ? true : false).then(() => __awaiter(this, void 0, void 0, function* () {
                             yield this.validateFTAndSetAuthToken(authToken, reject);
-                            this.getWhoAmIData(authToken).then((resp) => {
+                            const isNonBlockingLoginEnabled = yield FeatureToggleService.instance.getFeatureToggle("release-cxa-whoami-non-blocking-login-AW-65430" /* FeatureToggles.WHOAMI_NON_BLOCKING_LOGIN_FEATURE_TOGGLE */);
+                            if (isNonBlockingLoginEnabled) {
+                                // acd api base uri and team id are already set from the cxone configuration api and the id
+                                // token, so login completes here and the whoami call below only enriches them
                                 const cxoneConfigObj = this.getCXoneConfig();
-                                cxoneConfigObj.acdApiBaseUri = resp.resourceServerBaseUri;
-                                this.setCXoneConfig(cxoneConfigObj);
-                                this.cxoneUser.setTeamIdUserInfo(resp.teamId);
-                                LocalStorageHelper.setItem(StorageKeys.CXONE_CONFIG, cxoneConfigObj);
-                                this.logger.info('getWhoAmIData', 'Successfully fetched and set data');
                                 this.cxoneUser.initAuth(authToken.accessToken, cxoneConfigObj);
-                                this.getUserManagementDetails();
+                                this.getUserManagementDetails(true);
                                 this.onAuthStatusChange.next({
                                     status: AuthStatus.AUTHENTICATED,
                                     response: authToken,
@@ -215,7 +213,33 @@ export class CXoneAuth {
                                 };
                                 MessageBus.instance.postResponse(msg);
                                 resolve(authToken);
+                            }
+                            this.getWhoAmIData(authToken).then((resp) => {
+                                const cxoneConfigObj = this.getCXoneConfig();
+                                cxoneConfigObj.acdApiBaseUri = resp.resourceServerBaseUri;
+                                this.setCXoneConfig(cxoneConfigObj);
+                                this.cxoneUser.setTeamIdUserInfo(resp.teamId);
+                                LocalStorageHelper.setItem(StorageKeys.CXONE_CONFIG, cxoneConfigObj);
+                                this.logger.info('getWhoAmIData', 'Successfully fetched and set data');
+                                if (!isNonBlockingLoginEnabled) {
+                                    this.cxoneUser.initAuth(authToken.accessToken, cxoneConfigObj);
+                                    this.getUserManagementDetails();
+                                    this.onAuthStatusChange.next({
+                                        status: AuthStatus.AUTHENTICATED,
+                                        response: authToken,
+                                    });
+                                    const msg = {
+                                        type: MessageType.AUTHENTICATION_RESPONSE,
+                                        data: authToken,
+                                    };
+                                    MessageBus.instance.postResponse(msg);
+                                    resolve(authToken);
+                                }
                             }, (error) => {
+                                if (isNonBlockingLoginEnabled) {
+                                    this.logger.error('WHOAMI_NON_BLOCKING_FAILURE', 'Error from whoami api after login, continuing with cxone configuration values' + error.toString());
+                                    return;
+                                }
                                 this.logger.error('getAccessTokenByCode', 'Error from whoami api' + error.toString());
                                 this.onAuthStatusChange.next({
                                     status: AuthStatus.AUTHENTICATION_FAILED,
@@ -288,15 +312,13 @@ export class CXoneAuth {
                             const cxOneAuthToken = yield this.parseAndSaveAuthToken(resp);
                             this.getCXoneConfiguration(this.authSettings.cxoneHostname, this.cxoneUser.userInfo.tenantId, this.cxoneUser.userInfo.tenant ? true : false).then(() => __awaiter(this, void 0, void 0, function* () {
                                 yield this.validateFTAndSetAuthToken(cxOneAuthToken, reject);
-                                this.getWhoAmIData(cxOneAuthToken).then((resp) => {
+                                const isNonBlockingLoginEnabled = yield FeatureToggleService.instance.getFeatureToggle("release-cxa-whoami-non-blocking-login-AW-65430" /* FeatureToggles.WHOAMI_NON_BLOCKING_LOGIN_FEATURE_TOGGLE */);
+                                if (isNonBlockingLoginEnabled) {
+                                    // acd api base uri and team id are already set from the cxone configuration api and the id
+                                    // token, so login completes here and the whoami call below only enriches them
                                     const cxoneConfigObj = this.getCXoneConfig();
-                                    cxoneConfigObj.acdApiBaseUri = resp.resourceServerBaseUri;
-                                    this.setCXoneConfig(cxoneConfigObj);
-                                    this.cxoneUser.setTeamIdUserInfo(resp.teamId);
-                                    LocalStorageHelper.setItem(StorageKeys.CXONE_CONFIG, cxoneConfigObj);
-                                    this.logger.info('getWhoAmIData', 'Successfully fetched and set data');
                                     this.cxoneUser.initAuth(cxOneAuthToken.accessToken, cxoneConfigObj);
-                                    this.getUserManagementDetails();
+                                    this.getUserManagementDetails(true);
                                     this.onAuthStatusChange.next({
                                         status: AuthStatus.AUTHENTICATED,
                                         response: cxOneAuthToken,
@@ -307,7 +329,33 @@ export class CXoneAuth {
                                     };
                                     MessageBus.instance.postResponse(msg);
                                     resolve(cxOneAuthToken);
+                                }
+                                this.getWhoAmIData(cxOneAuthToken).then((resp) => {
+                                    const cxoneConfigObj = this.getCXoneConfig();
+                                    cxoneConfigObj.acdApiBaseUri = resp.resourceServerBaseUri;
+                                    this.setCXoneConfig(cxoneConfigObj);
+                                    this.cxoneUser.setTeamIdUserInfo(resp.teamId);
+                                    LocalStorageHelper.setItem(StorageKeys.CXONE_CONFIG, cxoneConfigObj);
+                                    this.logger.info('getWhoAmIData', 'Successfully fetched and set data');
+                                    if (!isNonBlockingLoginEnabled) {
+                                        this.cxoneUser.initAuth(cxOneAuthToken.accessToken, cxoneConfigObj);
+                                        this.getUserManagementDetails();
+                                        this.onAuthStatusChange.next({
+                                            status: AuthStatus.AUTHENTICATED,
+                                            response: cxOneAuthToken,
+                                        });
+                                        const msg = {
+                                            type: MessageType.AUTHENTICATION_RESPONSE,
+                                            data: cxOneAuthToken,
+                                        };
+                                        MessageBus.instance.postResponse(msg);
+                                        resolve(cxOneAuthToken);
+                                    }
                                 }, (error) => {
+                                    if (isNonBlockingLoginEnabled) {
+                                        this.logger.error('WHOAMI_NON_BLOCKING_FAILURE', 'Error from whoami api after login, continuing with cxone configuration values' + error.toString());
+                                        return;
+                                    }
                                     this.logger.error('getAccessTokenByToken', 'Error from whoami api' + error.toString());
                                     this.onAuthStatusChange.next({
                                         status: AuthStatus.AUTHENTICATION_FAILED,
@@ -377,16 +425,13 @@ export class CXoneAuth {
                     if (resp.status === 200) {
                         const cxOneAuthToken = this.parseAndSaveAuthToken(resp, true, impersonatingUser);
                         yield this.validateFTAndSetAuthToken(cxOneAuthToken, reject);
-                        this.getWhoAmIData(cxOneAuthToken).then((resp) => {
+                        const isNonBlockingLoginEnabled = yield FeatureToggleService.instance.getFeatureToggle("release-cxa-whoami-non-blocking-login-AW-65430" /* FeatureToggles.WHOAMI_NON_BLOCKING_LOGIN_FEATURE_TOGGLE */);
+                        if (isNonBlockingLoginEnabled) {
+                            // acd api base uri and team id are already set from the cxone configuration api and the id
+                            // token, so login completes here and the whoami call below only enriches them
                             const cxoneConfigObj = this.getCXoneConfig();
-                            cxoneConfigObj.acdApiBaseUri =
-                                resp.resourceServerBaseUri;
-                            this.setCXoneConfig(cxoneConfigObj);
-                            this.cxoneUser.setTeamIdUserInfo(resp.teamId);
-                            LocalStorageHelper.setItem(StorageKeys.CXONE_CONFIG, cxoneConfigObj);
-                            this.logger.info('getWhoAmIData', 'Successfully fetched and set data');
                             this.cxoneUser.initAuth(cxOneAuthToken.accessToken, cxoneConfigObj);
-                            this.getUserManagementDetails();
+                            this.getUserManagementDetails(true);
                             this.onAuthStatusChange.next({
                                 status: AuthStatus.AUTHENTICATED,
                                 response: cxOneAuthToken,
@@ -397,7 +442,33 @@ export class CXoneAuth {
                             };
                             MessageBus.instance.postResponse(msg);
                             resolve(cxOneAuthToken);
+                        }
+                        this.getWhoAmIData(cxOneAuthToken).then((resp) => {
+                            const cxoneConfigObj = this.getCXoneConfig();
+                            cxoneConfigObj.acdApiBaseUri = resp.resourceServerBaseUri;
+                            this.setCXoneConfig(cxoneConfigObj);
+                            this.cxoneUser.setTeamIdUserInfo(resp.teamId);
+                            LocalStorageHelper.setItem(StorageKeys.CXONE_CONFIG, cxoneConfigObj);
+                            this.logger.info('getWhoAmIData', 'Successfully fetched and set data');
+                            if (!isNonBlockingLoginEnabled) {
+                                this.cxoneUser.initAuth(cxOneAuthToken.accessToken, cxoneConfigObj);
+                                this.getUserManagementDetails();
+                                this.onAuthStatusChange.next({
+                                    status: AuthStatus.AUTHENTICATED,
+                                    response: cxOneAuthToken,
+                                });
+                                const msg = {
+                                    type: MessageType.AUTHENTICATION_RESPONSE,
+                                    data: cxOneAuthToken,
+                                };
+                                MessageBus.instance.postResponse(msg);
+                                resolve(cxOneAuthToken);
+                            }
                         }, (error) => {
+                            if (isNonBlockingLoginEnabled) {
+                                this.logger.error('WHOAMI_NON_BLOCKING_FAILURE', 'Error from whoami api after login, continuing with cxone configuration values' + error.toString());
+                                return;
+                            }
                             this.logger.error('getAccessTokenByToken', 'Error from whoami api' + error.toString());
                             this.onAuthStatusChange.next({
                                 status: AuthStatus.AUTHENTICATION_FAILED,
@@ -987,6 +1058,24 @@ export class CXoneAuth {
         return this.adminService.getBrandingProfile();
     }
     /**
+     * Method to return branding profiles using the V2 contract
+     * @returns - returns the branding profiles in the V2 shape
+     * ```
+     * @example
+     * getBrandingProfileV2()
+     * ```
+     */
+    getBrandingProfileV2() {
+        const adminCxOneConfig = this.adminService.getCXoneConfig();
+        if (!(adminCxOneConfig === null || adminCxOneConfig === void 0 ? void 0 : adminCxOneConfig.userHubBaseUrl)) {
+            const accessToken = this.getAuthToken().accessToken;
+            const cxOneConfig = this.getCXoneConfig();
+            const userInfo = this.cxoneUser.getUserInfo();
+            this.adminService.initialize(accessToken, cxOneConfig, userInfo);
+        }
+        return this.adminService.getBrandingProfileV2();
+    }
+    /**
        * Method to launch CXoneAgent application from SDK
        * @param targetDivId - Target div id wherein application needs to be loaded
        * @param appUrl - Application url that needs to be launched
@@ -1107,12 +1196,15 @@ export class CXoneAuth {
     }
     /**
      * Fetch the user details of logged in user
+     * @param shouldSetTeamId - set the team id from the user management response. Used by the non
+     * blocking login flow, where whoami has not run yet and the id token carries no team id. The
+     * users api returns the team GUID, which the acd apis accept in place of the numeric team id.
      * @example
      * ```
-     * getUserManagementDetails();
+     * getUserManagementDetails(true);
      * ```
      */
-    getUserManagementDetails() {
+    getUserManagementDetails(shouldSetTeamId = false) {
         const userInfo = this.cxoneUser.getUserInfo();
         this.adminService
             .getUserDetails(true)
@@ -1121,6 +1213,9 @@ export class CXoneAuth {
                 userInfo.firstName = response === null || response === void 0 ? void 0 : response.firstName;
                 userInfo.lastName = response === null || response === void 0 ? void 0 : response.lastName;
                 LocalStorageHelper.setItem(StorageKeys.USER_INFO, userInfo);
+            }
+            if (shouldSetTeamId && (response === null || response === void 0 ? void 0 : response.teamId)) {
+                this.cxoneUser.setTeamIdUserInfo(response.teamId);
             }
         })
             .catch((e) => {

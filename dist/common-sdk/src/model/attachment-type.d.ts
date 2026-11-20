@@ -8,6 +8,22 @@ export interface AttachmentType {
     url: string;
     isInline?: boolean;
     isForwardedAttachment?: boolean;
+    /**
+     * Display-only read-only marker. Unlike isForwardedAttachment this does not
+     * exclude the attachment from the outbound payload, so it can be used where
+     * the attachment must still be sent but must not be edited or removed.
+     */
+    isReadOnlyAttachment?: boolean;
+    /** Unique identifier for the draft attachment. */
+    draftAttachmentId?: string;
+    /**
+     * Server-assigned id returned once upload completes, used as the "first-call" id sent
+     * on a draft-upsert request before a draftAttachmentId exists (AW-62906). Kept separate
+     * from attachmentId, which is only ever set for inline images at file-selection time.
+     */
+    serverAttachmentId?: string;
+    /** Name for the draft attachment. */
+    friendlyName?: string;
 }
 /**
  * Interface representing the properties of an Inline Image.
@@ -31,4 +47,8 @@ export interface InlineImageType {
     isInline?: boolean;
     /**Flag indication whether its forwarded attachment in case of email forward */
     isForwardedAttachment?: boolean;
+    /** Unique identifier for the draft attachment. */
+    draftAttachmentId?: string;
+    /** Name for the draft attachment. */
+    friendlyName?: string;
 }

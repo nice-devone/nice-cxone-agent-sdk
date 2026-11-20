@@ -106,5 +106,9 @@ export declare enum CXoneProductFeature {
     /**
      * @remarks - Product feature Id for NewGen Directories
      */
-    DIRECTORY_SYNC_NEWGEN = 708009
+    DIRECTORY_SYNC_NEWGEN = 708009,
+    /**
+   * @remarks - Product feature Id for CXone Media Rediect for Vdi Extension
+   */
+    MEDIA_REDIRECT_VDI_EXT = 40360
 }

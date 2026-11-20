@@ -146,6 +146,26 @@ export class Logger {
         this.doLog(LogLevel.FATAL, { functionName, text: message, data });
     }
     /**
+     * Journey-checkpoint logging. Bypasses Logger.config.getLevel() by design —
+     * even LogLevel.OFF does not suppress journey events. The independent
+     * DIGITAL_JOURNEY_TELEMETRY_FEATURE_TOGGLE (read inside grafanaInit's journey
+     * hook) is the sole opt-out mechanism for this event stream.
+     *
+     * Invokes the well-known console.__cxaJourneyCheckpoint hook if grafanaInit() has
+     * installed one — see the ConsoleWithJourneyHook comment above for why this
+     * console-based path is used instead of Logger.config's appenders.
+     *
+     * @param entry - Journey checkpoint data to forward.
+     * @example
+     * ```
+     * logger.journey({ journeyId, journeyName, journeyPoint, role, status });
+     * ```
+     */
+    journey(entry) {
+        var _a, _b;
+        (_b = (_a = console).__cxaJourneyCheckpoint) === null || _b === void 0 ? void 0 : _b.call(_a, entry);
+    }
+    /**
      *
      * @param level - Log level - 0
      * @param message - Log message

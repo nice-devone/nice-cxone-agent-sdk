@@ -515,7 +515,10 @@ export class CXoneDynamicDirectory {
                     this.currentSearchDirectoriesRequest.subscriptionId =
                         this.searchDirectoriesResponse.subscriptionId;
                     this.wsProvider.connectSocket();
-                    this.socketMessageHandler(this.wsProvider, false);
+                    if (!this.messageReceivedSubscription ||
+                        this.messageReceivedSubscription.closed) {
+                        this.socketMessageHandler(this.wsProvider, false);
+                    }
                 }
                 this.updateFavExtDirEntriesFromClientData();
                 this.publishFinalDynamicDirectoryResponse(this.searchDirectoriesResponse, false);
@@ -681,6 +684,44 @@ export class CXoneDynamicDirectory {
             this.logger.warn('endDirectoriesSearch', `SubscriptionId ${subscriptionId} does not match any known subscriptions`);
             // Attempt unsubscribe from both providers as fallback
             this.wsProvider.unsubscribeSearch(subscriptionId);
+            this.newGenWsProvider.unsubscribeSearch(subscriptionId);
+        }
+    }
+    /**
+     * Ends the legacy external directory's live search using the SDK's own current
+     * subscription id, instead of one supplied by the caller. A caller-supplied id (e.g. a
+     * Redux-cached copy) can be stale relative to this SDK-internal state, which made
+     * endDirectoriesSearch's id-matching silently miss the legacy subscription in some cases.
+     * Also clears the pending request's subscriptionId so that a CONNECTED event which arrives
+     * after this call (the socket was still mid-connect) does not go on to resubscribe.
+     * @example
+     * ```
+     * this.endLegacyDirectorySearch();
+     * ```
+     */
+    endLegacyDirectorySearch() {
+        const subscriptionId = this.searchDirectoriesResponse.subscriptionId;
+        if (subscriptionId) {
+            if (this.currentSearchDirectoriesRequest) {
+                this.currentSearchDirectoriesRequest.subscriptionId = undefined;
+            }
+            this.wsProvider.unsubscribeSearch(subscriptionId);
+        }
+    }
+    /**
+     * Ends the NewGen directory's live search using the SDK's own current subscription id.
+     * See endLegacyDirectorySearch for why this avoids taking a caller-supplied id.
+     * @example
+     * ```
+     * this.endNewGenDirectorySearch();
+     * ```
+     */
+    endNewGenDirectorySearch() {
+        const subscriptionId = this.searchNewGenDirectoriesResponse.subscriptionId;
+        if (subscriptionId) {
+            if (this.currentNewGenSearchDirectoriesRequest) {
+                this.currentNewGenSearchDirectoriesRequest.subscriptionId = undefined;
+            }
             this.newGenWsProvider.unsubscribeSearch(subscriptionId);
         }
     }

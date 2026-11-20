@@ -49,5 +49,9 @@ export declare enum DesktopProfileConfigurationSettings {
     DIGITAL_CLOSE_CONFIRMATION = "showClosedContactConfirmation",
     VOICE_CALL_HOLD_TIMER = "voiceCallHoldTimer",
     TEAM_VERSIONING_ENABLED = "teamVersioningEnabled",
-    AGENT_VERSION = "agentVersion"
+    AGENT_VERSION = "agentVersion",
+    PANEL_OPEN_IN_BROWSER_GENERAL = "panelOpenInBrowserGeneral",
+    AGENT_EDITABLE_GENERAL = "agentEditableGeneral",
+    PANEL_OPEN_IN_BROWSER_PAGE_ACTION_ONLY = "panelOpenInBrowserPageActionOnly",
+    AGENT_EDITABLE_PAGE_ACTION_ONLY = "agentEditablePageActionOnly"
 }

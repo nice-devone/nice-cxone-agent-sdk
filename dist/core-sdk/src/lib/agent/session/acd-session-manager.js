@@ -29,6 +29,7 @@ export class ACDSessionManager {
         this.adminService = {};
         this.sessionId = '';
         this._callContactEventSubject = new Subject();
+        this._supervisorContactEventSubject = new Subject();
         this._voiceMailContactEventSubject = new Subject();
         this._workItemContactEventSubject = new Subject();
         this._muteEventSubject = new Subject();
@@ -52,8 +53,11 @@ export class ACDSessionManager {
         this._agentWorkflowEvent = new Subject();
         this._agentWorkflowRequestEvent = new Subject();
         this._agentWorkflowCreatePayloadEvent = new Subject();
+        /** Raw (untransformed) AgentWorkflowConfiguration GNE event — emitted before SDK parsing */
+        this._agentWorkflowConfigurationRawEvent = new Subject();
         this._coBrowseEvent = new Subject();
         this._localPostEvent = new Subject();
+        this._onLiveVoxErrorEvent = new Subject();
         this.userInfo = {};
         this.cxOneConfig = {};
         this.accessToken = '';
@@ -190,6 +194,15 @@ export class ACDSessionManager {
      */
     get callContactEventSubject() {
         return this._callContactEventSubject;
+    }
+    /**
+     * @example -
+     * ```
+     * const supervisorContactEventSubject  = acdSession.supervisorContactEventSubject
+     * ```
+     */
+    get supervisorContactEventSubject() {
+        return this._supervisorContactEventSubject;
     }
     /**
      * @example -
@@ -357,6 +370,15 @@ export class ACDSessionManager {
     /**
      * @example -
      * ```
+     * const onLiveVoxErrorEvent = acdSession.onLiveVoxErrorEvent
+     * ```
+     */
+    get onLiveVoxErrorEvent() {
+        return this._onLiveVoxErrorEvent;
+    }
+    /**
+     * @example -
+     * ```
      * const mchAgentSettingsChangeEvent = agentSession.mchAgentSettingsChangeEvent
      * ```
      */
@@ -391,6 +413,21 @@ export class ACDSessionManager {
      */
     get agentWorkflowRequestEvent() {
         return this._agentWorkflowRequestEvent;
+    }
+    /**
+     * Raw (untransformed) AgentWorkflowConfiguration GNE event subject.
+     * Emitted in `cxone-get-next-adapter.ts` before the SDK parses the event.
+     * Subscribe here to access the full per-CRM `search`, `dataMemorialization`,
+     * and `timeline` arrays with `position` fields intact.
+     * @example -
+     * ```
+     * acdSession.agentWorkflowConfigurationRawEvent.subscribe((rawEvent) => {
+     *   handleAgentWorkflowConfigurationEvent(rawEvent, dispatch);
+     * });
+     * ```
+     */
+    get agentWorkflowConfigurationRawEvent() {
+        return this._agentWorkflowConfigurationRawEvent;
     }
     /**
     * Used to get the agent workflow event subject

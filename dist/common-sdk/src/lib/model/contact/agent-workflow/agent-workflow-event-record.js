@@ -19,7 +19,7 @@ class AgentWorkflowEventRecord {
      * ```
      */
     parse(data) {
-        var _a, _b;
+        var _a, _b, _c;
         this.type = data === null || data === void 0 ? void 0 : data.type;
         this.label = data === null || data === void 0 ? void 0 : data.label;
         this.id = data === null || data === void 0 ? void 0 : data.id;
@@ -36,6 +36,7 @@ class AgentWorkflowEventRecord {
         });
         this.related = relatedData || [];
         this.fields = data === null || data === void 0 ? void 0 : data.fields;
+        this.screenPopBeforeAccept = typeof (data === null || data === void 0 ? void 0 : data.screenPopBeforeAccept) === 'string' ? ((_c = data === null || data === void 0 ? void 0 : data.screenPopBeforeAccept) === null || _c === void 0 ? void 0 : _c.toLowerCase()) === 'true' : data === null || data === void 0 ? void 0 : data.screenPopBeforeAccept;
     }
 }
 exports.AgentWorkflowEventRecord = AgentWorkflowEventRecord;

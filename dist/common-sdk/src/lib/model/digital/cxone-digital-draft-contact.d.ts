@@ -73,7 +73,23 @@ export interface DraftContactAttachment {
      * @remarks - URL pointing to the attachment resource.
      */
     url: string;
+    /**
+     * @remarks - id of the attachment in draft contact
+     */
+    id?: string;
+    /**
+     * @remarks - Whether the attachment is inline.
+     */
+    isInline?: boolean;
 }
+/**
+ * Supported attachment shapes for draft contact APIs.
+ *
+ * @remarks - Allows either a full attachment object or an id-only reference.
+ */
+export declare type DraftContactAttachments = Array<{
+    id: string;
+} | DraftContactAttachment>;
 /**
  * Contact metadata for a draft contact request.
  */
@@ -81,20 +97,20 @@ export interface DraftContact {
     /**
      * @remarks - Direction of the contact (e.g. 'outbound').
      */
-    direction: string;
+    direction?: string;
     /**
      * @remarks - Optional custom fields for the contact.
      */
     customFields?: CXoneCustomFieldDetails[];
+    /**
+     * @remarks - Optional draft contact number for the contact.
+     */
+    contactNumber?: string;
 }
 /**
  *interface for draft contact request
  */
 export interface CXoneDigitalDraftContactRequest {
-    /**
-     * @remarks - Optional identifier of an existing draft contact to update. Omit this field to create a new draft contact.
-     */
-    draftContactId?: string;
     /**
      * @remarks - Channel ID to associate this draft with.
      */
@@ -114,7 +130,7 @@ export interface CXoneDigitalDraftContactRequest {
     /**
      * @remarks - Optional list of attachments.
      */
-    attachments?: DraftContactAttachment[];
+    attachments?: DraftContactAttachments;
     /**
      * @remarks - List of recipients for the draft contact.
      */
@@ -123,14 +139,20 @@ export interface CXoneDigitalDraftContactRequest {
      * @remarks - Optional contact metadata including direction and custom fields.
      */
     contact?: DraftContact;
+    /**
+     * @remarks - Optional title for the draft contact.
+     */
+    title?: string;
 }
 /**
  * Schema for draft contact
  */
 export declare const CXoneDraftContactSchema: import("yup/lib/object").OptionalObjectSchema<{
-    consumerContact: any;
+    customerContact: any;
+    messages: any;
 }, import("yup/lib/object").AnyObject, import("yup/lib/object").TypeOfShape<{
-    consumerContact: any;
+    customerContact: any;
+    messages: any;
 }>>;
 /**
  * interface for draft contact details

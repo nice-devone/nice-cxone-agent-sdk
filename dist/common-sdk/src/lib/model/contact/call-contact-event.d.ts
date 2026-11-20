@@ -199,6 +199,10 @@ export declare const CallContactEventYup: import("yup/lib/object").OptionalObjec
      * This value is optional and may not be present on all contacts.
      */
     smartReachTransactionId: import("yup").StringSchema<string, import("yup/lib/types").AnyObject, string>;
+    /**
+     * @remarks - Indicates whether the skill associated with this contact supports Multiple Call Appearances (MCA).
+     */
+    isMultiCallSkill: import("yup").BooleanSchema<boolean, import("yup/lib/types").AnyObject, boolean>;
 }, import("yup/lib/object").AnyObject, import("yup/lib/object").TypeOfShape<{
     /**
      * @remarks -
@@ -399,5 +403,9 @@ export declare const CallContactEventYup: import("yup/lib/object").OptionalObjec
      * This value is optional and may not be present on all contacts.
      */
     smartReachTransactionId: import("yup").StringSchema<string, import("yup/lib/types").AnyObject, string>;
+    /**
+     * @remarks - Indicates whether the skill associated with this contact supports Multiple Call Appearances (MCA).
+     */
+    isMultiCallSkill: import("yup").BooleanSchema<boolean, import("yup/lib/types").AnyObject, boolean>;
 }>>;
 export declare type CallContactEvent = InferType<typeof CallContactEventYup>;

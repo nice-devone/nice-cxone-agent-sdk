@@ -124,6 +124,32 @@ export class ApiParser {
         return businessUnit;
     }
     /**
+     * Method to derive Business Unit details from tenant licenses, used when the business-unit api fails
+     *
+     * @param tenantData - Tenant data from /tenants/v2/current, or null when it is unavailable
+     * @returns - Business Unit with multi contact handling assumed and features taken from the tenant licenses
+     * @example -
+     * ```
+     * parseBusinessUnitFromTenantData(tenantData)
+     * ```
+     */
+    parseBusinessUnitFromTenantData(tenantData) {
+        var _a;
+        const featureIds = ((_a = tenantData === null || tenantData === void 0 ? void 0 : tenantData.licenses) !== null && _a !== void 0 ? _a : []).reduce((ids, license) => { var _a; return ids.concat((_a = license === null || license === void 0 ? void 0 : license.featureIds) !== null && _a !== void 0 ? _a : []); }, []);
+        const businessUnit = {
+            features: Array.from(new Set(featureIds)).map((featureId) => ({
+                productId: featureId,
+                productDescription: '',
+                isEnabled: true,
+            })),
+            maxConference: 8,
+            fileExtList: [],
+            isMultiContactHandling: true,
+            isUnifiedRoutingEnabled: false,
+        };
+        return businessUnit;
+    }
+    /**
      * This method to check Agent Profile Data and get desired configuration
      *
      * @param settings  - Agent Profile Data
@@ -253,6 +279,10 @@ export class ApiParser {
             [DesktopProfileConfigurationSettings.VOICE_CALL_HOLD_TIMER]: (value) => (configuration.voiceCallHoldTimerThreshold = parseInt(value, 10) || 0),
             [DesktopProfileConfigurationSettings.TEAM_VERSIONING_ENABLED]: (value) => (configuration.teamVersioningEnabled = JSON.parse(value)),
             [DesktopProfileConfigurationSettings.AGENT_VERSION]: (value) => (configuration.agentVersion = value),
+            [DesktopProfileConfigurationSettings.PANEL_OPEN_IN_BROWSER_GENERAL]: (value) => (configuration.panelOpenInBrowserGeneral = this.parseDesktopProfileBoolean(value)),
+            [DesktopProfileConfigurationSettings.AGENT_EDITABLE_GENERAL]: (value) => (configuration.agentEditableGeneral = this.parseDesktopProfileBoolean(value)),
+            [DesktopProfileConfigurationSettings.PANEL_OPEN_IN_BROWSER_PAGE_ACTION_ONLY]: (value) => (configuration.panelOpenInBrowserPageActionOnly = this.parseDesktopProfileBoolean(value)),
+            [DesktopProfileConfigurationSettings.AGENT_EDITABLE_PAGE_ACTION_ONLY]: (value) => (configuration.agentEditablePageActionOnly = this.parseDesktopProfileBoolean(value)),
         };
         (_a = desktopProfileAPIResponse === null || desktopProfileAPIResponse === void 0 ? void 0 : desktopProfileAPIResponse.agentProfileConfigurations) === null || _a === void 0 ? void 0 : _a.forEach((config) => {
             const updateConfig = mapping[config.elementId];
@@ -264,6 +294,25 @@ export class ApiParser {
             }
         });
         return configuration;
+    }
+    /**
+     * Strictly parses a Desktop Profile boolean string, anything other than 'true'/'false' is treated as not configured
+     *
+     * @param value - Desktop Profile element value
+     * @returns - parsed boolean, or undefined when the value is missing or malformed
+     * @example -
+     * ```
+     * parseDesktopProfileBoolean('true')
+     * ```
+     */
+    parseDesktopProfileBoolean(value) {
+        if (value === 'true') {
+            return true;
+        }
+        if (value === 'false') {
+            return false;
+        }
+        return undefined;
     }
     /**
      * Method to parse Central Branding Profile response
@@ -337,6 +386,88 @@ export class ApiParser {
             fetchTime: new Date(),
         };
         return brandingProfile;
+    }
+    /**
+     * Method to parse CXone Branding Profile V2 (`/branding-profiles/v2/current`) response
+     *
+     * @param settings  - CXoneBrandingProfileV2 response
+     * @returns - parsed CXone Branding Profile V2
+     * @example -
+     * ```
+     * parseBrandingProfileV2(brandingProfileResponse)
+     * ```
+     */
+    parseBrandingProfileV2(brandingProfileResponse) {
+        const data = brandingProfileResponse.data.brandingProfile;
+        const brandingProfileV2 = {
+            profileId: data.profileId,
+            profileName: data.profileName,
+            description: data.description,
+            brandName: data.brandName,
+            systemEmail: data.systemEmail,
+            hostName: data.hostName,
+            status: data.status,
+            coBrand: data.coBrand,
+            loginBgColor: data.loginBgColor,
+            headerBgColor: data.headerBgColor,
+            headerIconTextColor: data.headerIconTextColor,
+            maxStylePackName: data.maxStylePackName,
+            supervisorStylePackName: data.supervisorStylePackName,
+            marketingEnabled: data.marketingEnabled,
+            marketingUrl: data.marketingUrl,
+            partnerDefaultBP: data.partnerDefaultBP,
+            loginBgImageUrl: data.loginBgImageUrl,
+            loginAppSwitcherLogoUrl: data.loginAppSwitcherLogoUrl,
+            headerLogoUrl: data.headerLogoUrl,
+            emailFormLogoUrl: data.emailFormLogoUrl,
+            squareIconUrl: data.squareIconUrl,
+            maxGlanceBarExpLogoUrl: data.maxGlanceBarExpLogoUrl,
+            maxGlanceBarCollLogoUrl: data.maxGlanceBarCollLogoUrl,
+            supervisorLogoUrl: data.supervisorLogoUrl,
+            sfdcLogoUrl: data.sfdcLogoUrl,
+            fetchTime: new Date(),
+        };
+        return brandingProfileV2;
+    }
+    /**
+     * Maps a V2 branding profile (`/branding-profiles/v2/current`) onto the legacy V1
+     * `BrandingProfile` shape, per the field-name mapping in the UH-77537 version
+     * comparison table (e.g. `headerLogoUrl` -\> `cxoneLoginHeaderLogoUrl`,
+     * `squareIconUrl` -\> `cxoneFaviconUrl`). Used so existing V1 consumers keep working
+     * unchanged when the Lyra feature toggle routes `getBrandingProfile()` to the V2 API.
+     * @param brandingProfileV2 - parsed V2 branding profile
+     * @returns - the equivalent V1-shaped branding profile
+     * @example -
+     * ```
+     * mapBrandingProfileV2ToV1(brandingProfileV2)
+     * ```
+     */
+    mapBrandingProfileV2ToV1(brandingProfileV2) {
+        return {
+            profileId: brandingProfileV2.profileId,
+            profileName: brandingProfileV2.profileName,
+            description: brandingProfileV2.description,
+            brandName: brandingProfileV2.brandName,
+            systemEmail: brandingProfileV2.systemEmail,
+            hostName: brandingProfileV2.hostName,
+            status: brandingProfileV2.status,
+            coBrand: brandingProfileV2.coBrand,
+            cxoneLoginBgColor: brandingProfileV2.headerBgColor,
+            cxoneHeaderIconTextColor: brandingProfileV2.headerIconTextColor,
+            maxStylePackName: brandingProfileV2.maxStylePackName,
+            supervisorStylePackName: brandingProfileV2.supervisorStylePackName,
+            marketingEnabled: brandingProfileV2.marketingEnabled,
+            marketingUrl: brandingProfileV2.marketingUrl,
+            partnerDefaultBP: brandingProfileV2.partnerDefaultBP,
+            cxoneLoginHeaderLogoUrl: brandingProfileV2.headerLogoUrl,
+            cxoneEmailFormLogoUrl: brandingProfileV2.emailFormLogoUrl,
+            cxoneFaviconUrl: brandingProfileV2.squareIconUrl,
+            maxGlanceBarExpLogoUrl: brandingProfileV2.maxGlanceBarExpLogoUrl,
+            maxGlanceBarCollLogoUrl: brandingProfileV2.maxGlanceBarCollLogoUrl,
+            supervisorLogoUrl: brandingProfileV2.supervisorLogoUrl,
+            sfdcLogoUrl: brandingProfileV2.sfdcLogoUrl,
+            fetchTime: brandingProfileV2.fetchTime,
+        };
     }
     /**
      * Method to parse Tenant Data response

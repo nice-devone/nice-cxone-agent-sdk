@@ -7,6 +7,8 @@ import { SkillActivityPollingRequest } from '../model/skill-activity-polling-req
 export declare class CXoneSkillActivityProvider {
     private logger;
     pollingWorker: any;
+    /** Separate worker used only for the login-time bootstrap - never shares `pollingWorker`. */
+    private bootstrapWorker;
     private acdSession;
     private baseUri;
     private utilService;
@@ -48,7 +50,9 @@ export declare class CXoneSkillActivityProvider {
      */
     startPolling(skillActivityPollingRequest: SkillActivityPollingRequest): Promise<void>;
     /**
-     * Used to terminate the polling of skill activity
+     * Used to terminate the real-time polling of skill activity for the current view. Does not touch the
+     * separate, session-scoped login-time bootstrap - that has its own lifecycle (see
+     * terminateBootstrapWorker()) and must keep running even if a view stops/restarts its own polling.
      * @example -
      * ```
      * const agentActivityProvider = new CXoneSkillActivityProvider();
@@ -100,6 +104,29 @@ export declare class CXoneSkillActivityProvider {
      * ```
      */
     private terminateAgentWorker;
+    /**
+     * Downloads the full skill set on a worker thread right after login and seeds SKILL_ACTIVITY/SKILL_LIST,
+     * so the Directory opens against a warm cache instead of fetching everything with `updatedSince=1970`.
+     * No-op on a warm cache, on repeat calls, or before base uri/auth token are available.
+     * @example - await CXoneClient.instance.skillActivityQueue.skillActivityProvider.bootstrapSkillActivity();
+     */
+    bootstrapSkillActivity(): Promise<void>;
+    /**
+     * True when SKILL_ACTIVITY already holds data. Checked before starting and again immediately before the
+     * write, since a real poll response can land while the bootstrap is still in flight. Does not look at
+     * SKILL_LIST - that store has its own independent write path in the Directory provider.
+     */
+    private isSkillStoreSeeded;
+    /**
+     * Seeds both skill stores from the bootstrap worker payload and advances both polling cursors.
+     * @param data - message posted back by the bootstrap worker
+     */
+    private handleBootstrapResponse;
+    /**
+     * Terminates the bootstrap worker.
+     * @example - this.terminateBootstrapWorker();
+     */
+    terminateBootstrapWorker(): void;
     /**
      * Checks if skill activity polling is running
      * @returns - local storage key for skill activity polling

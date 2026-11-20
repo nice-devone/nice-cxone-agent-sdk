@@ -14,6 +14,8 @@ export declare class DigitalService {
     private UPDATE_CASE_CUSTOM_FIELD;
     private EXTERNAL_PLATFORM_TEMPLATE_URI;
     private ROUTING_QUEUES_URI;
+    private ROUTING_QUEUES_MAX_SIZE;
+    private ROUTING_QUEUES_LEGACY_SIZE;
     private FORM_SUBMISSION;
     private QUICK_RESPONSES;
     private GET_CUSTOMER_DETAILS;

@@ -12,6 +12,8 @@ export declare class CXoneRealtimeReportService {
     GET_AGENT_PERFORMANCE_REPORT: string;
     GET_TEAM_PERFORMANCE_TOTAL_REPORT: string;
     GET_AGENT_STATE_PERFORMANCE_REPORT: string;
+    private readonly STATE_HISTORY_PAGE_SIZE;
+    private readonly MAX_STATE_HISTORY_PAGES;
     /**
      * @example
      */

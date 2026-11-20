@@ -10,7 +10,7 @@ import { AgentPerformance, AgentPerformanceResponse, AgentStateHistoryResponse, 
    * generateProductivityReport(teamPerformance,agentPerformance,agentStateHistory);
    * ```
    */
-export declare const generateProductivityReport: (productivityResponse: [AgentPerformanceResponse, TeamPerformanceResponse, AgentStateHistoryResponse]) => ProductivityReport[];
+export declare const generateProductivityReport: (productivityResponse: [AgentPerformanceResponse, TeamPerformanceResponse, AgentStateHistoryResponse], reqStartDate?: string, reqEndDate?: string) => ProductivityReport[];
 export declare const timeUnits: {
     millisecond: number;
     second: number;
@@ -42,7 +42,7 @@ export declare const generatePerformanceReport: (performanceResponse: [AgentPerf
    * @returns - agen and team's productivity report
    * @example - updateOutstateDetails
    */
-export declare const updateOutstateDetails: (agentStateHistoryData: AgentStateHistoryResponse, agentPerformanceData: AgentPerformance) => {
+export declare const updateOutstateDetails: (agentStateHistoryData: AgentStateHistoryResponse, agentPerformanceData: AgentPerformance, windowStartMs?: number, windowEndMs?: number) => {
     availableStates: any[];
     unavailableStates: any[];
     workingStates: any[];

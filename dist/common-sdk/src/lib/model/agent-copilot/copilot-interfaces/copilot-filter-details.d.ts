@@ -18,6 +18,73 @@ export interface CopilotFilterDetails {
      * Object containing filter values
      */
     filters?: FilterValueSets;
+    /**
+     * Original agentFilters schema (Knowledge Hub mode) with full metadata, kept so the
+     * complete structure can be sent back to the KB filter update API with user selections merged in
+     */
+    originalAgentFilters?: AgentFiltersSchema;
+    /**
+     * Agent-selected Unlocked MatchType ("Any" | "All"); undefined until the agent changes it
+     */
+    selectedMatchType?: string;
+}
+/**
+ * A single filter entry within an agentFilters Locked or Unlocked group
+ */
+export interface AgentFilterEntry {
+    /**
+     * display name of the filter, also used as its field key in the UI
+     */
+    name: string;
+    /**
+     * "Filter" or "Append"
+     */
+    mode: string;
+    /**
+     * "ListSingle" or "ListMulti"
+     */
+    datatype?: string;
+    /**
+     * all selectable values
+     */
+    listItems?: string[];
+    /**
+     * default / currently selected values
+     */
+    listDefault?: string[];
+    /**
+     * metadata key the backend filters on
+     */
+    mdaKey?: string;
+    /**
+     * comparison operator the backend applies, e.g. "Equals", "In", "Contains"
+     */
+    mdaOperator?: string;
+}
+/**
+ * A "Locked" (admin-enforced) or "Unlocked" (agent-selectable) group of agentFilters entries
+ */
+export interface AgentFilterGroup {
+    /**
+     * "Any" or "All" - how multiple filters in the group combine
+     */
+    MatchType?: string;
+    /**
+     * "Yes" | "No" - whether the agent may change MatchType (Unlocked group)
+     */
+    MatchTypeEditable?: string;
+    /**
+     * "Yes" | "No" - whether the group is shown in the filter UX (Locked group)
+     */
+    ShowFilterUX?: string;
+    filters: AgentFilterEntry[];
+}
+/**
+ * The "agentFilters" schema delivered by ACP for Knowledge Hub mode, replacing legacy expertTags
+ */
+export interface AgentFiltersSchema {
+    Locked?: AgentFilterGroup;
+    Unlocked?: AgentFilterGroup;
 }
 /**
  * Object containing different types of filter values

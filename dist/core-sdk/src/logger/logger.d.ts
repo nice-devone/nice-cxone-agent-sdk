@@ -1,5 +1,13 @@
 import { LoggerConfig } from './logger-config';
-import { AgentLog, ContactLog, SkillLog } from '@nice-devone/common-sdk';
+import { AgentLog, ContactLog, JourneyLogEntry, SkillLog } from '@nice-devone/common-sdk';
+/**
+ * The global console object augmented with the journey-checkpoint hook installed
+ * by `grafanaInit`. The console is shared across module-federation remotes even
+ * when each remote has a separate copy of the logger package.
+ */
+export declare type ConsoleWithJourneyHook = Console & {
+    __cxaJourneyCheckpoint?: (entry: JourneyLogEntry) => void;
+};
 /**
  * This class implements multiple loglevels with different appenders
  */
@@ -114,6 +122,23 @@ export declare class Logger {
      * ```
      */
     fatal(functionName: string, message: string, data?: ContactLog | AgentLog | SkillLog): void;
+    /**
+     * Journey-checkpoint logging. Bypasses Logger.config.getLevel() by design —
+     * even LogLevel.OFF does not suppress journey events. The independent
+     * DIGITAL_JOURNEY_TELEMETRY_FEATURE_TOGGLE (read inside grafanaInit's journey
+     * hook) is the sole opt-out mechanism for this event stream.
+     *
+     * Invokes the well-known console.__cxaJourneyCheckpoint hook if grafanaInit() has
+     * installed one — see the ConsoleWithJourneyHook comment above for why this
+     * console-based path is used instead of Logger.config's appenders.
+     *
+     * @param entry - Journey checkpoint data to forward.
+     * @example
+     * ```
+     * logger.journey({ journeyId, journeyName, journeyPoint, role, status });
+     * ```
+     */
+    journey(entry: JourneyLogEntry): void;
     /**
      *
      * @param level - Log level - 0

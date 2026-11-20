@@ -17,5 +17,6 @@ export declare enum VoiceContactStatus {
     CALL_BACK_DISCONNECTED = "callbackdisconnected",
     NATURAL_CALL_DIALING = "naturalcalldialing",
     NATURAL_CALL_AMD = "naturalcallamd",
-    NATURAL_CALL_RINGING = "naturalcallringing"
+    NATURAL_CALL_RINGING = "naturalcallringing",
+    DISCARDED = "discarded"
 }

@@ -41,6 +41,8 @@ export const StorageKeys = {
     CC_LINKED_ACTIVITIES: 'cc_linked_activities',
     WEBRTC_EXTENSION_INSTALL_REMINDER: 'webrtc_extension_install_reminder',
     WEBRTC_EXT_INSTALL_REMINDER_DISPLAYED: 'webrtc_ext_install_reminder_displayed',
+    VDI_MEDIA_REDIRECTOR_INSTALL_REMINDER: 'vdi_media_redirector_install_reminder',
+    VDI_MEDIA_REDIRECTOR_INSTALL_REMINDER_DISPLAYED: 'vdi_media_redirector_install_reminder_displayed',
     USER_DETAILS: 'user_details',
     CRM_BASE_URL: 'crm_base_url',
     ACTIVE_CUSTOMWORKSPACE: 'active_CustomWorkspace',
@@ -91,6 +93,7 @@ export const StorageKeys = {
     ENCRYPTION_IV: 'cxagent.userInfo',
     ORIGINATING_SERVICE_IDENTIFIER: 'originating_service_identifier',
     CXA_FAV_AGENT_STATES: 'cxaFavStates',
+    CXA_FALLBACK_VERSION: 'cxa_fallback_version',
     AGENT_PROFILE_CONFIGURATION: 'agent_profile_configuration',
     // This key is used to store the agent's current Screen Size, only if Agent Profile Configuration has Default Screen Size as Defined by Agent
     AGENT_SCREEN_SIZE: 'agent_screen_size',
@@ -120,7 +123,17 @@ export const StorageKeys = {
     IS_VOICE_TRANSCRIPT_ENABLED: 'isVoiceTranscriptEnabled',
     IS_AGENT_COPILOT_ENABLED: 'isAgentCopilotEnabled',
     SHOULD_GRAFANA_FARO_LOGS_BE_COLLECTED: 'shouldGrafanaFaroLogsBeCollected',
+    /** Stores the raw multi-CRM AgentWorkflowConfiguration GNE event for rehydration after hard refresh */
+    MULTI_CRM_WORKFLOW_CONFIG: 'multi_crm_workflow_config',
+    /**
+     * SessionStorage-backed array of contactIds whose multi-CRM screen pop has already fired in
+     * this browser session — lets a hard/normal refresh replay skip re-popping even when no CRM
+     * in the config returns pinRecords (the case CRM_PIN_RECORDS' ledger can't cover). Cleared
+     * per-contact at real interaction end, alongside clearContactMultiCrmData.
+     */
+    MULTI_CRM_SCREEN_POPPED_INTERACTIONS: 'multi_crm_screen_popped_interactions',
     AGENTIC_COPILOT_WS_URL: 'agenticCopilotWSUrl',
+    AGENT_MUTED_STATE: 'agentMutedState',
     FOCUS_SESSION_ACTIVE: 'focus_session_active',
 };
 export const NotificationSettings = {

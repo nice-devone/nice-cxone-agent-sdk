@@ -1,5 +1,5 @@
 import { BulkReplyHistoryResponse, BulkReplyResponse, CcfLogger } from '@nice-devone/agent-sdk';
-import { CXoneSdkError, HttpResponse, CXoneDigitalReplyRequest, CXoneDigitalReplaceVariables, CXoneFileUploadRequest, CXoneDigitalCreateDraftRequest, CXoneDigitalUpdateDraftRequest, CXoneDigitalQuickReply, CXoneDigitalOutboundQuickReply, CXoneQuickReplyReplaceVariableRequest, CXoneDigitalDraftContactRequest, CXoneDigitalRecipientsValidationRequest } from '@nice-devone/common-sdk';
+import { CXoneSdkError, HttpResponse, CXoneDigitalReplyRequest, CXoneDigitalReplaceVariables, CXoneFileUploadRequest, CXoneDigitalCreateDraftRequest, CXoneDigitalUpdateDraftRequest, CXoneDigitalQuickReply, CXoneDigitalOutboundQuickReply, CXoneQuickReplyReplaceVariableRequest, CXoneDigitalDraftContactRequest, CXoneDigitalRecipientsValidationRequest, DigitalContactEndReason } from '@nice-devone/common-sdk';
 import { HttpUtilService } from '@nice-devone/core-sdk';
 /**
  * Class to handle digital contact related API calls
@@ -38,10 +38,11 @@ export declare class DigitalContactService {
      * Method to change status of digital contact
      * @param caseId - Case Id of the digital contact
      * @param status - Status to be set to the digital contact
+     * @param endReason - Optional end reason sent when the contact is closed (AW-62153)
      * @returns
      * @example -
      */
-    changeCustomerContactStatus(caseId: string, status: string): Promise<HttpResponse>;
+    changeCustomerContactStatus(caseId: string, status: string, endReason?: DigitalContactEndReason): Promise<HttpResponse>;
     /**
      * Method to send bulk reply
      * @param selectedContactIds - Selected contact IDs

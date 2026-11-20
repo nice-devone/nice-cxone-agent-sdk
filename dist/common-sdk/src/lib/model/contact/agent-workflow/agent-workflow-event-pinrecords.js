@@ -18,6 +18,7 @@ class AgentWorkflowEventPinRecords {
      * ```
      */
     parse(data) {
+        var _a;
         this.type = data === null || data === void 0 ? void 0 : data.type;
         this.label = data === null || data === void 0 ? void 0 : data.label;
         this.id = data === null || data === void 0 ? void 0 : data.id;
@@ -28,6 +29,7 @@ class AgentWorkflowEventPinRecords {
         this.linked = 'true';
         this.fields = data === null || data === void 0 ? void 0 : data.fields;
         this.screenPop = data === null || data === void 0 ? void 0 : data.screenPop;
+        this.screenPopBeforeAccept = typeof (data === null || data === void 0 ? void 0 : data.screenPopBeforeAccept) === 'string' ? ((_a = data === null || data === void 0 ? void 0 : data.screenPopBeforeAccept) === null || _a === void 0 ? void 0 : _a.toLowerCase()) === 'true' : data === null || data === void 0 ? void 0 : data.screenPopBeforeAccept;
     }
 }
 exports.AgentWorkflowEventPinRecords = AgentWorkflowEventPinRecords;

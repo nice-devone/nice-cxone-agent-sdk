@@ -24,6 +24,12 @@ export declare const CXoneChannelFlagsSchema: import("yup/lib/object").OptionalO
     hasAbilityToChangeFrom: import("yup").BooleanSchema<boolean, import("yup/lib/types").AnyObject, boolean>;
     hasMultipleThreadsPerEndUser: import("yup").BooleanSchema<boolean, import("yup/lib/types").AnyObject, boolean>;
     replyPrefixMentionTemplate: import("yup").StringSchema<string, import("yup/lib/types").AnyObject, string>;
+    /**
+     * @remarks - When false, the provider does not send an authoritative customer name for this
+     * channel and the customer identity display name is agent-editable. Absent/true means the
+     * provider name is authoritative and must not be edited.
+     */
+    isSendingCustomerIdentityName: import("yup").BooleanSchema<boolean, import("yup/lib/types").AnyObject, boolean>;
 }, import("yup/lib/object").AnyObject, import("yup/lib/object").TypeOfShape<{
     hasReply: import("yup").BooleanSchema<boolean, import("yup/lib/types").AnyObject, boolean>;
     hasTreeStructure: import("yup").BooleanSchema<boolean, import("yup/lib/types").AnyObject, boolean>;
@@ -49,5 +55,11 @@ export declare const CXoneChannelFlagsSchema: import("yup/lib/object").OptionalO
     hasAbilityToChangeFrom: import("yup").BooleanSchema<boolean, import("yup/lib/types").AnyObject, boolean>;
     hasMultipleThreadsPerEndUser: import("yup").BooleanSchema<boolean, import("yup/lib/types").AnyObject, boolean>;
     replyPrefixMentionTemplate: import("yup").StringSchema<string, import("yup/lib/types").AnyObject, string>;
+    /**
+     * @remarks - When false, the provider does not send an authoritative customer name for this
+     * channel and the customer identity display name is agent-editable. Absent/true means the
+     * provider name is authoritative and must not be edited.
+     */
+    isSendingCustomerIdentityName: import("yup").BooleanSchema<boolean, import("yup/lib/types").AnyObject, boolean>;
 }>>;
 export declare type CXoneChannelFlags = InferType<typeof CXoneChannelFlagsSchema>;

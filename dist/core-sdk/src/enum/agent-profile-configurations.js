@@ -52,5 +52,9 @@ export var DesktopProfileConfigurationSettings;
     DesktopProfileConfigurationSettings["VOICE_CALL_HOLD_TIMER"] = "voiceCallHoldTimer";
     DesktopProfileConfigurationSettings["TEAM_VERSIONING_ENABLED"] = "teamVersioningEnabled";
     DesktopProfileConfigurationSettings["AGENT_VERSION"] = "agentVersion";
+    DesktopProfileConfigurationSettings["PANEL_OPEN_IN_BROWSER_GENERAL"] = "panelOpenInBrowserGeneral";
+    DesktopProfileConfigurationSettings["AGENT_EDITABLE_GENERAL"] = "agentEditableGeneral";
+    DesktopProfileConfigurationSettings["PANEL_OPEN_IN_BROWSER_PAGE_ACTION_ONLY"] = "panelOpenInBrowserPageActionOnly";
+    DesktopProfileConfigurationSettings["AGENT_EDITABLE_PAGE_ACTION_ONLY"] = "agentEditablePageActionOnly";
 })(DesktopProfileConfigurationSettings || (DesktopProfileConfigurationSettings = {}));
 //# sourceMappingURL=agent-profile-configurations.js.map

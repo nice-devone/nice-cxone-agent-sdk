@@ -83,6 +83,14 @@ var AgentCopilotContentType;
      */
     AgentCopilotContentType["TASK_ASSIST"] = "taskAssist";
     /**
+     * Represents connected event for Engagement hub
+     */
+    AgentCopilotContentType["AGENTASSIST_CTI_COMMAND"] = "AgentAssistCtiCommand";
+    /**
+     * Represents the call disconnected event
+     */
+    AgentCopilotContentType["CALL_DISCONNECTED"] = "callDisconnected";
+    /**
      * Represents the copilot decision tree content type.
      */
     AgentCopilotContentType["DECISION_TREE"] = "decisionTree";

@@ -3,7 +3,7 @@ import { Logger } from '../../logger/logger';
 import { Permissions } from './model/permissions';
 import { BusinessUnit } from './model/business-unit';
 import { CentralBrandingProfile } from './model/central-branding-profile';
-import { BrandingProfile } from './model/branding-profile';
+import { BrandingProfile, BrandingProfileV2 } from './model/branding-profile';
 import { CXoneIndicator, CXoneSdkError, HttpResponse, UserInfo, CXoneConfiguration, UserLocation } from '@nice-devone/common-sdk';
 import { AgentSettings } from './model/agent-settings';
 import { CXoneUserDetails } from './model/cxone-user-details';
@@ -160,6 +160,19 @@ export declare class AdminService {
      */
     getBrandingProfile(): Promise<BrandingProfile | CXoneSdkError>;
     /**
+     * Method to return cxone branding profiles using the V2 contract
+     * (`/branding-profiles/v2/current`, UH-77537). Always calls V2 regardless of the Lyra
+     * feature toggle — intended for the Lyra header and other new consumers that are
+     * built against the V2 field names directly. Existing consumers of
+     * {@link getBrandingProfile} keep going through the toggle-gated V1/V2 switch there.
+     * @returns - returns the cxone branding profile in the V2 shape
+     * ```
+     * @example
+     * getBrandingProfileV2()
+     * ```
+     */
+    getBrandingProfileV2(): Promise<BrandingProfileV2 | CXoneSdkError>;
+    /**
      * Method to call the script to get the skill Id
      * @example
      * ```
@@ -193,6 +206,17 @@ export declare class AdminService {
      * ```
      */
     getAllIndicators(): Promise<CXoneIndicator[]>;
+    /**
+     * Method to return the User Hub 'get user by id' uri for the active api version.
+     * AW-55807 - toggle ON routes to v4, OFF keeps the deprecated v1 endpoint. The toggle
+     * is the only rollback path, there is deliberately no runtime fallback between versions.
+     * @returns - Uri for the active User Hub users api version
+     * ```
+     * @example
+     * getUHUsersUri()
+     * ```
+     */
+    private getUHUsersUri;
     /**
      * Method to return User Hub user details
      * @returns - User Details

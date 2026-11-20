@@ -17,8 +17,10 @@ tslib_1.__exportStar(require("./lib/model/address-book-entries-response"), expor
 tslib_1.__exportStar(require("./lib/model/contact/call-contact-event"), exports);
 tslib_1.__exportStar(require("./lib/model/contact/voicemail-contact-event"), exports);
 tslib_1.__exportStar(require("./lib/model/contact/mute-event"), exports);
+tslib_1.__exportStar(require("./lib/model/contact/live-vox-error-event"), exports);
 tslib_1.__exportStar(require("./lib/model/agent/update-permissions-event"), exports);
 tslib_1.__exportStar(require("./util/utility"), exports);
+tslib_1.__exportStar(require("./util/delivery-tracking.util"), exports);
 tslib_1.__exportStar(require("./lib/model/agent/agent-session-end-event"), exports);
 tslib_1.__exportStar(require("./lib/model/agent/agent-session-start-event"), exports);
 tslib_1.__exportStar(require("./lib/model/agent-skill"), exports);
@@ -169,6 +171,7 @@ tslib_1.__exportStar(require("./lib/model/agent-setting/cxone-agent-settings"), 
 tslib_1.__exportStar(require("./enum/reaction-type"), exports);
 tslib_1.__exportStar(require("./lib/model/digital/schema/events/cxone-reply-message"), exports);
 tslib_1.__exportStar(require("./enum/feature-toggles"), exports);
+tslib_1.__exportStar(require("./enum/journey-names"), exports);
 tslib_1.__exportStar(require("./lib/model/screenPop/cxone-agent-assist"), exports);
 tslib_1.__exportStar(require("./model/cxone-public-message"), exports);
 tslib_1.__exportStar(require("./lib/model/digital/cxone-digital-approval-flow-request"), exports);
@@ -285,6 +288,11 @@ tslib_1.__exportStar(require("./lib/enum/element-roles"), exports);
 tslib_1.__exportStar(require("./lib/model/voice-transcription/interfaces/voice-transcription-web-socket-response"), exports);
 tslib_1.__exportStar(require("./lib/model/agent-copilot/copilot-interfaces/copilot-adaptive-card"), exports);
 tslib_1.__exportStar(require("./lib/enum/window-events"), exports);
+tslib_1.__exportStar(require("./lib/enum/agent-copilot-container-id"), exports);
+tslib_1.__exportStar(require("./lib/enum/agent-copilot-card-actions"), exports);
+tslib_1.__exportStar(require("./lib/enum/agent-copilot-actions"), exports);
+tslib_1.__exportStar(require("./lib/enum/agent-copilot-card-types"), exports);
+tslib_1.__exportStar(require("./lib/enum/agent-copilot-auto-summary"), exports);
 tslib_1.__exportStar(require("./lib/model/websocket/digital-event-hub-response"), exports);
 tslib_1.__exportStar(require("./model/digital-event-sync"), exports);
 tslib_1.__exportStar(require("./lib/model/voice-transcription/interfaces/voice-transcription-item"), exports);
@@ -302,4 +310,5 @@ tslib_1.__exportStar(require("./lib/enum/request-control-mode"), exports);
 tslib_1.__exportStar(require("./lib/model/digital/cxone-digital-draft-contact"), exports);
 tslib_1.__exportStar(require("./lib/model/digital/cxone-digital-recipients-validation"), exports);
 tslib_1.__exportStar(require("./lib/model/digital/schema/events/cxone-message-preview-delta-events"), exports);
+tslib_1.__exportStar(require("./lib/constants/copilot-bridge-contract"), exports);
 //# sourceMappingURL=index.js.map

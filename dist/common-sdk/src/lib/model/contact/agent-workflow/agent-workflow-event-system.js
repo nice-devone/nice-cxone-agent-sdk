@@ -22,6 +22,7 @@ class AgentWorkflowEventSystem {
         this.label = data === null || data === void 0 ? void 0 : data.label;
         this.icon = data === null || data === void 0 ? void 0 : data.icon;
         this.baseUrl = data === null || data === void 0 ? void 0 : data.baseUrl;
+        this.configurationId = data === null || data === void 0 ? void 0 : data.configurationId;
     }
 }
 exports.AgentWorkflowEventSystem = AgentWorkflowEventSystem;

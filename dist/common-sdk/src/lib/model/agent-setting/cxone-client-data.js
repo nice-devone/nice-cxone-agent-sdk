@@ -20,7 +20,7 @@ class CXoneClientData {
     parse(data) {
         this.autoAccept = (0, utility_1.parseBooleanString)(data === null || data === void 0 ? void 0 : data.AutoAccept);
         this.twentyFourHourTime = (0, utility_1.parseBooleanString)(data === null || data === void 0 ? void 0 : data.Use24HourTime);
-        this.panelPopout = (0, utility_1.parseBooleanString)(data === null || data === void 0 ? void 0 : data.Panels);
+        this.panelPopout = (data === null || data === void 0 ? void 0 : data.Panels) === undefined ? undefined : (0, utility_1.parseBooleanString)(data === null || data === void 0 ? void 0 : data.Panels);
         this.pageActionPopout = (data === null || data === void 0 ? void 0 : data.PageActionPopout) === undefined ? undefined : (0, utility_1.parseBooleanString)(data === null || data === void 0 ? void 0 : data.PageActionPopout);
         this.loggingLevel = data === null || data === void 0 ? void 0 : data.LoggingLevel;
         this.sendOnEnter = data === null || data === void 0 ? void 0 : data.SendOnEnter;

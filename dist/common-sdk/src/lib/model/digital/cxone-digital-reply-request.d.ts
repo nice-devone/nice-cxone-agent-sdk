@@ -20,6 +20,7 @@ export interface CXoneDigitalReplyRequest {
     forward?: forwardMessage;
     contact?: ContactPayload;
     isReplyToSpecificMessage?: boolean;
+    draftContact?: DraftContact;
 }
 interface Thread {
     /**
@@ -62,6 +63,12 @@ interface ReplyFrom {
     * @remarks - Unique identification of Reply From.
     */
     id: string;
+}
+interface DraftContact {
+    /**
+    * @remarks - Contact number of the draft contact.
+    */
+    contactNumber: string;
 }
 export interface MessageContent {
     type: string;
